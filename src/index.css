@@ -6,3 +6,7 @@
     --color-primary: #003366;
     --color-primary-hover: #003b75;
 }
+
+body{
+    font-family: var(--font-inter);
+}
