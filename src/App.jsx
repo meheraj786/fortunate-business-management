@@ -3,16 +3,45 @@ import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Layout from "./components/layout/Layout";
+import LC from "./pages/LC";
+import Customers from "./pages/Customers";
+import Settings from "./pages/Settings";
 
 const router = createBrowserRouter([
-  {
-    path: "/login",
-    element: <Login />,
-  },
+  { path: "/login", element: <Login /> },
   {
     path: "/",
-    element: <Dashboard />,
-  }
+    element: (
+      <Layout>
+        <Dashboard />
+      </Layout>
+    ),
+  },
+  {
+    path: "/lc-management",
+    element: (
+      <Layout>
+        <LC />
+      </Layout>
+    ),
+  },
+  {
+    path: "/customers",
+    element: (
+      <Layout>
+        <Customers />
+      </Layout>
+    ),
+  },
+  {
+    path: "/settings",
+    element: (
+      <Layout>
+        <Settings />
+      </Layout>
+    ),
+  },
 ]);
 
 const App = () => {
