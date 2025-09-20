@@ -7,22 +7,17 @@ import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings3Fill, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react";
 
-const SidebarItem = ({
-  icon: Icon,
-  label,
-  active,
-  onClick,
-  index,
-  collapsed,
-}) => {
+const SidebarItem = ({ icon: Icon, label, active, onClick, index, collapsed }) => {
   return (
     <motion.div
-      className="flex items-center p-3 rounded-lg cursor-pointer group relative"
+      className={`flex items-center p-3 rounded-lg cursor-pointer group relative ${
+        collapsed ? "justify-center" : "justify-start"
+      }`}
       onClick={onClick}
-      initial={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0, x: -15 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
-      whileHover={{ x: 5 }}
+      transition={{ duration: 0.25, delay: index * 0.04 }}
+      whileHover={{ x: collapsed ? 0 : 5 }}
     >
       <div
         className={`p-2 rounded-lg shadow-md transition-colors duration-200 ${
@@ -36,19 +31,19 @@ const SidebarItem = ({
         {!collapsed && (
           <motion.span
             className={`ml-2 transition-colors duration-200 whitespace-nowrap ${
-              active
-                ? "text-gray-800 font-semibold"
-                : "text-gray-500 font-normal"
+              active ? "text-gray-800 font-semibold" : "text-gray-500 font-normal"
             }`}
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto" }}
-            exit={{ opacity: 0, width: 0 }}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
           >
             {label}
           </motion.span>
         )}
       </AnimatePresence>
 
+      {/* Tooltip when collapsed */}
       {collapsed && (
         <div className="absolute left-full ml-3 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
           {label}
@@ -58,6 +53,7 @@ const SidebarItem = ({
   );
 };
 
+
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -65,7 +61,7 @@ const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Add routing here, 
+  // Add routing here,
   // New page routing should be added in the menuItems array below
 
   const menuItems = [
@@ -131,6 +127,7 @@ const Sidebar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
               onClick={() => setMobileOpen(false)}
             />
           )}
@@ -140,10 +137,10 @@ const Sidebar = () => {
           {mobileOpen && (
             <motion.div
               className="fixed inset-y-0 left-0 w-64 bg-[#f8f9fa] z-50 shadow-lg overflow-y-auto"
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              initial={{ x: -300, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -300, opacity: 0 }}
+              transition={{ type: "tween", duration: 0.35, ease: "easeInOut" }}
             >
               <div className="p-6 h-full flex flex-col">
                 <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-6">
@@ -177,22 +174,24 @@ const Sidebar = () => {
   return (
     <motion.div
       className="bg-[#f8f9fa] h-screen sticky top-0 z-30"
-      animate={{ width: collapsed ? "80px" : "256px" }}
-      transition={{ duration: 0.3 }}
+      animate={{ width: collapsed ? 80 : 256 }}
+      transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }} // smoother cubic-bezier
     >
       <div className="border-r border-gray-300 h-full p-4 flex flex-col">
+        {/* Header */}
         <div
-          className={`flex ${
+          className={`flex items-center border-b border-gray-200 pb-4 mb-6 ${
             collapsed ? "justify-center" : "justify-between"
-          } items-center border-b border-gray-200 pb-4 mb-6`}
+          }`}
         >
           <AnimatePresence>
             {!collapsed && (
               <motion.div
                 className="font-inter text-lg font-bold"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, x: -15 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -15 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
               >
                 BUSINESS MANAGEMENT <br /> SYSTEM
               </motion.div>
@@ -201,12 +200,13 @@ const Sidebar = () => {
 
           <button
             onClick={toggleSidebar}
-            className="p-1 rounded-full hover:bg-gray-200"
+            className="p-1 rounded-full hover:bg-gray-200 cursor-pointer"
           >
             <RiMenuLine size={20} />
           </button>
         </div>
 
+        {/* Menu Items */}
         <div className="space-y-2">
           {menuItems.map((item, i) => (
             <SidebarItem
