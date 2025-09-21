@@ -7,6 +7,8 @@ import { BsFillCreditCardFill } from "react-icons/bs";
 import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings3Fill, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react";
+import { FaSalesforce } from "react-icons/fa";
+import { ChartColumnIncreasing } from "lucide-react";
 
 const SidebarItem = ({
   icon: Icon,
@@ -81,7 +83,7 @@ const Sidebar = () => {
       path: "/lc-management",
     },
     { icon: MdInventory, label: "Stock Management", path: "/stock-management" },
-    { icon: MdInventory, label: "Products", path: "/products" },
+    { icon: ChartColumnIncreasing, label: "Sales", path: "/sales" },
     { icon: MdPeopleAlt, label: "Team", path: "/team" },
     { icon: MdPeopleAlt, label: "Customers", path: "/customers" },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
@@ -92,9 +94,9 @@ const Sidebar = () => {
     if (path === "/") return "Dashboard";
     if (path.includes("/lc-management")) return "LC management";
     if (path.includes("/customers")) return "Customers";
+    if (path.includes("/sales")) return "Sales";
     if (path.includes("/settings")) return "Settings";
     if (path.includes("/stock-management")) return "Stock Management";
-    if (path.includes("/products")) return "Products";
     if (path.includes("/team")) return "Team";
     return "";
   };
@@ -124,7 +126,6 @@ const Sidebar = () => {
     if (isMobile) setMobileOpen(false);
   };
 
-  // Mobile sidebar
   if (isMobile) {
     return (
       <>
@@ -185,12 +186,11 @@ const Sidebar = () => {
     );
   }
 
-  // Desktop sidebar
   return (
     <motion.div
       className="bg-[#f8f9fa] h-screen sticky top-0 z-30"
       animate={{ width: collapsed ? 80 : 256 }}
-      transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }} // smoother cubic-bezier
+      transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <div className="border-r border-gray-300 h-full p-4 flex flex-col">
         {/* Header */}
