@@ -46,7 +46,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/lc-details",
+    path: "/lc-details/:id",
     element: (
       <Layout>
         <LCdetails />

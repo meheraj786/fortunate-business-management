@@ -20,8 +20,9 @@ import {
   FiEdit,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "motion/react";
+import { useParams } from "react-router";
+import { lcData as allLc } from "../../data/data";
 
-// Mock data for the LC details
 const lcData = {
   basicInfo: {
     lcNumber: "LC-2023-0875",
@@ -219,6 +220,8 @@ const DataField = ({ label, value, icon, hidden = false }) => {
 };
 
 const LCdetails = () => {
+  const { id } = useParams();
+  const lcData = allLc.find((l) => l.id == id);
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
