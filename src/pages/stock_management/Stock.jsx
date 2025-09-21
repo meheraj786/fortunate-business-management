@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Search, Plus, Package, Layers, Palette, Ruler, Warehouse, ChevronsDown, ChartColumnStacked } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Package,
+  Layers,
+  Palette,
+  Ruler,
+  Warehouse,
+  ChevronsDown,
+  ChartColumnStacked,
+} from "lucide-react";
 import { products } from "../../data/data";
 import ProductCard from "../../layout/ProductCard";
 import StatBox from "../../layout/StatBox";
@@ -33,7 +43,7 @@ const Stock = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div className="flex-1">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Steel Products
+                Stock & Inventory
               </h1>
               <p className="text-gray-600 mt-1 text-sm sm:text-base">
                 Manage your steel inventory and product catalog.
@@ -45,12 +55,32 @@ const Stock = () => {
             </button>
           </div>
           <div className="my-6 sm:mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-
-            <StatBox title={"Total Products"} number={products.length} Icon={Warehouse}  />
-            <StatBox title={"Low Stock"} number={products.filter((product) => product.quantity <= 10).length} Icon={ChevronsDown} textColor="red" />
-            <StatBox title={"Categories"} number={categories.length - 1} Icon={ChartColumnStacked} />
-            <StatBox title={"In Stock"} number={products.filter((product) => product.quantity > 50).length} Icon={Layers} textColor="green" />
-
+            <StatBox
+              title={"Total Products"}
+              number={products.length}
+              Icon={Warehouse}
+            />
+            <StatBox
+              title={"Low Stock"}
+              number={
+                products.filter((product) => product.quantity <= 10).length
+              }
+              Icon={ChevronsDown}
+              textColor="red"
+            />
+            <StatBox
+              title={"Categories"}
+              number={categories.length - 1}
+              Icon={ChartColumnStacked}
+            />
+            <StatBox
+              title={"In Stock"}
+              number={
+                products.filter((product) => product.quantity > 50).length
+              }
+              Icon={Layers}
+              textColor="green"
+            />
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
