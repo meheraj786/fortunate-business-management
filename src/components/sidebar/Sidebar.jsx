@@ -1,3 +1,4 @@
+import { MdInventory } from "react-icons/md";
 // Sidebar.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
@@ -7,7 +8,14 @@ import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings3Fill, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react";
 
-const SidebarItem = ({ icon: Icon, label, active, onClick, index, collapsed }) => {
+const SidebarItem = ({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+  index,
+  collapsed,
+}) => {
   return (
     <motion.div
       className={`flex items-center p-3 rounded-lg cursor-pointer group relative ${
@@ -31,7 +39,9 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, index, collapsed }) =
         {!collapsed && (
           <motion.span
             className={`ml-2 transition-colors duration-200 whitespace-nowrap ${
-              active ? "text-gray-800 font-semibold" : "text-gray-500 font-normal"
+              active
+                ? "text-gray-800 font-semibold"
+                : "text-gray-500 font-normal"
             }`}
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
@@ -53,7 +63,6 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, index, collapsed }) =
   );
 };
 
-
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,6 +80,7 @@ const Sidebar = () => {
       label: "LC management",
       path: "/lc-management",
     },
+    { icon: MdInventory, label: "Stock Management", path: "/stock-management" },
     { icon: MdPeopleAlt, label: "Customers", path: "/customers" },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
   ];
@@ -81,6 +91,7 @@ const Sidebar = () => {
     if (path.includes("/lc-management")) return "LC management";
     if (path.includes("/customers")) return "Customers";
     if (path.includes("/settings")) return "Settings";
+    if (path.includes("/stock-management")) return "Stock Management";
     return "";
   };
 

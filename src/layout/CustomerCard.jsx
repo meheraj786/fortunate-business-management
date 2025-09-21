@@ -1,9 +1,15 @@
-import React from "react";
 import { MapPin, Phone, ShoppingBag } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const CustomerCard = ({ customer }) => {
+  let navigate = useNavigate();
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+    <div
+      onClick={() => {
+        navigate("/customer-details");
+      }}
+      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+    >
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate pr-2">

@@ -177,7 +177,7 @@ const SectionCard = ({ title, icon, children, defaultOpen = true }) => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center">
-          <span className="text-blue-600 mr-3 text-lg">{icon}</span>
+          <span className="text-[#003b75] mr-3 text-lg">{icon}</span>
           <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
         </div>
         {isOpen ? (
@@ -241,7 +241,7 @@ const LCdetails = () => {
               <FiDownload className="mr-2" />
               Export
             </button>
-            <button className="flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700">
+            <button className="flex items-center px-4 py-2 bg-[#003b75] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700">
               <FiEdit className="mr-2" />
               Edit
             </button>
@@ -474,7 +474,7 @@ const LCdetails = () => {
                             {file.type} • {file.size}
                           </div>
                         </div>
-                        <button className="ml-2 text-blue-600 hover:text-blue-800">
+                        <button className="ml-2 text-[#003b75] hover:text-blue-800">
                           <FiDownload />
                         </button>
                       </div>

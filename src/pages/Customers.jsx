@@ -35,7 +35,7 @@ const Customers = () => {
       </div>
       <div className="grid grid-cols-1 mt-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {customers.map((customer) => (
-          <CustomerCard key={customer.id} customer={customer} />
+          <CustomerCard key={customer.id} customer={customer}  />
         ))}
       </div>
     </div>

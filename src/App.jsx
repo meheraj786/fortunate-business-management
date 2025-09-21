@@ -8,6 +8,8 @@ import LC from "./pages/LC";
 import Customers from "./pages/Customers";
 import Settings from "./pages/Settings";
 import LCdetails from "./pages/lc_management/LCdetails";
+import CustomerDetails from "./pages/customer_management/CustomerDetails";
+import Stock from "./pages/stock_management/Stock";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -48,6 +50,22 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <LCdetails />
+      </Layout>
+    ),
+  },
+  {
+    path: "/customer-details",
+    element: (
+      <Layout>
+        <CustomerDetails />
+      </Layout>
+    ),
+  },
+  {
+    path: "/stock-management",
+    element: (
+      <Layout>
+        <Stock />
       </Layout>
     ),
   },
