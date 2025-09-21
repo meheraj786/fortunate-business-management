@@ -7,6 +7,7 @@ import Layout from "./components/layout/Layout";
 import LC from "./pages/LC";
 import Customers from "./pages/Customers";
 import Settings from "./pages/Settings";
+import LCdetails from "./pages/lc_management/LCdetails";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -39,6 +40,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <Settings />
+      </Layout>
+    ),
+  },
+  {
+    path: "/lc-details",
+    element: (
+      <Layout>
+        <LCdetails />
       </Layout>
     ),
   },
