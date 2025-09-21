@@ -81,6 +81,8 @@ const Sidebar = () => {
       path: "/lc-management",
     },
     { icon: MdInventory, label: "Stock Management", path: "/stock-management" },
+    { icon: MdInventory, label: "Products", path: "/products" },
+    { icon: MdPeopleAlt, label: "Team", path: "/team" },
     { icon: MdPeopleAlt, label: "Customers", path: "/customers" },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
   ];
@@ -92,6 +94,8 @@ const Sidebar = () => {
     if (path.includes("/customers")) return "Customers";
     if (path.includes("/settings")) return "Settings";
     if (path.includes("/stock-management")) return "Stock Management";
+    if (path.includes("/products")) return "Products";
+    if (path.includes("/team")) return "Team";
     return "";
   };
 

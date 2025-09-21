@@ -184,8 +184,8 @@ const CustomerDetails = () => {
   const {id}=useParams()
   const customerData=customers.find((c)=>c.id==id)
   return (
-    <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen  py-4 px-4 sm:px-6 lg:px-8">
+      <div className=" mx-auto">
         <motion.div 
           className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between"
           initial={{ opacity: 0, y: -10 }}

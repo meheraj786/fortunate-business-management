@@ -78,7 +78,7 @@ export const lcData = [
     quantity: "5000 yards",
     totalAmount: "$45,250.00",
     beneficiary: "ABC Textiles Ltd",
-    
+
     basicInfo: {
       lcNumber: "LC-2023-001",
       lcType: "Sight LC",
@@ -172,7 +172,7 @@ export const lcData = [
       lastUpdated: "2023-08-15 10:30",
     },
   },
-  
+
   {
     id: 2,
     lcNumber: "LC-2023-002",
@@ -183,7 +183,7 @@ export const lcData = [
     quantity: "2000 MT",
     totalAmount: "$125,800.00",
     beneficiary: "XYZ Trading Co",
-    
+
     basicInfo: {
       lcNumber: "LC-2023-002",
       lcType: "Usance LC",
@@ -278,7 +278,7 @@ export const lcData = [
       lastUpdated: "2023-10-22 16:45",
     },
   },
-  
+
   {
     id: 3,
     lcNumber: "LC-2023-003",
@@ -289,7 +289,7 @@ export const lcData = [
     quantity: "1500 units",
     totalAmount: "$89,600.00",
     beneficiary: "Tech Solutions Inc",
-    
+
     // Detailed LC Info
     basicInfo: {
       lcNumber: "LC-2023-003",
@@ -377,7 +377,8 @@ export const lcData = [
     ],
     tracking: {
       status: "Under Review",
-      remarks: "Documents under bank verification. Waiting for compliance check.",
+      remarks:
+        "Documents under bank verification. Waiting for compliance check.",
       attachments: [
         { name: "LC_Application.pdf", type: "PDF", size: "3.1 MB" },
         { name: "Technical_Specs.pdf", type: "PDF", size: "2.5 MB" },
@@ -386,7 +387,7 @@ export const lcData = [
       lastUpdated: "2023-09-25 11:20",
     },
   },
-  
+
   {
     // Basic LC Info
     id: 4,
@@ -398,7 +399,7 @@ export const lcData = [
     quantity: "800 pieces",
     totalAmount: "$32,400.00",
     beneficiary: "Premium Leather Co",
-    
+
     basicInfo: {
       lcNumber: "LC-2023-004",
       lcType: "Sight LC",
@@ -484,7 +485,8 @@ export const lcData = [
     ],
     tracking: {
       status: "Production Started",
-      remarks: "Manufacturing in progress. Expected completion by November 2023.",
+      remarks:
+        "Manufacturing in progress. Expected completion by November 2023.",
       attachments: [
         { name: "LC_Original.pdf", type: "PDF", size: "2.2 MB" },
         { name: "Sample_Approval.pdf", type: "PDF", size: "1.9 MB" },
@@ -492,7 +494,7 @@ export const lcData = [
       lastUpdated: "2023-09-20 14:15",
     },
   },
-  
+
   {
     id: 5,
     lcNumber: "LC-2023-005",
@@ -503,7 +505,7 @@ export const lcData = [
     quantity: "3000 kg",
     totalAmount: "$18,750.00",
     beneficiary: "Spice Garden Ltd",
-    
+
     basicInfo: {
       lcNumber: "LC-2023-005",
       lcType: "Sight LC",
@@ -590,7 +592,8 @@ export const lcData = [
     ],
     tracking: {
       status: "Completed Successfully",
-      remarks: "Payment received. Goods delivered successfully. Transaction completed.",
+      remarks:
+        "Payment received. Goods delivered successfully. Transaction completed.",
       attachments: [
         { name: "LC_Completed.pdf", type: "PDF", size: "2.0 MB" },
         { name: "Payment_Receipt.pdf", type: "PDF", size: "800 KB" },
@@ -599,7 +602,7 @@ export const lcData = [
       lastUpdated: "2023-09-18 16:30",
     },
   },
-  
+
   {
     id: 6,
     lcNumber: "LC-2023-006",
@@ -610,7 +613,7 @@ export const lcData = [
     quantity: "500 units",
     totalAmount: "$67,890.00",
     beneficiary: "MediCare Pharma",
-    
+
     basicInfo: {
       lcNumber: "LC-2023-006",
       lcType: "Standby LC",
@@ -698,7 +701,8 @@ export const lcData = [
     ],
     tracking: {
       status: "Regulatory Review",
-      remarks: "Under regulatory compliance review. Health Canada approval pending.",
+      remarks:
+        "Under regulatory compliance review. Health Canada approval pending.",
       attachments: [
         { name: "LC_Application.pdf", type: "PDF", size: "3.5 MB" },
         { name: "Regulatory_Docs.pdf", type: "PDF", size: "4.2 MB" },
@@ -777,71 +781,88 @@ export const customers = [
     totalPurchased: "$3,250.00",
     lastPurchase: "20 Sep 2023",
     status: "Active",
-    
+
     // Detailed Customer Info
     basicInfo: {
-      customerId: 'CUST-2023-0001',
-      name: 'Ahmed Hassan',
-      type: 'Retail',
-      status: 'Active',
+      customerId: "CUST-2023-0001",
+      name: "Ahmed Hassan",
+      type: "Retail",
+      status: "Active",
       profilePhoto: null,
-      joinDate: '2021-03-12',
-      customerTier: 'Silver'
+      joinDate: "2021-03-12",
+      customerTier: "Silver",
     },
     contactInfo: {
-      phone: '+880 1712-345678',
-      email: 'ahmed.hassan@email.com',
+      phone: "+880 1712-345678",
+      email: "ahmed.hassan@email.com",
       website: null,
-      billingAddress: '45 Dhanmondi Road, Dhaka-1205, Bangladesh',
-      shippingAddress: '45 Dhanmondi Road, Dhaka-1205, Bangladesh',
-      contactPerson: 'Ahmed Hassan',
-      contactPersonPhone: '+880 1712-345678',
-      contactPersonEmail: 'ahmed.hassan@email.com'
+      billingAddress: "45 Dhanmondi Road, Dhaka-1205, Bangladesh",
+      shippingAddress: "45 Dhanmondi Road, Dhaka-1205, Bangladesh",
+      contactPerson: "Ahmed Hassan",
+      contactPersonPhone: "+880 1712-345678",
+      contactPersonEmail: "ahmed.hassan@email.com",
     },
     businessInfo: {
-      companyName: 'Hassan Trading',
-      businessType: 'Local Trader',
-      tradeLicense: 'TL-BD-456123',
-      tin: 'TIN-BD-123456789',
-      vatInfo: 'VAT Registered (BD-456789)',
+      companyName: "Hassan Trading",
+      businessType: "Local Trader",
+      tradeLicense: "TL-BD-456123",
+      tin: "TIN-BD-123456789",
+      vatInfo: "VAT Registered (BD-456789)",
       creditLimit: 5000,
-      paymentTerms: 'Cash on Delivery',
-      currency: 'BDT'
+      paymentTerms: "Cash on Delivery",
+      currency: "BDT",
     },
     bankInfo: {
-      bankName: 'Dutch Bangla Bank',
-      branch: 'Dhanmondi Branch',
-      accountNumber: '********7890',
-      routingNumber: '090260456',
-      swiftCode: 'DBBLBDDHXXX',
-      iban: 'BD33DBBL1234567890'
+      bankName: "Dutch Bangla Bank",
+      branch: "Dhanmondi Branch",
+      accountNumber: "********7890",
+      routingNumber: "090260456",
+      swiftCode: "DBBLBDDHXXX",
+      iban: "BD33DBBL1234567890",
     },
     transactionHistory: {
       totalPurchases: 260000,
       outstandingDues: 0,
       advancePaid: 0,
-      lastPurchaseDate: '2023-09-20',
+      lastPurchaseDate: "2023-09-20",
       lastPurchaseAmount: 3250,
       totalTransactions: 12,
-      averageOrderValue: 2708
+      averageOrderValue: 2708,
     },
     lcLinks: [
-      { lcNumber: 'LC-2023-001', status: 'Active', value: 45250, issueDate: '2023-08-15' }
+      {
+        lcNumber: "LC-2023-001",
+        status: "Active",
+        value: 45250,
+        issueDate: "2023-08-15",
+      },
     ],
     documents: [
-      { name: 'Trade_License_BD.pdf', type: 'PDF', size: '1.8 MB', uploadDate: '2021-03-15' },
-      { name: 'NID_Copy.pdf', type: 'PDF', size: '800 KB', uploadDate: '2021-03-12' }
+      {
+        name: "Trade_License_BD.pdf",
+        type: "PDF",
+        size: "1.8 MB",
+        uploadDate: "2021-03-15",
+      },
+      {
+        name: "NID_Copy.pdf",
+        type: "PDF",
+        size: "800 KB",
+        uploadDate: "2021-03-12",
+      },
     ],
     notes: {
-      remarks: 'Regular customer. Prefers Bengali communication. Usually orders textile items.',
-      assignedManager: 'Rashid Khan',
-      managerContact: 'rashid@company.com',
-      lastContact: '2023-09-20',
-      nextFollowUp: '2023-10-20',
-      specialInstructions: 'Provide local delivery option. Accept mobile banking payments.'
-    }
+      remarks:
+        "Regular customer. Prefers Bengali communication. Usually orders textile items.",
+      assignedManager: "Rashid Khan",
+      managerContact: "rashid@company.com",
+      lastContact: "2023-09-20",
+      nextFollowUp: "2023-10-20",
+      specialInstructions:
+        "Provide local delivery option. Accept mobile banking payments.",
+    },
   },
-  
+
   {
     // Basic Customer Info
     id: 2,
@@ -851,72 +872,94 @@ export const customers = [
     totalPurchased: "$1,890.50",
     lastPurchase: "18 Sep 2023",
     status: "Active",
-    
+
     // Detailed Customer Info
     basicInfo: {
-      customerId: 'CUST-2023-0002',
-      name: 'Sarah Khan',
-      type: 'Wholesale',
-      status: 'Active',
+      customerId: "CUST-2023-0002",
+      name: "Sarah Khan",
+      type: "Wholesale",
+      status: "Active",
       profilePhoto: null,
-      joinDate: '2022-07-08',
-      customerTier: 'Bronze'
+      joinDate: "2022-07-08",
+      customerTier: "Bronze",
     },
     contactInfo: {
-      phone: '+880 1523-456789',
-      email: 'sarah.khan@business.com',
-      website: 'www.sarahenterprises.com',
-      billingAddress: '78 Agrabad Commercial Area, Chittagong-4100, Bangladesh',
-      shippingAddress: '78 Agrabad Commercial Area, Chittagong-4100, Bangladesh',
-      contactPerson: 'Sarah Khan',
-      contactPersonPhone: '+880 1523-456789',
-      contactPersonEmail: 'sarah.khan@business.com'
+      phone: "+880 1523-456789",
+      email: "sarah.khan@business.com",
+      website: "www.sarahenterprises.com",
+      billingAddress: "78 Agrabad Commercial Area, Chittagong-4100, Bangladesh",
+      shippingAddress:
+        "78 Agrabad Commercial Area, Chittagong-4100, Bangladesh",
+      contactPerson: "Sarah Khan",
+      contactPersonPhone: "+880 1523-456789",
+      contactPersonEmail: "sarah.khan@business.com",
     },
     businessInfo: {
-      companyName: 'Sarah Enterprises',
-      businessType: 'Import & Export',
-      tradeLicense: 'TL-CTG-789456',
-      tin: 'TIN-CTG-987654321',
-      vatInfo: 'VAT Registered (CTG-123456)',
+      companyName: "Sarah Enterprises",
+      businessType: "Import & Export",
+      tradeLicense: "TL-CTG-789456",
+      tin: "TIN-CTG-987654321",
+      vatInfo: "VAT Registered (CTG-123456)",
       creditLimit: 10000,
-      paymentTerms: 'Net 15 days',
-      currency: 'USD'
+      paymentTerms: "Net 15 days",
+      currency: "USD",
     },
     bankInfo: {
-      bankName: 'IFIC Bank',
-      branch: 'Agrabad Branch',
-      accountNumber: '********2345',
-      routingNumber: '070270123',
-      swiftCode: 'IFICBDDH',
-      iban: 'BD47IFIC2345678901'
+      bankName: "IFIC Bank",
+      branch: "Agrabad Branch",
+      accountNumber: "********2345",
+      routingNumber: "070270123",
+      swiftCode: "IFICBDDH",
+      iban: "BD47IFIC2345678901",
     },
     transactionHistory: {
       totalPurchases: 151240,
       outstandingDues: 5600,
       advancePaid: 1200,
-      lastPurchaseDate: '2023-09-18',
-      lastPurchaseAmount: 1890.50,
+      lastPurchaseDate: "2023-09-18",
+      lastPurchaseAmount: 1890.5,
       totalTransactions: 23,
-      averageOrderValue: 1971
+      averageOrderValue: 1971,
     },
     lcLinks: [
-      { lcNumber: 'LC-2023-002', status: 'Expired', value: 125800, issueDate: '2023-07-22' }
+      {
+        lcNumber: "LC-2023-002",
+        status: "Expired",
+        value: 125800,
+        issueDate: "2023-07-22",
+      },
     ],
     documents: [
-      { name: 'Export_License.pdf', type: 'PDF', size: '2.1 MB', uploadDate: '2022-07-10' },
-      { name: 'Company_Registration.pdf', type: 'PDF', size: '1.4 MB', uploadDate: '2022-07-08' },
-      { name: 'Bank_Statement.pdf', type: 'PDF', size: '3.2 MB', uploadDate: '2023-01-15' }
+      {
+        name: "Export_License.pdf",
+        type: "PDF",
+        size: "2.1 MB",
+        uploadDate: "2022-07-10",
+      },
+      {
+        name: "Company_Registration.pdf",
+        type: "PDF",
+        size: "1.4 MB",
+        uploadDate: "2022-07-08",
+      },
+      {
+        name: "Bank_Statement.pdf",
+        type: "PDF",
+        size: "3.2 MB",
+        uploadDate: "2023-01-15",
+      },
     ],
     notes: {
-      remarks: 'Growing business. Interested in bulk orders. Good payment history.',
-      assignedManager: 'Nasir Ahmed',
-      managerContact: 'nasir@company.com',
-      lastContact: '2023-09-18',
-      nextFollowUp: '2023-10-15',
-      specialInstructions: 'Offer volume discounts. Port delivery preferred.'
-    }
+      remarks:
+        "Growing business. Interested in bulk orders. Good payment history.",
+      assignedManager: "Nasir Ahmed",
+      managerContact: "nasir@company.com",
+      lastContact: "2023-09-18",
+      nextFollowUp: "2023-10-15",
+      specialInstructions: "Offer volume discounts. Port delivery preferred.",
+    },
   },
-  
+
   {
     // Basic Customer Info
     id: 3,
@@ -926,71 +969,88 @@ export const customers = [
     totalPurchased: "$4,120.75",
     lastPurchase: "12 Sep 2023",
     status: "Inactive",
-    
+
     // Detailed Customer Info
     basicInfo: {
-      customerId: 'CUST-2023-0003',
-      name: 'Mohammad Ali',
-      type: 'Retail',
-      status: 'Inactive',
+      customerId: "CUST-2023-0003",
+      name: "Mohammad Ali",
+      type: "Retail",
+      status: "Inactive",
       profilePhoto: null,
-      joinDate: '2020-11-22',
-      customerTier: 'Gold'
+      joinDate: "2020-11-22",
+      customerTier: "Gold",
     },
     contactInfo: {
-      phone: '+880 1634-567890',
-      email: 'mohammad.ali@gmail.com',
+      phone: "+880 1634-567890",
+      email: "mohammad.ali@gmail.com",
       website: null,
-      billingAddress: '234 Zindabazar, Sylhet-3100, Bangladesh',
-      shippingAddress: '234 Zindabazar, Sylhet-3100, Bangladesh',
-      contactPerson: 'Mohammad Ali',
-      contactPersonPhone: '+880 1634-567890',
-      contactPersonEmail: 'mohammad.ali@gmail.com'
+      billingAddress: "234 Zindabazar, Sylhet-3100, Bangladesh",
+      shippingAddress: "234 Zindabazar, Sylhet-3100, Bangladesh",
+      contactPerson: "Mohammad Ali",
+      contactPersonPhone: "+880 1634-567890",
+      contactPersonEmail: "mohammad.ali@gmail.com",
     },
     businessInfo: {
-      companyName: 'Ali Electronics',
-      businessType: 'Electronics Retailer',
-      tradeLicense: 'TL-SYL-321654',
-      tin: 'TIN-SYL-456789123',
-      vatInfo: 'VAT Registered (SYL-789123)',
+      companyName: "Ali Electronics",
+      businessType: "Electronics Retailer",
+      tradeLicense: "TL-SYL-321654",
+      tin: "TIN-SYL-456789123",
+      vatInfo: "VAT Registered (SYL-789123)",
       creditLimit: 8000,
-      paymentTerms: 'Net 30 days',
-      currency: 'BDT'
+      paymentTerms: "Net 30 days",
+      currency: "BDT",
     },
     bankInfo: {
-      bankName: 'Sonali Bank',
-      branch: 'Sylhet Branch',
-      accountNumber: '********3456',
-      routingNumber: '050260789',
-      swiftCode: 'SONBBDDH',
-      iban: 'BD12SONB3456789012'
+      bankName: "Sonali Bank",
+      branch: "Sylhet Branch",
+      accountNumber: "********3456",
+      routingNumber: "050260789",
+      swiftCode: "SONBBDDH",
+      iban: "BD12SONB3456789012",
     },
     transactionHistory: {
       totalPurchases: 330000,
       outstandingDues: 15000,
       advancePaid: 0,
-      lastPurchaseDate: '2023-09-12',
+      lastPurchaseDate: "2023-09-12",
       lastPurchaseAmount: 4120.75,
       totalTransactions: 34,
-      averageOrderValue: 2879
+      averageOrderValue: 2879,
     },
     lcLinks: [
-      { lcNumber: 'LC-2023-003', status: 'Pending', value: 89600, issueDate: '2023-09-10' }
+      {
+        lcNumber: "LC-2023-003",
+        status: "Pending",
+        value: 89600,
+        issueDate: "2023-09-10",
+      },
     ],
     documents: [
-      { name: 'Shop_License.pdf', type: 'PDF', size: '1.2 MB', uploadDate: '2020-11-25' },
-      { name: 'Tax_Clearance.pdf', type: 'PDF', size: '900 KB', uploadDate: '2023-01-10' }
+      {
+        name: "Shop_License.pdf",
+        type: "PDF",
+        size: "1.2 MB",
+        uploadDate: "2020-11-25",
+      },
+      {
+        name: "Tax_Clearance.pdf",
+        type: "PDF",
+        size: "900 KB",
+        uploadDate: "2023-01-10",
+      },
     ],
     notes: {
-      remarks: 'Previously regular customer. Payment delays in recent months. Requires follow-up.',
-      assignedManager: 'Fatima Rahman',
-      managerContact: 'fatima@company.com',
-      lastContact: '2023-09-25',
-      nextFollowUp: '2023-10-10',
-      specialInstructions: 'Monitor payment closely. Consider credit limit review.'
-    }
+      remarks:
+        "Previously regular customer. Payment delays in recent months. Requires follow-up.",
+      assignedManager: "Fatima Rahman",
+      managerContact: "fatima@company.com",
+      lastContact: "2023-09-25",
+      nextFollowUp: "2023-10-10",
+      specialInstructions:
+        "Monitor payment closely. Consider credit limit review.",
+    },
   },
-  
+
   {
     // Basic Customer Info
     id: 4,
@@ -1000,72 +1060,94 @@ export const customers = [
     totalPurchased: "$2,675.25",
     lastPurchase: "25 Aug 2023",
     status: "Pending",
-    
+
     // Detailed Customer Info
     basicInfo: {
-      customerId: 'CUST-2023-0004',
-      name: 'Fatima Rahman',
-      type: 'Wholesale',
-      status: 'Pending',
+      customerId: "CUST-2023-0004",
+      name: "Fatima Rahman",
+      type: "Wholesale",
+      status: "Pending",
       profilePhoto: null,
-      joinDate: '2023-08-01',
-      customerTier: 'Bronze'
+      joinDate: "2023-08-01",
+      customerTier: "Bronze",
     },
     contactInfo: {
-      phone: '+880 1845-678901',
-      email: 'fatima.rahman@textiles.com',
-      website: 'www.rahmanfabrics.com',
-      billingAddress: '567 Silk City, Rajshahi-6000, Bangladesh',
-      shippingAddress: '567 Silk City, Rajshahi-6000, Bangladesh',
-      contactPerson: 'Fatima Rahman',
-      contactPersonPhone: '+880 1845-678901',
-      contactPersonEmail: 'fatima.rahman@textiles.com'
+      phone: "+880 1845-678901",
+      email: "fatima.rahman@textiles.com",
+      website: "www.rahmanfabrics.com",
+      billingAddress: "567 Silk City, Rajshahi-6000, Bangladesh",
+      shippingAddress: "567 Silk City, Rajshahi-6000, Bangladesh",
+      contactPerson: "Fatima Rahman",
+      contactPersonPhone: "+880 1845-678901",
+      contactPersonEmail: "fatima.rahman@textiles.com",
     },
     businessInfo: {
-      companyName: 'Rahman Fabrics Ltd',
-      businessType: 'Textile Manufacturer',
-      tradeLicense: 'TL-RAJ-654987',
-      tin: 'TIN-RAJ-789456123',
-      vatInfo: 'VAT Application Pending',
+      companyName: "Rahman Fabrics Ltd",
+      businessType: "Textile Manufacturer",
+      tradeLicense: "TL-RAJ-654987",
+      tin: "TIN-RAJ-789456123",
+      vatInfo: "VAT Application Pending",
       creditLimit: 3000,
-      paymentTerms: 'Advance Payment',
-      currency: 'USD'
+      paymentTerms: "Advance Payment",
+      currency: "USD",
     },
     bankInfo: {
-      bankName: 'Agrani Bank',
-      branch: 'Rajshahi Branch',
-      accountNumber: '********4567',
-      routingNumber: '020260456',
-      swiftCode: 'AGBKBDDH',
-      iban: 'BD78AGBK4567890123'
+      bankName: "Agrani Bank",
+      branch: "Rajshahi Branch",
+      accountNumber: "********4567",
+      routingNumber: "020260456",
+      swiftCode: "AGBKBDDH",
+      iban: "BD78AGBK4567890123",
     },
     transactionHistory: {
       totalPurchases: 214200,
       outstandingDues: 0,
       advancePaid: 5000,
-      lastPurchaseDate: '2023-08-25',
+      lastPurchaseDate: "2023-08-25",
       lastPurchaseAmount: 2675.25,
       totalTransactions: 8,
-      averageOrderValue: 3344
+      averageOrderValue: 3344,
     },
     lcLinks: [
-      { lcNumber: 'LC-2023-004', status: 'Active', value: 32400, issueDate: '2023-09-05' }
+      {
+        lcNumber: "LC-2023-004",
+        status: "Active",
+        value: 32400,
+        issueDate: "2023-09-05",
+      },
     ],
     documents: [
-      { name: 'Company_Incorporation.pdf', type: 'PDF', size: '2.8 MB', uploadDate: '2023-08-02' },
-      { name: 'Factory_License.pdf', type: 'PDF', size: '1.7 MB', uploadDate: '2023-08-05' },
-      { name: 'Environmental_Clearance.pdf', type: 'PDF', size: '2.2 MB', uploadDate: '2023-08-08' }
+      {
+        name: "Company_Incorporation.pdf",
+        type: "PDF",
+        size: "2.8 MB",
+        uploadDate: "2023-08-02",
+      },
+      {
+        name: "Factory_License.pdf",
+        type: "PDF",
+        size: "1.7 MB",
+        uploadDate: "2023-08-05",
+      },
+      {
+        name: "Environmental_Clearance.pdf",
+        type: "PDF",
+        size: "2.2 MB",
+        uploadDate: "2023-08-08",
+      },
     ],
     notes: {
-      remarks: 'New customer with textile manufacturing background. Shows potential for large orders.',
-      assignedManager: 'Karim Ahmed',
-      managerContact: 'karim@company.com',
-      lastContact: '2023-09-01',
-      nextFollowUp: '2023-10-05',
-      specialInstructions: 'Nurture relationship. Offer competitive pricing for bulk orders.'
-    }
+      remarks:
+        "New customer with textile manufacturing background. Shows potential for large orders.",
+      assignedManager: "Karim Ahmed",
+      managerContact: "karim@company.com",
+      lastContact: "2023-09-01",
+      nextFollowUp: "2023-10-05",
+      specialInstructions:
+        "Nurture relationship. Offer competitive pricing for bulk orders.",
+    },
   },
-  
+
   {
     // Basic Customer Info
     id: 5,
@@ -1075,73 +1157,100 @@ export const customers = [
     totalPurchased: "$5,450.00",
     lastPurchase: "22 Sep 2023",
     status: "Active",
-    
+
     // Detailed Customer Info
     basicInfo: {
-      customerId: 'CUST-2023-0005',
-      name: 'Karim Ahmed',
-      type: 'Wholesale',
-      status: 'Active',
+      customerId: "CUST-2023-0005",
+      name: "Karim Ahmed",
+      type: "Wholesale",
+      status: "Active",
       profilePhoto: null,
-      joinDate: '2021-12-15',
-      customerTier: 'Gold'
+      joinDate: "2021-12-15",
+      customerTier: "Gold",
     },
     contactInfo: {
-      phone: '+880 1956-789012',
-      email: 'karim@spiceexports.com',
-      website: 'www.ahmedspices.com',
-      billingAddress: '890 Spice Market, Khulna-9000, Bangladesh',
-      shippingAddress: '890 Spice Market, Khulna-9000, Bangladesh',
-      contactPerson: 'Karim Ahmed',
-      contactPersonPhone: '+880 1956-789012',
-      contactPersonEmail: 'karim@spiceexports.com'
+      phone: "+880 1956-789012",
+      email: "karim@spiceexports.com",
+      website: "www.ahmedspices.com",
+      billingAddress: "890 Spice Market, Khulna-9000, Bangladesh",
+      shippingAddress: "890 Spice Market, Khulna-9000, Bangladesh",
+      contactPerson: "Karim Ahmed",
+      contactPersonPhone: "+880 1956-789012",
+      contactPersonEmail: "karim@spiceexports.com",
     },
     businessInfo: {
-      companyName: 'Ahmed Spice Exports',
-      businessType: 'Spice Exporter',
-      tradeLicense: 'TL-KHU-987321',
-      tin: 'TIN-KHU-321654987',
-      vatInfo: 'VAT Registered (KHU-654321)',
+      companyName: "Ahmed Spice Exports",
+      businessType: "Spice Exporter",
+      tradeLicense: "TL-KHU-987321",
+      tin: "TIN-KHU-321654987",
+      vatInfo: "VAT Registered (KHU-654321)",
       creditLimit: 15000,
-      paymentTerms: 'Net 45 days',
-      currency: 'USD'
+      paymentTerms: "Net 45 days",
+      currency: "USD",
     },
     bankInfo: {
-      bankName: 'Pubali Bank',
-      branch: 'Khulna Branch',
-      accountNumber: '********5678',
-      routingNumber: '030260123',
-      swiftCode: 'PUBABDDH',
-      iban: 'BD56PUBA5678901234'
+      bankName: "Pubali Bank",
+      branch: "Khulna Branch",
+      accountNumber: "********5678",
+      routingNumber: "030260123",
+      swiftCode: "PUBABDDH",
+      iban: "BD56PUBA5678901234",
     },
     transactionHistory: {
       totalPurchases: 436000,
       outstandingDues: 8900,
       advancePaid: 2500,
-      lastPurchaseDate: '2023-09-22',
+      lastPurchaseDate: "2023-09-22",
       lastPurchaseAmount: 5450,
       totalTransactions: 28,
-      averageOrderValue: 4338
+      averageOrderValue: 4338,
     },
     lcLinks: [
-      { lcNumber: 'LC-2023-005', status: 'Completed', value: 18750, issueDate: '2023-06-18' },
-      { lcNumber: 'LC-2022-156', status: 'Closed', value: 65000, issueDate: '2022-11-20' }
+      {
+        lcNumber: "LC-2023-005",
+        status: "Completed",
+        value: 18750,
+        issueDate: "2023-06-18",
+      },
+      {
+        lcNumber: "LC-2022-156",
+        status: "Closed",
+        value: 65000,
+        issueDate: "2022-11-20",
+      },
     ],
     documents: [
-      { name: 'Export_Registration.pdf', type: 'PDF', size: '2.5 MB', uploadDate: '2021-12-18' },
-      { name: 'Organic_Certificate.pdf', type: 'PDF', size: '1.9 MB', uploadDate: '2022-03-10' },
-      { name: 'Quality_Certificate.pdf', type: 'PDF', size: '1.3 MB', uploadDate: '2023-01-20' }
+      {
+        name: "Export_Registration.pdf",
+        type: "PDF",
+        size: "2.5 MB",
+        uploadDate: "2021-12-18",
+      },
+      {
+        name: "Organic_Certificate.pdf",
+        type: "PDF",
+        size: "1.9 MB",
+        uploadDate: "2022-03-10",
+      },
+      {
+        name: "Quality_Certificate.pdf",
+        type: "PDF",
+        size: "1.3 MB",
+        uploadDate: "2023-01-20",
+      },
     ],
     notes: {
-      remarks: 'Excellent customer with consistent orders. Specializes in organic spices. Very reliable.',
-      assignedManager: 'Nadia Islam',
-      managerContact: 'nadia@company.com',
-      lastContact: '2023-09-22',
-      nextFollowUp: '2023-11-01',
-      specialInstructions: 'VIP treatment. Offer seasonal promotions. Priority shipping available.'
-    }
+      remarks:
+        "Excellent customer with consistent orders. Specializes in organic spices. Very reliable.",
+      assignedManager: "Nadia Islam",
+      managerContact: "nadia@company.com",
+      lastContact: "2023-09-22",
+      nextFollowUp: "2023-11-01",
+      specialInstructions:
+        "VIP treatment. Offer seasonal promotions. Priority shipping available.",
+    },
   },
-  
+
   {
     // Basic Customer Info
     id: 6,
@@ -1151,70 +1260,277 @@ export const customers = [
     totalPurchased: "$1,230.75",
     lastPurchase: "10 Sep 2023",
     status: "Pending",
-    
+
     // Detailed Customer Info
     basicInfo: {
-      customerId: 'CUST-2023-0006',
-      name: 'Nadia Islam',
-      type: 'Retail',
-      status: 'Pending',
+      customerId: "CUST-2023-0006",
+      name: "Nadia Islam",
+      type: "Retail",
+      status: "Pending",
       profilePhoto: null,
-      joinDate: '2023-07-20',
-      customerTier: 'Bronze'
+      joinDate: "2023-07-20",
+      customerTier: "Bronze",
     },
     contactInfo: {
-      phone: '+880 1367-890123',
-      email: 'nadia.islam@healthcare.com',
+      phone: "+880 1367-890123",
+      email: "nadia.islam@healthcare.com",
       website: null,
-      billingAddress: '123 Medical Plaza, Barishal-8200, Bangladesh',
-      shippingAddress: '123 Medical Plaza, Barishal-8200, Bangladesh',
-      contactPerson: 'Nadia Islam',
-      contactPersonPhone: '+880 1367-890123',
-      contactPersonEmail: 'nadia.islam@healthcare.com'
+      billingAddress: "123 Medical Plaza, Barishal-8200, Bangladesh",
+      shippingAddress: "123 Medical Plaza, Barishal-8200, Bangladesh",
+      contactPerson: "Nadia Islam",
+      contactPersonPhone: "+880 1367-890123",
+      contactPersonEmail: "nadia.islam@healthcare.com",
     },
     businessInfo: {
-      companyName: 'Nadia Medical Supplies',
-      businessType: 'Medical Equipment Distributor',
-      tradeLicense: 'TL-BAR-456789',
-      tin: 'TIN-BAR-654321789',
-      vatInfo: 'VAT Registration Processing',
+      companyName: "Nadia Medical Supplies",
+      businessType: "Medical Equipment Distributor",
+      tradeLicense: "TL-BAR-456789",
+      tin: "TIN-BAR-654321789",
+      vatInfo: "VAT Registration Processing",
       creditLimit: 2000,
-      paymentTerms: 'Cash on Delivery',
-      currency: 'BDT'
+      paymentTerms: "Cash on Delivery",
+      currency: "BDT",
     },
     bankInfo: {
-      bankName: 'Janata Bank',
-      branch: 'Barishal Branch',
-      accountNumber: '********6789',
-      routingNumber: '010260456',
-      swiftCode: 'JANBBDDH',
-      iban: 'BD34JANB6789012345'
+      bankName: "Janata Bank",
+      branch: "Barishal Branch",
+      accountNumber: "********6789",
+      routingNumber: "010260456",
+      swiftCode: "JANBBDDH",
+      iban: "BD34JANB6789012345",
     },
     transactionHistory: {
       totalPurchases: 98460,
       outstandingDues: 2500,
       advancePaid: 800,
-      lastPurchaseDate: '2023-09-10',
+      lastPurchaseDate: "2023-09-10",
       lastPurchaseAmount: 1230.75,
       totalTransactions: 6,
-      averageOrderValue: 2051
+      averageOrderValue: 2051,
     },
     lcLinks: [
-      { lcNumber: 'LC-2023-006', status: 'Under Review', value: 67890, issueDate: '2023-09-12' }
+      {
+        lcNumber: "LC-2023-006",
+        status: "Under Review",
+        value: 67890,
+        issueDate: "2023-09-12",
+      },
     ],
     documents: [
-      { name: 'Medical_License.pdf', type: 'PDF', size: '1.8 MB', uploadDate: '2023-07-22' },
-      { name: 'Drug_License.pdf', type: 'PDF', size: '1.4 MB', uploadDate: '2023-07-25' },
-      { name: 'Health_Permit.pdf', type: 'PDF', size: '1.1 MB', uploadDate: '2023-08-01' }
+      {
+        name: "Medical_License.pdf",
+        type: "PDF",
+        size: "1.8 MB",
+        uploadDate: "2023-07-22",
+      },
+      {
+        name: "Drug_License.pdf",
+        type: "PDF",
+        size: "1.4 MB",
+        uploadDate: "2023-07-25",
+      },
+      {
+        name: "Health_Permit.pdf",
+        type: "PDF",
+        size: "1.1 MB",
+        uploadDate: "2023-08-01",
+      },
     ],
     notes: {
-      remarks: 'New customer in healthcare sector. Requires regulatory compliance support. Potential for growth.',
-      assignedManager: 'Dr. Rahman',
-      managerContact: 'rahman@company.com',
-      lastContact: '2023-09-15',
-      nextFollowUp: '2023-10-01',
-      specialInstructions: 'Provide regulatory guidance. Ensure all medical equipment meets standards.'
-    }
-  }
+      remarks:
+        "New customer in healthcare sector. Requires regulatory compliance support. Potential for growth.",
+      assignedManager: "Dr. Rahman",
+      managerContact: "rahman@company.com",
+      lastContact: "2023-09-15",
+      nextFollowUp: "2023-10-01",
+      specialInstructions:
+        "Provide regulatory guidance. Ensure all medical equipment meets standards.",
+    },
+  },
 ];
 
+export const teamMembers = [
+  {
+    id: 1,
+    name: "Rashid Khan",
+    phone: "+880 1712-123456",
+    role: "Manager",
+    location: "Dhaka, Bangladesh",
+  },
+  {
+    id: 2,
+    name: "Fatima Ahmed",
+    phone: "+880 1523-234567",
+    role: "Warehouse Keeper",
+    location: "Chittagong, Bangladesh",
+  },
+  {
+    id: 3,
+    name: "Nasir Rahman",
+    phone: "+880 1634-345678",
+    role: "Accountant",
+    location: "Dhaka, Bangladesh",
+  },
+  {
+    id: 4,
+    name: "Ayesha Islam",
+    phone: "+880 1845-456789",
+    role: "Sales Executive",
+    location: "Rajshahi, Bangladesh",
+  },
+  {
+    id: 5,
+    name: "Karim Hassan",
+    phone: "+880 1956-567890",
+    role: "Operations Coordinator",
+    location: "Khulna, Bangladesh",
+  },
+  {
+    id: 6,
+    name: "Nadia Khan",
+    phone: "+880 1367-678901",
+    role: "Logistics Officer",
+    location: "Barishal, Bangladesh",
+  },
+  {
+    id: 7,
+    name: "Omar Ali",
+    phone: "+880 1478-789012",
+    role: "Quality Inspector",
+    location: "Comilla, Bangladesh",
+  },
+  {
+    id: 8,
+    name: "Zainab Rahman",
+    phone: "+880 1589-890123",
+    role: "Customs Officer",
+    location: "Dhaka, Bangladesh",
+  },
+  {
+    id: 9,
+    name: "Mahmud Hasan",
+    phone: "+880 1690-901234",
+    role: "Warehouse Keeper",
+    location: "Chittagong, Bangladesh",
+  },
+  {
+    id: 10,
+    name: "Ruma Begum",
+    phone: "+880 1701-012345",
+    role: "Sales Executive",
+    location: "Sylhet, Bangladesh",
+  },
+];
+
+export   const products = [
+    {
+      id: 1,
+      name: "Mild Steel Rod",
+      category: "Steel Rods",
+      size: "12mm x 12m",
+      color: "Silver",
+      quantity: 150,
+      unit: "pieces",
+      unitPrice: "$25.50",
+      location: "Warehouse A"
+    },
+    {
+      id: 2,
+      name: "Galvanized Steel Sheet",
+      category: "Steel Sheets",
+      size: "4ft x 8ft x 2mm",
+      color: "Silver",
+      quantity: 75,
+      unit: "sheets",
+      unitPrice: "$45.00",
+      location: "Warehouse B"
+    },
+    {
+      id: 3,
+      name: "Steel Angle Bar",
+      category: "Structural Steel",
+      size: "50mm x 50mm x 6m",
+      color: "Black",
+      quantity: 35,
+      unit: "pieces",
+      unitPrice: "$18.75",
+      location: "Warehouse A"
+    },
+    {
+      id: 4,
+      name: "Stainless Steel Plate",
+      category: "Steel Plates",
+      size: "3ft x 6ft x 5mm",
+      color: "Silver",
+      quantity: 8,
+      unit: "plates",
+      unitPrice: "$125.00",
+      location: "Warehouse C"
+    },
+    {
+      id: 5,
+      name: "Steel Pipe",
+      category: "Steel Pipes",
+      size: "6 inch diameter x 6m",
+      color: "Black",
+      quantity: 25,
+      unit: "pieces",
+      unitPrice: "$65.50",
+      location: "Warehouse B"
+    },
+    {
+      id: 6,
+      name: "Carbon Steel Bar",
+      category: "Steel Bars",
+      size: "25mm x 6m",
+      color: "Dark Gray",
+      quantity: 120,
+      unit: "pieces",
+      unitPrice: "$32.25",
+      location: "Warehouse A"
+    },
+    {
+      id: 7,
+      name: "Steel H-Beam",
+      category: "Structural Steel",
+      size: "200mm x 100mm x 12m",
+      color: "Gray",
+      quantity: 15,
+      unit: "pieces",
+      unitPrice: "$185.00",
+      location: "Warehouse C"
+    },
+    {
+      id: 8,
+      name: "Coil Steel Strip",
+      category: "Steel Coils",
+      size: "50mm width x 1000m",
+      color: "Silver",
+      quantity: 6,
+      unit: "coils",
+      unitPrice: "$450.00",
+      location: "Warehouse B"
+    },
+    {
+      id: 9,
+      name: "Steel Wire Mesh",
+      category: "Wire Products",
+      size: "4ft x 100ft x 2mm",
+      color: "Galvanized",
+      quantity: 40,
+      unit: "rolls",
+      unitPrice: "$75.00",
+      location: "Warehouse A"
+    },
+    {
+      id: 10,
+      name: "TMT Steel Bar",
+      category: "Steel Bars",
+      size: "16mm x 12m",
+      color: "Brown",
+      quantity: 200,
+      unit: "pieces",
+      unitPrice: "$28.00",
+      location: "Warehouse B"
+    }
+  ];

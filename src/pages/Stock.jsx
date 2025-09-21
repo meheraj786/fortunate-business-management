@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Search, Plus, Package, Layers, Palette, Ruler, Warehouse, ChevronsDown, ChartColumnStacked } from "lucide-react";
-import { products } from "../../data/data";
-import ProductCard from "../../layout/ProductCard";
-import StatBox from "../../layout/StatBox";
+import { Search, Plus, Package, Layers, Palette, Ruler } from "lucide-react";
+import { products } from "../data/data";
+import ProductCard from "../layout/ProductCard";
 
 const Stock = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,14 +42,6 @@ const Stock = () => {
               <Plus size={20} />
               Add Product
             </button>
-          </div>
-          <div className="my-6 sm:mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-
-            <StatBox title={"Total Products"} number={products.length} Icon={Warehouse}  />
-            <StatBox title={"Low Stock"} number={products.filter((product) => product.quantity <= 10).length} Icon={ChevronsDown} textColor="red" />
-            <StatBox title={"Categories"} number={categories.length - 1} Icon={ChartColumnStacked} />
-            <StatBox title={"In Stock"} number={products.filter((product) => product.quantity > 50).length} Icon={Layers} textColor="green" />
-
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -105,6 +96,41 @@ const Stock = () => {
             </p>
           </div>
         )}
+
+        <div className="mt-6 sm:mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
+            <h3 className="text-xs font-medium text-gray-500 mb-1 sm:mb-2">
+              Total Products
+            </h3>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+              {products.length}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
+            <h3 className="text-xs font-medium text-gray-500 mb-1 sm:mb-2">
+              Low Stock
+            </h3>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-600">
+              {products.filter((product) => product.quantity <= 10).length}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
+            <h3 className="text-xs font-medium text-gray-500 mb-1 sm:mb-2">
+              Categories
+            </h3>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600">
+              {categories.length - 1}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 col-span-2 lg:col-span-1">
+            <h3 className="text-xs font-medium text-gray-500 mb-1 sm:mb-2">
+              In Stock
+            </h3>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">
+              {products.filter((product) => product.quantity > 50).length}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

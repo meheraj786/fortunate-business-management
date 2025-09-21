@@ -10,6 +10,8 @@ import Settings from "./pages/Settings";
 import LCdetails from "./pages/lc_management/LCdetails";
 import CustomerDetails from "./pages/customer_management/CustomerDetails";
 import Stock from "./pages/stock_management/Stock";
+import Products from "./pages/Stock";
+import Team from "./pages/Team";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -66,6 +68,22 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <Stock />
+      </Layout>
+    ),
+  },
+  {
+    path: "/products",
+    element: (
+      <Layout>
+        <Products />
+      </Layout>
+    ),
+  },
+  {
+    path: "/team",
+    element: (
+      <Layout>
+        <Team />
       </Layout>
     ),
   },

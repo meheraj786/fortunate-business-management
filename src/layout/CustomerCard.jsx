@@ -1,5 +1,5 @@
 import { MapPin, Phone, ShoppingBag } from "lucide-react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 
 const CustomerCard = ({ customer }) => {
   return (

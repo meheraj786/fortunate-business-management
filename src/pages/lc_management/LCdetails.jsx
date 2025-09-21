@@ -23,102 +23,102 @@ import { motion, AnimatePresence } from "motion/react";
 import { useParams } from "react-router";
 import { lcData as allLc } from "../../data/data";
 
-const lcData = {
-  basicInfo: {
-    lcNumber: "LC-2023-0875",
-    lcType: "Sight LC",
-    issueDate: "2023-10-15",
-    expiryDate: "2024-04-15",
-    lcValue: 125000,
-    currency: "USD",
-    status: "Open",
-  },
-  buyerInfo: {
-    name: "John Smith",
-    company: "Global Imports Inc.",
-    address: "123 Trade Center, New York, NY 10001, USA",
-    contactPerson: "Michael Johnson",
-    phone: "+1 (555) 123-4567",
-    email: "purchase@globalimports.com",
-  },
-  sellerInfo: {
-    name: "Zhang Wei",
-    company: "Shanghai Manufacturing Co.",
-    address: "456 Industrial Zone, Pudong, Shanghai, China",
-    bankName: "Bank of China",
-    accountNumber: "9876543210",
-    swiftCode: "BKCHCNBJ",
-    email: "wei@shanghaimfg.com",
-  },
-  bankInfo: {
-    issuingBank: "New York Commercial Bank",
-    advisingBank: "Bank of China Shanghai Branch",
-    correspondentBank: "Standard Chartered Bank",
-    swiftCode: "NYCBUS33",
-    branch: "Main Branch",
-    accountManager: "Sarah Williams",
-    managerContact: "sarah.w@nycb.com",
-  },
-  shipmentInfo: {
-    portOfLoading: "Shanghai Port, China",
-    portOfDischarge: "Port of New York, USA",
-    shipmentDate: "2024-03-10",
-    lastShipmentDate: "2024-03-20",
-    transportType: "Sea Freight",
-    shippingCompany: "Maersk Line",
-    insurance: "All Risk Coverage by Ping An Insurance",
-    incoterms: "CIF",
-  },
-  goodsInfo: [
-    {
-      productName: "Electronic Components",
-      hsCode: "8542.31.00",
-      quantity: 5000,
-      unit: "PCS",
-      unitPrice: 20,
-      totalValue: 100000,
-      description: "High-quality electronic components for industrial use",
-    },
-    {
-      productName: "LED Displays",
-      hsCode: "8531.20.00",
-      quantity: 500,
-      unit: "PCS",
-      unitPrice: 50,
-      totalValue: 25000,
-      description: "Full HD LED displays, 55-inch",
-    },
-  ],
-  paymentInfo: {
-    terms: "At Sight",
-    marginAmount: 25000,
-    bankCharges: 500,
-    commission: 750,
-    dueDate: "2024-04-05",
-    status: "Pending",
-    paidAmount: 0,
-    paymentDate: "",
-  },
-  documentsRequired: [
-    "Commercial Invoice",
-    "Packing List",
-    "Bill of Lading",
-    "Insurance Certificate",
-    "Certificate of Origin",
-    "Inspection Certificate",
-  ],
-  tracking: {
-    status: "Documents Submitted",
-    remarks:
-      "Waiting for document verification. All documents submitted on March 15, 2024.",
-    attachments: [
-      { name: "LC_Application.pdf", type: "PDF", size: "2.4 MB" },
-      { name: "Proforma_Invoice.pdf", type: "PDF", size: "1.8 MB" },
-      { name: "Contract_Agreement.pdf", type: "PDF", size: "3.2 MB" },
-    ],
-    lastUpdated: "2024-03-15 14:30",
-  },
-};
+// const lcData = {
+//   basicInfo: {
+//     lcNumber: "LC-2023-0875",
+//     lcType: "Sight LC",
+//     issueDate: "2023-10-15",
+//     expiryDate: "2024-04-15",
+//     lcValue: 125000,
+//     currency: "USD",
+//     status: "Open",
+//   },
+//   buyerInfo: {
+//     name: "John Smith",
+//     company: "Global Imports Inc.",
+//     address: "123 Trade Center, New York, NY 10001, USA",
+//     contactPerson: "Michael Johnson",
+//     phone: "+1 (555) 123-4567",
+//     email: "purchase@globalimports.com",
+//   },
+//   sellerInfo: {
+//     name: "Zhang Wei",
+//     company: "Shanghai Manufacturing Co.",
+//     address: "456 Industrial Zone, Pudong, Shanghai, China",
+//     bankName: "Bank of China",
+//     accountNumber: "9876543210",
+//     swiftCode: "BKCHCNBJ",
+//     email: "wei@shanghaimfg.com",
+//   },
+//   bankInfo: {
+//     issuingBank: "New York Commercial Bank",
+//     advisingBank: "Bank of China Shanghai Branch",
+//     correspondentBank: "Standard Chartered Bank",
+//     swiftCode: "NYCBUS33",
+//     branch: "Main Branch",
+//     accountManager: "Sarah Williams",
+//     managerContact: "sarah.w@nycb.com",
+//   },
+//   shipmentInfo: {
+//     portOfLoading: "Shanghai Port, China",
+//     portOfDischarge: "Port of New York, USA",
+//     shipmentDate: "2024-03-10",
+//     lastShipmentDate: "2024-03-20",
+//     transportType: "Sea Freight",
+//     shippingCompany: "Maersk Line",
+//     insurance: "All Risk Coverage by Ping An Insurance",
+//     incoterms: "CIF",
+//   },
+//   goodsInfo: [
+//     {
+//       productName: "Electronic Components",
+//       hsCode: "8542.31.00",
+//       quantity: 5000,
+//       unit: "PCS",
+//       unitPrice: 20,
+//       totalValue: 100000,
+//       description: "High-quality electronic components for industrial use",
+//     },
+//     {
+//       productName: "LED Displays",
+//       hsCode: "8531.20.00",
+//       quantity: 500,
+//       unit: "PCS",
+//       unitPrice: 50,
+//       totalValue: 25000,
+//       description: "Full HD LED displays, 55-inch",
+//     },
+//   ],
+//   paymentInfo: {
+//     terms: "At Sight",
+//     marginAmount: 25000,
+//     bankCharges: 500,
+//     commission: 750,
+//     dueDate: "2024-04-05",
+//     status: "Pending",
+//     paidAmount: 0,
+//     paymentDate: "",
+//   },
+//   documentsRequired: [
+//     "Commercial Invoice",
+//     "Packing List",
+//     "Bill of Lading",
+//     "Insurance Certificate",
+//     "Certificate of Origin",
+//     "Inspection Certificate",
+//   ],
+//   tracking: {
+//     status: "Documents Submitted",
+//     remarks:
+//       "Waiting for document verification. All documents submitted on March 15, 2024.",
+//     attachments: [
+//       { name: "LC_Application.pdf", type: "PDF", size: "2.4 MB" },
+//       { name: "Proforma_Invoice.pdf", type: "PDF", size: "1.8 MB" },
+//       { name: "Contract_Agreement.pdf", type: "PDF", size: "3.2 MB" },
+//     ],
+//     lastUpdated: "2024-03-15 14:30",
+//   },
+// };
 
 const StatusBadge = ({ status }) => {
   let bgColor, icon;
@@ -223,8 +223,8 @@ const LCdetails = () => {
   const { id } = useParams();
   const lcData = allLc.find((l) => l.id == id);
   return (
-    <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen  py-4 px-4 sm:px-6 lg:px-8">
+      <div className=" mx-auto">
         <motion.div
           className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between"
           initial={{ opacity: 0, y: -10 }}
