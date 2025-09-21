@@ -22,74 +22,77 @@ import {
   FiStar
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'motion/react';
+import { useParams } from 'react-router';
+import { customers } from '../../data/data';
+
 
 // Mock customer data
-const customerData = {
-  basicInfo: {
-    customerId: 'CUST-2023-0896',
-    name: 'Global Imports Inc.',
-    type: 'Wholesale',
-    status: 'Active',
-    profilePhoto: null,
-    joinDate: '2022-05-15',
-    customerTier: 'Gold'
-  },
-  contactInfo: {
-    phone: '+1 (555) 123-4567',
-    email: 'purchase@globalimports.com',
-    website: 'www.globalimports.com',
-    billingAddress: '123 Trade Center, New York, NY 10001, USA',
-    shippingAddress: '123 Trade Center, New York, NY 10001, USA',
-    contactPerson: 'Michael Johnson',
-    contactPersonPhone: '+1 (555) 987-6543',
-    contactPersonEmail: 'michael@globalimports.com'
-  },
-  businessInfo: {
-    companyName: 'Global Imports Inc.',
-    businessType: 'Importer & Distributor',
-    tradeLicense: 'TL-78945613',
-    tin: 'TIN-987654321',
-    vatInfo: 'VAT Registered (NY-789456)',
-    creditLimit: 50000,
-    paymentTerms: 'Net 30 days',
-    currency: 'USD'
-  },
-  bankInfo: {
-    bankName: 'New York Commercial Bank',
-    branch: 'Main Branch',
-    accountNumber: '********1234',
-    routingNumber: '021000021',
-    swiftCode: 'NYCBUS33',
-    iban: 'US33NYCB1234567890'
-  },
-  transactionHistory: {
-    totalPurchases: 245000,
-    outstandingDues: 12500,
-    advancePaid: 0,
-    lastPurchaseDate: '2023-10-28',
-    lastPurchaseAmount: 18500,
-    totalTransactions: 47,
-    averageOrderValue: 5212
-  },
-  lcLinks: [
-    { lcNumber: 'LC-2023-0875', status: 'Open', value: 125000, issueDate: '2023-10-15' },
-    { lcNumber: 'LC-2023-0654', status: 'Closed', value: 85000, issueDate: '2023-07-22' },
-    { lcNumber: 'LC-2023-0421', status: 'Closed', value: 35000, issueDate: '2023-04-10' }
-  ],
-  documents: [
-    { name: 'Trade_License.pdf', type: 'PDF', size: '2.4 MB', uploadDate: '2022-05-20' },
-    { name: 'Contract_Agreement.pdf', type: 'PDF', size: '3.8 MB', uploadDate: '2022-05-18' },
-    { name: 'Tax_Certificate.pdf', type: 'PDF', size: '1.5 MB', uploadDate: '2022-06-05' }
-  ],
-  notes: {
-    remarks: 'VIP Customer - Prefers email communication. Usually pays on time. Large order volume during holiday season.',
-    assignedManager: 'Sarah Johnson',
-    managerContact: 'sarah@company.com',
-    lastContact: '2023-10-25',
-    nextFollowUp: '2023-11-15',
-    specialInstructions: 'Offer seasonal discounts. Provide priority shipping during peak seasons.'
-  }
-};
+// const customerData = {
+//   basicInfo: {
+//     customerId: 'CUST-2023-0896',
+//     name: 'Global Imports Inc.',
+//     type: 'Wholesale',
+//     status: 'Active',
+//     profilePhoto: null,
+//     joinDate: '2022-05-15',
+//     customerTier: 'Gold'
+//   },
+//   contactInfo: {
+//     phone: '+1 (555) 123-4567',
+//     email: 'purchase@globalimports.com',
+//     website: 'www.globalimports.com',
+//     billingAddress: '123 Trade Center, New York, NY 10001, USA',
+//     shippingAddress: '123 Trade Center, New York, NY 10001, USA',
+//     contactPerson: 'Michael Johnson',
+//     contactPersonPhone: '+1 (555) 987-6543',
+//     contactPersonEmail: 'michael@globalimports.com'
+//   },
+//   businessInfo: {
+//     companyName: 'Global Imports Inc.',
+//     businessType: 'Importer & Distributor',
+//     tradeLicense: 'TL-78945613',
+//     tin: 'TIN-987654321',
+//     vatInfo: 'VAT Registered (NY-789456)',
+//     creditLimit: 50000,
+//     paymentTerms: 'Net 30 days',
+//     currency: 'USD'
+//   },
+//   bankInfo: {
+//     bankName: 'New York Commercial Bank',
+//     branch: 'Main Branch',
+//     accountNumber: '********1234',
+//     routingNumber: '021000021',
+//     swiftCode: 'NYCBUS33',
+//     iban: 'US33NYCB1234567890'
+//   },
+//   transactionHistory: {
+//     totalPurchases: 245000,
+//     outstandingDues: 12500,
+//     advancePaid: 0,
+//     lastPurchaseDate: '2023-10-28',
+//     lastPurchaseAmount: 18500,
+//     totalTransactions: 47,
+//     averageOrderValue: 5212
+//   },
+//   lcLinks: [
+//     { lcNumber: 'LC-2023-0875', status: 'Open', value: 125000, issueDate: '2023-10-15' },
+//     { lcNumber: 'LC-2023-0654', status: 'Closed', value: 85000, issueDate: '2023-07-22' },
+//     { lcNumber: 'LC-2023-0421', status: 'Closed', value: 35000, issueDate: '2023-04-10' }
+//   ],
+//   documents: [
+//     { name: 'Trade_License.pdf', type: 'PDF', size: '2.4 MB', uploadDate: '2022-05-20' },
+//     { name: 'Contract_Agreement.pdf', type: 'PDF', size: '3.8 MB', uploadDate: '2022-05-18' },
+//     { name: 'Tax_Certificate.pdf', type: 'PDF', size: '1.5 MB', uploadDate: '2022-06-05' }
+//   ],
+//   notes: {
+//     remarks: 'VIP Customer - Prefers email communication. Usually pays on time. Large order volume during holiday season.',
+//     assignedManager: 'Sarah Johnson',
+//     managerContact: 'sarah@company.com',
+//     lastContact: '2023-10-25',
+//     nextFollowUp: '2023-11-15',
+//     specialInstructions: 'Offer seasonal discounts. Provide priority shipping during peak seasons.'
+//   }
+// };
 
 const StatusBadge = ({ status }) => {
   let bgColor, icon;
@@ -178,6 +181,8 @@ const DataField = ({ label, value, icon, hidden = false, className = "" }) => {
 };
 
 const CustomerDetails = () => {
+  const {id}=useParams()
+  const customerData=customers.find((c)=>c.id==id)
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">

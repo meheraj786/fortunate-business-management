@@ -54,7 +54,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/customer-details",
+    path: "/customer-details/:id",
     element: (
       <Layout>
         <CustomerDetails />

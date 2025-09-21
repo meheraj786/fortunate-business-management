@@ -1,13 +1,10 @@
 import { MapPin, Phone, ShoppingBag } from "lucide-react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const CustomerCard = ({ customer }) => {
-  let navigate = useNavigate();
   return (
+    <Link to={`/customer-details/${customer.id}`}>
     <div
-      onClick={() => {
-        navigate("/customer-details");
-      }}
       className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
     >
       <div className="flex justify-between items-start mb-3">
@@ -45,6 +42,7 @@ const CustomerCard = ({ customer }) => {
         </div>
       </div>
     </div>
+    </Link>
   );
 };
 
