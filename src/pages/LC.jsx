@@ -11,7 +11,7 @@ const LC = () => {
   const completedLC= lcData.filter((i)=>i.status=="Completed")
   const canceledLC= lcData.filter((i)=>i.status=="Canceled")
   return (
-    <div className="pt-8  p-6 h-full w-full">
+    <div className="pt-8 p-6 h-full w-full">
       <h2 className="text-3xl font-semibold mb-4  ">LC Management</h2>
       <Flex className="!justify-between xl:flex-row flex-col gap-x-10 xl:gap-y-0 gap-y-5 xl:px-0 px-3">
         <StatBox title="Active LC" Icon={BiUser} number={activeLC.length} />
