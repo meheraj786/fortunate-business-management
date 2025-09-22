@@ -8,7 +8,7 @@ import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings3Fill, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react";
 import { FaSalesforce } from "react-icons/fa";
-import { ChartColumnIncreasing } from "lucide-react";
+import { ChartColumnIncreasing, WalletMinimal } from "lucide-react";
 
 const SidebarItem = ({
   icon: Icon,
@@ -84,6 +84,7 @@ const Sidebar = () => {
     },
     { icon: MdInventory, label: "Stock Management", path: "/stock-management" },
     { icon: ChartColumnIncreasing, label: "Sales", path: "/sales" },
+    { icon: WalletMinimal, label: "Accounts", path: "/accounts" },
     { icon: MdPeopleAlt, label: "Team", path: "/team" },
     { icon: MdPeopleAlt, label: "Customers", path: "/customers" },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
@@ -98,6 +99,7 @@ const Sidebar = () => {
     if (path.includes("/settings")) return "Settings";
     if (path.includes("/stock-management")) return "Stock Management";
     if (path.includes("/team")) return "Team";
+    if (path.includes("/accounts")) return "Accounts";
     return "";
   };
 

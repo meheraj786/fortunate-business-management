@@ -12,6 +12,7 @@ import CustomerDetails from "./pages/customer_management/CustomerDetails";
 import Stock from "./pages/stock_management/Stock";
 import Team from "./pages/Team";
 import Sales from "./pages/Sales";
+import Accounts from "./pages/Accounts";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -84,6 +85,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <Sales />
+      </Layout>
+    ),
+  },
+  {
+    path: "/accounts",
+    element: (
+      <Layout>
+        <Accounts />
       </Layout>
     ),
   },
