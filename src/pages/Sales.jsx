@@ -246,8 +246,8 @@ const Sales = () => {
   );
 
   return (
-    <div className="min-h-screen p-3 sm:p-4 md:p-6 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-3 sm:p-4 md:p-6 ">
+      <div className=" mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
@@ -306,7 +306,6 @@ const Sales = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6">
-          {/* Mobile Filters Modal */}
           {showMobileFilters && (
             <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-4">
               <div className="bg-white rounded-lg max-h-[80vh] overflow-y-auto w-full max-w-md">
@@ -326,12 +325,10 @@ const Sales = () => {
             </div>
           )}
 
-          {/* Desktop Filters */}
           <div className="hidden lg:block lg:col-span-1">
             <FilterSection />
           </div>
 
-          {/* Chart */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
@@ -366,7 +363,6 @@ const Sales = () => {
           </div>
         </div>
 
-        {/* Sales Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -400,7 +396,6 @@ const Sales = () => {
             </div>
           </div>
 
-          {/* Mobile Table */}
           <div className="lg:hidden">
             {paginatedData.map((sale) => (
               <div key={sale.id} className="p-4 border-b border-gray-200">
@@ -449,7 +444,6 @@ const Sales = () => {
             ))}
           </div>
 
-          {/* Desktop Table */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
