@@ -72,48 +72,6 @@ const Team = () => {
             </p>
           </div>
         )}
-
-        <div className="mt-6 sm:mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
-            <h3 className="text-xs font-medium text-gray-500 mb-1 sm:mb-2">
-              Total Members
-            </h3>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
-              {teamMembers.length}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
-            <h3 className="text-xs font-medium text-gray-500 mb-1 sm:mb-2">
-              Developers
-            </h3>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">
-              {
-                teamMembers.filter((member) => member.role === "Developer")
-                  .length
-              }
-            </p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
-            <h3 className="text-xs font-medium text-gray-500 mb-1 sm:mb-2">
-              Managers
-            </h3>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600">
-              {teamMembers.filter((member) => member.role === "Manager").length}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 col-span-2 lg:col-span-1">
-            <h3 className="text-xs font-medium text-gray-500 mb-1 sm:mb-2">
-              Locations
-            </h3>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-600">
-              {
-                new Set(
-                  teamMembers.map((member) => member.location.split(",")[0])
-                ).size
-              }
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

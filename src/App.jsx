@@ -13,6 +13,7 @@ import Stock from "./pages/stock_management/Stock";
 import Team from "./pages/Team";
 import Sales from "./pages/Sales";
 import Accounts from "./pages/Accounts";
+import Banking from "./pages/Banking";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -93,6 +94,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <Accounts />
+      </Layout>
+    ),
+  },
+  {
+    path: "/banking",
+    element: (
+      <Layout>
+        <Banking />
       </Layout>
     ),
   },

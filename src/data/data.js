@@ -1707,7 +1707,7 @@ export   const products = [
   ];
 
 
-  export   const expensesData= [
+  export const expensesData= [
       {
         id: 1,
         date: "2025-09-23",
