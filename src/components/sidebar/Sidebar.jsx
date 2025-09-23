@@ -79,7 +79,7 @@ const Sidebar = () => {
     { icon: IoHome, label: "Dashboard", path: "/" },
     {
       icon: BsFillCreditCardFill,
-      label: "LC management",
+      label: "LC management", 
       path: "/lc-management",
     },
     { icon: MdInventory, label: "Stock Management", path: "/stock-management" },

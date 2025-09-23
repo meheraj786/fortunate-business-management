@@ -1,10 +1,17 @@
 import React, { useState } from "react";
-import { Search, Plus, Phone, MapPin, User } from "lucide-react";
-import { teamMembers } from "../data/data";
+import { Search, Plus, User } from "lucide-react";
+import { teamMembers as initialTeamMembers } from "../data/data";
 import TeamMemberCard from "../layout/TeamMemberCard";
+import AddTeamMemForm from "./AddTeamMemForm";
 
 const Team = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [teamMembers, setTeamMembers] = useState(initialTeamMembers);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const handleFormSubmit = (newMember) => {
+    setTeamMembers((prevMembers) => [...prevMembers, newMember]);
+  };
 
   const filteredMembers = teamMembers.filter(
     (member) =>
@@ -27,7 +34,10 @@ const Team = () => {
                 Manage your team members and their information.
               </p>
             </div>
-            <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start">
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start"
+            >
               <Plus size={20} />
               Add Member
             </button>
@@ -73,6 +83,11 @@ const Team = () => {
           </div>
         )}
       </div>
+      <AddTeamMemForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleFormSubmit}
+      />
     </div>
   );
 };
