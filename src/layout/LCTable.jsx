@@ -35,10 +35,12 @@ const LCTable = () => {
                 Overview of all registered LCs within your organization.
               </p>
             </div>
-            <button className="bg-primary cursor-pointer hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
-              <Plus size={20} />
-              Add LC
-            </button>
+            <Link to="/lc-form">
+              <button className="bg-primary cursor-pointer hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors">
+                <Plus size={20} />
+                Add LC
+              </button>
+            </Link>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-6">
