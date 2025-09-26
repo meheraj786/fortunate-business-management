@@ -13,17 +13,25 @@ import {
 import { products } from "../../data/data";
 import ProductCard from "../../layout/ProductCard";
 import StatBox from "../../layout/StatBox";
+import AddProductForm from "./AddProductForm";
 
 const Stock = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [showAddProductForm, setShowAddProductForm] = useState(false);
+  const [productList, setProductList] = useState(products);
+
+  const handleProductAdded = (newProduct) => {
+    setProductList([newProduct, ...productList]);
+    setShowAddProductForm(false);
+  };
 
   const categories = [
     "All",
-    ...new Set(products.map((product) => product.category)),
+    ...new Set(productList.map((product) => product.category)),
   ];
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = productList.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -49,7 +57,7 @@ const Stock = () => {
                 Manage your steel inventory and product catalog.
               </p>
             </div>
-            <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start">
+            <button onClick={() => setShowAddProductForm(true)} className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start">
               <Plus size={20} />
               Add Product
             </button>
@@ -57,13 +65,13 @@ const Stock = () => {
           <div className="my-6 sm:mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatBox
               title={"Total Products"}
-              number={products.length}
+              number={productList.length}
               Icon={Warehouse}
             />
             <StatBox
               title={"Low Stock"}
               number={
-                products.filter((product) => product.quantity <= 10).length
+                productList.filter((product) => product.quantity <= 10).length
               }
               Icon={ChevronsDown}
               textColor="red"
@@ -76,7 +84,7 @@ const Stock = () => {
             <StatBox
               title={"In Stock"}
               number={
-                products.filter((product) => product.quantity > 50).length
+                productList.filter((product) => product.quantity > 50).length
               }
               Icon={Layers}
               textColor="green"
@@ -136,6 +144,12 @@ const Stock = () => {
           </div>
         )}
       </div>
+      {showAddProductForm && (
+        <AddProductForm
+          onClose={() => setShowAddProductForm(false)}
+          onProductAdded={handleProductAdded}
+        />
+      )}
     </div>
   );
 };
