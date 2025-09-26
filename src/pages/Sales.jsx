@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { initialSalesData, products } from "../data/data";
 import StatBox from "../layout/StatBox";
+import SalesForm from "./SalesForm";
 
 const Sales = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -245,8 +246,20 @@ const Sales = () => {
     </div>
   );
 
+  const handleSaleAdded = (newSale) => {
+    setSalesData([newSale, ...salesData]);
+    setShowAddSale(false);
+  };
+
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 ">
+      {showAddSale && (
+        <SalesForm 
+          onClose={() => setShowAddSale(false)}
+          onSaleAdded={handleSaleAdded} 
+        />
+      )}
+
       <div className=" mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
