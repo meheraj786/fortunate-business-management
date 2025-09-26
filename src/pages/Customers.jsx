@@ -3,19 +3,22 @@ import { customers } from "../data/data";
 import CustomerCard from "../layout/CustomerCard";
 import Input from "../layout/Input";
 import { Filter, Plus, Search } from "lucide-react";
+import { Link } from "react-router";
 import Button from "../layout/Button";
 import Flex from "../layout/Flex";
 
 const Customers = () => {
   return (
     <div className="pt-8 p-6 h-full w-full">
-      <Flex className="justify-between">
+      <div class=" items-center flex-wrap flex justify-between">
         <h2 className="text-3xl font-semibold mb-4">Your Customers</h2>
-        <button className="flex rounded-xl gap-x-2 px-4 py-3 cursor-pointer hover:bg-primary-hover transition-colors duration-300 bg-primary text-white text-[16px] items-center  xl:ms-auto mx-auto xl:mx-0">
-          {" "}
-          <Plus size={22} /> Add Customer
-        </button>
-      </Flex>
+        <Link to="/customer-form">
+          <button className="flex rounded-xl gap-x-2 px-4 py-3 cursor-pointer hover:bg-primary-hover transition-colors duration-300 bg-primary text-white text-[16px] items-center  xl:ms-auto mx-auto xl:mx-0">
+            {" "}
+            <Plus size={22} /> Add Customer
+          </button>
+        </Link>
+      </div>
       <div className="flex flex-col sm:flex-row gap-4 mt-6">
         <div className="flex-1 relative">
           <Search

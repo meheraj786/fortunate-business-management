@@ -15,6 +15,7 @@ import Sales from "./pages/Sales";
 import Accounts from "./pages/Accounts";
 import Banking from "./pages/Banking";
 import LCform from "./pages/lc_management/LCform";
+import CustomerForm from "./pages/customer_management/CustomerForm";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -111,6 +112,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <LCform />
+      </Layout>
+    ),
+  },
+  {
+    path: "/customer-form",
+    element: (
+      <Layout>
+        <CustomerForm />
       </Layout>
     ),
   },
