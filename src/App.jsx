@@ -16,6 +16,7 @@ import Accounts from "./pages/Accounts";
 import Banking from "./pages/Banking";
 import LCform from "./pages/lc_management/LCform";
 import CustomerForm from "./pages/customer_management/CustomerForm";
+import InvoiceGenerator from "./pages/InvoiceGenerator ";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -120,6 +121,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <CustomerForm />
+      </Layout>
+    ),
+  },
+  {
+    path: "/invoice",
+    element: (
+      <Layout>
+        <InvoiceGenerator />
       </Layout>
     ),
   },
