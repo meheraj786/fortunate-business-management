@@ -215,7 +215,7 @@ const InvoiceGenerator = () => {
         </div>
 
         {/* Payment Terms */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment Terms & Notes:</h3>
           <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
             <ul className="list-disc list-inside space-y-1">
@@ -225,7 +225,7 @@ const InvoiceGenerator = () => {
               <li>All goods sold are subject to our standard terms and conditions</li>
             </ul>
           </div>
-        </div>
+        </div> */}
 
         {/* Amount in Words */}
         <div className="mb-8">
