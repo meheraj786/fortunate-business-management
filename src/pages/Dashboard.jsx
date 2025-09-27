@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, CreditCard, Package, Users, Building2, TrendingUp, DollarSign, AlertTriangle, CheckCircle, Clock, XCircle, Eye } from 'lucide-react';
+import { BarChart3, CreditCard, Package, Users, Building2, TrendingUp, DollarSign, AlertTriangle, CheckCircle, Clock, XCircle, Eye, Menu, X } from 'lucide-react';
 
 // Data imports (using the provided data structure) - All amounts converted to BDT
 const usdToBdtRate = 110; // Current USD to BDT conversion rate
@@ -20,7 +20,7 @@ const lcData = [
       lcType: "Sight LC",
       issueDate: "2023-08-15",
       expiryDate: "2023-11-15",
-      lcValue: 4977500, // 45250 * 110
+      lcValue: 4977500,
       currency: "BDT",
       status: "Active",
     }
@@ -40,7 +40,7 @@ const lcData = [
       lcType: "Usance LC",
       issueDate: "2023-07-22",
       expiryDate: "2023-10-22",
-      lcValue: 13838000, // 125800 * 110
+      lcValue: 13838000,
       currency: "BDT",
       status: "Expired",
     }
@@ -60,7 +60,7 @@ const lcData = [
       lcType: "Sight LC",
       issueDate: "2023-09-10",
       expiryDate: "2023-12-10",
-      lcValue: 9856000, // 89600 * 110
+      lcValue: 9856000,
       currency: "BDT",
       status: "Pending",
     }
@@ -80,7 +80,7 @@ const lcData = [
       lcType: "Sight LC",
       issueDate: "2023-09-05",
       expiryDate: "2024-01-05",
-      lcValue: 3564000, // 32400 * 110
+      lcValue: 3564000,
       currency: "BDT",
       status: "Active",
     }
@@ -100,7 +100,7 @@ const lcData = [
       lcType: "Sight LC",
       issueDate: "2023-06-18",
       expiryDate: "2023-09-18",
-      lcValue: 2062500, // 18750 * 110
+      lcValue: 2062500,
       currency: "BDT",
       status: "Completed",
     }
@@ -113,14 +113,14 @@ const lcData = [
     dueDate: "12/12/2023",
     products: "Pharmaceutical Items",
     quantity: "500 units",
-    totalAmount: "৫74,67,900",
+    totalAmount: "৳74,67,900",
     beneficiary: "MediCare Pharma",
     basicInfo: {
       lcNumber: "LC-2023-006",
       lcType: "Standby LC",
       issueDate: "2023-09-12",
       expiryDate: "2023-12-12",
-      lcValue: 7467900, // 67890 * 110
+      lcValue: 7467900,
       currency: "BDT",
       status: "Under Review",
     }
@@ -133,7 +133,7 @@ const customers = [
     name: "Ahmed Hassan",
     phone: "+880 1712-345678",
     location: "Dhaka, Bangladesh",
-    totalPurchased: "৳3,57,500", // $3,250 * 110
+    totalPurchased: "৳3,57,500",
     lastPurchase: "20 Sep 2023",
     status: "Active"
   },
@@ -142,7 +142,7 @@ const customers = [
     name: "Sarah Khan",
     phone: "+880 1523-456789",
     location: "Chittagong, Bangladesh",
-    totalPurchased: "৳2,07,955", // $1,890.50 * 110
+    totalPurchased: "৳2,07,955",
     lastPurchase: "18 Sep 2023",
     status: "Active"
   },
@@ -151,7 +151,7 @@ const customers = [
     name: "Mohammad Ali",
     phone: "+880 1634-567890",
     location: "Sylhet, Bangladesh",
-    totalPurchased: "৳4,53,283", // $4,120.75 * 110
+    totalPurchased: "৳4,53,283",
     lastPurchase: "12 Sep 2023",
     status: "Inactive"
   },
@@ -160,7 +160,7 @@ const customers = [
     name: "Fatima Rahman",
     phone: "+880 1845-678901",
     location: "Rajshahi, Bangladesh",
-    totalPurchased: "৳2,94,278", // $2,675.25 * 110
+    totalPurchased: "৳2,94,278",
     lastPurchase: "25 Aug 2023",
     status: "Pending"
   },
@@ -169,7 +169,7 @@ const customers = [
     name: "Karim Ahmed",
     phone: "+880 1956-789012",
     location: "Khulna, Bangladesh",
-    totalPurchased: "৳5,99,500", // $5,450 * 110
+    totalPurchased: "৳5,99,500",
     lastPurchase: "22 Sep 2023",
     status: "Active"
   },
@@ -178,27 +178,27 @@ const customers = [
     name: "Nadia Islam",
     phone: "+880 1367-890123",
     location: "Barishal, Bangladesh",
-    totalPurchased: "৳1,35,383", // $1,230.75 * 110
+    totalPurchased: "৳1,35,383",
     lastPurchase: "10 Sep 2023",
     status: "Pending"
   }
 ];
 
 const products = [
-  { id: 1, name: "Mild Steel Rod", category: "Steel Rods", quantity: 150, unitPrice: "৳2,805", location: "Warehouse A" }, // $25.50 * 110
-  { id: 2, name: "Galvanized Steel Sheet", category: "Steel Sheets", quantity: 75, unitPrice: "৳4,950", location: "Warehouse B" }, // $45.00 * 110
-  { id: 3, name: "Steel Angle Bar", category: "Structural Steel", quantity: 35, unitPrice: "৳2,063", location: "Warehouse A" }, // $18.75 * 110
-  { id: 4, name: "Stainless Steel Plate", category: "Steel Plates", quantity: 8, unitPrice: "৳13,750", location: "Warehouse C" }, // $125.00 * 110
-  { id: 5, name: "Steel Pipe", category: "Steel Pipes", quantity: 25, unitPrice: "৳7,205", location: "Warehouse B" }, // $65.50 * 110
-  { id: 6, name: "Carbon Steel Bar", category: "Steel Bars", quantity: 120, unitPrice: "৳3,548", location: "Warehouse A" } // $32.25 * 110
+  { id: 1, name: "Mild Steel Rod", category: "Steel Rods", quantity: 150, unitPrice: "৳2,805", location: "Warehouse A" },
+  { id: 2, name: "Galvanized Steel Sheet", category: "Steel Sheets", quantity: 75, unitPrice: "৳4,950", location: "Warehouse B" },
+  { id: 3, name: "Steel Angle Bar", category: "Structural Steel", quantity: 35, unitPrice: "৳2,063", location: "Warehouse A" },
+  { id: 4, name: "Stainless Steel Plate", category: "Steel Plates", quantity: 8, unitPrice: "৳13,750", location: "Warehouse C" },
+  { id: 5, name: "Steel Pipe", category: "Steel Pipes", quantity: 25, unitPrice: "৳7,205", location: "Warehouse B" },
+  { id: 6, name: "Carbon Steel Bar", category: "Steel Bars", quantity: 120, unitPrice: "৳3,548", location: "Warehouse A" }
 ];
 
 const salesData = [
-  { id: 1, productName: "Mild Steel Rod", quantity: 25, price: 2805, date: "2024-09-21", customer: "Rahman Steel Works" }, // $25.5 * 110
-  { id: 2, productName: "Galvanized Steel Sheet", quantity: 10, price: 4950, date: "2024-09-22", customer: "Metro Construction" }, // $45.0 * 110
-  { id: 3, productName: "Steel Angle Bar", quantity: 8, price: 2063, date: "2024-09-20", customer: "Building Solutions Ltd" }, // $18.75 * 110
-  { id: 4, productName: "Stainless Steel Plate", quantity: 2, price: 13750, date: "2024-09-19", customer: "Industrial Fabricators" }, // $125.0 * 110
-  { id: 5, productName: "Steel Pipe", quantity: 5, price: 7205, date: "2024-09-18", customer: "Pipe & Fittings Co" } // $65.5 * 110
+  { id: 1, productName: "Mild Steel Rod", quantity: 25, price: 2805, date: "2024-09-21", customer: "Rahman Steel Works" },
+  { id: 2, productName: "Galvanized Steel Sheet", quantity: 10, price: 4950, date: "2024-09-22", customer: "Metro Construction" },
+  { id: 3, productName: "Steel Angle Bar", quantity: 8, price: 2063, date: "2024-09-20", customer: "Building Solutions Ltd" },
+  { id: 4, productName: "Stainless Steel Plate", quantity: 2, price: 13750, date: "2024-09-19", customer: "Industrial Fabricators" },
+  { id: 5, productName: "Steel Pipe", quantity: 5, price: 7205, date: "2024-09-18", customer: "Pipe & Fittings Co" }
 ];
 
 const expensesData = [
@@ -217,8 +217,6 @@ const teamMembers = [
 ];
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-
   // Calculate statistics
   const totalLCValue = lcData.reduce((sum, lc) => sum + lc.basicInfo.lcValue, 0);
   const activeLCs = lcData.filter(lc => lc.status === 'Active').length;
@@ -250,352 +248,433 @@ const Dashboard = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Active': return <CheckCircle className="w-4 h-4" />;
-      case 'Completed': return <CheckCircle className="w-4 h-4" />;
-      case 'Pending': return <Clock className="w-4 h-4" />;
-      case 'Expired': return <XCircle className="w-4 h-4" />;
-      case 'Under Review': return <Eye className="w-4 h-4" />;
-      default: return <AlertTriangle className="w-4 h-4" />;
+      case 'Active': return <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case 'Completed': return <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case 'Pending': return <Clock className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case 'Expired': return <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case 'Under Review': return <Eye className="w-3 h-3 sm:w-4 sm:h-4" />;
+      default: return <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />;
     }
   };
 
   const StatCard = ({ title, value, icon: Icon, color, change }) => (
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border border-gray-100 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{title}</p>
+          <p className="text-sm sm:text-lg lg:text-2xl font-bold text-gray-900 mt-1 truncate">{value}</p>
           {change && (
-            <p className="text-sm text-green-600 mt-1">
+            <p className="text-xs sm:text-sm text-green-600 mt-1">
               +{change}% from last month
             </p>
           )}
         </div>
-        <div className={`p-3 rounded-full ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
+        <div className={`p-2 sm:p-3 rounded-full ${color} flex-shrink-0 ml-2`}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
         </div>
       </div>
     </div>
   );
 
-  const renderOverview = () => (
-    <div className="space-y-8">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total LC Value"
-          value={`৳${(totalLCValue / 10000000).toFixed(2)}`}
-          icon={CreditCard}
-          color="bg-gradient-to-r from-blue-500 to-blue-600"
-          change="12"
-        />
-        <StatCard
-          title="Active LCs"
-          value={activeLCs}
-          icon={Building2}
-          color="bg-gradient-to-r from-green-500 to-green-600"
-          change="8"
-        />
-        <StatCard
-          title="Total Products"
-          value={totalProducts}
-          icon={Package}
-          color="bg-gradient-to-r from-purple-500 to-purple-600"
-          change="5"
-        />
-        <StatCard
-          title="Total Sales"
-          value={`৳${(totalSales / 100000).toFixed(1)}`}
-          icon={TrendingUp}
-          color="bg-gradient-to-r from-orange-500 to-orange-600"
-          change="15"
-        />
+  const SectionCard = ({ title, children, className = "" }) => (
+    <div className={`bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-100 ${className}`}>
+      <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-100">
+        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">{title}</h3>
       </div>
-
-      {/* Recent Activity Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent LCs */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-6 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Letters of Credit</h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {lcData.slice(0, 4).map((lc) => (
-                <div key={lc.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    {getStatusIcon(lc.status)}
-                    <div>
-                      <p className="font-medium text-gray-900">{lc.lcNumber}</p>
-                      <p className="text-sm text-gray-600">{lc.beneficiary}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">{lc.totalAmount}</p>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lc.status)}`}>
-                      {lc.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Sales */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-6 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Sales</h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {salesData.slice(0, 4).map((sale) => (
-                <div key={sale.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">{sale.productName}</p>
-                    <p className="text-sm text-gray-600">{sale.customer}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">৳{(sale.quantity * sale.price / 1000).toFixed(0)}K</p>
-                    <p className="text-sm text-gray-600">{sale.date}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Inventory & Expenses */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Low Stock Alert */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-6 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Low Stock Alert</h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {products.filter(product => product.quantity < 50).map((product) => (
-                <div key={product.id} className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-100">
-                  <div className="flex items-center space-x-3">
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
-                    <div>
-                      <p className="font-medium text-gray-900">{product.name}</p>
-                      <p className="text-sm text-gray-600">{product.category}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-red-600">{product.quantity} units</p>
-                    <p className="text-sm text-gray-600">{product.location}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Expenses */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-6 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Expenses</h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {expensesData.slice(0, 4).map((expense) => (
-                <div key={expense.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">{expense.description}</p>
-                    <p className="text-sm text-gray-600">{expense.category} • {expense.date}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">৳{expense.amount.toLocaleString()}</p>
-                    <p className="text-sm text-gray-600">{expense.paymentMethod}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="p-3 sm:p-4 lg:p-6">
+        {children}
       </div>
     </div>
   );
 
-  const renderLCManagement = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-      <div className="p-6 border-b border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900">Letters of Credit Management</h3>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LC Number</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Beneficiary</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {lcData.map((lc) => (
-              <tr key={lc.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{lc.lcNumber}</div>
-                  <div className="text-sm text-gray-500">{lc.basicInfo.lcType}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lc.beneficiary}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{lc.products}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{lc.totalAmount}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{lc.dueDate}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lc.status)}`}>
-                    {getStatusIcon(lc.status)}
-                    <span className="ml-1">{lc.status}</span>
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderCustomers = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-      <div className="p-6 border-b border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900">Customer Management</h3>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Purchased</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Purchase</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {customers.map((customer) => (
-              <tr key={customer.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{customer.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{customer.phone}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{customer.location}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{customer.totalPurchased}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{customer.lastPurchase}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(customer.status)}`}>
-                    {customer.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const renderInventory = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-      <div className="p-6 border-b border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900">Stock Management</h3>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.category}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.quantity}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.unitPrice}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.location}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    product.quantity < 50 ? 'bg-red-100 text-red-800' : 
-                    product.quantity < 100 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
-                  }`}>
-                    {product.quantity < 50 ? 'Low Stock' : product.quantity < 100 ? 'Medium Stock' : 'In Stock'}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  const MobileCard = ({ children, className = "" }) => (
+    <div className={`border border-gray-200 rounded-lg p-3 sm:p-4 ${className}`}>
+      {children}
     </div>
   );
 
   return (
-    <div className="min-h-screen">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+    <div className="min-h-screen ">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center h-14 sm:h-16">
             <div className="flex items-center">
-              <Building2 className="w-8 h-8 text-blue-600" />
-              <h1 className="ml-3 text-xl font-bold text-gray-900">Business Dashboard</h1>
-            </div>
-            <div className="flex items-center space-x-8">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === 'overview' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => setActiveTab('lc')}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === 'lc' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                LC Management
-              </button>
-              <button
-                onClick={() => setActiveTab('inventory')}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === 'inventory' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Stock Management
-              </button>
-              <button
-                onClick={() => setActiveTab('customers')}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === 'customers' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Customers
-              </button>
+              <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+              <h1 className="ml-2 sm:ml-3 text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+                Business Management Dashboard
+              </h1>
             </div>
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* Main Content */}
-      <main className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'lc' && renderLCManagement()}
-        {activeTab === 'customers' && renderCustomers()}
-        {activeTab === 'inventory' && renderInventory()}
+      <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 lg:space-y-8">
+        
+        {/* Statistics Cards */}
+        <section>
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Overview</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            <StatCard
+              title="Total LC Value"
+              value={formatBDTAmount(totalLCValue)}
+              icon={CreditCard}
+              color="bg-gradient-to-r from-blue-500 to-primary"
+              change="12"
+            />
+            <StatCard
+              title="Total Revenue"
+              value={formatBDTAmount(totalRevenue)}
+              icon={CheckCircle}
+              color="bg-gradient-to-r from-green-500 to-green-600"
+              change="8"
+            />
+            <StatCard
+              title="Total Sales"
+              value={formatBDTAmount(totalSales)}
+              icon={TrendingUp}
+              color="bg-gradient-to-r from-purple-500 to-purple-600"
+              change="15"
+            />
+            <StatCard
+              title="Monthly Profit"
+              value={formatBDTAmount(monthlyProfit)}
+              icon={DollarSign}
+              color="bg-gradient-to-r from-orange-500 to-orange-600"
+              change="22"
+            />
+          </div>
+        </section>
+
+        {/* Letters of Credit */}
+        <section>
+          <SectionCard title="Letters of Credit Management">
+            {/* Mobile View */}
+            <div className="block sm:hidden space-y-3">
+              {lcData.map((lc) => (
+                <MobileCard key={lc.id}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">{lc.lcNumber}</p>
+                      <p className="text-xs text-gray-500">{lc.basicInfo.lcType}</p>
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lc.status)}`}>
+                      {getStatusIcon(lc.status)}
+                      <span className="ml-1">{lc.status}</span>
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Beneficiary:</span>
+                      <span className="font-medium text-gray-900 truncate ml-2">{lc.beneficiary}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Amount:</span>
+                      <span className="font-medium text-gray-900">{lc.totalAmount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Due Date:</span>
+                      <span className="text-gray-900">{lc.dueDate}</span>
+                    </div>
+                    <div className="pt-1">
+                      <span className="text-gray-600">Products:</span>
+                      <p className="text-gray-900 mt-1 text-xs">{lc.products}</p>
+                    </div>
+                  </div>
+                </MobileCard>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LC Number</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Beneficiary</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Products</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Due Date</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {lcData.map((lc) => (
+                    <tr key={lc.id} className="hover:bg-gray-50">
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{lc.lcNumber}</div>
+                        <div className="text-xs text-gray-500">{lc.basicInfo.lcType}</div>
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 text-sm text-gray-900">
+                        <div className="truncate max-w-32 sm:max-w-40">{lc.beneficiary}</div>
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">
+                        <div className="truncate max-w-48">{lc.products}</div>
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{lc.totalAmount}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">{lc.dueDate}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lc.status)}`}>
+                          {getStatusIcon(lc.status)}
+                          <span className="ml-1 hidden sm:inline">{lc.status}</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </SectionCard>
+        </section>
+
+        {/* Customers */}
+        <section>
+          <SectionCard title="Customer Management">
+            {/* Mobile View */}
+            <div className="block sm:hidden space-y-3">
+              {customers.map((customer) => (
+                <MobileCard key={customer.id}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">{customer.name}</p>
+                      <p className="text-xs text-gray-600">{customer.phone}</p>
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(customer.status)}`}>
+                      {customer.status}
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Location:</span>
+                      <span className="text-gray-900 truncate ml-2">{customer.location}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Purchased:</span>
+                      <span className="font-medium text-gray-900">{customer.totalPurchased}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Last Purchase:</span>
+                      <span className="text-gray-900">{customer.lastPurchase}</span>
+                    </div>
+                  </div>
+                </MobileCard>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Contact</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Location</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Purchased</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Last Purchase</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {customers.map((customer) => (
+                    <tr key={customer.id} className="hover:bg-gray-50">
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{customer.name}</div>
+                        <div className="text-xs text-gray-500 sm:hidden">{customer.phone}</div>
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">{customer.phone}</td>
+                      <td className="px-3 lg:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">
+                        <div className="truncate max-w-32">{customer.location}</div>
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{customer.totalPurchased}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">{customer.lastPurchase}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(customer.status)}`}>
+                          {customer.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </SectionCard>
+        </section>
+
+        {/* Inventory */}
+        <section>
+          <SectionCard title="Stock Management">
+            {/* Mobile View */}
+            <div className="block sm:hidden space-y-3">
+              {products.map((product) => (
+                <MobileCard key={product.id}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">{product.name}</p>
+                      <p className="text-xs text-gray-600">{product.category}</p>
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      product.quantity < 50 ? 'bg-red-100 text-red-800' : 
+                      product.quantity < 100 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                    }`}>
+                      {product.quantity < 50 ? 'Low Stock' : product.quantity < 100 ? 'Medium Stock' : 'In Stock'}
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Quantity:</span>
+                      <span className="font-medium text-gray-900">{product.quantity} units</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Unit Price:</span>
+                      <span className="font-medium text-gray-900">{product.unitPrice}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Location:</span>
+                      <span className="text-gray-900">{product.location}</span>
+                    </div>
+                  </div>
+                </MobileCard>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Category</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Unit Price</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Location</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {products.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                        <div className="text-xs text-gray-500 sm:hidden">{product.category}</div>
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">{product.category}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.quantity}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 hidden md:table-cell">{product.unitPrice}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">{product.location}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          product.quantity < 50 ? 'bg-red-100 text-red-800' : 
+                          product.quantity < 100 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                        }`}>
+                          {product.quantity < 50 ? 'Low Stock' : product.quantity < 100 ? 'Medium Stock' : 'In Stock'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </SectionCard>
+        </section>
+
+        {/* Sales & Recent Activity */}
+        <section>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Sales */}
+            <SectionCard title="Recent Sales">
+              <div className="space-y-3 sm:space-y-4">
+                {salesData.map((sale) => (
+                  <div key={sale.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{sale.productName}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">{sale.customer}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className="font-semibold text-gray-900 text-xs sm:text-sm">৳{(sale.quantity * sale.price).toLocaleString()}</p>
+                      <p className="text-xs text-gray-600">{sale.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+
+            {/* Recent Expenses */}
+            <SectionCard title="Recent Expenses">
+              <div className="space-y-3 sm:space-y-4">
+                {expensesData.map((expense) => (
+                  <div key={expense.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{expense.description}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">{expense.category} • {expense.date}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className="font-semibold text-gray-900 text-xs sm:text-sm">৳{expense.amount.toLocaleString()}</p>
+                      <p className="text-xs text-gray-600">{expense.paymentMethod}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          </div>
+        </section>
+
+        {/* Low Stock Alert */}
+        <section>
+          <SectionCard title="Low Stock Alert" className="border-l-4 border-l-red-500">
+            <div className="space-y-3 sm:space-y-4">
+              {products.filter(product => product.quantity < 50).map((product) => (
+                <div key={product.id} className="flex items-center justify-between p-3 sm:p-4 bg-red-50 rounded-lg border border-red-100">
+                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{product.name}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">{product.category}</p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0 ml-2">
+                    <p className="font-semibold text-red-600 text-xs sm:text-sm">{product.quantity} units</p>
+                    <p className="text-xs text-gray-600 truncate">{product.location}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        </section>
+
+        {/* Team Members */}
+        <section>
+          <SectionCard title="Team Members">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {teamMembers.map((member) => (
+                <div key={member.id} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <div className="text-center">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{member.name}</h4>
+                    <p className="text-xs sm:text-sm text-primary font-medium">{member.role}</p>
+                    <p className="text-xs text-gray-600 mt-1">{member.phone}</p>
+                    <p className="text-xs text-gray-600 truncate">{member.location}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        </section>
+
       </main>
+
+      {/* Footer */}
+      {/* <footer className="bg-white border-t border-gray-200 py-4 sm:py-6">
+        <div className="px-3 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-xs sm:text-sm text-gray-600">
+              © 2024 Business Management Dashboard. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer> */}
     </div>
   );
 };
