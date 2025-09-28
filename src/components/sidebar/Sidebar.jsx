@@ -134,7 +134,7 @@ const Sidebar = () => {
     return (
       <>
         <button
-          className="fixed top-4 right-4 z-[9999] p-2 rounded-lg bg-[#003b75] text-white shadow-md"
+          className="fixed top-4 right-4 z-50 p-2 rounded-lg bg-[#003b75] text-white shadow-md"
           onClick={toggleSidebar}
         >
           <RiMenuLine size={20} />
@@ -143,7 +143,7 @@ const Sidebar = () => {
         <AnimatePresence>
           {mobileOpen && (
             <motion.div
-              className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999]"
+              className="fixed inset-0 bg-black/40 backdrop-blur-md z-40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -156,7 +156,7 @@ const Sidebar = () => {
         <AnimatePresence>
           {mobileOpen && (
             <motion.div
-              className="fixed inset-y-0 left-0 w-64 bg-[#f8f9fa] z-[9999] shadow-lg overflow-y-auto"
+              className="fixed inset-y-0 left-0 w-64 bg-[#f8f9fa] z-50 shadow-lg overflow-y-auto"
               initial={{ x: -300, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -300, opacity: 0 }}
@@ -192,7 +192,7 @@ const Sidebar = () => {
 
   return (
     <motion.div
-      className="bg-[#f8f9fa] h-screen sticky top-0 z-[9999]"
+      className="bg-[#f8f9fa] h-screen sticky top-0 z-30"
       animate={{ width: collapsed ? 80 : 256 }}
       transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
     >
