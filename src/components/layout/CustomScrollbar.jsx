@@ -1,21 +1,10 @@
-import { Scrollbars } from 'react-custom-scrollbars-2';
+import React from 'react';
 
-const CustomScrollbar = ({ children, ...props }) => {
+const CustomScrollbar = ({ children }) => {
   return (
-    <Scrollbars
-      autoHide
-      autoHideTimeout={1000}
-      autoHideDuration={200}
-      renderThumbVertical={({ style, ...props }) => (
-        <div
-          {...props}
-          style={{ ...style, backgroundColor: '#A0AEC0', borderRadius: '4px' }}
-        />
-      )}
-      {...props}
-    >
+    <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
       {children}
-    </Scrollbars>
+    </div>
   );
 };
 
