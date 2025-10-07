@@ -24,6 +24,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useParams } from 'react-router';
 import { customers } from '../../data/data';
+import CollapsibleCard from '../../components/common/CollapsibleCard';
 
 
 // Mock customer data
@@ -123,49 +124,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const SectionCard = ({ title, icon, children, defaultOpen = true }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  
-  return (
-    <motion.div 
-      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      <button 
-        className="w-full flex items-center justify-between p-4 text-left"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <div className="flex items-center">
-          <span className="text-[#003b75] mr-3 text-lg">{icon}</span>
-          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-        </div>
-        {isOpen ? 
-          <FiAlertCircle className="text-gray-500 transform rotate-180 transition-transform" /> : 
-          <FiAlertCircle className="text-gray-500" />
-        }
-      </button>
-      
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-4">
-              {children}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-};
-
 const DataField = ({ label, value, icon, hidden = false, className = "" }) => {
   if (hidden || !value) return null;
   
@@ -226,7 +184,7 @@ const CustomerDetails = () => {
           {/* Main content - 2/3 width on large screens */}
           <div className="lg:col-span-2 space-y-4">
             {/* Contact Information */}
-            <SectionCard title="Contact Information" icon={<FiMail />}>
+            <CollapsibleCard title="Contact Information" icon={<FiMail />}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <DataField label="Phone" value={customerData.contactInfo.phone} icon={<FiPhone />} />
                 <DataField label="Email" value={customerData.contactInfo.email} icon={<FiMail />} />
@@ -237,10 +195,10 @@ const CustomerDetails = () => {
                 <DataField label="Billing Address" value={customerData.contactInfo.billingAddress} icon={<FiMapPin />} className="sm:col-span-2" />
                 <DataField label="Shipping Address" value={customerData.contactInfo.shippingAddress} icon={<FiMapPin />} className="sm:col-span-2" />
               </div>
-            </SectionCard>
+            </CollapsibleCard>
             
             {/* Business Information */}
-            <SectionCard title="Business Information" icon={<FiBriefcase />}>
+            <CollapsibleCard title="Business Information" icon={<FiBriefcase />}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <DataField label="Company Name" value={customerData.businessInfo.companyName} icon={<FiHome />} />
                 <DataField label="Business Type" value={customerData.businessInfo.businessType} icon={<FiBriefcase />} />
@@ -250,10 +208,10 @@ const CustomerDetails = () => {
                 <DataField label="Credit Limit" value={`${customerData.businessInfo.currency} ${customerData.businessInfo.creditLimit.toLocaleString()}`} icon={<FiDollarSign />} />
                 <DataField label="Payment Terms" value={customerData.businessInfo.paymentTerms} icon={<FiCreditCard />} />
               </div>
-            </SectionCard>
+            </CollapsibleCard>
             
             {/* Transaction History */}
-            <SectionCard title="Transaction History" icon={<FiPieChart />}>
+            <CollapsibleCard title="Transaction History" icon={<FiPieChart />}>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-blue-700">
@@ -286,10 +244,10 @@ const CustomerDetails = () => {
                 <DataField label="Last Purchase Amount" value={`${customerData.businessInfo.currency} ${customerData.transactionHistory.lastPurchaseAmount.toLocaleString()}`} icon={<FiDollarSign />} />
                 <DataField label="Advance Paid" value={`${customerData.businessInfo.currency} ${customerData.transactionHistory.advancePaid.toLocaleString()}`} icon={<FiDollarSign />} />
               </div>
-            </SectionCard>
+            </CollapsibleCard>
             
             {/* Linked LCs/Orders */}
-            <SectionCard title="Linked LCs/Orders" icon={<FiClipboard />}>
+            <CollapsibleCard title="Linked LCs/Orders" icon={<FiClipboard />}>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -318,13 +276,13 @@ const CustomerDetails = () => {
                   </tbody>
                 </table>
               </div>
-            </SectionCard>
+            </CollapsibleCard>
           </div>
           
           {/* Sidebar - 1/3 width on large screens */}
           <div className="space-y-4">
             {/* Basic Information */}
-            <SectionCard title="Basic Information" icon={<FiUser />}>
+            <CollapsibleCard title="Basic Information" icon={<FiUser />}>
               <div className="space-y-3">
                 <DataField label="Customer ID" value={customerData.basicInfo.customerId} />
                 <DataField label="Customer Type" value={customerData.basicInfo.type} />
@@ -332,10 +290,10 @@ const CustomerDetails = () => {
                 <DataField label="Join Date" value={customerData.basicInfo.joinDate} icon={<FiCalendar />} />
                 <DataField label="Customer Tier" value={customerData.basicInfo.customerTier} icon={<FiStar />} />
               </div>
-            </SectionCard>
+            </CollapsibleCard>
             
             {/* Bank Information */}
-            <SectionCard title="Bank Information" icon={<FiCreditCard />}>
+            <CollapsibleCard title="Bank Information" icon={<FiCreditCard />}>
               <div className="space-y-3">
                 <DataField label="Bank Name" value={customerData.bankInfo.bankName} />
                 <DataField label="Branch" value={customerData.bankInfo.branch} />
@@ -344,10 +302,10 @@ const CustomerDetails = () => {
                 <DataField label="SWIFT Code" value={customerData.bankInfo.swiftCode} />
                 <DataField label="IBAN" value={customerData.bankInfo.iban} />
               </div>
-            </SectionCard>
+            </CollapsibleCard>
             
             {/* Documents */}
-            <SectionCard title="Documents" icon={<FiFileText />}>
+            <CollapsibleCard title="Documents" icon={<FiFileText />}>
               <div className="space-y-2">
                 {customerData.documents.map((file, index) => (
                   <div key={index} className="flex items-center p-2 bg-gray-50 rounded-md">
@@ -362,10 +320,10 @@ const CustomerDetails = () => {
                   </div>
                 ))}
               </div>
-            </SectionCard>
+            </CollapsibleCard>
             
             {/* Notes & Tracking */}
-            <SectionCard title="Notes & Tracking" icon={<FiClipboard />}>
+            <CollapsibleCard title="Notes & Tracking" icon={<FiClipboard />}>
               <div className="space-y-3">
                 <DataField label="Assigned Manager" value={customerData.notes.assignedManager} icon={<FiUser />} />
                 <DataField label="Manager Contact" value={customerData.notes.managerContact} icon={<FiMail />} />
@@ -388,7 +346,7 @@ const CustomerDetails = () => {
                   <div className="text-gray-900 font-medium">{customerData.notes.specialInstructions}</div>
                 </div>
               </div>
-            </SectionCard>
+            </CollapsibleCard>
           </div>
         </div>
       </div>

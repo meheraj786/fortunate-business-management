@@ -6,6 +6,7 @@ import { Link } from "react-router";
 
 const LCTable = () => {
   const getStatusColor = (status) => {
+    if (!status) return "bg-gray-100 text-gray-800";
     switch (status.toLowerCase()) {
       case "active":
         return "bg-green-100 text-green-800";
@@ -21,6 +22,17 @@ const LCTable = () => {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  const calculateTotalCost = (lc) => {
+    const { financial_info, shipping_customs_info, agent_transport_info } = lc;
+    if (!financial_info || !shipping_customs_info || !agent_transport_info) {
+      return 0;
+    }
+    const customs_total_bdt = (shipping_customs_info.customs_duty_bdt || 0) + (shipping_customs_info.vat_bdt || 0) + (shipping_customs_info.ait_bdt || 0) + (shipping_customs_info.other_port_expenses_bdt || 0);
+    const transport_other_bdt = agent_transport_info.transport_cost_bdt || 0;
+    const total_lc_cost_bdt = (financial_info.lc_amount_bdt || 0) + (financial_info.bank_charges_bdt || 0) + (financial_info.insurance_cost_bdt || 0) + customs_total_bdt + (agent_transport_info.cnf_agent_commission_bdt || 0) + transport_other_bdt;
+    return total_lc_cost_bdt;
+  }
 
   return (
     <div className="min-h-screen mt-10">
@@ -72,48 +84,48 @@ const LCTable = () => {
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="font-medium text-gray-900">
-                      {lc.lcNumber}
+                      {lc.basic_info?.lc_number}
                     </div>
                     <span
                       className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                        lc.status
+                        lc.basic_info?.status
                       )}`}
                     >
-                      {lc.status}
+                      {lc.basic_info?.status}
                     </span>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Beneficiary:</span>
                       <span className="text-gray-900 text-right">
-                        {lc.beneficiary}
+                        {lc.basic_info?.supplier_name}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Open Date:</span>
-                      <span className="text-gray-900">{lc.openDate}</span>
+                      <span className="text-gray-900">{lc.basic_info?.lc_opening_date}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Due Date:</span>
-                      <span className="text-gray-900">{lc.dueDate}</span>
+                      <span className="text-gray-900">{lc.shipping_customs_info?.expected_arrival_date}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Products:</span>
                       <span
                         className="text-gray-900 text-right max-w-40 truncate"
-                        title={lc.products}
+                        title={lc.product_info?.item_name}
                       >
-                        {lc.products}
+                        {lc.product_info?.item_name}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Quantity:</span>
-                      <span className="text-gray-900">{lc.quantity}</span>
+                      <span className="text-gray-900">{lc.product_info?.quantity_ton}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Amount:</span>
                       <span className="font-semibold text-gray-900">
-                        {lc.totalAmount}
+                        ${calculateTotalCost(lc).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -161,36 +173,36 @@ const LCTable = () => {
                     <td className="py-4 px-6">
                       <Link to={`/lc-details/${lc.id}`}>
                         <div className="font-medium text-gray-900">
-                          {lc.lcNumber}
+                          {lc.basic_info?.lc_number}
                         </div>
                       </Link>
                     </td>
                     <td className="py-4 px-6">
-                      <div className="text-gray-900">{lc.beneficiary}</div>
+                      <div className="text-gray-900">{lc.basic_info?.supplier_name}</div>
                     </td>
                     <td className="py-4 px-6">
                       <span
                         className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(
-                          lc.status
+                          lc.basic_info?.status
                         )}`}
                       >
-                        {lc.status}
+                        {lc.basic_info?.status}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-gray-900">{lc.openDate}</td>
-                    <td className="py-4 px-6 text-gray-900">{lc.dueDate}</td>
+                    <td className="py-4 px-6 text-gray-900">{lc.basic_info?.lc_opening_date}</td>
+                    <td className="py-4 px-6 text-gray-900">{lc.shipping_customs_info?.expected_arrival_date}</td>
                     <td className="py-4 px-6">
                       <div
                         className="text-gray-900 max-w-xs truncate"
-                        title={lc.products}
+                        title={lc.product_info?.item_name}
                       >
-                        {lc.products}
+                        {lc.product_info?.item_name}
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-900">{lc.quantity}</td>
+                    <td className="py-4 px-6 text-gray-900">{lc.product_info?.quantity_ton}</td>
                     <td className="py-4 px-6">
                       <div className="font-semibold text-gray-900">
-                        {lc.totalAmount}
+                        ${calculateTotalCost(lc).toLocaleString()}
                       </div>
                     </td>
                   </tr>
@@ -216,11 +228,9 @@ const LCTable = () => {
             <p className="text-2xl sm:text-3xl font-bold text-blue-600">
               $
               {lcData
-                .reduce(
-                  (sum, lc) =>
-                    sum + parseFloat(lc.totalAmount.replace(/[$,]/g, "")),
-                  0
-                )
+                .reduce((sum, lc) => {
+                  return sum + calculateTotalCost(lc);
+                }, 0)
                 .toLocaleString()}
             </p>
           </div>

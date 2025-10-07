@@ -11,7 +11,6 @@ import {
   FiAlertCircle,
   FiUser,
   FiHome,
-  FiPhone,
   FiMapPin,
   FiCreditCard,
   FiArchive,
@@ -22,103 +21,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { useParams } from "react-router";
 import { lcData as allLc } from "../../data/data";
-
-// const lcData = {
-//   basicInfo: {
-//     lcNumber: "LC-2023-0875",
-//     lcType: "Sight LC",
-//     issueDate: "2023-10-15",
-//     expiryDate: "2024-04-15",
-//     lcValue: 125000,
-//     currency: "USD",
-//     status: "Open",
-//   },
-//   buyerInfo: {
-//     name: "John Smith",
-//     company: "Global Imports Inc.",
-//     address: "123 Trade Center, New York, NY 10001, USA",
-//     contactPerson: "Michael Johnson",
-//     phone: "+1 (555) 123-4567",
-//     email: "purchase@globalimports.com",
-//   },
-//   sellerInfo: {
-//     name: "Zhang Wei",
-//     company: "Shanghai Manufacturing Co.",
-//     address: "456 Industrial Zone, Pudong, Shanghai, China",
-//     bankName: "Bank of China",
-//     accountNumber: "9876543210",
-//     swiftCode: "BKCHCNBJ",
-//     email: "wei@shanghaimfg.com",
-//   },
-//   bankInfo: {
-//     issuingBank: "New York Commercial Bank",
-//     advisingBank: "Bank of China Shanghai Branch",
-//     correspondentBank: "Standard Chartered Bank",
-//     swiftCode: "NYCBUS33",
-//     branch: "Main Branch",
-//     accountManager: "Sarah Williams",
-//     managerContact: "sarah.w@nycb.com",
-//   },
-//   shipmentInfo: {
-//     portOfLoading: "Shanghai Port, China",
-//     portOfDischarge: "Port of New York, USA",
-//     shipmentDate: "2024-03-10",
-//     lastShipmentDate: "2024-03-20",
-//     transportType: "Sea Freight",
-//     shippingCompany: "Maersk Line",
-//     insurance: "All Risk Coverage by Ping An Insurance",
-//     incoterms: "CIF",
-//   },
-//   goodsInfo: [
-//     {
-//       productName: "Electronic Components",
-//       hsCode: "8542.31.00",
-//       quantity: 5000,
-//       unit: "PCS",
-//       unitPrice: 20,
-//       totalValue: 100000,
-//       description: "High-quality electronic components for industrial use",
-//     },
-//     {
-//       productName: "LED Displays",
-//       hsCode: "8531.20.00",
-//       quantity: 500,
-//       unit: "PCS",
-//       unitPrice: 50,
-//       totalValue: 25000,
-//       description: "Full HD LED displays, 55-inch",
-//     },
-//   ],
-//   paymentInfo: {
-//     terms: "At Sight",
-//     marginAmount: 25000,
-//     bankCharges: 500,
-//     commission: 750,
-//     dueDate: "2024-04-05",
-//     status: "Pending",
-//     paidAmount: 0,
-//     paymentDate: "",
-//   },
-//   documentsRequired: [
-//     "Commercial Invoice",
-//     "Packing List",
-//     "Bill of Lading",
-//     "Insurance Certificate",
-//     "Certificate of Origin",
-//     "Inspection Certificate",
-//   ],
-//   tracking: {
-//     status: "Documents Submitted",
-//     remarks:
-//       "Waiting for document verification. All documents submitted on March 15, 2024.",
-//     attachments: [
-//       { name: "LC_Application.pdf", type: "PDF", size: "2.4 MB" },
-//       { name: "Proforma_Invoice.pdf", type: "PDF", size: "1.8 MB" },
-//       { name: "Contract_Agreement.pdf", type: "PDF", size: "3.2 MB" },
-//     ],
-//     lastUpdated: "2024-03-15 14:30",
-//   },
-// };
+import CollapsibleCard from "../../components/common/CollapsibleCard";
 
 const StatusBadge = ({ status }) => {
   let bgColor, icon;
@@ -133,6 +36,7 @@ const StatusBadge = ({ status }) => {
       icon = <FiAlertCircle className="mr-1" />;
       break;
     case "closed":
+    case "completed":
       bgColor = "bg-green-100 text-green-800";
       icon = <FiCheckCircle className="mr-1" />;
       break;
@@ -163,48 +67,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const SectionCard = ({ title, icon, children, defaultOpen = true }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <motion.div
-      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      <button
-        className="w-full flex items-center justify-between p-4 text-left"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <div className="flex items-center">
-          <span className="text-[#003b75] mr-3 text-lg">{icon}</span>
-          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-        </div>
-        {isOpen ? (
-          <FiAlertCircle className="text-gray-500 transform rotate-180 transition-transform" />
-        ) : (
-          <FiAlertCircle className="text-gray-500" />
-        )}
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-4">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-};
-
 const DataField = ({ label, value, icon, hidden = false }) => {
   if (hidden || !value) return null;
 
@@ -222,6 +84,25 @@ const DataField = ({ label, value, icon, hidden = false }) => {
 const LCdetails = () => {
   const { id } = useParams();
   const lcData = allLc.find((l) => l.id == id);
+
+  const { financial_info, shipping_customs_info, agent_transport_info, product_info } = lcData;
+
+  const customs_total_bdt = shipping_customs_info.customs_duty_bdt + shipping_customs_info.vat_bdt + shipping_customs_info.ait_bdt + shipping_customs_info.other_port_expenses_bdt;
+  const transport_other_bdt = agent_transport_info.transport_cost_bdt;
+  const total_lc_cost_bdt = financial_info.lc_amount_bdt + financial_info.bank_charges_bdt + financial_info.insurance_cost_bdt + customs_total_bdt + agent_transport_info.cnf_agent_commission_bdt + transport_other_bdt;
+  const per_unit_landing_cost_bdt = total_lc_cost_bdt / product_info.quantity_ton;
+
+  const cost_summary = {
+    lc_amount_bdt: financial_info.lc_amount_bdt,
+    bank_charges_bdt: financial_info.bank_charges_bdt,
+    insurance_cost_bdt: financial_info.insurance_cost_bdt,
+    customs_total_bdt,
+    agent_commission_bdt: agent_transport_info.cnf_agent_commission_bdt,
+    transport_other_bdt,
+    total_lc_cost_bdt,
+    per_unit_landing_cost_bdt
+  }
+
   return (
     <div className="min-h-screen  py-4 px-4 sm:px-6 lg:px-8">
       <div className=" mx-auto">
@@ -254,216 +135,89 @@ const LCdetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main content - 2/3 width on large screens */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Basic LC Information */}
-            <SectionCard title="Basic LC Information" icon={<FiFile />}>
+            <CollapsibleCard title="Basic LC Information" icon={<FiFile />}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DataField
-                  label="LC Number"
-                  value={lcData.basicInfo.lcNumber}
-                />
-                <DataField label="LC Type" value={lcData.basicInfo.lcType} />
-                <DataField
-                  label="Issue Date"
-                  value={lcData.basicInfo.issueDate}
-                />
-                <DataField
-                  label="Expiry Date"
-                  value={lcData.basicInfo.expiryDate}
-                />
-                <DataField
-                  label="LC Value"
-                  value={`${
-                    lcData.basicInfo.currency
-                  } ${lcData.basicInfo.lcValue.toLocaleString()}`}
-                />
-                <DataField
-                  label="Status"
-                  value={<StatusBadge status={lcData.basicInfo.status} />}
-                />
+                <DataField label="LC Number" value={lcData.basic_info.lc_number} />
+                <DataField label="LC Opening Date" value={lcData.basic_info.lc_opening_date} />
+                <DataField label="Bank Name" value={lcData.basic_info.bank_name} />
+                <DataField label="Status" value={<StatusBadge status={lcData.basic_info.status} />} />
+                <DataField label="Supplier Name" value={lcData.basic_info.supplier_name} />
+                <DataField label="Supplier Country" value={lcData.basic_info.supplier_country} />
               </div>
-            </SectionCard>
+            </CollapsibleCard>
 
-            {/* Payment Information */}
-            <SectionCard title="Payment Information" icon={<FiDollarSign />}>
+            <CollapsibleCard title="Financial Information" icon={<FiDollarSign />}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DataField
-                  label="Payment Terms"
-                  value={lcData.paymentInfo.terms}
-                />
-                <DataField
-                  label="Due Date"
-                  value={lcData.paymentInfo.dueDate}
-                />
-                <DataField
-                  label="Margin Amount"
-                  value={`${
-                    lcData.basicInfo.currency
-                  } ${lcData.paymentInfo.marginAmount.toLocaleString()}`}
-                />
-                <DataField
-                  label="Bank Charges"
-                  value={`${
-                    lcData.basicInfo.currency
-                  } ${lcData.paymentInfo.bankCharges.toLocaleString()}`}
-                />
-                <DataField
-                  label="Commission/Fees"
-                  value={`${
-                    lcData.basicInfo.currency
-                  } ${lcData.paymentInfo.commission.toLocaleString()}`}
-                />
-                <DataField
-                  label="Payment Status"
-                  value={<StatusBadge status={lcData.paymentInfo.status} />}
-                />
-                <DataField
-                  label="Paid Amount"
-                  value={`${
-                    lcData.basicInfo.currency
-                  } ${lcData.paymentInfo.paidAmount.toLocaleString()}`}
-                />
+                <DataField label="LC Amount (USD)" value={financial_info.lc_amount_usd.toLocaleString()} />
+                <DataField label="Exchange Rate" value={financial_info.exchange_rate} />
+                <DataField label="LC Amount (BDT)" value={financial_info.lc_amount_bdt.toLocaleString()} />
+                <DataField label="LC Margin Paid (BDT)" value={financial_info.lc_margin_paid_bdt.toLocaleString()} />
+                <DataField label="Bank Charges (BDT)" value={financial_info.bank_charges_bdt.toLocaleString()} />
+                <DataField label="Insurance Cost (BDT)" value={financial_info.insurance_cost_bdt.toLocaleString()} />
               </div>
-            </SectionCard>
+            </CollapsibleCard>
 
-            {/* Goods Information */}
-            <SectionCard title="Goods / Product Details" icon={<FiBox />}>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Product
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        HS Code
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Quantity
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Unit Price
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total Value
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {lcData.goodsInfo.map((good, index) => (
-                      <tr key={index}>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="font-medium text-gray-900">
-                            {good.productName}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {good.description}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                          {good.hsCode}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                          {good.quantity.toLocaleString()} {good.unit}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                          {lcData.basicInfo.currency}{" "}
-                          {good.unitPrice.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap font-medium">
-                          {lcData.basicInfo.currency}{" "}
-                          {good.totalValue.toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="bg-gray-50">
-                      <td
-                        colSpan="4"
-                        className="px-4 py-3 text-right font-medium text-gray-700"
-                      >
-                        Total LC Value:
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap font-bold">
-                        {lcData.basicInfo.currency}{" "}
-                        {lcData.basicInfo.lcValue.toLocaleString()}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </SectionCard>
-
-            {/* Shipment Information */}
-            <SectionCard title="Shipment Information" icon={<FiTruck />}>
+            <CollapsibleCard title="Product Information" icon={<FiBox />}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DataField
-                  label="Port of Loading"
-                  value={lcData.shipmentInfo.portOfLoading}
-                  icon={<FiMapPin />}
-                />
-                <DataField
-                  label="Port of Discharge"
-                  value={lcData.shipmentInfo.portOfDischarge}
-                  icon={<FiMapPin />}
-                />
-                <DataField
-                  label="Shipment Date"
-                  value={lcData.shipmentInfo.shipmentDate}
-                />
-                <DataField
-                  label="Last Shipment Date"
-                  value={lcData.shipmentInfo.lastShipmentDate}
-                />
-                <DataField
-                  label="Transport Type"
-                  value={lcData.shipmentInfo.transportType}
-                />
-                <DataField
-                  label="Shipping Company"
-                  value={lcData.shipmentInfo.shippingCompany}
-                />
-                <DataField
-                  label="Incoterms"
-                  value={lcData.shipmentInfo.incoterms}
-                />
-                <DataField
-                  label="Insurance"
-                  value={lcData.shipmentInfo.insurance}
-                />
+                <DataField label="Item Name" value={product_info.item_name} />
+                <DataField label="Unit Price (USD)" value={product_info.unit_price_usd.toLocaleString()} />
+                <DataField label="Specification" value={`Thickness: ${product_info.specification.thickness_mm}mm, Width: ${product_info.specification.width_mm}mm, Length: ${product_info.specification.length_mm}mm, Grade: ${product_info.specification.grade}`} />
+                <DataField label="Total Value (USD)" value={product_info.total_value_usd.toLocaleString()} />
+                <DataField label="Quantity (Ton)" value={product_info.quantity_ton} />                
+                <DataField label="Total Value (BDT)" value={product_info.total_value_bdt.toLocaleString()} />
               </div>
-            </SectionCard>
+            </CollapsibleCard>
 
-            {/* Documents Required */}
-            <SectionCard title="Documents Required" icon={<FiClipboard />}>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {lcData.documentsRequired.map((doc, index) => (
-                  <li key={index} className="flex items-center py-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                    <span className="text-gray-700">{doc}</span>
-                  </li>
-                ))}
-              </ul>
-            </SectionCard>
+            <CollapsibleCard title="Shipping & Customs Information" icon={<FiTruck />}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DataField label="Port of Shipment" value={shipping_customs_info.port_of_shipment} />
+                <DataField label="Port of Arrival" value={shipping_customs_info.port_of_arrival} />
+                <DataField label="Expected Arrival Date" value={shipping_customs_info.expected_arrival_date} />
+                <DataField label="Actual Arrival Date" value={shipping_customs_info.actual_arrival_date} />
+                <DataField label="Customs Duty (BDT)" value={shipping_customs_info.customs_duty_bdt.toLocaleString()} />
+                <DataField label="VAT (BDT)" value={shipping_customs_info.vat_bdt.toLocaleString()} />
+                <DataField label="AIT (BDT)" value={shipping_customs_info.ait_bdt.toLocaleString()} />
+                <DataField label="Other Port Expenses (BDT)" value={shipping_customs_info.other_port_expenses_bdt.toLocaleString()} />
+              </div>
+            </CollapsibleCard>
+
+            <CollapsibleCard title="Agent & Transport Information" icon={<FiUser />}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DataField label="C&F Agent Name" value={agent_transport_info.cnf_agent_name} />
+                <DataField label="C&F Agent Commission (BDT)" value={agent_transport_info.cnf_agent_commission_bdt.toLocaleString()} />
+                <DataField label="Indenting Agent Commission (BDT)" value={agent_transport_info.indenting_agent_commission_bdt.toLocaleString()} />
+                <DataField label="Transport Cost (BDT)" value={agent_transport_info.transport_cost_bdt.toLocaleString()} />
+              </div>
+            </CollapsibleCard>
+
           </div>
 
           {/* Sidebar - 1/3 width on large screens */}
           <div className="space-y-4">
-            {/* Tracking & Status */}
-            <SectionCard title="Tracking & Status" icon={<FiPieChart />}>
-              <div className="space-y-4">
-                <DataField
-                  label="Current Status"
-                  value={<StatusBadge status={lcData.tracking.status} />}
-                />
-                <DataField
-                  label="Last Updated"
-                  value={lcData.tracking.lastUpdated}
-                />
-                <DataField label="Remarks" value={lcData.tracking.remarks} />
 
+            <CollapsibleCard title="Cost Summary" icon={<FiPieChart />}>
+              <div className="space-y-3">
+                <DataField label="LC Amount (BDT)" value={cost_summary.lc_amount_bdt.toLocaleString()} />
+                <DataField label="Bank Charges (BDT)" value={cost_summary.bank_charges_bdt.toLocaleString()} />
+                <DataField label="Insurance Cost (BDT)" value={cost_summary.insurance_cost_bdt.toLocaleString()} />
+                <DataField label="Customs Total (BDT)" value={cost_summary.customs_total_bdt.toLocaleString()} />
+                <DataField label="Agent Commission (BDT)" value={cost_summary.agent_commission_bdt.toLocaleString()} />
+                <DataField label="Transport & Other (BDT)" value={cost_summary.transport_other_bdt.toLocaleString()} />
+                <hr className="my-4 border-gray-200" />
+                <div className="flex justify-between items-center">
+                  <p className="font-semibold">Total Cost (BDT)</p>
+                  <p className="font-bold text-lg">{cost_summary.total_lc_cost_bdt.toLocaleString()}</p>
+                </div>
+                <DataField label="Per Unit Landing Cost (BDT)" value={cost_summary.per_unit_landing_cost_bdt.toLocaleString()} />
+              </div>
+            </CollapsibleCard>
+
+            <CollapsibleCard title="Documents & Notes" icon={<FiClipboard />}>
+              <div className="space-y-4">
                 <div>
-                  <div className="text-sm text-gray-500 mb-2">Attachments</div>
+                  <div className="text-sm text-gray-500 mb-2">Uploaded Documents</div>
                   <div className="space-y-2">
-                    {lcData.tracking.attachments.map((file, index) => (
+                    {lcData.documents_notes.uploaded_documents.map((file, index) => (
                       <div
                         key={index}
                         className="flex items-center p-2 bg-gray-50 rounded-md"
@@ -471,10 +225,7 @@ const LCdetails = () => {
                         <FiFile className="text-gray-400 mr-2" />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-700 truncate">
-                            {file.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {file.type} • {file.size}
+                            {file}
                           </div>
                         </div>
                         <button className="ml-2 text-[#003b75] hover:text-blue-800">
@@ -484,126 +235,12 @@ const LCdetails = () => {
                     ))}
                   </div>
                 </div>
+                <DataField label="Remarks" value={lcData.documents_notes.remarks} />
               </div>
-            </SectionCard>
+            </CollapsibleCard>
 
-            {/* Buyer Information */}
-            <SectionCard title="Buyer Information" icon={<FiUser />}>
-              <div className="space-y-3">
-                <DataField
-                  label="Buyer/Importer Name"
-                  value={lcData.buyerInfo.name}
-                  icon={<FiUser />}
-                />
-                <DataField
-                  label="Company Name"
-                  value={lcData.buyerInfo.company}
-                  icon={<FiHome />}
-                />
-                <DataField
-                  label="Address"
-                  value={lcData.buyerInfo.address}
-                  icon={<FiMapPin />}
-                />
-                <DataField
-                  label="Contact Person"
-                  value={lcData.buyerInfo.contactPerson}
-                  icon={<FiUser />}
-                />
-                <DataField
-                  label="Phone"
-                  value={lcData.buyerInfo.phone}
-                  icon={<FiPhone />}
-                />
-                <DataField
-                  label="Email"
-                  value={lcData.buyerInfo.email}
-                  icon={<FiArchive />}
-                />
-              </div>
-            </SectionCard>
+            
 
-            {/* Seller Information */}
-            <SectionCard title="Seller Information" icon={<FiUser />}>
-              <div className="space-y-3">
-                <DataField
-                  label="Seller/Exporter Name"
-                  value={lcData.sellerInfo.name}
-                  icon={<FiUser />}
-                />
-                <DataField
-                  label="Company Name"
-                  value={lcData.sellerInfo.company}
-                  icon={<FiHome />}
-                />
-                <DataField
-                  label="Address"
-                  value={lcData.sellerInfo.address}
-                  icon={<FiMapPin />}
-                />
-                <DataField
-                  label="Email"
-                  value={lcData.sellerInfo.email}
-                  icon={<FiArchive />}
-                />
-                <DataField
-                  label="Bank Name"
-                  value={lcData.sellerInfo.bankName}
-                  icon={<FiCreditCard />}
-                />
-                <DataField
-                  label="Account Number"
-                  value={lcData.sellerInfo.accountNumber}
-                  icon={<FiCreditCard />}
-                />
-                <DataField
-                  label="SWIFT Code"
-                  value={lcData.sellerInfo.swiftCode}
-                  icon={<FiCreditCard />}
-                />
-              </div>
-            </SectionCard>
-
-            {/* Bank Information */}
-            <SectionCard title="Bank Information" icon={<FiCreditCard />}>
-              <div className="space-y-3">
-                <DataField
-                  label="Issuing Bank"
-                  value={lcData.bankInfo.issuingBank}
-                  icon={<FiCreditCard />}
-                />
-                <DataField
-                  label="Advising Bank"
-                  value={lcData.bankInfo.advisingBank}
-                  icon={<FiCreditCard />}
-                />
-                <DataField
-                  label="Correspondent Bank"
-                  value={lcData.bankInfo.correspondentBank}
-                  icon={<FiCreditCard />}
-                />
-                <DataField
-                  label="SWIFT Code"
-                  value={lcData.bankInfo.swiftCode}
-                  icon={<FiCreditCard />}
-                />
-                <DataField
-                  label="Branch"
-                  value={lcData.bankInfo.branch}
-                  icon={<FiHome />}
-                />
-                <DataField
-                  label="Account Manager"
-                  value={lcData.bankInfo.accountManager}
-                  icon={<FiUser />}
-                />
-                <DataField
-                  label="Manager Contact"
-                  value={lcData.bankInfo.managerContact}
-                  icon={<FiArchive />}
-                />
-              </div>
-            </SectionCard>
           </div>
         </div>
       </div>
