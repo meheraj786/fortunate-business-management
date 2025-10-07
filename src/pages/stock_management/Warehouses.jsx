@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router';
-import { warehouses } from '../../data/data';
+import { warehouses as initialWarehouses } from '../../data/data';
 import { Plus, Warehouse, MapPin } from 'lucide-react';
+import AddWarehouseForm from './AddWarehouseForm';
 
 const Warehouses = () => {
+  const [warehouses, setWarehouses] = useState(initialWarehouses);
+  const [showAddWarehouseForm, setShowAddWarehouseForm] = useState(false);
+
+  const handleWarehouseAdded = (newWarehouse) => {
+    const newWarehouseWithId = {
+      ...newWarehouse,
+      id: warehouses.length > 0 ? Math.max(...warehouses.map(w => w.id)) + 1 : 1
+    };
+    setWarehouses([newWarehouseWithId, ...warehouses]);
+    setShowAddWarehouseForm(false);
+  };
+
   return (
     <div className="min-h-screen p-4 sm:p-6">
       <div className="mx-auto">
@@ -14,7 +27,9 @@ const Warehouses = () => {
               Select a warehouse to view its inventory.
             </p>
           </div>
-          <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start">
+          <button 
+            onClick={() => setShowAddWarehouseForm(true)}
+            className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start">
             <Plus size={20} />
             Add Warehouse
           </button>
@@ -42,6 +57,11 @@ const Warehouses = () => {
           ))}
         </div>
       </div>
+      <AddWarehouseForm 
+        isOpen={showAddWarehouseForm}
+        onClose={() => setShowAddWarehouseForm(false)}
+        onWarehouseAdded={handleWarehouseAdded}
+      />
     </div>
   );
 };
