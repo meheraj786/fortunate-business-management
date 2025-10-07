@@ -13,6 +13,92 @@ import {
   Layers
 } from 'lucide-react';
 
+// Helper components moved outside the main component to prevent re-creation on re-renders
+const InputField = ({ 
+  label, 
+  type = "text", 
+  value, 
+  onChange, 
+  required = false, 
+  placeholder = "", 
+  icon: Icon,
+  min,
+  step,
+  disabled = false
+}) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="relative">
+      {Icon && (
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <Icon className="w-4 h-4" />
+        </div>
+      )}
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        placeholder={placeholder}
+        min={min}
+        step={step}
+        disabled={disabled}
+        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
+          Icon ? 'pl-10' : ''
+        } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+      />
+    </div>
+  </div>
+);
+
+const SelectField = ({ label, value, onChange, options, required = false, icon: Icon }) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="relative">
+      {Icon && (
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <Icon className="w-4 h-4" />
+        </div>
+      )}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
+          Icon ? 'pl-10' : ''
+        }`}
+      >
+        <option value="">Select {label}</option>
+        {options.map((option, index) => (
+          <option key={index} value={option.value || option}>
+            {option.label || option}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+);
+
+const TextAreaField = ({ label, value, onChange, required = false, placeholder = "", rows = 3 }) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required={required}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 resize-vertical"
+    />
+  </div>
+);
+
 const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = false }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -69,10 +155,8 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
     "Mezzanine"
   ];
 
-  // Initialize form data when editData changes or form opens
   useEffect(() => {
     if (editData) {
-      // Remove dollar sign from unitPrice for editing
       const cleanEditData = {
         ...editData,
         unitPrice: editData.unitPrice ? editData.unitPrice.replace('$', '') : ''
@@ -102,7 +186,6 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.name || !formData.category || !formData.quantity || !formData.unitPrice) {
       alert('Please fill in all required fields');
       return;
@@ -113,7 +196,6 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
       return;
     }
 
-    // Format unitPrice with dollar sign before saving
     const dataToSave = {
       ...formData,
       unitPrice: `$${parseFloat(formData.unitPrice).toFixed(2)}`
@@ -121,93 +203,6 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
 
     onProductAdded(dataToSave);
   };
-
-  const InputField = ({ 
-    label, 
-    type = "text", 
-    value, 
-    onChange, 
-    required = false, 
-    placeholder = "", 
-    icon: Icon,
-    min,
-    step,
-    disabled = false
-  }) => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <div className="relative">
-        {Icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <Icon className="w-4 h-4" />
-          </div>
-        )}
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          required={required}
-          placeholder={placeholder}
-          min={min}
-          step={step}
-          disabled={disabled}
-          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
-            Icon ? 'pl-10' : ''
-          } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-        />
-      </div>
-    </div>
-  );
-
-  const SelectField = ({ label, value, onChange, options, required = false, icon: Icon }) => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <div className="relative">
-        {Icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <Icon className="w-4 h-4" />
-          </div>
-        )}
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          required={required}
-          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
-            Icon ? 'pl-10' : ''
-          }`}
-        >
-          <option value="">Select {label}</option>
-          {options.map((option, index) => (
-            <option key={index} value={option.value || option}>
-              {option.label || option}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  );
-
-  const TextAreaField = ({ label, value, onChange, required = false, placeholder = "", rows = 3 }) => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        placeholder={placeholder}
-        rows={rows}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 resize-vertical"
-      />
-    </div>
-  );
-
-
 
   return (
     <AnimatePresence>
@@ -226,7 +221,6 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
           className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
           <div className="bg-[#003b75] text-white p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -250,10 +244,8 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
             </div>
           </div>
 
-          {/* Form Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Product Information */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                   <Layers className="w-5 h-5 text-[#003b75]" />
@@ -296,7 +288,6 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                 </div>
               </div>
 
-              {/* Inventory Details */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                   <Hash className="w-5 h-5 text-[#003b75]" />
@@ -305,13 +296,11 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <InputField
                     label="Quantity in Stock"
-                    type="number"
+                    type="text"
                     value={formData.quantity}
                     onChange={(value) => handleInputChange('quantity', value)}
                     required
                     placeholder="150"
-                    min="0"
-                    step="1"
                     icon={Hash}
                   />
                   
@@ -326,19 +315,16 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                   
                   <InputField
                     label="Unit Price ($)"
-                    type="number"
+                    type="text"
                     value={formData.unitPrice}
                     onChange={(value) => handleInputChange('unitPrice', value)}
                     required
                     placeholder="25.50"
-                    min="0.01"
-                    step="0.01"
                     icon={DollarSign}
                   />
                 </div>
               </div>
 
-              {/* Storage Information */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                   <MapPin className="w-5 h-5 text-[#003b75]" />
@@ -363,7 +349,6 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                 </div>
               </div>
 
-              {/* Product Specifications */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
                   <Ruler className="w-5 h-5 text-[#003b75]" />
@@ -381,12 +366,10 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <InputField
                       label="Weight (kg per unit)"
-                      type="number"
+                      type="text"
                       value={formData.weight || ""}
                       onChange={(value) => handleInputChange('weight', value)}
                       placeholder="7.5"
-                      min="0"
-                      step="0.01"
                     />
                     
                     <InputField
@@ -406,7 +389,6 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                 </div>
               </div>
 
-              {/* Form Actions */}
               <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-gray-200">
                 <button
                   type="button"

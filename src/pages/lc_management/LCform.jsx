@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { 
   Plus, 
@@ -17,6 +17,58 @@ import {
   Clipboard,
   UploadCloud
 } from 'lucide-react';
+
+// Helper components moved outside the main component to prevent re-creation on re-renders
+const InputField = ({ label, type = "text", inputMode, value, onChange, required = false, placeholder = "", className = "" }) => (
+  <div className={`space-y-2 ${className}`}>
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      inputMode={inputMode}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required={required}
+      placeholder={placeholder}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200"
+    />
+  </div>
+);
+
+const SelectField = ({ label, value, onChange, options, required = false }) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required={required}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200"
+    >
+      {options.map(option => (
+        <option key={option.value} value={option.value}>{option.label}</option>
+      ))}
+    </select>
+  </div>
+);
+
+const TextAreaField = ({ label, value, onChange, required = false, placeholder = "", rows = 3 }) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required={required}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 resize-vertical"
+    />
+  </div>
+);
 
 let productIdCounter = 0;
 
@@ -182,57 +234,6 @@ const LCForm = ({ onSave, editData = null }) => {
     );
   };
 
-  const InputField = ({ label, type = "text", inputMode, value, onChange, required = false, placeholder = "", className = "" }) => (
-    <div className={`space-y-2 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        type={type}
-        inputMode={inputMode}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        placeholder={placeholder}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200"
-      />
-    </div>
-  );
-
-  const SelectField = ({ label, value, onChange, options, required = false }) => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200"
-      >
-        {options.map(option => (
-          <option key={option.value} value={option.value}>{option.label}</option>
-        ))}
-      </select>
-    </div>
-  );
-
-  const TextAreaField = ({ label, value, onChange, required = false, placeholder = "", rows = 3 }) => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        placeholder={placeholder}
-        rows={rows}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 resize-vertical"
-      />
-    </div>
-  );
-
   const sectionAnimation = {
     initial: { height: 0, opacity: 0 },
     animate: { height: 'auto', opacity: 1, transition: { duration: 0.3 } },
@@ -251,7 +252,7 @@ const LCForm = ({ onSave, editData = null }) => {
               <p className="text-gray-600">Fill in the details below to {editData ? 'update' : 'create'} a new LC</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link to="/lc">
+              <Link to="/lc-management">
                 <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2">
                   <X className="w-4 h-4" />
                   <span>Cancel</span>
@@ -380,7 +381,7 @@ const LCForm = ({ onSave, editData = null }) => {
             </section>
           ))}
           <div className="flex justify-end gap-4">
-            <Link to="/lc">
+            <Link to="/lc-management">
               <button type="button" className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium">
                 Cancel
               </button>

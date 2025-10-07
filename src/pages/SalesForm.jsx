@@ -13,6 +13,90 @@ import {
   Hash
 } from 'lucide-react';
 
+// Helper components moved outside the main component to prevent re-creation on re-renders
+const InputField = ({ 
+  label, 
+  type = "text", 
+  value, 
+  onChange, 
+  required = false, 
+  placeholder = "", 
+  icon: Icon,
+  min,
+  step
+}) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="relative">
+      {Icon && (
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <Icon className="w-4 h-4" />
+        </div>
+      )}
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        placeholder={placeholder}
+        min={min}
+        step={step}
+        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
+          Icon ? 'pl-10' : ''
+        }`}
+      />
+    </div>
+  </div>
+);
+
+const SelectField = ({ label, value, onChange, options, required = false, icon: Icon }) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <div className="relative">
+      {Icon && (
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <Icon className="w-4 h-4" />
+        </div>
+      )}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
+        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
+          Icon ? 'pl-10' : ''
+        }`}
+      >
+        <option value="">Select {label}</option>
+        {options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+);
+
+const TextAreaField = ({ label, value, onChange, required = false, placeholder = "", rows = 3 }) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required={required}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 resize-vertical"
+    />
+  </div>
+);
+
 const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => {
   const [formData, setFormData] = useState({
     productName: "",
@@ -57,7 +141,6 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
     { value: "pending", label: "Pending" }
   ];
 
-  // Initialize form data when editData changes or form opens
   useEffect(() => {
     if (editData) {
       setFormData(editData);
@@ -88,7 +171,6 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.productName || !formData.quantity || !formData.price || !formData.customer) {
       alert('Please fill in all required fields');
       return;
@@ -101,91 +183,6 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
 
     onSaleAdded(formData);
   };
-
-  const InputField = ({ 
-    label, 
-    type = "text", 
-    value, 
-    onChange, 
-    required = false, 
-    placeholder = "", 
-    icon: Icon,
-    min,
-    step
-  }) => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <div className="relative">
-        {Icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <Icon className="w-4 h-4" />
-          </div>
-        )}
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          required={required}
-          placeholder={placeholder}
-          min={min}
-          step={step}
-          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
-            Icon ? 'pl-10' : ''
-          }`}
-        />
-      </div>
-    </div>
-  );
-
-  const SelectField = ({ label, value, onChange, options, required = false, icon: Icon }) => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <div className="relative">
-        {Icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <Icon className="w-4 h-4" />
-          </div>
-        )}
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          required={required}
-          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
-            Icon ? 'pl-10' : ''
-          }`}
-        >
-          <option value="">Select {label}</option>
-          {options.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  );
-
-  const TextAreaField = ({ label, value, onChange, required = false, placeholder = "", rows = 3 }) => (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        placeholder={placeholder}
-        rows={rows}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 resize-vertical"
-      />
-    </div>
-  );
-
-
 
   return (
     <AnimatePresence>
@@ -204,7 +201,6 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
           className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
           <div className="bg-[#003b75] text-white p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -228,10 +224,8 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
             </div>
           </div>
 
-          {/* Form Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Product Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputField
                   label="Product Name"
@@ -247,7 +241,7 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
                   value={formData.productId}
                   onChange={(value) => handleInputChange('productId', value)}
                   placeholder="1"
-                  type="number"
+                  type="text"
                   icon={Hash}
                 />
                 
@@ -269,29 +263,24 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
                 />
               </div>
 
-              {/* Sales Details */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <InputField
                   label="Quantity"
-                  type="number"
+                  type="text"
                   value={formData.quantity}
                   onChange={(value) => handleInputChange('quantity', value)}
                   required
                   placeholder="25"
-                  min="0"
-                  step="0.01"
                   icon={Hash}
                 />
                 
                 <InputField
                   label="Price per Unit"
-                  type="number"
+                  type="text"
                   value={formData.price}
                   onChange={(value) => handleInputChange('price', value)}
                   required
                   placeholder="25.50"
-                  min="0"
-                  step="0.01"
                   icon={DollarSign}
                 />
                 
@@ -307,7 +296,6 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
                 </div>
               </div>
 
-              {/* Specifications */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputField
                   label="Size/Dimensions"
@@ -327,7 +315,6 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
                 />
               </div>
 
-              {/* Customer Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputField
                   label="Customer Name"
@@ -348,7 +335,6 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
                 />
               </div>
 
-              {/* Invoice Status */}
               <div className="grid grid-cols-1 gap-6">
                 <SelectField
                   label="Invoice Status"
@@ -360,7 +346,6 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
                 />
               </div>
 
-              {/* Additional Notes */}
               <TextAreaField
                 label="Additional Notes (Optional)"
                 value={formData.notes || ""}
@@ -369,7 +354,6 @@ const SalesForm = ({ onClose, onSaleAdded, editData = null, isOpen = false }) =>
                 rows={2}
               />
 
-              {/* Form Actions */}
               <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-gray-200">
                 <button
                   type="button"
