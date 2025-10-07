@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
+import FormSection from '../../components/common/FormSection'; // Corrected import path
 
 import { 
   Plus, 
   Trash2, 
-  ChevronDown, 
-  ChevronUp, 
   Save,
   X,
   FileText,
@@ -209,31 +208,6 @@ const LCForm = ({ onSave, editData = null }) => {
     onSave(formData);
   };
 
-  const SectionHeader = ({ section, index }) => {
-    const Icon = section.icon;
-    const isExpanded = expandedSections[section.id];
-    
-    return (
-      <div
-        className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors duration-200"
-        onClick={() => toggleSection(section.id)}
-      >
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-[#003b75] rounded-lg">
-            <Icon className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{section.title}</h3>
-            <p className="text-sm text-gray-600">Section {index + 1} of {sections.length}</p>
-          </div>
-        </div>
-        <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
-          <ChevronDown className="w-5 h-5 text-gray-500" />
-        </motion.div>
-      </div>
-    );
-  };
-
   const sectionAnimation = {
     initial: { height: 0, opacity: 0 },
     animate: { height: 'auto', opacity: 1, transition: { duration: 0.3 } },
@@ -252,7 +226,7 @@ const LCForm = ({ onSave, editData = null }) => {
               <p className="text-gray-600">Fill in the details below to {editData ? 'update' : 'create'} a new LC</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link to="/lc-management">
+              <Link to="/lc">
                 <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2">
                   <X className="w-4 h-4" />
                   <span>Cancel</span>
@@ -270,118 +244,116 @@ const LCForm = ({ onSave, editData = null }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {sections.map((section, index) => (
-            <section key={section.id} ref={el => sectionRefs.current[section.id] = el} className="bg-white rounded-xl shadow-lg overflow-hidden scroll-mt-16">
-              <SectionHeader section={section} index={index} />
-              <AnimatePresence>
-                {expandedSections[section.id] && (
-                  <motion.div {...sectionAnimation} className="overflow-hidden">
-                    <div className="p-6 border-t border-gray-200">
-                      {section.id === 'basic_info' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          <InputField label="LC Number" value={formData.basic_info.lc_number} onChange={v => handleInputChange('basic_info', 'lc_number', v)} required />
-                          <InputField label="LC Opening Date" type="date" value={formData.basic_info.lc_opening_date} onChange={v => handleInputChange('basic_info', 'lc_opening_date', v)} required />
-                          <SelectField 
-                            label="Status" 
-                            value={formData.basic_info.status} 
-                            onChange={v => handleInputChange('basic_info', 'status', v)}
-                            options={[{value: 'Active', label: 'Active'}, {value: 'Completed', label: 'Completed'}, {value: 'Cancelled', label: 'Cancelled'}, {value: 'Draft', label: 'Draft'}]}
-                          />
-                          <InputField label="Bank Name" value={formData.basic_info.bank_name} onChange={v => handleInputChange('basic_info', 'bank_name', v)} />
-                          <InputField label="Supplier Name" value={formData.basic_info.supplier_name} onChange={v => handleInputChange('basic_info', 'supplier_name', v)} />
-                          <SelectField 
-                            label="Supplier Country" 
-                            value={formData.basic_info.supplier_country} 
-                            onChange={v => handleInputChange('basic_info', 'supplier_country', v)}
-                            options={[{value: 'China', label: 'China'}, {value: 'India', label: 'India'}, {value: 'US', label: 'United States'}]}
-                          />
-                        </div>
-                      )}
-                      {section.id === 'financial_info' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          <InputField label="LC Amount (USD)" type="text" inputMode="decimal" value={formData.financial_info.lc_amount_usd} onChange={v => handleInputChange('financial_info', 'lc_amount_usd', v)} />
-                          <InputField label="Exchange Rate" type="text" inputMode="decimal" value={formData.financial_info.exchange_rate} onChange={v => handleInputChange('financial_info', 'exchange_rate', v)} />
-                          <InputField label="LC Amount (BDT)" type="text" inputMode="decimal" value={formData.financial_info.lc_amount_bdt} onChange={v => handleInputChange('financial_info', 'lc_amount_bdt', v)} />
-                          <InputField label="LC Margin Paid (BDT)" type="text" inputMode="decimal" value={formData.financial_info.lc_margin_paid_bdt} onChange={v => handleInputChange('financial_info', 'lc_margin_paid_bdt', v)} />
-                          <InputField label="Bank Charges (BDT)" type="text" inputMode="decimal" value={formData.financial_info.bank_charges_bdt} onChange={v => handleInputChange('financial_info', 'bank_charges_bdt', v)} />
-                          <InputField label="Insurance Cost (BDT)" type="text" inputMode="decimal" value={formData.financial_info.insurance_cost_bdt} onChange={v => handleInputChange('financial_info', 'insurance_cost_bdt', v)} />
-                        </div>
-                      )}
-                      {section.id === 'product_info' && (
-                        <div className="space-y-6">
-                          <AnimatePresence>
-                            {formData.product_info.map((product, index) => (
-                              <motion.div key={product.id} {...sectionAnimation} className="p-4 border border-gray-200 rounded-lg relative bg-gray-50">
-                                {formData.product_info.length > 1 && (
-                                  <button type="button" onClick={() => removeProduct(product.id)} className="absolute top-4 right-4 p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                )}
-                                <h4 className="font-semibold text-gray-900 mb-4">Product {index + 1}</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                  <InputField label="Item Name" value={product.item_name} onChange={v => handleProductChange(product.id, 'item_name', v)} />
-                                  <InputField label="Thickness (mm)" type="text" inputMode="decimal" value={product.specification.thickness_mm} onChange={v => handleProductSpecChange(product.id, 'thickness_mm', v)} />
-                                  <InputField label="Width (mm)" type="text" inputMode="decimal" value={product.specification.width_mm} onChange={v => handleProductSpecChange(product.id, 'width_mm', v)} />
-                                  <InputField label="Length (mm)" type="text" inputMode="decimal" value={product.specification.length_mm} onChange={v => handleProductSpecChange(product.id, 'length_mm', v)} />
-                                  <InputField label="Grade" value={product.specification.grade} onChange={v => handleProductSpecChange(product.id, 'grade', v)} />
-                                  <InputField label="Quantity (Ton)" type="text" inputMode="decimal" value={product.quantity_ton} onChange={v => handleProductChange(product.id, 'quantity_ton', v)} />
-                                  <InputField label="Unit Price (USD)" type="text" inputMode="decimal" value={product.unit_price_usd} onChange={v => handleProductChange(product.id, 'unit_price_usd', v)} />
-                                  <InputField label="Total Value (USD)" type="text" inputMode="decimal" value={product.total_value_usd} onChange={v => handleProductChange(product.id, 'total_value_usd', v)} />
-                                  <InputField label="Total Value (BDT)" type="text" inputMode="decimal" value={product.total_value_bdt} onChange={v => handleProductChange(product.id, 'total_value_bdt', v)} />
-                                </div>
-                              </motion.div>
-                            ))}
-                          </AnimatePresence>
-                          <button type="button" onClick={addProduct} className="flex items-center justify-center space-x-2 w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-[#003b75] hover:text-[#003b75]">
-                            <Plus className="w-5 h-5" />
-                            <span>Add Another Product</span>
+          {sections.map((section) => (
+            <FormSection
+              key={section.id}
+              title={section.title}
+              icon={section.icon}
+              isExpanded={!!expandedSections[section.id]}
+              onToggle={() => toggleSection(section.id)}
+              sectionRef={el => sectionRefs.current[section.id] = el}
+            >
+              {section.id === 'basic_info' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <InputField label="LC Number" value={formData.basic_info.lc_number} onChange={v => handleInputChange('basic_info', 'lc_number', v)} required />
+                  <InputField label="LC Opening Date" type="date" value={formData.basic_info.lc_opening_date} onChange={v => handleInputChange('basic_info', 'lc_opening_date', v)} required />
+                  <SelectField 
+                    label="Status" 
+                    value={formData.basic_info.status} 
+                    onChange={v => handleInputChange('basic_info', 'status', v)}
+                    options={[{value: 'Active', label: 'Active'}, {value: 'Completed', label: 'Completed'}, {value: 'Cancelled', label: 'Cancelled'}, {value: 'Draft', label: 'Draft'}]}
+                  />
+                  <InputField label="Bank Name" value={formData.basic_info.bank_name} onChange={v => handleInputChange('basic_info', 'bank_name', v)} />
+                  <InputField label="Supplier Name" value={formData.basic_info.supplier_name} onChange={v => handleInputChange('basic_info', 'supplier_name', v)} />
+                  <SelectField 
+                    label="Supplier Country" 
+                    value={formData.basic_info.supplier_country} 
+                    onChange={v => handleInputChange('basic_info', 'supplier_country', v)}
+                    options={[{value: 'China', label: 'China'}, {value: 'India', label: 'India'}, {value: 'US', label: 'United States'}]}
+                  />
+                </div>
+              )}
+              {section.id === 'financial_info' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <InputField label="LC Amount (USD)" type="text" inputMode="decimal" value={formData.financial_info.lc_amount_usd} onChange={v => handleInputChange('financial_info', 'lc_amount_usd', v)} />
+                  <InputField label="Exchange Rate" type="text" inputMode="decimal" value={formData.financial_info.exchange_rate} onChange={v => handleInputChange('financial_info', 'exchange_rate', v)} />
+                  <InputField label="LC Amount (BDT)" type="text" inputMode="decimal" value={formData.financial_info.lc_amount_bdt} onChange={v => handleInputChange('financial_info', 'lc_amount_bdt', v)} />
+                  <InputField label="LC Margin Paid (BDT)" type="text" inputMode="decimal" value={formData.financial_info.lc_margin_paid_bdt} onChange={v => handleInputChange('financial_info', 'lc_margin_paid_bdt', v)} />
+                  <InputField label="Bank Charges (BDT)" type="text" inputMode="decimal" value={formData.financial_info.bank_charges_bdt} onChange={v => handleInputChange('financial_info', 'bank_charges_bdt', v)} />
+                  <InputField label="Insurance Cost (BDT)" type="text" inputMode="decimal" value={formData.financial_info.insurance_cost_bdt} onChange={v => handleInputChange('financial_info', 'insurance_cost_bdt', v)} />
+                </div>
+              )}
+              {section.id === 'product_info' && (
+                <div className="space-y-6">
+                  <AnimatePresence>
+                    {formData.product_info.map((product, index) => (
+                      <motion.div key={product.id} {...sectionAnimation} className="p-4 border border-gray-200 rounded-lg relative bg-gray-50">
+                        {formData.product_info.length > 1 && (
+                          <button type="button" onClick={() => removeProduct(product.id)} className="absolute top-4 right-4 p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                            <Trash2 className="w-4 h-4" />
                           </button>
+                        )}
+                        <h4 className="font-semibold text-gray-900 mb-4">Product {index + 1}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <InputField label="Item Name" value={product.item_name} onChange={v => handleProductChange(product.id, 'item_name', v)} />
+                          <InputField label="Thickness (mm)" type="text" inputMode="decimal" value={product.specification.thickness_mm} onChange={v => handleProductSpecChange(product.id, 'thickness_mm', v)} />
+                          <InputField label="Width (mm)" type="text" inputMode="decimal" value={product.specification.width_mm} onChange={v => handleProductSpecChange(product.id, 'width_mm', v)} />
+                          <InputField label="Length (mm)" type="text" inputMode="decimal" value={product.specification.length_mm} onChange={v => handleProductSpecChange(product.id, 'length_mm', v)} />
+                          <InputField label="Grade" value={product.specification.grade} onChange={v => handleProductSpecChange(product.id, 'grade', v)} />
+                          <InputField label="Quantity (Ton)" type="text" inputMode="decimal" value={product.quantity_ton} onChange={v => handleProductChange(product.id, 'quantity_ton', v)} />
+                          <InputField label="Unit Price (USD)" type="text" inputMode="decimal" value={product.unit_price_usd} onChange={v => handleProductChange(product.id, 'unit_price_usd', v)} />
+                          <InputField label="Total Value (USD)" type="text" inputMode="decimal" value={product.total_value_usd} onChange={v => handleProductChange(product.id, 'total_value_usd', v)} />
+                          <InputField label="Total Value (BDT)" type="text" inputMode="decimal" value={product.total_value_bdt} onChange={v => handleProductChange(product.id, 'total_value_bdt', v)} />
                         </div>
-                      )}
-                      {section.id === 'shipping_customs_info' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <SelectField 
-                            label="Port of Shipment" 
-                            value={formData.shipping_customs_info.port_of_shipment} 
-                            onChange={v => handleInputChange('shipping_customs_info', 'port_of_shipment', v)}
-                            options={[{value: 'Chittagong', label: 'Chittagong Port'}, {value: 'Mongla', label: 'Mongla Port'}, {value: 'Payra', label: 'Payra Port'}, {value: 'Matarbari', label: 'Matarbari Port'}]}
-                          />
-                          <InputField label="Port of Arrival" value={formData.shipping_customs_info.port_of_arrival} onChange={v => handleInputChange('shipping_customs_info', 'port_of_arrival', v)} />
-                          <InputField label="Expected Arrival Date" type="date" value={formData.shipping_customs_info.expected_arrival_date} onChange={v => handleInputChange('shipping_customs_info', 'expected_arrival_date', v)} />
-                          <InputField label="Customs Duty (BDT)" type="text" inputMode="decimal" value={formData.shipping_customs_info.customs_duty_bdt} onChange={v => handleInputChange('shipping_customs_info', 'customs_duty_bdt', v)} />
-                          <InputField label="VAT (BDT)" type="text" inputMode="decimal" value={formData.shipping_customs_info.vat_bdt} onChange={v => handleInputChange('shipping_customs_info', 'vat_bdt', v)} />
-                          <InputField label="AIT (BDT)" type="text" inputMode="decimal" value={formData.shipping_customs_info.ait_bdt} onChange={v => handleInputChange('shipping_customs_info', 'ait_bdt', v)} />
-                          <InputField label="Other Port Expenses (BDT)" type="text" inputMode="decimal" value={formData.shipping_customs_info.other_port_expenses_bdt} onChange={v => handleInputChange('shipping_customs_info', 'other_port_expenses_bdt', v)} />
-                        </div>
-                      )}
-                      {section.id === 'agent_transport_info' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <InputField label="C&F Agent Name" value={formData.agent_transport_info.cnf_agent_name} onChange={v => handleInputChange('agent_transport_info', 'cnf_agent_name', v)} />
-                          <InputField label="C&F Agent Commission (BDT)" type="text" inputMode="decimal" value={formData.agent_transport_info.cnf_agent_commission_bdt} onChange={v => handleInputChange('agent_transport_info', 'cnf_agent_commission_bdt', v)} />
-                          <InputField label="Indenting Agent Commission (BDT)" type="text" inputMode="decimal" value={formData.agent_transport_info.indenting_agent_commission_bdt} onChange={v => handleInputChange('agent_transport_info', 'indenting_agent_commission_bdt', v)} />
-                          <InputField label="Transport Cost (BDT)" type="text" inputMode="decimal" value={formData.agent_transport_info.transport_cost_bdt} onChange={v => handleInputChange('agent_transport_info', 'transport_cost_bdt', v)} />
-                        </div>
-                      )}
-                      {section.id === 'documents_notes' && (
-                        <div className="space-y-4">
-                          <TextAreaField label="Remarks" value={formData.documents_notes.remarks} onChange={v => handleInputChange('documents_notes', 'remarks', v)} />
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Documents</label>
-                            <button type="button" className="flex items-center justify-center space-x-2 w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-[#003b75] hover:text-[#003b75]">
-                              <UploadCloud className="w-5 h-5" />
-                              <span>Upload Documents</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </section>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  <button type="button" onClick={addProduct} className="flex items-center justify-center space-x-2 w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-[#003b75] hover:text-[#003b75]">
+                    <Plus className="w-5 h-5" />
+                    <span>Add Another Product</span>
+                  </button>
+                </div>
+              )}
+              {section.id === 'shipping_customs_info' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <SelectField 
+                    label="Port of Shipment" 
+                    value={formData.shipping_customs_info.port_of_shipment} 
+                    onChange={v => handleInputChange('shipping_customs_info', 'port_of_shipment', v)}
+                    options={[{value: 'Chittagong', label: 'Chittagong Port'}, {value: 'Mongla', label: 'Mongla Port'}, {value: 'Payra', label: 'Payra Port'}, {value: 'Matarbari', label: 'Matarbari Port'}]}
+                  />
+                  <InputField label="Port of Arrival" value={formData.shipping_customs_info.port_of_arrival} onChange={v => handleInputChange('shipping_customs_info', 'port_of_arrival', v)} />
+                  <InputField label="Expected Arrival Date" type="date" value={formData.shipping_customs_info.expected_arrival_date} onChange={v => handleInputChange('shipping_customs_info', 'expected_arrival_date', v)} />
+                  <InputField label="Customs Duty (BDT)" type="text" inputMode="decimal" value={formData.shipping_customs_info.customs_duty_bdt} onChange={v => handleInputChange('shipping_customs_info', 'customs_duty_bdt', v)} />
+                  <InputField label="VAT (BDT)" type="text" inputMode="decimal" value={formData.shipping_customs_info.vat_bdt} onChange={v => handleInputChange('shipping_customs_info', 'vat_bdt', v)} />
+                  <InputField label="AIT (BDT)" type="text" inputMode="decimal" value={formData.shipping_customs_info.ait_bdt} onChange={v => handleInputChange('shipping_customs_info', 'ait_bdt', v)} />
+                  <InputField label="Other Port Expenses (BDT)" type="text" inputMode="decimal" value={formData.shipping_customs_info.other_port_expenses_bdt} onChange={v => handleInputChange('shipping_customs_info', 'other_port_expenses_bdt', v)} />
+                </div>
+              )}
+              {section.id === 'agent_transport_info' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputField label="C&F Agent Name" value={formData.agent_transport_info.cnf_agent_name} onChange={v => handleInputChange('agent_transport_info', 'cnf_agent_name', v)} />
+                  <InputField label="C&F Agent Commission (BDT)" type="text" inputMode="decimal" value={formData.agent_transport_info.cnf_agent_commission_bdt} onChange={v => handleInputChange('agent_transport_info', 'cnf_agent_commission_bdt', v)} />
+                  <InputField label="Indenting Agent Commission (BDT)" type="text" inputMode="decimal" value={formData.agent_transport_info.indenting_agent_commission_bdt} onChange={v => handleInputChange('agent_transport_info', 'indenting_agent_commission_bdt', v)} />
+                  <InputField label="Transport Cost (BDT)" type="text" inputMode="decimal" value={formData.agent_transport_info.transport_cost_bdt} onChange={v => handleInputChange('agent_transport_info', 'transport_cost_bdt', v)} />
+                </div>
+              )}
+              {section.id === 'documents_notes' && (
+                <div className="space-y-4">
+                  <TextAreaField label="Remarks" value={formData.documents_notes.remarks} onChange={v => handleInputChange('documents_notes', 'remarks', v)} />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Documents</label>
+                    <button type="button" className="flex items-center justify-center space-x-2 w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-[#003b75] hover:text-[#003b75]">
+                      <UploadCloud className="w-5 h-5" />
+                      <span>Upload Documents</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </FormSection>
           ))}
           <div className="flex justify-end gap-4">
-            <Link to="/lc-management">
+            <Link to="/lc">
               <button type="button" className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium">
                 Cancel
               </button>
