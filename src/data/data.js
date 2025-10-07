@@ -821,6 +821,24 @@ export const products = [
   },
 ];
 
+export const warehouses = [
+  {
+    id: 1,
+    name: "Warehouse A",
+    address: "123 Main St, Chittagong",
+  },
+  {
+    id: 2,
+    name: "Warehouse B",
+    address: "456 Industrial Ave, Dhaka",
+  },
+  {
+    id: 3,
+    name: "Warehouse C",
+    address: "789 Port Rd, Mongla",
+  },
+];
+
 export const initialSalesData = [
   {
     id: 1,

@@ -20,7 +20,7 @@ const FormSection = ({
   return (
     <section
       ref={sectionRef}
-      className={`bg-white rounded-xl shadow-lg overflow-hidden scroll-mt-16 ${className}`}
+      className={`bg-white rounded-xl shadow-md/5 overflow-hidden scroll-mt-16 ${className}`}
     >
       <div
         className="flex items-center justify-between p-4 bg-white border-b border-gray-200 rounded-t-lg cursor-pointer hover:bg-gray-50 transition-colors duration-200"

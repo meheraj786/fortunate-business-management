@@ -98,7 +98,7 @@ const Sidebar = () => {
     if (path.includes("/customers")) return "Customers";
     if (path.includes("/sales")) return "Sales";
     if (path.includes("/settings")) return "Settings";
-    if (path.includes("/stock-management")) return "Stock Management";
+    if (path.includes("/stock")) return "Stock Management";
     if (path.includes("/team")) return "Team";
     if (path.includes("/accounts")) return "Accounts";
     if (path.includes("/banking")) return "Banking";

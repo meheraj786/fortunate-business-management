@@ -12,6 +12,7 @@ import {
   MapPin,
   Layers
 } from 'lucide-react';
+import { warehouses } from '../../data/data';
 
 // Helper components moved outside the main component to prevent re-creation on re-renders
 const InputField = ({ 
@@ -99,7 +100,7 @@ const TextAreaField = ({ label, value, onChange, required = false, placeholder =
   </div>
 );
 
-const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = false }) => {
+const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = false, warehouseName = '' }) => {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -108,7 +109,7 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
     quantity: "",
     unit: "pieces",
     unitPrice: "",
-    location: ""
+    location: warehouseName || ""
   });
 
   const productCategories = [
@@ -143,17 +144,7 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
     "Stainless", "Coated", "Painted", "Natural", "Blue", "Green", "Red"
   ];
 
-  const locationOptions = [
-    "Warehouse A",
-    "Warehouse B",
-    "Warehouse C",
-    "Warehouse D",
-    "Storage Room 1",
-    "Storage Room 2",
-    "Outdoor Storage",
-    "Main Floor",
-    "Mezzanine"
-  ];
+  const locationOptions = warehouses.map(w => ({ value: w.name, label: w.name }));
 
   useEffect(() => {
     if (editData) {
@@ -171,10 +162,10 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
         quantity: "",
         unit: "pieces",
         unitPrice: "",
-        location: ""
+        location: warehouseName || ""
       });
     }
-  }, [editData, isOpen]);
+  }, [editData, isOpen, warehouseName]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
