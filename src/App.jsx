@@ -78,7 +78,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/stock/:warehouseName",
+    path: "/stock/:warehouseId",
     element: (
       <Layout>
         <WarehouseStock />

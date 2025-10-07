@@ -8,26 +8,37 @@ import {
   ChevronsDown,
   ChartColumnStacked,
 } from "lucide-react";
-import { products } from "../../data/data";
+import { products, warehouses, categories } from "../../data/data";
 import ProductCard from "../../layout/ProductCard";
 import StatBox from "../../layout/StatBox";
 import AddProductForm from "./AddProductForm";
 
 const WarehouseStock = () => {
-  const { warehouseName } = useParams();
+  const { warehouseId } = useParams();
+  const warehouse = warehouses.find((w) => w.id === parseInt(warehouseId));
+
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [showAddProductForm, setShowAddProductForm] = useState(false);
   const [productList, setProductList] = useState(
-    products.filter((p) => p.location === warehouseName)
+    products
+      .filter((p) => p.warehouseId === parseInt(warehouseId))
+      .map((p) => ({
+        ...p,
+        category: categories.find((c) => c.id === p.categoryId)?.name,
+      }))
   );
 
   const handleProductAdded = (newProduct) => {
-    setProductList([newProduct, ...productList]);
+    const enrichedProduct = {
+      ...newProduct,
+      category: categories.find((c) => c.id === newProduct.categoryId)?.name,
+    };
+    setProductList([enrichedProduct, ...productList]);
     setShowAddProductForm(false);
   };
 
-  const categories = [
+  const uniqueCategories = [
     "All",
     ...new Set(productList.map((product) => product.category)),
   ];
@@ -36,8 +47,10 @@ const WarehouseStock = () => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.size.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.color.toLowerCase().includes(searchTerm.toLowerCase());
+      (product.size &&
+        product.size.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (product.color &&
+        product.color.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesCategory =
       categoryFilter === "All" || product.category === categoryFilter;
@@ -52,7 +65,7 @@ const WarehouseStock = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div className="flex-1">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {warehouseName} - Stock & Inventory
+                {warehouse?.name} - Stock & Inventory
               </h1>
               <p className="text-gray-600 mt-1 text-sm sm:text-base">
                 Manage your steel inventory and product catalog.
@@ -82,7 +95,7 @@ const WarehouseStock = () => {
             />
             <StatBox
               title={"Categories"}
-              number={categories.length - 1}
+              number={uniqueCategories.length - 1}
               Icon={ChartColumnStacked}
             />
             <StatBox
@@ -118,7 +131,7 @@ const WarehouseStock = () => {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
             >
-              {categories.map((category) => (
+              {uniqueCategories.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>
@@ -152,7 +165,7 @@ const WarehouseStock = () => {
         <AddProductForm
           onClose={() => setShowAddProductForm(false)}
           onProductAdded={handleProductAdded}
-          warehouseName={warehouseName}
+          warehouseId={parseInt(warehouseId)}
         />
       )}
     </div>

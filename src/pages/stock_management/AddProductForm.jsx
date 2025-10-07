@@ -12,7 +12,7 @@ import {
   MapPin,
   Layers
 } from 'lucide-react';
-import { warehouses } from '../../data/data';
+import { warehouses, categories } from '../../data/data';
 
 // Helper components moved outside the main component to prevent re-creation on re-renders
 const InputField = ({ 
@@ -100,30 +100,19 @@ const TextAreaField = ({ label, value, onChange, required = false, placeholder =
   </div>
 );
 
-const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = false, warehouseName = '' }) => {
+const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = false, warehouseId = null }) => {
   const [formData, setFormData] = useState({
     name: "",
-    category: "",
+    categoryId: "",
     size: "",
     color: "",
     quantity: "",
     unit: "pieces",
     unitPrice: "",
-    location: warehouseName || ""
+    warehouseId: warehouseId || ""
   });
 
-  const productCategories = [
-    "Steel Rods",
-    "Steel Sheets",
-    "Structural Steel",
-    "Steel Plates",
-    "Steel Pipes",
-    "Steel Bars",
-    "Steel Coils",
-    "Wire Products",
-    "Fasteners",
-    "Hardware"
-  ];
+  const productCategories = categories.map(c => ({ value: c.id, label: c.name }));
 
   const unitOptions = [
     { value: "pieces", label: "Pieces" },
@@ -144,7 +133,7 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
     "Stainless", "Coated", "Painted", "Natural", "Blue", "Green", "Red"
   ];
 
-  const locationOptions = warehouses.map(w => ({ value: w.name, label: w.name }));
+  const locationOptions = warehouses.map(w => ({ value: w.id, label: w.name }));
 
   useEffect(() => {
     if (editData) {
@@ -156,16 +145,16 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
     } else if (isOpen) {
       setFormData({
         name: "",
-        category: "",
+        categoryId: "",
         size: "",
         color: "",
         quantity: "",
         unit: "pieces",
         unitPrice: "",
-        location: warehouseName || ""
+        warehouseId: warehouseId || ""
       });
     }
-  }, [editData, isOpen, warehouseName]);
+  }, [editData, isOpen, warehouseId]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -177,7 +166,7 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.category || !formData.quantity || !formData.unitPrice) {
+    if (!formData.name || !formData.categoryId || !formData.quantity || !formData.unitPrice) {
       alert('Please fill in all required fields');
       return;
     }
@@ -254,8 +243,8 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                   
                   <SelectField
                     label="Category"
-                    value={formData.category}
-                    onChange={(value) => handleInputChange('category', value)}
+                    value={formData.categoryId}
+                    onChange={(value) => handleInputChange('categoryId', value)}
                     options={productCategories}
                     required
                     icon={Tag}
@@ -324,8 +313,8 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                 <div className="grid grid-cols-1 gap-6">
                   <SelectField
                     label="Storage Location"
-                    value={formData.location}
-                    onChange={(value) => handleInputChange('location', value)}
+                    value={formData.warehouseId}
+                    onChange={(value) => handleInputChange('warehouseId', value)}
                     options={locationOptions}
                     icon={MapPin}
                   />

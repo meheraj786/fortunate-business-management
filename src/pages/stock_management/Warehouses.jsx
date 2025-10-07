@@ -22,7 +22,7 @@ const Warehouses = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {warehouses.map((warehouse) => (
-            <Link to={`/stock/${warehouse.name}`} key={warehouse.id}>
+            <Link to={`/stock/${warehouse.id}`} key={warehouse.id}>
               <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300 cursor-pointer">
                 <div className="flex items-center gap-4">
                   <div className="bg-blue-100 p-3 rounded-full">
