@@ -12,6 +12,7 @@ import { products, warehouses, categories } from "../../data/data";
 import ProductCard from "../../layout/ProductCard";
 import StatBox from "../../layout/StatBox";
 import AddProductForm from "./AddProductForm";
+import Breadcrumb from "../../components/common/Breadcrumb";
 
 const WarehouseStock = () => {
   const { warehouseId } = useParams();
@@ -58,8 +59,14 @@ const WarehouseStock = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const breadcrumbItems = [
+    { label: 'Stock', path: '/stock-management' },
+    { label: warehouse?.name },
+  ];
+
   return (
     <div className="min-h-screen p-4 sm:p-6">
+      <Breadcrumb items={breadcrumbItems} />
       <div className="mx-auto">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">

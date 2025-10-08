@@ -9,7 +9,7 @@ import Customers from "./pages/Customers";
 import Settings from "./pages/Settings";
 import LCdetails from "./pages/lc_management/LCdetails";
 import CustomerDetails from "./pages/customer_management/CustomerDetails";
-import Stock from "./pages/stock_management/Stock";
+import Stock from "./pages/stock_management/StockManagement";
 import WarehouseStock from "./pages/stock_management/WarehouseStock";
 import Team from "./pages/Team";
 import Sales from "./pages/Sales";
