@@ -1,27 +1,27 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiUser, FiPhone, FiMapPin, FiBriefcase } from 'react-icons/fi';
-import Dropdown from '../components/layout/Dropdown';
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiX, FiUser, FiPhone, FiMapPin, FiBriefcase } from "react-icons/fi";
+import Dropdown from "../../components/layout/Dropdown";
 
 const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    role: '',
-    location: ''
+    name: "",
+    phone: "",
+    role: "",
+    location: "",
   });
 
   const [errors, setErrors] = useState({});
 
   const roles = [
-    'Manager',
-    'Warehouse Keeper',
-    'Accountant',
-    'Sales Executive',
-    'Operations Coordinator',
-    'Logistics Officer',
-    'Quality Inspector',
-    'Customs Officer'
+    "Manager",
+    "Warehouse Keeper",
+    "Accountant",
+    "Sales Executive",
+    "Operations Coordinator",
+    "Logistics Officer",
+    "Quality Inspector",
+    "Customs Officer",
   ];
 
   const nameInputRef = useRef(null);
@@ -31,17 +31,17 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
   useEffect(() => {
     if (editData) {
       setFormData({
-        name: editData.name || '',
-        phone: editData.phone || '',
-        role: editData.role || '',
-        location: editData.location || ''
+        name: editData.name || "",
+        phone: editData.phone || "",
+        role: editData.role || "",
+        location: editData.location || "",
       });
     } else {
       setFormData({
-        name: '',
-        phone: '',
-        role: '',
-        location: ''
+        name: "",
+        phone: "",
+        role: "",
+        location: "",
       });
     }
     setErrors({});
@@ -49,24 +49,25 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
 
   const handleFocus = (ref) => {
-    if (window.innerWidth < 768) { // Only on mobile
+    if (window.innerWidth < 768) {
+      // Only on mobile
       ref.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
+        behavior: "smooth",
+        block: "center",
       });
     }
   };
@@ -75,21 +76,22 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = "Name is required";
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
+      newErrors.phone = "Phone number is required";
     } else if (!/^\+880 \d{4}-\d{6}$/.test(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number format: +880 XXXX-XXXXXX';
+      newErrors.phone =
+        "Please enter a valid phone number format: +880 XXXX-XXXXXX";
     }
 
     if (!formData.role) {
-      newErrors.role = 'Role is required';
+      newErrors.role = "Role is required";
     }
 
     if (!formData.location.trim()) {
-      newErrors.location = 'Location is required';
+      newErrors.location = "Location is required";
     }
 
     setErrors(newErrors);
@@ -98,13 +100,13 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       const submitData = {
         ...formData,
-        id: editData ? editData.id : Date.now()
+        id: editData ? editData.id : Date.now(),
       };
-      
+
       onSubmit(submitData);
       handleClose();
     }
@@ -112,10 +114,10 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
 
   const handleClose = () => {
     setFormData({
-      name: '',
-      phone: '',
-      role: '',
-      location: ''
+      name: "",
+      phone: "",
+      role: "",
+      location: "",
     });
     setErrors({});
     onClose();
@@ -149,7 +151,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
           >
             <div className="flex items-center justify-between p-6 border-b border-gray-100 flex-shrink-0">
               <h2 className="text-xl font-semibold text-gray-800">
-                {editData ? 'Edit Team Member' : 'Add New Team Member'}
+                {editData ? "Edit Team Member" : "Add New Team Member"}
               </h2>
               <button
                 onClick={handleClose}
@@ -164,7 +166,10 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 {/* Name Field */}
                 <div className="space-y-2">
-                  <label htmlFor="name" className="flex items-center text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="name"
+                    className="flex items-center text-sm font-medium text-gray-700"
+                  >
                     <FiUser className="mr-2 text-gray-400" />
                     Full Name
                   </label>
@@ -177,14 +182,14 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                     onChange={handleChange}
                     onFocus={() => handleFocus(nameInputRef)}
                     className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
-                      errors.name 
-                        ? 'border-red-300 focus:ring-red-200' 
-                        : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
+                      errors.name
+                        ? "border-red-300 focus:ring-red-200"
+                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
                     }`}
                     placeholder="Enter full name"
                   />
                   {errors.name && (
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="text-sm text-red-600"
@@ -196,7 +201,10 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
 
                 {/* Phone Field */}
                 <div className="space-y-2">
-                  <label htmlFor="phone" className="flex items-center text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="phone"
+                    className="flex items-center text-sm font-medium text-gray-700"
+                  >
                     <FiPhone className="mr-2 text-gray-400" />
                     Phone Number
                   </label>
@@ -209,14 +217,14 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                     onChange={handleChange}
                     onFocus={() => handleFocus(phoneInputRef)}
                     className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
-                      errors.phone 
-                        ? 'border-red-300 focus:ring-red-200' 
-                        : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
+                      errors.phone
+                        ? "border-red-300 focus:ring-red-200"
+                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
                     }`}
                     placeholder="+880 XXXX-XXXXXX"
                   />
                   {errors.phone && (
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="text-sm text-red-600"
@@ -231,7 +239,9 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                   <Dropdown
                     options={roles}
                     selected={formData.role}
-                    onSelect={(role) => handleChange({ target: { name: 'role', value: role } })}
+                    onSelect={(role) =>
+                      handleChange({ target: { name: "role", value: role } })
+                    }
                     placeholder="Select a role"
                     label="Role"
                     icon={FiBriefcase}
@@ -241,7 +251,10 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
 
                 {/* Location Field */}
                 <div className="space-y-2">
-                  <label htmlFor="location" className="flex items-center text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="location"
+                    className="flex items-center text-sm font-medium text-gray-700"
+                  >
                     <FiMapPin className="mr-2 text-gray-400" />
                     Location
                   </label>
@@ -254,14 +267,14 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                     onChange={handleChange}
                     onFocus={() => handleFocus(locationInputRef)}
                     className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
-                      errors.location 
-                        ? 'border-red-300 focus:ring-red-200' 
-                        : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
+                      errors.location
+                        ? "border-red-300 focus:ring-red-200"
+                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
                     }`}
                     placeholder="Enter location (e.g., Dhaka, Bangladesh)"
                   />
                   {errors.location && (
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="text-sm text-red-600"
@@ -270,20 +283,20 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                     </motion.p>
                   )}
                 </div>
-                 <div className="flex gap-3 pt-4">
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        className="flex-1 px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium hover:shadow-sm"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        className="flex-1 px-6 py-3 text-white bg-[#003b75d8] rounded-lg hover:bg-[#00366d] transition-all duration-200 font-medium shadow-sm hover:shadow-md"
-                    >
-                        {editData ? 'Update' : 'Add'} Member
-                    </button>
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="flex-1 px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium hover:shadow-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 text-white bg-[#003b75d8] rounded-lg hover:bg-[#00366d] transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                  >
+                    {editData ? "Update" : "Add"} Member
+                  </button>
                 </div>
               </form>
             </div>

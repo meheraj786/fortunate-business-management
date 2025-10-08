@@ -1,7 +1,7 @@
 import React from "react";
-import Flex from "./Flex";
+import Flex from "../../layout/Flex";
 
-const StatBox = ({ title, number, Icon, textColor="#202224" }) => {
+const StatBox = ({ title, number, Icon, textColor = "#202224" }) => {
   const textColorClass = (() => {
     switch (textColor) {
       case "red":
@@ -21,7 +21,9 @@ const StatBox = ({ title, number, Icon, textColor="#202224" }) => {
       <Flex className="!justify-between relative z-10">
         <div>
           <h4 className="font-semibold mb-2 text-[#202224]/70">{title}</h4>
-          <h3 className={`text-[28px] font-bold ${textColorClass}`}>{number}</h3>
+          <h3 className={`text-[28px] font-bold ${textColorClass}`}>
+            {number}
+          </h3>
         </div>
         {Icon && (
           <span className={`p-4 bg-primary/20 text-primary rounded-[23px]`}>

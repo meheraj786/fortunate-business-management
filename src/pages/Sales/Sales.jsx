@@ -15,13 +15,13 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { salesData as initialSalesData, products } from "../data/data";
-import StatBox from "../layout/StatBox";
+import { salesData as initialSalesData, products } from "../../data/data";
+import StatBox from "../../components/common/StatBox";
 import AddSales from "./AddSales";
 
 const getProductLcNumber = (productId) => {
-  const product = products.find(p => p.id === productId);
-  return product ? product.lcNumber : 'N/A';
+  const product = products.find((p) => p.id === productId);
+  return product ? product.lcNumber : "N/A";
 };
 
 const Sales = () => {
@@ -32,7 +32,9 @@ const Sales = () => {
   const [salesData, setSalesData] = useState(initialSalesData);
   const [showAddSale, setShowAddSale] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -82,7 +84,14 @@ const Sales = () => {
     }
 
     return filtered.sort((a, b) => new Date(b.saleDate) - new Date(a.saleDate));
-  }, [searchTerm, filterCategory, filterInvoice, dateFilter, salesData, selectedDate]);
+  }, [
+    searchTerm,
+    filterCategory,
+    filterInvoice,
+    dateFilter,
+    salesData,
+    selectedDate,
+  ]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -92,7 +101,7 @@ const Sales = () => {
   );
 
   const totalSales = filteredData.reduce(
-(sum, item) => sum + (parseFloat(item.pricePerUnit) || 0) * item.quantity,
+    (sum, item) => sum + (parseFloat(item.pricePerUnit) || 0) * item.quantity,
     0
   );
   const totalProducts = filteredData.reduce(
@@ -106,11 +115,16 @@ const Sales = () => {
     (item) => item.invoiceStatus === "pending"
   ).length;
 
-  const todaySales = salesData.filter((item) => {
-    const itemDate = new Date(item.saleDate);
-    const today = new Date();
-    return itemDate.toDateString() === today.toDateString();
-  }).reduce((sum, item) => sum + (parseFloat(item.pricePerUnit) || 0) * item.quantity, 0);
+  const todaySales = salesData
+    .filter((item) => {
+      const itemDate = new Date(item.saleDate);
+      const today = new Date();
+      return itemDate.toDateString() === today.toDateString();
+    })
+    .reduce(
+      (sum, item) => sum + (parseFloat(item.pricePerUnit) || 0) * item.quantity,
+      0
+    );
 
   const SimpleBarChart = ({ data }) => {
     const maxValue = Math.max(...Object.values(data));
@@ -128,7 +142,10 @@ const Sales = () => {
     return (
       <div className="h-full flex items-end justify-around p-2 sm:p-4 bg-gray-50 rounded-lg overflow-x-auto">
         {Object.entries(data).map(([category, value], index) => (
-          <div key={category} className="flex flex-col items-center space-y-1 sm:space-y-2 min-w-0">
+          <div
+            key={category}
+            className="flex flex-col items-center space-y-1 sm:space-y-2 min-w-0"
+          >
             <div className="text-xs sm:text-sm text-gray-600 font-medium">
               ৳{(value / 1000).toFixed(0)}K
             </div>
@@ -257,11 +274,11 @@ const Sales = () => {
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 ">
-      <AddSales 
-          isOpen={showAddSale}
-          onClose={() => setShowAddSale(false)}
-          onSaleAdded={handleSaleAdded} 
-        />
+      <AddSales
+        isOpen={showAddSale}
+        onClose={() => setShowAddSale(false)}
+        onSaleAdded={handleSaleAdded}
+      />
 
       <div className=" mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
@@ -306,17 +323,13 @@ const Sales = () => {
             Icon={DollarSign}
             textColor="blue"
           />
+          <StatBox title={"Units Sold"} number={totalProducts} Icon={Package} />
           <StatBox
-            title={"Units Sold"}
-            number={totalProducts}
-            Icon={Package}
+            title={"Invoiced"}
+            number={invoiceCount}
+            Icon={Check}
+            textColor="green"
           />
-            <StatBox
-              title={"Invoiced"}
-              number={invoiceCount}
-              Icon={Check}
-              textColor="green"
-            />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6">
@@ -353,7 +366,8 @@ const Sales = () => {
                 {(() => {
                   const categoryData = {};
                   filteredData.forEach((item) => {
-                    const total = (parseFloat(item.pricePerUnit) || 0) * item.quantity;
+                    const total =
+                      (parseFloat(item.pricePerUnit) || 0) * item.quantity;
                     if (categoryData[item.category]) {
                       categoryData[item.category] += total;
                     } else {
@@ -367,7 +381,9 @@ const Sales = () => {
                     <div className="h-full flex items-center justify-center text-gray-500">
                       <div className="text-center">
                         <TrendingUp className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-4 opacity-50" />
-                        <p className="text-sm sm:text-base">No data available for chart</p>
+                        <p className="text-sm sm:text-base">
+                          No data available for chart
+                        </p>
                       </div>
                     </div>
                   );
@@ -381,9 +397,12 @@ const Sales = () => {
           <div className="p-4 sm:p-6 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
-                <h3 className="text-base sm:text-lg font-semibold">Sales Records</h3>
+                <h3 className="text-base sm:text-lg font-semibold">
+                  Sales Records
+                </h3>
                 <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                  Showing {paginatedData.length} of {filteredData.length} records
+                  Showing {paginatedData.length} of {filteredData.length}{" "}
+                  records
                 </p>
               </div>
               {totalPages > 1 && (
@@ -399,7 +418,9 @@ const Sales = () => {
                     Page {currentPage} of {totalPages}
                   </span>
                   <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
                     disabled={currentPage === totalPages}
                     className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -423,7 +444,10 @@ const Sales = () => {
                     </div>
                     <div className="text-right">
                       <div className="font-medium text-gray-900 text-sm">
-                        ৳{((parseFloat(sale.pricePerUnit) || 0) * sale.quantity).toFixed(2)}
+                        ৳
+                        {(
+                          (parseFloat(sale.pricePerUnit) || 0) * sale.quantity
+                        ).toFixed(2)}
                       </div>
                       <div className="text-xs text-gray-500">
                         {sale.quantity} {sale.unit}
@@ -432,10 +456,14 @@ const Sales = () => {
                   </div>
                   <div className="flex justify-between items-center text-xs text-gray-600">
                     <span>{sale.customerName}</span>
-                    <span>{new Date(sale.saleDate).toLocaleDateString("en-GB")}</span>
+                    <span>
+                      {new Date(sale.saleDate).toLocaleDateString("en-GB")}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">{getProductLcNumber(sale.productId)}</span>
+                    <span className="text-xs text-gray-600">
+                      {getProductLcNumber(sale.productId)}
+                    </span>
                     {sale.invoiceStatus === "yes" ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         <Check className="w-3 h-3 mr-1" />
@@ -533,7 +561,8 @@ const Sales = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(sale.saleDate).toLocaleDateString("en-GB")}                    </td>
+                      {new Date(sale.saleDate).toLocaleDateString("en-GB")}{" "}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -553,6 +582,6 @@ const Sales = () => {
       </div>
     </div>
   );
-}; 
+};
 
 export default Sales;

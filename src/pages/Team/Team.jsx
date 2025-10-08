@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Search, Plus, User } from "lucide-react";
-import { teamMembers as initialTeamMembers } from "../data/data";
-import TeamMemberCard from "../layout/TeamMemberCard";
+import { teamMembers as initialTeamMembers } from "../../data/data";
+import TeamMemberCard from "../../layout/TeamMemberCard";
 import AddTeamMemForm from "./AddTeamMemForm";
 
 const Team = () => {

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
-import "../styles/Login.css";
+import "../../styles/Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");

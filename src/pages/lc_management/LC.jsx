@@ -1,9 +1,9 @@
 import React from "react";
-import Flex from "../layout/Flex";
+import Flex from "../../layout/Flex";
 import { BiMoney, BiUser } from "react-icons/bi";
-import StatBox from "../layout/StatBox";
-import LCTable from "../layout/LCTable";
-import { lcData } from "../data/data";
+import StatBox from "../../components/common/StatBox";
+import LCTable from "../../layout/LCTable";
+import { lcData } from "../../data/data";
 import { BookmarkCheck, BookmarkX, Gpu, MonitorDot } from "lucide-react";
 
 const LC = () => {
@@ -18,7 +18,12 @@ const LC = () => {
         Manage your steel inventory and product catalog.
       </p>
       <Flex className="!justify-between xl:flex-row flex-col gap-x-10 xl:gap-y-0 gap-y-5 xl:px-0 px-3">
-        <StatBox title="Active LC" Icon={MonitorDot} number={activeLC.length} textColor="green" />
+        <StatBox
+          title="Active LC"
+          Icon={MonitorDot}
+          number={activeLC.length}
+          textColor="green"
+        />
         <StatBox
           title="Processing LC"
           Icon={Gpu}
@@ -31,7 +36,12 @@ const LC = () => {
           number={completedLC.length}
           textColor="blue"
         />
-        <StatBox title="Canceled LC" Icon={BookmarkX} number={canceledLC.length} textColor="red" />
+        <StatBox
+          title="Canceled LC"
+          Icon={BookmarkX}
+          number={canceledLC.length}
+          textColor="red"
+        />
       </Flex>
       <LCTable />
     </div>

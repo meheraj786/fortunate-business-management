@@ -23,7 +23,7 @@ import {
   Receipt,
   PiggyBank,
 } from "lucide-react";
-import { expensesData } from "../data/data";
+import { expensesData } from "../../data/data";
 
 const Accounts = () => {
   const [selectedDate, setSelectedDate] = useState(
@@ -36,8 +36,6 @@ const Accounts = () => {
   const [expenseFilter, setExpenseFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-
 
   const [accountData, setAccountData] = useState({
     startingCash: 50000,

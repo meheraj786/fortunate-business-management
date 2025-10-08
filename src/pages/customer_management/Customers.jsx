@@ -1,11 +1,11 @@
 import React from "react";
-import { customers } from "../data/data";
-import CustomerCard from "../layout/CustomerCard";
-import Input from "../layout/Input";
+import { customers } from "../../data/data";
+import CustomerCard from "../../layout/CustomerCard";
+import Input from "../../layout/Input";
 import { Filter, Plus, Search } from "lucide-react";
 import { Link } from "react-router";
-import Button from "../layout/Button";
-import Flex from "../layout/Flex";
+import Button from "../../components/common/Button";
+import Flex from "../../layout/Flex";
 
 const Customers = () => {
   return (
@@ -38,7 +38,7 @@ const Customers = () => {
       </div>
       <div className="grid grid-cols-1 mt-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {customers.map((customer) => (
-          <CustomerCard key={customer.id} customer={customer}  />
+          <CustomerCard key={customer.id} customer={customer} />
         ))}
       </div>
     </div>

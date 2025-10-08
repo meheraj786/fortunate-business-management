@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { products, warehouses, categories } from "../../data/data";
 import ProductCard from "../../layout/ProductCard";
-import StatBox from "../../layout/StatBox";
+import StatBox from "../../components/common/StatBox";
 import AddProductForm from "./AddProductForm";
 import Breadcrumb from "../../components/common/Breadcrumb";
 
@@ -43,7 +43,7 @@ const WarehouseStock = () => {
     if (product.width_ft) parts.push(`${product.width_ft}ft`);
     if (product.length_ft) parts.push(`${product.length_ft}ft`);
     if (product.width_inch) parts.push(`${product.width_inch}"`);
-    return parts.join(' x ');
+    return parts.join(" x ");
   };
 
   const filteredProducts = productList.filter((product) => {
@@ -63,7 +63,7 @@ const WarehouseStock = () => {
   });
 
   const breadcrumbItems = [
-    { label: 'Stock', path: '/stock-management' },
+    { label: "Stock", path: "/stock-management" },
     { label: warehouse?.name },
   ];
 
