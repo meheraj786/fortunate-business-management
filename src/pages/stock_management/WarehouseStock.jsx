@@ -22,20 +22,11 @@ const WarehouseStock = () => {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [showAddProductForm, setShowAddProductForm] = useState(false);
   const [productList, setProductList] = useState(
-    products
-      .filter((p) => p.warehouseId === parseInt(warehouseId))
-      .map((p) => ({
-        ...p,
-        category: categories.find((c) => c.id === p.categoryId)?.name,
-      }))
+    products.filter((p) => p.productLocation === parseInt(warehouseId))
   );
 
   const handleProductAdded = (newProduct) => {
-    const enrichedProduct = {
-      ...newProduct,
-      category: categories.find((c) => c.id === newProduct.categoryId)?.name,
-    };
-    setProductList([enrichedProduct, ...productList]);
+    setProductList([newProduct, ...productList]);
     setShowAddProductForm(false);
   };
 
@@ -44,12 +35,24 @@ const WarehouseStock = () => {
     ...new Set(productList.map((product) => product.category)),
   ];
 
+  const formatSize = (product) => {
+    const parts = [];
+    if (product.thickness_mm) parts.push(`${product.thickness_mm}mm`);
+    if (product.width_mm) parts.push(`${product.width_mm}mm`);
+    if (product.length_m) parts.push(`${product.length_m}m`);
+    if (product.width_ft) parts.push(`${product.width_ft}ft`);
+    if (product.length_ft) parts.push(`${product.length_ft}ft`);
+    if (product.width_inch) parts.push(`${product.width_inch}"`);
+    return parts.join(' x ');
+  };
+
   const filteredProducts = productList.filter((product) => {
+    const sizeString = formatSize(product);
     const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.size &&
-        product.size.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (sizeString &&
+        sizeString.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (product.color &&
         product.color.toLowerCase().includes(searchTerm.toLowerCase()));
 

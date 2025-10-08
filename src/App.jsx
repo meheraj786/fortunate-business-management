@@ -17,6 +17,7 @@ import Accounts from "./pages/Accounts";
 import Banking from "./pages/Banking";
 import LCform from "./pages/lc_management/LCform";
 import CustomerForm from "./pages/customer_management/CustomerForm";
+import ProductDetails from "./pages/stock_management/ProductDetails";
 import InvoiceGenerator from "./pages/InvoiceGenerator ";
 
 const router = createBrowserRouter([
@@ -82,6 +83,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <WarehouseStock />
+      </Layout>
+    ),
+  },
+  {
+    path: "/stock/product/:productId",
+    element: (
+      <Layout>
+        <ProductDetails />
       </Layout>
     ),
   },
