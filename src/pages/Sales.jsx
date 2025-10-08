@@ -15,9 +15,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { initialSalesData, products } from "../data/data";
+import { salesData as initialSalesData, products } from "../data/data";
 import StatBox from "../layout/StatBox";
-import SalesForm from "./SalesForm";
+import AddSales from "./AddSales";
+
+const getProductLcNumber = (productId) => {
+  const product = products.find(p => p.id === productId);
+  return product ? product.lcNumber : 'N/A';
+};
 
 const Sales = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,8 +45,7 @@ const Sales = () => {
       filtered = filtered.filter(
         (item) =>
           item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.lcNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.customer.toLowerCase().includes(searchTerm.toLowerCase())
+          item.customerName.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -58,26 +62,26 @@ const Sales = () => {
     const currentDate = new Date(selectedDate);
     if (dateFilter === "today") {
       filtered = filtered.filter((item) => {
-        const itemDate = new Date(item.date);
+        const itemDate = new Date(item.saleDate);
         return itemDate.toDateString() === currentDate.toDateString();
       });
     } else if (dateFilter === "week") {
       const weekAgo = new Date(currentDate);
       weekAgo.setDate(weekAgo.getDate() - 7);
       filtered = filtered.filter((item) => {
-        const itemDate = new Date(item.date);
+        const itemDate = new Date(item.saleDate);
         return itemDate >= weekAgo && itemDate <= currentDate;
       });
     } else if (dateFilter === "month") {
       const monthAgo = new Date(currentDate);
       monthAgo.setMonth(monthAgo.getMonth() - 1);
       filtered = filtered.filter((item) => {
-        const itemDate = new Date(item.date);
+        const itemDate = new Date(item.saleDate);
         return itemDate >= monthAgo && itemDate <= currentDate;
       });
     }
 
-    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return filtered.sort((a, b) => new Date(b.saleDate) - new Date(a.saleDate));
   }, [searchTerm, filterCategory, filterInvoice, dateFilter, salesData, selectedDate]);
 
   // Pagination
@@ -88,7 +92,7 @@ const Sales = () => {
   );
 
   const totalSales = filteredData.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+(sum, item) => sum + (parseFloat(item.pricePerUnit) || 0) * item.quantity,
     0
   );
   const totalProducts = filteredData.reduce(
@@ -103,10 +107,10 @@ const Sales = () => {
   ).length;
 
   const todaySales = salesData.filter((item) => {
-    const itemDate = new Date(item.date);
+    const itemDate = new Date(item.saleDate);
     const today = new Date();
     return itemDate.toDateString() === today.toDateString();
-  }).reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }).reduce((sum, item) => sum + (parseFloat(item.pricePerUnit) || 0) * item.quantity, 0);
 
   const SimpleBarChart = ({ data }) => {
     const maxValue = Math.max(...Object.values(data));
@@ -253,12 +257,11 @@ const Sales = () => {
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 ">
-      {showAddSale && (
-        <SalesForm 
+      <AddSales 
+          isOpen={showAddSale}
           onClose={() => setShowAddSale(false)}
           onSaleAdded={handleSaleAdded} 
         />
-      )}
 
       <div className=" mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
@@ -350,7 +353,7 @@ const Sales = () => {
                 {(() => {
                   const categoryData = {};
                   filteredData.forEach((item) => {
-                    const total = item.price * item.quantity;
+                    const total = (parseFloat(item.pricePerUnit) || 0) * item.quantity;
                     if (categoryData[item.category]) {
                       categoryData[item.category] += total;
                     } else {
@@ -420,7 +423,7 @@ const Sales = () => {
                     </div>
                     <div className="text-right">
                       <div className="font-medium text-gray-900 text-sm">
-                        ৳{(sale.price * sale.quantity).toFixed(2)}
+                        ৳{((parseFloat(sale.pricePerUnit) || 0) * sale.quantity).toFixed(2)}
                       </div>
                       <div className="text-xs text-gray-500">
                         {sale.quantity} {sale.unit}
@@ -428,11 +431,11 @@ const Sales = () => {
                     </div>
                   </div>
                   <div className="flex justify-between items-center text-xs text-gray-600">
-                    <span>{sale.customer}</span>
-                    <span>{new Date(sale.date).toLocaleDateString("en-GB")}</span>
+                    <span>{sale.customerName}</span>
+                    <span>{new Date(sale.saleDate).toLocaleDateString("en-GB")}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">{sale.lcNumber}</span>
+                    <span className="text-xs text-gray-600">{getProductLcNumber(sale.productId)}</span>
                     {sale.invoiceStatus === "yes" ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         <Check className="w-3 h-3 mr-1" />
@@ -497,19 +500,19 @@ const Sales = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {sale.lcNumber}
+                      {getProductLcNumber(sale.productId)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {sale.quantity} {sale.unit}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ৳{sale.price.toFixed(2)}
+                      ৳{parseFloat(sale.pricePerUnit || 0).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ৳{(sale.price * sale.quantity).toFixed(2)}
+                      ৳{(sale.pricePerUnit * sale.quantity).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {sale.customer}
+                      {sale.customerName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {sale.invoiceStatus === "yes" ? (
@@ -530,8 +533,7 @@ const Sales = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(sale.date).toLocaleDateString("en-GB")}
-                    </td>
+                      {new Date(sale.saleDate).toLocaleDateString("en-GB")}                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -551,6 +553,6 @@ const Sales = () => {
       </div>
     </div>
   );
-};
+}; 
 
 export default Sales;

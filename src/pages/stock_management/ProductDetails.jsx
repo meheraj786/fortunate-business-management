@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router';
-import { products, initialSalesData, warehouses } from '../../data/data';
+import { products, salesData, warehouses } from '../../data/data';
 import { Package, DollarSign, ShoppingCart } from 'lucide-react';
 import StatBox from '../../layout/StatBox';
 import Breadcrumb from '../../components/common/Breadcrumb';
@@ -8,10 +8,10 @@ import Breadcrumb from '../../components/common/Breadcrumb';
 const ProductDetails = () => {
   const { productId } = useParams();
   const product = products.find((p) => p.id === parseInt(productId));
-  const sales = initialSalesData.filter((s) => s.productId === parseInt(productId));
+  const sales = salesData.filter((s) => s.productId === parseInt(productId));
 
   const totalUnitsSold = sales.reduce((acc, sale) => acc + sale.quantity, 0);
-  const totalRevenue = sales.reduce((acc, sale) => acc + sale.quantity * sale.price, 0);
+  const totalRevenue = sales.reduce((acc, sale) => acc + sale.quantity * (parseFloat(sale.pricePerUnit) || 0), 0);
 
   const warehouse = warehouses.find((w) => w.id === product?.productLocation);
 
@@ -162,17 +162,17 @@ const ProductDetails = () => {
                 <div key={sale.id} className="border-t border-gray-200 last:border-b bg-white ">
                   <div className="px-4 py-4">
                     <div className="flex justify-between items-center mb-2">
-                      <div className="font-medium text-gray-900">{sale.customer}</div>
-                      <span className="text-sm text-gray-500">{sale.date}</span>
+                      <div className="font-medium text-gray-900">{sale.customerName}</div>
+                      <span className="text-sm text-gray-500">{sale.saleDate}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">Qty: {sale.quantity}</span>
-                      <span className="text-gray-600">Price: ${sale.price.toFixed(2)}</span>
+                      <span className="text-gray-600">Price: ${parseFloat(sale.pricePerUnit || 0).toFixed(2)}</span>
                     </div>
                     <div className="border-t border-gray-100 my-2"></div>
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-gray-700">Total</span>
-                      <span className="font-bold text-gray-900">${(sale.quantity * sale.price).toFixed(2)}</span>
+                      <span className="font-bold text-gray-900">${(sale.quantity * (parseFloat(sale.pricePerUnit) || 0)).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -210,19 +210,19 @@ const ProductDetails = () => {
                 {sales.map((sale) => (
                   <tr key={sale.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {sale.date}
+                      {sale.saleDate}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {sale.customer}
+                      {sale.customerName}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                       {sale.quantity}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ${sale.price.toFixed(2)}
+                      ${parseFloat(sale.pricePerUnit || 0).toFixed(2)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      ${(sale.quantity * sale.price).toFixed(2)}
+                      ${(sale.quantity * (parseFloat(sale.pricePerUnit) || 0)).toFixed(2)}
                     </td>
                   </tr>
                 ))}
