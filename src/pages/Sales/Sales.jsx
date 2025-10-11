@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { Link } from "react-router";
 import { salesData as initialSalesData, products } from "../../data/data";
 import AddSales from "./AddSales";
 
@@ -193,14 +194,16 @@ const Sales = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedData.map((sale) => (
-                  <tr key={sale.id} className="hover:bg-gray-50">
+                  <tr key={sale.id} className="hover:bg-gray-50 cursor-pointer">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {sale.productName}
+                      <Link to={`/sales/${sale.id}`}>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {sale.productName}
+                          </div>
+                          <div className="text-sm text-gray-500">{sale.size}</div>
                         </div>
-                        <div className="text-sm text-gray-500">{sale.size}</div>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {getProductLcNumber(sale.productId)}
