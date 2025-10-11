@@ -21,6 +21,11 @@ import ProductDetails from "./pages/stock_management/ProductDetails";
 import SaleDetails from "./pages/Sales/SaleDetails";
 import InvoiceGenerator from "./pages/InvoiceGenerator ";
 
+import NotInvoicedSales from "./pages/Sales/NotInvoicedSales";
+import DueInvoices from "./pages/Sales/DueInvoices";
+import PaidInvoices from "./pages/Sales/PaidInvoices";
+import CancelledSales from "./pages/Sales/CancelledSales";
+
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   {
@@ -108,6 +113,38 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <Sales />
+      </Layout>
+    ),
+  },
+  {
+    path: "/sales/not-invoiced",
+    element: (
+      <Layout>
+        <NotInvoicedSales />
+      </Layout>
+    ),
+  },
+  {
+    path: "/sales/due-invoices",
+    element: (
+      <Layout>
+        <DueInvoices />
+      </Layout>
+    ),
+  },
+  {
+    path: "/sales/paid-invoices",
+    element: (
+      <Layout>
+        <PaidInvoices />
+      </Layout>
+    ),
+  },
+  {
+    path: "/sales/cancelled",
+    element: (
+      <Layout>
+        <CancelledSales />
       </Layout>
     ),
   },

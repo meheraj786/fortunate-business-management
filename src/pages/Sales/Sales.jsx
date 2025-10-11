@@ -1,21 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
-  Package,
-  Check,
-  X,
   Plus,
-  Calendar,
   ChevronLeft,
   ChevronRight,
+  FileWarning,
+  FileClock,
+  FileCheck,
+  FileX,
 } from "lucide-react";
 import { Link } from "react-router";
-import { salesData as initialSalesData, products } from "../../data/data";
+import { salesData as initialSalesData } from "../../data/data";
 import AddSales from "./AddSales";
-
-const getProductLcNumber = (productId) => {
-  const product = products.find((p) => p.id === productId);
-  return product ? product.lcNumber : "N/A";
-};
+import SalesTable from "../../components/common/SalesTable";
+import SalesStatCard from "../../components/common/SalesStatCard";
 
 const Sales = () => {
   const [salesData, setSalesData] = useState(initialSalesData);
@@ -23,8 +20,33 @@ const Sales = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const sortedData = salesData.sort(
-    (a, b) => new Date(b.saleDate) - new Date(a.saleDate)
+  const { notInvoiced, dueInvoices, paidInvoices, cancelled } = useMemo(() => {
+    return salesData.reduce(
+      (acc, sale) => {
+        if (sale.invoiceStatus === "Not Invoiced") {
+          acc.notInvoiced++;
+        }
+        if (
+          sale.paymentStatus === "Partial Payment" ||
+          sale.paymentStatus === "Pending Payment"
+        ) {
+          acc.dueInvoices++;
+        }
+        if (sale.paymentStatus === "Paid") {
+          acc.paidInvoices++;
+        }
+        if (sale.invoiceStatus === "Cancelled") {
+          acc.cancelled++;
+        }
+        return acc;
+      },
+      { notInvoiced: 0, dueInvoices: 0, paidInvoices: 0, cancelled: 0 }
+    );
+  }, [salesData]);
+
+  const sortedData = useMemo(
+    () => [...salesData].sort((a, b) => new Date(b.saleDate) - new Date(a.saleDate)),
+    [salesData]
   );
 
   // Pagination
@@ -35,7 +57,8 @@ const Sales = () => {
   );
 
   const handleSaleAdded = (newSale) => {
-    setSalesData([newSale, ...salesData]);
+    const newId = Math.max(...salesData.map((s) => s.id)) + 1;
+    setSalesData([{ ...newSale, id: newId }, ...salesData]);
     setShowAddSale(false);
   };
 
@@ -52,10 +75,10 @@ const Sales = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
-                Steel Sales Dashboard
+                Sales Dashboard
               </h1>
               <p className="text-gray-600 text-sm sm:text-base">
-                Manage and track your steel product sales
+                Manage and track your product sales
               </p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
@@ -70,12 +93,44 @@ const Sales = () => {
           </div>
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <SalesStatCard
+            title="Not Invoiced"
+            count={notInvoiced}
+            linkTo="/sales/not-invoiced"
+            icon={FileWarning}
+            color="yellow"
+          />
+          <SalesStatCard
+            title="Due Invoices"
+            count={dueInvoices}
+            linkTo="/sales/due-invoices"
+            icon={FileClock}
+            color="orange"
+          />
+          <SalesStatCard
+            title="Paid Invoices"
+            count={paidInvoices}
+            linkTo="/sales/paid-invoices"
+            icon={FileCheck}
+            color="green"
+          />
+          <SalesStatCard
+            title="Cancelled"
+            count={cancelled}
+            linkTo="/sales/cancelled"
+            icon={FileX}
+            color="red"
+          />
+        </div>
+
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
                 <h3 className="text-base sm:text-lg font-semibold">
-                  Sales Records
+                  All Sales Records
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 mt-1">
                   Showing {paginatedData.length} of {sortedData.length} records
@@ -107,154 +162,7 @@ const Sales = () => {
             </div>
           </div>
 
-          <div className="lg:hidden">
-            {paginatedData.map((sale) => (
-              <div key={sale.id} className="p-4 border-b border-gray-200">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="font-medium text-gray-900 text-sm">
-                        {sale.productName}
-                      </div>
-                      <div className="text-xs text-gray-500">{sale.size}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium text-gray-900 text-sm">
-                        ৳
-                        {(
-                          (parseFloat(sale.pricePerUnit) || 0) * sale.quantity
-                        ).toFixed(2)}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {sale.quantity} {sale.unit}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center text-xs text-gray-600">
-                    <span>{sale.customerName}</span>
-                    <span>
-                      {new Date(sale.saleDate).toLocaleDateString("en-GB")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">
-                      {getProductLcNumber(sale.productId)}
-                    </span>
-                    {sale.invoiceStatus === "yes" ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <Check className="w-3 h-3 mr-1" />
-                        Yes
-                      </span>
-                    ) : sale.invoiceStatus === "no" ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <X className="w-3 h-3 mr-1" />
-                        No
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        Pending
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    LC Number
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Quantity
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Unit Price
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Invoice
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedData.map((sale) => (
-                  <tr key={sale.id} className="hover:bg-gray-50 cursor-pointer">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link to={`/sales/${sale.id}`}>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {sale.productName}
-                          </div>
-                          <div className="text-sm text-gray-500">{sale.size}</div>
-                        </div>
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getProductLcNumber(sale.productId)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {sale.quantity} {sale.unit}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ৳{parseFloat(sale.pricePerUnit || 0).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ৳{(sale.pricePerUnit * sale.quantity).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {sale.customerName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {sale.invoiceStatus === "yes" ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <Check className="w-3 h-3 mr-1" />
-                          Yes
-                        </span>
-                      ) : sale.invoiceStatus === "no" ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          <X className="w-3 h-3 mr-1" />
-                          No
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(sale.saleDate).toLocaleDateString("en-GB")}{" "}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {sortedData.length === 0 && (
-            <div className="text-center py-8 sm:py-12">
-              <div className="text-gray-500">
-                <Package className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm sm:text-base">No sales records found</p>
-              </div>
-            </div>
-          )}
+          <SalesTable sales={paginatedData} />
         </div>
       </div>
     </div>
