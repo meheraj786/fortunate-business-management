@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router";
+import { useParams, Link, useNavigate } from "react-router";
 import { products, salesData, warehouses } from "../../data/data";
 import { Package, DollarSign, ShoppingCart, FileWarning, FileClock } from "lucide-react";
 import StatBox from "../../components/common/StatBox";
@@ -9,6 +9,8 @@ const ProductDetails = () => {
   const { productId } = useParams();
   const product = products.find((p) => p.id === parseInt(productId));
   const sales = salesData.filter((s) => s.productId === parseInt(productId));
+
+  const navigate = useNavigate();
 
   const totalUnitsSold = sales.reduce((acc, sale) => acc + sale.quantity, 0);
   const totalRevenue = sales.reduce(
@@ -216,7 +218,8 @@ const ProductDetails = () => {
               {sales.map((sale) => (
                 <div
                   key={sale.id}
-                  className="border-t border-gray-200 last:border-b bg-white "
+                  className="border-t border-gray-200 last:border-b bg-white cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => navigate(`/sales/${sale.id}`)}
                 >
                   <div className="px-4 py-4">
                     <div className="flex justify-between items-center mb-2">
@@ -317,7 +320,8 @@ const ProductDetails = () => {
                 {sales.map((sale) => (
                   <tr
                     key={sale.id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/sales/${sale.id}`)}
                   >
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                       {sale.saleDate}
