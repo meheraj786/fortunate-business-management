@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router";
 import { products, salesData, warehouses } from "../../data/data";
-import { Package, DollarSign, ShoppingCart } from "lucide-react";
+import { Package, DollarSign, ShoppingCart, FileWarning, FileClock } from "lucide-react";
 import StatBox from "../../components/common/StatBox";
 import Breadcrumb from "../../components/common/Breadcrumb";
 
@@ -15,6 +15,9 @@ const ProductDetails = () => {
     (acc, sale) => acc + sale.quantity * (parseFloat(sale.pricePerUnit) || 0),
     0
   );
+
+  const totalDueInvoices = sales.filter(s => s.paymentStatus === 'Due Payment').length;
+  const totalNotInvoiced = sales.filter(s => s.invoiceStatus === 'Not Invoiced').length;
 
   const warehouse = warehouses.find((w) => w.id === product?.productLocation);
 
@@ -189,6 +192,16 @@ const ProductDetails = () => {
                 })}`}
                 Icon={DollarSign}
               />
+              <StatBox
+                title="Total Due Invoices"
+                number={totalDueInvoices}
+                Icon={FileClock}
+              />
+              <StatBox
+                title="Total Not Invoiced"
+                number={totalNotInvoiced}
+                Icon={FileWarning}
+              />
             </div>
           </div>
         </div>
@@ -220,6 +233,15 @@ const ProductDetails = () => {
                       </span>
                       <span className="text-gray-600">
                         Price: ${parseFloat(sale.pricePerUnit || 0).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="border-t border-gray-100 my-2"></div>
+                    <div className="flex justify-between items-center">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.invoiceStatus === 'Invoiced' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {sale.invoiceStatus}
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.paymentStatus === 'Paid Payment' ? 'bg-green-100 text-green-800' : sale.paymentStatus === 'Due Payment' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                        {sale.paymentStatus}
                       </span>
                     </div>
                     <div className="border-t border-gray-100 my-2"></div>
@@ -277,6 +299,18 @@ const ProductDetails = () => {
                   >
                     Total
                   </th>
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                  >
+                    Invoice Status
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                  >
+                    Payment Status
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
@@ -302,6 +336,16 @@ const ProductDetails = () => {
                       {(
                         sale.quantity * (parseFloat(sale.pricePerUnit) || 0)
                       ).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.invoiceStatus === 'Invoiced' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {sale.invoiceStatus}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.paymentStatus === 'Paid Payment' ? 'bg-green-100 text-green-800' : sale.paymentStatus === 'Due Payment' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                        {sale.paymentStatus}
+                      </span>
                     </td>
                   </tr>
                 ))}
