@@ -182,7 +182,7 @@ const AddSales = ({
     deliveryCharge: "",
     otherCharges: [],
     discount: "",
-    paymentStatus: "Pending Payment",
+    paymentStatus: "N/A",
     payments: [],
     notes: "",
   });
@@ -226,12 +226,19 @@ const AddSales = ({
   ]);
 
   useEffect(() => {
-    if (editData) {
-      setFormData(editData);
-    } else if (isOpen) {
-      setFormData(getInitialFormData());
+    if (formData.invoiceStatus === "Not Invoiced") {
+      setFormData((prev) => ({
+        ...prev,
+        paymentStatus: "N/A",
+        payments: [],
+      }));
+    } else if (formData.invoiceStatus === "Invoiced") {
+      setFormData((prev) => ({
+        ...prev,
+        paymentStatus: "Due Payment",
+      }));
     }
-  }, [editData, isOpen]);
+  }, [formData.invoiceStatus]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -548,14 +555,13 @@ const AddSales = ({
                       value={formData.paymentStatus}
                       onChange={(v) => handleInputChange("paymentStatus", v)}
                       options={[
-                        { value: "Pending Payment", label: "Pending Payment" },
-                        { value: "Partial Payment", label: "Partial Payment" },
-                        { value: "Paid", label: "Paid" },
+                        { value: "Due Payment", label: "Due Payment" },
+                        { value: "Paid Payment", label: "Paid Payment" },
                       ]}
                       required
                       icon={DollarSign}
                     />
-                    {formData.paymentStatus === "Partial Payment" && (
+                    {formData.paymentStatus === "Due Payment" && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Partial Payments

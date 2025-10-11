@@ -59,7 +59,7 @@ const SaleDetails = () => {
           </div>
         )}
         
-        {sale.payments.length > 0 && (
+        {sale.invoiceStatus === 'Invoiced' && sale.payments.length > 0 && (
           <div>
             <p className="text-sm font-medium text-gray-600 mb-2">Payment History</p>
             <div className="space-y-2">
@@ -120,11 +120,11 @@ const SaleDetails = () => {
             
             <div className="flex flex-col items-end">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                sale.paymentStatus === 'Paid' 
+                sale.paymentStatus === 'Paid Payment' 
                   ? 'bg-green-100 text-green-800'
-                  : sale.paymentStatus === 'Pending'
+                  : sale.paymentStatus === 'Due Payment'
                   ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-red-100 text-red-800'
+                  : 'bg-gray-100 text-gray-800'
               }`}>
                 {sale.paymentStatus}
               </span>
@@ -189,6 +189,7 @@ const SaleDetails = () => {
             </div>
 
             {/* Financial Details */}
+            {sale.invoiceStatus === 'Invoiced' && (
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 Financial Summary
@@ -244,6 +245,7 @@ const SaleDetails = () => {
                 </div>
               </div>
             </div>
+            )}
             {/* Additional Details (Mobile) */}
             <div className="lg:hidden">
               {additionalDetailsCard}

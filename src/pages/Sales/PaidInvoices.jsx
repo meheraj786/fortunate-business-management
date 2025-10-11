@@ -8,7 +8,7 @@ const PaidInvoices = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const paidInvoices = useMemo(() => {
-    return initialSalesData.filter(sale => sale.paymentStatus === 'Paid');
+    return initialSalesData.filter(sale => sale.paymentStatus === 'Paid Payment');
   }, []);
 
   const filteredSales = useMemo(() => {

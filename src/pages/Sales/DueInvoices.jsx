@@ -9,7 +9,7 @@ const DueInvoices = () => {
 
   const dueInvoices = useMemo(() => {
     return initialSalesData.filter(sale => 
-      sale.paymentStatus === 'Partial Payment' || sale.paymentStatus === 'Pending Payment'
+      sale.paymentStatus === 'Due Payment'
     );
   }, []);
 
@@ -35,7 +35,7 @@ const DueInvoices = () => {
             Due Invoices
           </h1>
           <p className="text-gray-600 text-sm sm:text-base">
-            Sales with pending or partial payments.
+            Sales with due payments.
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">

@@ -26,13 +26,10 @@ const Sales = () => {
         if (sale.invoiceStatus === "Not Invoiced") {
           acc.notInvoiced++;
         }
-        if (
-          sale.paymentStatus === "Partial Payment" ||
-          sale.paymentStatus === "Pending Payment"
-        ) {
+        if (sale.paymentStatus === "Due Payment") {
           acc.dueInvoices++;
         }
-        if (sale.paymentStatus === "Paid") {
+        if (sale.paymentStatus === "Paid Payment") {
           acc.paidInvoices++;
         }
         if (sale.invoiceStatus === "Cancelled") {

@@ -70,7 +70,7 @@ const SalesTable = ({ sales }) => {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : sale.paymentStatus === 'Partial Payment' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.paymentStatus === 'Paid Payment' ? 'bg-green-100 text-green-800' : sale.paymentStatus === 'Due Payment' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
                   {sale.paymentStatus}
                 </span>
               </td>
