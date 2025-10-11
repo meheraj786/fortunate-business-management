@@ -19,12 +19,13 @@ import LCform from "./pages/lc_management/LCform";
 import CustomerForm from "./pages/customer_management/CustomerForm";
 import ProductDetails from "./pages/stock_management/ProductDetails";
 import SaleDetails from "./pages/Sales/SaleDetails";
-import InvoiceGenerator from "./pages/InvoiceGenerator ";
+import InvoiceGenerator from "./pages/InvoiceGenerator";
 
 import NotInvoicedSales from "./pages/Sales/NotInvoicedSales";
 import DueInvoices from "./pages/Sales/DueInvoices";
 import PaidInvoices from "./pages/Sales/PaidInvoices";
 import CancelledSales from "./pages/Sales/CancelledSales";
+import DisplayInvoice from "./pages/Sales/DisplayInvoice";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -153,6 +154,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <SaleDetails />
+      </Layout>
+    ),
+  },
+  {
+    path: "/sales/:id/invoice/:invoiceId",
+    element: (
+      <Layout>
+        <DisplayInvoice />
       </Layout>
     ),
   },
