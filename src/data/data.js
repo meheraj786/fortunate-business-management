@@ -1019,18 +1019,7 @@ export const salesData = [
     paymentStatus: "Due Payment",
     payments: [{ amount: 500, date: "2024-09-22" }],
     notes: "This is an additional note.",
-    invoiceHistory: [
-      {
-        invoiceId: "INV-1-1",
-        generationDate: "2024-09-21T10:00:00.000Z",
-        saleId: 1,
-        saleDate: "2024-09-21",
-        customer: { id: 1, name: "Rahman Steel Works", contactInfo: { email: "rahman.steel@example.com", billingAddress: "123 Steel Mill Rd, Chittagong"}, phone: "+8801700000001" },
-        product: { productName: "Mild Steel Rod", quantity: 25, unit: "pieces", pricePerUnit: 25.5, totalAmount: 637.5 },
-        financials: { totalAmount: 637.5, deliveryCharge: 500, otherCharges: [{ name: "Loading Charge", amount: 100 }], discount: 50, netAmount: 1187.5, totalPayments: 0, balanceDue: 1187.5 },
-        notes: "Initial invoice generation."
-      }
-    ],
+    invoiceHistory: ["INV-1-1"],
   },
   {
     id: 2,
@@ -1099,28 +1088,7 @@ export const salesData = [
     paymentStatus: "Due Payment",
     payments: [{ amount: 1000, date: "2024-09-24" }],
     notes: "Awaiting payment.",
-    invoiceHistory: [
-      {
-        invoiceId: "INV-4-1",
-        generationDate: "2024-09-23T14:00:00.000Z",
-        saleId: 4,
-        saleDate: "2024-09-23",
-        customer: { id: 4, name: "Fatima Rahman", contactInfo: { email: "fatima.r@example.com", billingAddress: "456 Silk Road, Rajshahi"}, phone: "+8801800000004" },
-        product: { productName: "Stainless Steel Plate", quantity: 12, unit: "plates", pricePerUnit: 150.0, totalAmount: 1800.0 },
-        financials: { totalAmount: 1800.0, deliveryCharge: 200, otherCharges: [], discount: 100, netAmount: 1900.0, totalPayments: 0, balanceDue: 1900.0 },
-        notes: "First invoice."
-      },
-      {
-        invoiceId: "INV-4-2",
-        generationDate: "2024-09-25T11:30:00.000Z",
-        saleId: 4,
-        saleDate: "2024-09-23",
-        customer: { id: 4, name: "Fatima Rahman", contactInfo: { email: "fatima.r@example.com", billingAddress: "456 Silk Road, Rajshahi"}, phone: "+8801800000004" },
-        product: { productName: "Stainless Steel Plate", quantity: 12, unit: "plates", pricePerUnit: 150.0, totalAmount: 1800.0 },
-        financials: { totalAmount: 1800.0, deliveryCharge: 200, otherCharges: [], discount: 100, netAmount: 1900.0, totalPayments: 1000, balanceDue: 900.0 },
-        notes: "Updated invoice after partial payment."
-      }
-    ],
+    invoiceHistory: ["INV-4-1", "INV-4-2"],
   },
   {
     id: 5,
@@ -1191,6 +1159,39 @@ export const salesData = [
     notes: "Customer cancelled the order.",
     invoiceHistory: [],
   },
+];
+
+export const invoiceHistory = [
+  {
+    invoiceId: "INV-1-1",
+    generationDate: "2024-09-21T10:00:00.000Z",
+    saleId: 1,
+    saleDate: "2024-09-21",
+    customer: { id: 1, name: "Rahman Steel Works", contactInfo: { email: "rahman.steel@example.com", billingAddress: "123 Steel Mill Rd, Chittagong"}, phone: "+8801700000001" },
+    product: { productName: "Mild Steel Rod", quantity: 25, unit: "pieces", pricePerUnit: 25.5, totalAmount: 637.5 },
+    financials: { totalAmount: 637.5, deliveryCharge: 500, otherCharges: [{ name: "Loading Charge", amount: 100 }], discount: 50, netAmount: 1187.5, totalPayments: 0, balanceDue: 1187.5 },
+    notes: "Initial invoice generation."
+  },
+  {
+    invoiceId: "INV-4-1",
+    generationDate: "2024-09-23T14:00:00.000Z",
+    saleId: 4,
+    saleDate: "2024-09-23",
+    customer: { id: 4, name: "Fatima Rahman", contactInfo: { email: "fatima.r@example.com", billingAddress: "456 Silk Road, Rajshahi"}, phone: "+8801800000004" },
+    product: { productName: "Stainless Steel Plate", quantity: 12, unit: "plates", pricePerUnit: 150.0, totalAmount: 1800.0 },
+    financials: { totalAmount: 1800.0, deliveryCharge: 200, otherCharges: [], discount: 100, netAmount: 1900.0, totalPayments: 0, balanceDue: 1900.0 },
+    notes: "First invoice."
+  },
+  {
+    invoiceId: "INV-4-2",
+    generationDate: "2024-09-25T11:30:00.000Z",
+    saleId: 4,
+    saleDate: "2024-09-23",
+    customer: { id: 4, name: "Fatima Rahman", contactInfo: { email: "fatima.r@example.com", billingAddress: "456 Silk Road, Rajshahi"}, phone: "+8801800000004" },
+    product: { productName: "Stainless Steel Plate", quantity: 12, unit: "plates", pricePerUnit: 150.0, totalAmount: 1800.0 },
+    financials: { totalAmount: 1800.0, deliveryCharge: 200, otherCharges: [], discount: 100, netAmount: 1900.0, totalPayments: 1000, balanceDue: 900.0 },
+    notes: "Updated invoice after partial payment."
+  }
 ];
 
 export const expensesData = [

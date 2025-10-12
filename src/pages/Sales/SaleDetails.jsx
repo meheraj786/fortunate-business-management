@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
-import { salesData, customers, products } from '../../data/data';
+import { salesData, customers, products, invoiceHistory as allInvoiceHistory } from '../../data/data';
 import { ChevronLeft, FileText, User, Calendar, DollarSign, Truck, Info, ShoppingCart, Package, Printer } from 'lucide-react';
 import Breadcrumb from '../../components/common/Breadcrumb';
 
@@ -28,6 +28,7 @@ const SaleDetails = () => {
 
   const customer = customers.find(c => c.id === sale.customerId);
   const product = products.find(p => p.id === sale.productId);
+  const invoiceHistory = sale.invoiceHistory.map(id => allInvoiceHistory.find(inv => inv.invoiceId === id));
 
   const breadcrumbItems = [
     { label: "Sales", path: "/sales" },
@@ -41,7 +42,7 @@ const SaleDetails = () => {
 
   const handleGenerateInvoice = () => {
     const invoiceSnapshot = {
-      invoiceId: `INV-${sale.id}-${sale.invoiceHistory.length + 1}`,
+      invoiceId: `INV-${sale.id}-${invoiceHistory.length + 1}`,
       generationDate: new Date().toISOString(),
       saleId: sale.id,
       saleDate: sale.saleDate,
@@ -65,10 +66,12 @@ const SaleDetails = () => {
       notes: sale.notes,
     };
 
-    const updatedSale = { ...sale, invoiceHistory: [...sale.invoiceHistory, invoiceSnapshot] };
+    const updatedSale = { ...sale, invoiceHistory: [...sale.invoiceHistory, invoiceSnapshot.invoiceId] };
     setSale(updatedSale);
 
     // In a real app, you would persist this change to your backend/database.
+    // For now, we also need to add the new invoice to the in-memory invoiceHistory.
+    allInvoiceHistory.push(invoiceSnapshot);
 
     navigate(`/sales/${sale.id}/invoice/${invoiceSnapshot.invoiceId}`, { state: { invoice: invoiceSnapshot } });
   };
@@ -340,8 +343,8 @@ const SaleDetails = () => {
                 Generate New Invoice
               </button>
               <div className="space-y-2">
-                {sale.invoiceHistory.length > 0 ? (
-                  sale.invoiceHistory.map(invoice => (
+                {invoiceHistory.length > 0 ? (
+                  invoiceHistory.map(invoice => (
                     <div key={invoice.invoiceId} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-800">{invoice.invoiceId}</p>
