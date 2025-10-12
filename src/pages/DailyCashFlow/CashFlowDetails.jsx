@@ -1,12 +1,11 @@
-
 import React from 'react';
 import {
   Wallet,
   TrendingDown,
+  TrendingUp,
   DollarSign,
   ChevronLeft,
   ChevronRight,
-  TrendingUp,
   Receipt,
 } from 'lucide-react';
 
@@ -35,90 +34,94 @@ const StatCard = ({
   </div>
 );
 
-const ExpenseCard = ({ expense, iconComponents }) => {
-  const IconComponent = iconComponents[expense.icon] || Receipt;
+const TransactionCard = ({ transaction, iconComponents }) => {
+  const IconComponent = iconComponents[transaction.icon] || Receipt;
+  const isIncome = transaction.type === 'income';
+  const color = isIncome ? 'green' : 'red';
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-l-red-500 mb-4">
+    <div className={`bg-white rounded-lg shadow-sm p-4 border-l-4 border-l-${color}-500 mb-4`}>
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3 flex-1">
-          <div className="p-2 bg-red-100 rounded-full">
-            <IconComponent className="w-4 h-4 text-red-600" />
+          <div className={`p-2 bg-${color}-100 rounded-full`}>
+            <IconComponent className={`w-4 h-4 text-${color}-600`} />
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-gray-900 truncate">
-              {expense.description}
+              {transaction.description}
             </h4>
             <p className="text-xs text-gray-500 mt-1">
-              {expense.category} • {expense.time}
+              {transaction.category} • {transaction.time}
             </p>
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mt-2">
-              {expense.paymentMethod}
+              {transaction.paymentMethod}
             </span>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-lg font-bold text-red-600">
-            ৳{expense.amount.toLocaleString()}
+          <p className={`text-lg font-bold text-${color}-600`}>
+            {isIncome ? '+' : '-'}৳{transaction.amount.toLocaleString()}
           </p>
         </div>
       </div>
     </div>
   );
 };
+
 const CashFlowDetails = ({
-  accountData,
-  totalExpensesToday,
-  filteredExpenses,
-  remainingCash,
-  paginatedExpenses,
+  openingBalance,
+  totalIncome,
+  totalExpenses,
+  runningBalance,
+  transactions,
   currentPage,
   totalPages,
   setCurrentPage,
   iconComponents,
+  filteredTransactions,
 }) => {
   return (
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <StatCard
-          title="Starting Cash"
-          amount={accountData.todayStartingCash}
+          title="Opening Balance"
+          amount={openingBalance}
           icon={Wallet}
+          color="blue"
+          subtitle="Cash at start of day"
+        />
+        <StatCard
+          title="Total Income"
+          amount={totalIncome}
+          icon={TrendingUp}
           color="green"
-          subtitle="Business opening amount"
+          subtitle={`${filteredTransactions.filter(t => t.type === 'income').length} transactions`}
         />
         <StatCard
           title="Total Expenses"
-          amount={totalExpensesToday}
+          amount={totalExpenses}
           icon={TrendingDown}
           color="red"
-          subtitle={`${filteredExpenses.length} transactions`}
+          subtitle={`${filteredTransactions.filter(t => t.type === 'expense').length} transactions`}
         />
         <StatCard
-          title="Total Incomes"
-          amount={totalExpensesToday} 
-          icon={TrendingUp}
-          color="green"
-          subtitle={`${filteredExpenses.length} transactions`}
-        />
-        <StatCard
-          title="Remaining Cash"
-          amount={remainingCash}
+          title="Running Balance"
+          amount={runningBalance}
           icon={DollarSign}
-          color={remainingCash >= 0 ? "blue" : "red"}
-          subtitle="Available balance"
+          color={runningBalance >= 0 ? "purple" : "red"}
+          subtitle="Current cash in hand"
         />
       </div>
 
       <div className="bg-white mt-4 rounded-lg shadow-sm overflow-hidden">
         <div className="p-4 sm:p-6 border-b border-gray-200">
           <h2 className="text-lg sm:text-xl font-bold text-gray-800">
-            Today's Cash Flow
+            Today's Transactions
           </h2>
         </div>
         <div className="md:hidden">
-          {paginatedExpenses.map((expense) => (
-            <ExpenseCard key={expense.id} expense={expense} iconComponents={iconComponents} />
+          {transactions.map((transaction) => (
+            <TransactionCard key={transaction.id} transaction={transaction} iconComponents={iconComponents} />
           ))}
         </div>
         <div className="hidden md:block overflow-x-auto">
@@ -140,28 +143,29 @@ const CashFlowDetails = ({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedExpenses.map((expense) => {
-                const Icon = iconComponents[expense.icon];
+              {transactions.map((transaction) => {
+                const Icon = iconComponents[transaction.icon];
+                const isIncome = transaction.type === 'income';
                 return (
-                  <tr key={expense.id}>
+                  <tr key={transaction.id}>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {Icon && (
                           <Icon className="w-5 h-5 text-gray-500 mr-2" />
                         )}
                         <span className="text-sm text-gray-900">
-                          {expense.category}
+                          {transaction.category}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {expense.description}
+                      {transaction.description}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {expense.time}
+                      {transaction.time}
                     </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-red-600">
-                      ${expense.amount.toLocaleString()}
+                    <td className={`px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium ${isIncome ? 'text-green-600' : 'text-red-600'}`}>
+                      {isIncome ? '+' : '-'} ${transaction.amount.toLocaleString()}
                     </td>
                   </tr>
                 );
@@ -177,9 +181,9 @@ const CashFlowDetails = ({
             </span>{' '}
             to{' '}
             <span className="font-medium">
-              {Math.min(currentPage * 10, filteredExpenses.length)}
+              {Math.min(currentPage * 10, filteredTransactions.length)}
             </span>{' '}
-            of <span className="font-medium">{filteredExpenses.length}</span>{' '}
+            of <span className="font-medium">{filteredTransactions.length}</span>{' '}
             results
           </div>
           <div className="flex items-center">

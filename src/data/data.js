@@ -1194,6 +1194,92 @@ export const invoiceHistory = [
   }
 ];
 
+export const dailyCashFlowData = {
+  "2025-10-12": {
+    openingBalance: 100000,
+    closingBalance: null,
+    isClosed: false,
+    transactions: [
+      {
+        id: 1,
+        time: "10:00 AM",
+        type: "income",
+        category: "Sales",
+        description: "Payment from Rahman Traders",
+        amount: 50000,
+        paymentMethod: "Cash",
+        icon: "Users",
+      },
+      {
+        id: 2,
+        time: "11:30 AM",
+        type: "expense",
+        category: "Transport",
+        description: "Delivery expense",
+        amount: 10000,
+        paymentMethod: "Cash",
+        icon: "Truck",
+      },
+      {
+        id: 3,
+        time: "02:00 PM",
+        type: "income",
+        category: "Sales",
+        description: "Payment from Hasan & Sons",
+        amount: 30000,
+        paymentMethod: "Bank",
+        icon: "Users",
+      },
+      {
+        id: 4,
+        time: "04:00 PM",
+        type: "expense",
+        category: "Commission",
+        description: "Agent commission",
+        amount: 5000,
+        paymentMethod: "Cash",
+        icon: "User",
+      },
+    ],
+  },
+  "2025-10-11": {
+    openingBalance: 85000,
+    closingBalance: 100000,
+    isClosed: true,
+    transactions: [
+      {
+        id: 1,
+        time: "09:30 AM",
+        type: "expense",
+        category: "Office",
+        description: "Office supplies",
+        amount: 2000,
+        paymentMethod: "Card",
+        icon: "Building",
+      },
+      {
+        id: 2,
+        time: "12:00 PM",
+        type: "income",
+        category: "Sales",
+        description: "Payment from a customer",
+        amount: 20000,
+        paymentMethod: "Cash",
+        icon: "Users",
+      },
+      {
+        id: 3,
+        time: "03:00 PM",
+        type: "expense",
+        category: "Utilities",
+        description: "Electricity bill",
+        amount: 3000,
+        paymentMethod: "Bank",
+        icon: "Receipt",
+      },
+    ],
+  },
+};
 export const expensesData = [
   {
     id: 1,
