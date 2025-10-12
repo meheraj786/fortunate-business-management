@@ -164,70 +164,18 @@ export const lcData = [
 
 export const customers = [
   {
-    // Basic Customer Info (from first object)
     id: 1,
     name: "Ahmed Hassan",
+    companyName: "Hassan Trading",
     phone: "+880 1712-345678",
-    location: "Dhaka, Bangladesh",
-    totalPurchased: "$3,250.00",
-    lastPurchase: "20 Sep 2023",
-    status: "Active",
-
-    // Detailed Customer Info
-    basicInfo: {
-      customerId: "CUST-2023-0001",
-      name: "Ahmed Hassan",
-      type: "Retail",
-      status: "Active",
-      profilePhoto: null,
-      joinDate: "2021-03-12",
-      customerTier: "Silver",
-    },
-    contactInfo: {
-      phone: "+880 1712-345678",
-      email: "ahmed.hassan@email.com",
-      website: null,
-      billingAddress: "45 Dhanmondi Road, Dhaka-1205, Bangladesh",
-      shippingAddress: "45 Dhanmondi Road, Dhaka-1205, Bangladesh",
-      contactPerson: "Ahmed Hassan",
-      contactPersonPhone: "+880 1712-345678",
-      contactPersonEmail: "ahmed.hassan@email.com",
-    },
-    businessInfo: {
-      companyName: "Hassan Trading",
-      businessType: "Local Trader",
-      tradeLicense: "TL-BD-456123",
-      tin: "TIN-BD-123456789",
-      vatInfo: "VAT Registered (BD-456789)",
-      creditLimit: 5000,
-      paymentTerms: "Cash on Delivery",
-      currency: "BDT",
-    },
-    bankInfo: {
-      bankName: "Dutch Bangla Bank",
-      branch: "Dhanmondi Branch",
-      accountNumber: "********7890",
-      routingNumber: "090260456",
-      swiftCode: "DBBLBDDHXXX",
-      iban: "BD33DBBL1234567890",
-    },
-    transactionHistory: {
-      totalPurchases: 260000,
-      outstandingDues: 0,
-      advancePaid: 0,
-      lastPurchaseDate: "2023-09-20",
-      lastPurchaseAmount: 3250,
-      totalTransactions: 12,
-      averageOrderValue: 2708,
-    },
-    lcLinks: [
-      {
-        lcNumber: "LC-2023-001",
-        status: "Active",
-        value: 45250,
-        issueDate: "2023-08-15",
-      },
-    ],
+    email: "ahmed.hassan@email.com",
+    billingAddress: "45 Dhanmondi Road, Dhaka-1205, Bangladesh",
+    creditLimit: 5000,
+    customerNote: "Regular customer. Prefers Bengali communication. Usually orders textile items.",
+    customerId: "CUST-2023-0001",
+    customerType: "Retail",
+    customerStatus: "Active",
+    joinDate: "2021-03-12",
     documents: [
       {
         name: "Trade_License_BD.pdf",
@@ -242,84 +190,20 @@ export const customers = [
         uploadDate: "2021-03-12",
       },
     ],
-    notes: {
-      remarks:
-        "Regular customer. Prefers Bengali communication. Usually orders textile items.",
-      assignedManager: "Rashid Khan",
-      managerContact: "rashid@company.com",
-      lastContact: "2023-09-20",
-      nextFollowUp: "2023-10-20",
-      specialInstructions:
-        "Provide local delivery option. Accept mobile banking payments.",
-    },
   },
-
   {
-    // Basic Customer Info
     id: 2,
     name: "Sarah Khan",
+    companyName: "Sarah Enterprises",
     phone: "+880 1523-456789",
-    location: "Chittagong, Bangladesh",
-    totalPurchased: "$1,890.50",
-    lastPurchase: "18 Sep 2023",
-    status: "Active",
-
-    // Detailed Customer Info
-    basicInfo: {
-      customerId: "CUST-2023-0002",
-      name: "Sarah Khan",
-      type: "Wholesale",
-      status: "Active",
-      profilePhoto: null,
-      joinDate: "2022-07-08",
-      customerTier: "Bronze",
-    },
-    contactInfo: {
-      phone: "+880 1523-456789",
-      email: "sarah.khan@business.com",
-      website: "www.sarahenterprises.com",
-      billingAddress: "78 Agrabad Commercial Area, Chittagong-4100, Bangladesh",
-      shippingAddress:
-        "78 Agrabad Commercial Area, Chittagong-4100, Bangladesh",
-      contactPerson: "Sarah Khan",
-      contactPersonPhone: "+880 1523-456789",
-      contactPersonEmail: "sarah.khan@business.com",
-    },
-    businessInfo: {
-      companyName: "Sarah Enterprises",
-      businessType: "Import & Export",
-      tradeLicense: "TL-CTG-789456",
-      tin: "TIN-CTG-987654321",
-      vatInfo: "VAT Registered (CTG-123456)",
-      creditLimit: 10000,
-      paymentTerms: "Net 15 days",
-      currency: "USD",
-    },
-    bankInfo: {
-      bankName: "IFIC Bank",
-      branch: "Agrabad Branch",
-      accountNumber: "********2345",
-      routingNumber: "070270123",
-      swiftCode: "IFICBDDH",
-      iban: "BD47IFIC2345678901",
-    },
-    transactionHistory: {
-      totalPurchases: 151240,
-      outstandingDues: 5600,
-      advancePaid: 1200,
-      lastPurchaseDate: "2023-09-18",
-      lastPurchaseAmount: 1890.5,
-      totalTransactions: 23,
-      averageOrderValue: 1971,
-    },
-    lcLinks: [
-      {
-        lcNumber: "LC-2023-002",
-        status: "Expired",
-        value: 125800,
-        issueDate: "2023-07-22",
-      },
-    ],
+    email: "sarah.khan@business.com",
+    billingAddress: "78 Agrabad Commercial Area, Chittagong-4100, Bangladesh",
+    creditLimit: 10000,
+    customerNote: "Growing business. Interested in bulk orders. Good payment history.",
+    customerId: "CUST-2023-0002",
+    customerType: "Wholesale",
+    customerStatus: "Active",
+    joinDate: "2022-07-08",
     documents: [
       {
         name: "Export_License.pdf",
@@ -340,82 +224,20 @@ export const customers = [
         uploadDate: "2023-01-15",
       },
     ],
-    notes: {
-      remarks:
-        "Growing business. Interested in bulk orders. Good payment history.",
-      assignedManager: "Nasir Ahmed",
-      managerContact: "nasir@company.com",
-      lastContact: "2023-09-18",
-      nextFollowUp: "2023-10-15",
-      specialInstructions: "Offer volume discounts. Port delivery preferred.",
-    },
   },
-
   {
-    // Basic Customer Info
     id: 3,
     name: "Mohammad Ali",
+    companyName: "Ali Electronics",
     phone: "+880 1634-567890",
-    location: "Sylhet, Bangladesh",
-    totalPurchased: "$4,120.75",
-    lastPurchase: "12 Sep 2023",
-    status: "Inactive",
-
-    // Detailed Customer Info
-    basicInfo: {
-      customerId: "CUST-2023-0003",
-      name: "Mohammad Ali",
-      type: "Retail",
-      status: "Inactive",
-      profilePhoto: null,
-      joinDate: "2020-11-22",
-      customerTier: "Gold",
-    },
-    contactInfo: {
-      phone: "+880 1634-567890",
-      email: "mohammad.ali@gmail.com",
-      website: null,
-      billingAddress: "234 Zindabazar, Sylhet-3100, Bangladesh",
-      shippingAddress: "234 Zindabazar, Sylhet-3100, Bangladesh",
-      contactPerson: "Mohammad Ali",
-      contactPersonPhone: "+880 1634-567890",
-      contactPersonEmail: "mohammad.ali@gmail.com",
-    },
-    businessInfo: {
-      companyName: "Ali Electronics",
-      businessType: "Electronics Retailer",
-      tradeLicense: "TL-SYL-321654",
-      tin: "TIN-SYL-456789123",
-      vatInfo: "VAT Registered (SYL-789123)",
-      creditLimit: 8000,
-      paymentTerms: "Net 30 days",
-      currency: "BDT",
-    },
-    bankInfo: {
-      bankName: "Sonali Bank",
-      branch: "Sylhet Branch",
-      accountNumber: "********3456",
-      routingNumber: "050260789",
-      swiftCode: "SONBBDDH",
-      iban: "BD12SONB3456789012",
-    },
-    transactionHistory: {
-      totalPurchases: 330000,
-      outstandingDues: 15000,
-      advancePaid: 0,
-      lastPurchaseDate: "2023-09-12",
-      lastPurchaseAmount: 4120.75,
-      totalTransactions: 34,
-      averageOrderValue: 2879,
-    },
-    lcLinks: [
-      {
-        lcNumber: "LC-2023-003",
-        status: "Pending",
-        value: 89600,
-        issueDate: "2023-09-10",
-      },
-    ],
+    email: "mohammad.ali@gmail.com",
+    billingAddress: "234 Zindabazar, Sylhet-3100, Bangladesh",
+    creditLimit: 8000,
+    customerNote: "Previously regular customer. Payment delays in recent months. Requires follow-up.",
+    customerId: "CUST-2023-0003",
+    customerType: "Retail",
+    customerStatus: "Inactive",
+    joinDate: "2020-11-22",
     documents: [
       {
         name: "Shop_License.pdf",
@@ -430,83 +252,20 @@ export const customers = [
         uploadDate: "2023-01-10",
       },
     ],
-    notes: {
-      remarks:
-        "Previously regular customer. Payment delays in recent months. Requires follow-up.",
-      assignedManager: "Fatima Rahman",
-      managerContact: "fatima@company.com",
-      lastContact: "2023-09-25",
-      nextFollowUp: "2023-10-10",
-      specialInstructions:
-        "Monitor payment closely. Consider credit limit review.",
-    },
   },
-
   {
-    // Basic Customer Info
     id: 4,
     name: "Fatima Rahman",
+    companyName: "Rahman Fabrics Ltd",
     phone: "+880 1845-678901",
-    location: "Rajshahi, Bangladesh",
-    totalPurchased: "$2,675.25",
-    lastPurchase: "25 Aug 2023",
-    status: "Pending",
-
-    // Detailed Customer Info
-    basicInfo: {
-      customerId: "CUST-2023-0004",
-      name: "Fatima Rahman",
-      type: "Wholesale",
-      status: "Pending",
-      profilePhoto: null,
-      joinDate: "2023-08-01",
-      customerTier: "Bronze",
-    },
-    contactInfo: {
-      phone: "+880 1845-678901",
-      email: "fatima.rahman@textiles.com",
-      website: "www.rahmanfabrics.com",
-      billingAddress: "567 Silk City, Rajshahi-6000, Bangladesh",
-      shippingAddress: "567 Silk City, Rajshahi-6000, Bangladesh",
-      contactPerson: "Fatima Rahman",
-      contactPersonPhone: "+880 1845-678901",
-      contactPersonEmail: "fatima.rahman@textiles.com",
-    },
-    businessInfo: {
-      companyName: "Rahman Fabrics Ltd",
-      businessType: "Textile Manufacturer",
-      tradeLicense: "TL-RAJ-654987",
-      tin: "TIN-RAJ-789456123",
-      vatInfo: "VAT Application Pending",
-      creditLimit: 3000,
-      paymentTerms: "Advance Payment",
-      currency: "USD",
-    },
-    bankInfo: {
-      bankName: "Agrani Bank",
-      branch: "Rajshahi Branch",
-      accountNumber: "********4567",
-      routingNumber: "020260456",
-      swiftCode: "AGBKBDDH",
-      iban: "BD78AGBK4567890123",
-    },
-    transactionHistory: {
-      totalPurchases: 214200,
-      outstandingDues: 0,
-      advancePaid: 5000,
-      lastPurchaseDate: "2023-08-25",
-      lastPurchaseAmount: 2675.25,
-      totalTransactions: 8,
-      averageOrderValue: 3344,
-    },
-    lcLinks: [
-      {
-        lcNumber: "LC-2023-004",
-        status: "Active",
-        value: 32400,
-        issueDate: "2023-09-05",
-      },
-    ],
+    email: "fatima.rahman@textiles.com",
+    billingAddress: "567 Silk City, Rajshahi-6000, Bangladesh",
+    creditLimit: 3000,
+    customerNote: "New customer with textile manufacturing background. Shows potential for large orders.",
+    customerId: "CUST-2023-0004",
+    customerType: "Wholesale",
+    customerStatus: "Pending",
+    joinDate: "2023-08-01",
     documents: [
       {
         name: "Company_Incorporation.pdf",
@@ -527,89 +286,20 @@ export const customers = [
         uploadDate: "2023-08-08",
       },
     ],
-    notes: {
-      remarks:
-        "New customer with textile manufacturing background. Shows potential for large orders.",
-      assignedManager: "Karim Ahmed",
-      managerContact: "karim@company.com",
-      lastContact: "2023-09-01",
-      nextFollowUp: "2023-10-05",
-      specialInstructions:
-        "Nurture relationship. Offer competitive pricing for bulk orders.",
-    },
   },
-
   {
-    // Basic Customer Info
     id: 5,
     name: "Karim Ahmed",
+    companyName: "Ahmed Spice Exports",
     phone: "+880 1956-789012",
-    location: "Khulna, Bangladesh",
-    totalPurchased: "$5,450.00",
-    lastPurchase: "22 Sep 2023",
-    status: "Active",
-
-    // Detailed Customer Info
-    basicInfo: {
-      customerId: "CUST-2023-0005",
-      name: "Karim Ahmed",
-      type: "Wholesale",
-      status: "Active",
-      profilePhoto: null,
-      joinDate: "2021-12-15",
-      customerTier: "Gold",
-    },
-    contactInfo: {
-      phone: "+880 1956-789012",
-      email: "karim@spiceexports.com",
-      website: "www.ahmedspices.com",
-      billingAddress: "890 Spice Market, Khulna-9000, Bangladesh",
-      shippingAddress: "890 Spice Market, Khulna-9000, Bangladesh",
-      contactPerson: "Karim Ahmed",
-      contactPersonPhone: "+880 1956-789012",
-      contactPersonEmail: "karim@spiceexports.com",
-    },
-    businessInfo: {
-      companyName: "Ahmed Spice Exports",
-      businessType: "Spice Exporter",
-      tradeLicense: "TL-KHU-987321",
-      tin: "TIN-KHU-321654987",
-      vatInfo: "VAT Registered (KHU-654321)",
-      creditLimit: 15000,
-      paymentTerms: "Net 45 days",
-      currency: "USD",
-    },
-    bankInfo: {
-      bankName: "Pubali Bank",
-      branch: "Khulna Branch",
-      accountNumber: "********5678",
-      routingNumber: "030260123",
-      swiftCode: "PUBABDDH",
-      iban: "BD56PUBA5678901234",
-    },
-    transactionHistory: {
-      totalPurchases: 436000,
-      outstandingDues: 8900,
-      advancePaid: 2500,
-      lastPurchaseDate: "2023-09-22",
-      lastPurchaseAmount: 5450,
-      totalTransactions: 28,
-      averageOrderValue: 4338,
-    },
-    lcLinks: [
-      {
-        lcNumber: "LC-2023-005",
-        status: "Completed",
-        value: 18750,
-        issueDate: "2023-06-18",
-      },
-      {
-        lcNumber: "LC-2022-156",
-        status: "Closed",
-        value: 65000,
-        issueDate: "2022-11-20",
-      },
-    ],
+    email: "karim@spiceexports.com",
+    billingAddress: "890 Spice Market, Khulna-9000, Bangladesh",
+    creditLimit: 15000,
+    customerNote: "Excellent customer with consistent orders. Specializes in organic spices. Very reliable.",
+    customerId: "CUST-2023-0005",
+    customerType: "Wholesale",
+    customerStatus: "Active",
+    joinDate: "2021-12-15",
     documents: [
       {
         name: "Export_Registration.pdf",
@@ -630,83 +320,20 @@ export const customers = [
         uploadDate: "2023-01-20",
       },
     ],
-    notes: {
-      remarks:
-        "Excellent customer with consistent orders. Specializes in organic spices. Very reliable.",
-      assignedManager: "Nadia Islam",
-      managerContact: "nadia@company.com",
-      lastContact: "2023-09-22",
-      nextFollowUp: "2023-11-01",
-      specialInstructions:
-        "VIP treatment. Offer seasonal promotions. Priority shipping available.",
-    },
   },
-
   {
-    // Basic Customer Info
     id: 6,
     name: "Nadia Islam",
+    companyName: "Nadia Medical Supplies",
     phone: "+880 1367-890123",
-    location: "Barishal, Bangladesh",
-    totalPurchased: "$1,230.75",
-    lastPurchase: "10 Sep 2023",
-    status: "Pending",
-
-    // Detailed Customer Info
-    basicInfo: {
-      customerId: "CUST-2023-0006",
-      name: "Nadia Islam",
-      type: "Retail",
-      status: "Pending",
-      profilePhoto: null,
-      joinDate: "2023-07-20",
-      customerTier: "Bronze",
-    },
-    contactInfo: {
-      phone: "+880 1367-890123",
-      email: "nadia.islam@healthcare.com",
-      website: null,
-      billingAddress: "123 Medical Plaza, Barishal-8200, Bangladesh",
-      shippingAddress: "123 Medical Plaza, Barishal-8200, Bangladesh",
-      contactPerson: "Nadia Islam",
-      contactPersonPhone: "+880 1367-890123",
-      contactPersonEmail: "nadia.islam@healthcare.com",
-    },
-    businessInfo: {
-      companyName: "Nadia Medical Supplies",
-      businessType: "Medical Equipment Distributor",
-      tradeLicense: "TL-BAR-456789",
-      tin: "TIN-BAR-654321789",
-      vatInfo: "VAT Registration Processing",
-      creditLimit: 2000,
-      paymentTerms: "Cash on Delivery",
-      currency: "BDT",
-    },
-    bankInfo: {
-      bankName: "Janata Bank",
-      branch: "Barishal Branch",
-      accountNumber: "********6789",
-      routingNumber: "010260456",
-      swiftCode: "JANBBDDH",
-      iban: "BD34JANB6789012345",
-    },
-    transactionHistory: {
-      totalPurchases: 98460,
-      outstandingDues: 2500,
-      advancePaid: 800,
-      lastPurchaseDate: "2023-09-10",
-      lastPurchaseAmount: 1230.75,
-      totalTransactions: 6,
-      averageOrderValue: 2051,
-    },
-    lcLinks: [
-      {
-        lcNumber: "LC-2023-006",
-        status: "Under Review",
-        value: 67890,
-        issueDate: "2023-09-12",
-      },
-    ],
+    email: "nadia.islam@healthcare.com",
+    billingAddress: "123 Medical Plaza, Barishal-8200, Bangladesh",
+    creditLimit: 2000,
+    customerNote: "New customer in healthcare sector. Requires regulatory compliance support. Potential for growth.",
+    customerId: "CUST-2023-0006",
+    customerType: "Retail",
+    customerStatus: "Pending",
+    joinDate: "2023-07-20",
     documents: [
       {
         name: "Medical_License.pdf",
@@ -727,16 +354,6 @@ export const customers = [
         uploadDate: "2023-08-01",
       },
     ],
-    notes: {
-      remarks:
-        "New customer in healthcare sector. Requires regulatory compliance support. Potential for growth.",
-      assignedManager: "Dr. Rahman",
-      managerContact: "rahman@company.com",
-      lastContact: "2023-09-15",
-      nextFollowUp: "2023-10-01",
-      specialInstructions:
-        "Provide regulatory guidance. Ensure all medical equipment meets standards.",
-    },
   },
 ];
 
