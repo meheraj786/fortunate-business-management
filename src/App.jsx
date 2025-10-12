@@ -13,7 +13,7 @@ import Stock from "./pages/stock_management/StockManagement";
 import WarehouseStock from "./pages/stock_management/WarehouseStock";
 import Team from "./pages/Team/Team";
 import Sales from "./pages/Sales/Sales";
-import Accounts from "./pages/Accounts/Accounts";
+import DailyCashFlow from "./pages/DailyCashFlow/DailyCashFlow";
 import Banking from "./pages/Banking/Banking";
 import LCform from "./pages/lc_management/LCform";
 import CustomerForm from "./pages/customer_management/CustomerForm";
@@ -166,10 +166,10 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/accounts",
+    path: "/DailyCashFlow",
     element: (
       <Layout>
-        <Accounts />
+        <DailyCashFlow />
       </Layout>
     ),
   },

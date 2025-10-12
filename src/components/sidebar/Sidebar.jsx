@@ -84,7 +84,7 @@ const Sidebar = () => {
     },
     { icon: MdInventory, label: "Stock Management", path: "/stock-management" },
     { icon: ChartColumnIncreasing, label: "Sales", path: "/sales" },
-    { icon: WalletMinimal, label: "Accounts", path: "/accounts" },
+    { icon: WalletMinimal, label: "Daily Cash", path: "/DailyCashFlow" },
     { icon: CreditCard, label: "Banking", path: "/banking" },
     { icon: MdPeopleAlt, label: "Team", path: "/team" },
     { icon: MdPeopleAlt, label: "Customers", path: "/customers" },
@@ -100,7 +100,7 @@ const Sidebar = () => {
     if (path.includes("/settings")) return "Settings";
     if (path.includes("/stock")) return "Stock Management";
     if (path.includes("/team")) return "Team";
-    if (path.includes("/accounts")) return "Accounts";
+    if (path.includes("/DailyCashFlow")) return "Daily Cash";
     if (path.includes("/banking")) return "Banking";
     return "";
   };

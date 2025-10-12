@@ -242,6 +242,20 @@ const Accounts = () => {
             </div>
           </div>
 
+          <div
+            className={`p-4 rounded-lg text-center mb-4 ${
+              accountData.isClosed
+                ? "bg-gray-200 text-gray-800"
+                : "bg-blue-100 text-blue-800"
+            }`}
+          >
+            <p className="font-semibold">
+              {accountData.isClosed
+                ? `This day's account is closed.`
+                : `This day's account is active.`}
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <StatCard
               title="Starting Cash"
@@ -258,19 +272,20 @@ const Accounts = () => {
               subtitle={`${filteredExpenses.length} transactions`}
             />
             <StatCard
+              title="Total Incomes"
+              amount={totalExpensesToday} 
+              icon={TrendingDown}
+              color="green"
+              subtitle={`${filteredExpenses.length} transactions`}
+            />
+            <StatCard
               title="Remaining Cash"
               amount={remainingCash}
               icon={DollarSign}
               color={remainingCash >= 0 ? "green" : "red"}
               subtitle="Available balance"
             />
-            <StatCard
-              title="Status"
-              amount={accountData.isClosed ? "Closed" : "Active"}
-              icon={Target}
-              color={accountData.isClosed ? "gray" : "blue"}
-              subtitle="Account status"
-            />
+
           </div>
         </div>
 
