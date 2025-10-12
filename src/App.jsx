@@ -166,7 +166,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/DailyCashFlow",
+    path: "/daily-cash-flow",
     element: (
       <Layout>
         <DailyCashFlow />
