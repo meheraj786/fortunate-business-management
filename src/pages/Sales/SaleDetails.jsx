@@ -309,12 +309,12 @@ const SaleDetails = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Email</p>
-                    <p className="font-medium text-gray-900 break-all">{customer.contactInfo.email}</p>
+                    <p className="font-medium text-gray-900 break-all">{customer.email}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Billing Address</p>
                     <p className="font-medium text-gray-900 text-sm leading-relaxed">
-                      {customer.contactInfo.billingAddress}
+                      {customer.billingAddress}
                     </p>
                   </div>
                 </div>
