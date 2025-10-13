@@ -20,6 +20,8 @@ import CustomerForm from "./pages/customer_management/CustomerForm";
 import ProductDetails from "./pages/stock_management/ProductDetails";
 import SaleDetails from "./pages/Sales/SaleDetails";
 import InvoiceGenerator from "./pages/InvoiceGenerator";
+import TeamDetails from "./pages/Team/TeamDetails";
+import { Toaster } from 'react-hot-toast';
 
 import NotInvoicedSales from "./pages/Sales/NotInvoicedSales";
 import DueInvoices from "./pages/Sales/DueInvoices";
@@ -106,6 +108,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <Team />
+      </Layout>
+    ),
+  },
+  {
+    path: "/team/:id",
+    element: (
+      <Layout>
+        <TeamDetails />
       </Layout>
     ),
   },
@@ -208,7 +218,21 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#fff',
+            color: '#000',
+          },
+        }}
+      />
+    </>
+  );
 };
 
 export default App;

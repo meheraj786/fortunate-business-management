@@ -364,6 +364,8 @@ export const teamMembers = [
     phone: "+880 1712-123456",
     role: "Manager",
     location: "Dhaka, Bangladesh",
+    email: "rashid.khan@example.com",
+    avatar: "https://i.pravatar.cc/150?u=rashidkhan",
   },
   {
     id: 2,
@@ -371,6 +373,8 @@ export const teamMembers = [
     phone: "+880 1523-234567",
     role: "Warehouse Keeper",
     location: "Chittagong, Bangladesh",
+    email: "fatima.ahmed@example.com",
+    avatar: "https://i.pravatar.cc/150?u=fatimaahmed",
   },
   {
     id: 3,
@@ -378,6 +382,8 @@ export const teamMembers = [
     phone: "+880 1634-345678",
     role: "Accountant",
     location: "Dhaka, Bangladesh",
+    email: "nasir.rahman@example.com",
+    avatar: "https://i.pravatar.cc/150?u=nasirrahman",
   },
   {
     id: 4,
@@ -385,6 +391,8 @@ export const teamMembers = [
     phone: "+880 1845-456789",
     role: "Sales Executive",
     location: "Rajshahi, Bangladesh",
+    email: "ayesha.islam@example.com",
+    avatar: "https://i.pravatar.cc/150?u=ayeshaislam",
   },
   {
     id: 5,
@@ -392,6 +400,8 @@ export const teamMembers = [
     phone: "+880 1956-567890",
     role: "Operations Coordinator",
     location: "Khulna, Bangladesh",
+    email: "karim.hassan@example.com",
+    avatar: "https://i.pravatar.cc/150?u=karimhassan",
   },
   {
     id: 6,
@@ -399,6 +409,8 @@ export const teamMembers = [
     phone: "+880 1367-678901",
     role: "Logistics Officer",
     location: "Barishal, Bangladesh",
+    email: "nadia.khan@example.com",
+    avatar: "https://i.pravatar.cc/150?u=nadiakhan",
   },
   {
     id: 7,
@@ -406,6 +418,8 @@ export const teamMembers = [
     phone: "+880 1478-789012",
     role: "Quality Inspector",
     location: "Comilla, Bangladesh",
+    email: "omar.ali@example.com",
+    avatar: "https://i.pravatar.cc/150?u=omarali",
   },
   {
     id: 8,
@@ -413,6 +427,8 @@ export const teamMembers = [
     phone: "+880 1589-890123",
     role: "Customs Officer",
     location: "Dhaka, Bangladesh",
+    email: "zainab.rahman@example.com",
+    avatar: "https://i.pravatar.cc/150?u=zainabrahman",
   },
   {
     id: 9,
@@ -420,6 +436,8 @@ export const teamMembers = [
     phone: "+880 1690-901234",
     role: "Warehouse Keeper",
     location: "Chittagong, Bangladesh",
+    email: "mahmud.hasan@example.com",
+    avatar: "https://i.pravatar.cc/150?u=mahmudhasan",
   },
   {
     id: 10,
@@ -427,6 +445,8 @@ export const teamMembers = [
     phone: "+880 1701-012345",
     role: "Sales Executive",
     location: "Sylhet, Bangladesh",
+    email: "ruma.begum@example.com",
+    avatar: "https://i.pravatar.cc/150?u=rumabegum",
   },
 ];
 
