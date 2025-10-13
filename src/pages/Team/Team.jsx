@@ -8,9 +8,23 @@ const Team = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [teamMembers, setTeamMembers] = useState(initialTeamMembers);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editMember, setEditMember] = useState(null);
 
   const handleFormSubmit = (newMember) => {
-    setTeamMembers((prevMembers) => [...prevMembers, newMember]);
+    if (editMember) {
+      setTeamMembers((prevMembers) =>
+        prevMembers.map((member) =>
+          member.id === newMember.id ? newMember : member
+        )
+      );
+    } else {
+      setTeamMembers((prevMembers) => [...prevMembers, newMember]);
+    }
+  };
+
+  const handleEdit = (member) => {
+    setEditMember(member);
+    setIsFormOpen(true);
   };
 
   const filteredMembers = teamMembers.filter(
@@ -64,7 +78,7 @@ const Team = () => {
 
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {filteredMembers.map((member) => (
-            <TeamMemberCard key={member.id} member={member} />
+            <TeamMemberCard key={member.id} member={member} onEdit={handleEdit} />
           ))}
         </div>
 
@@ -85,8 +99,12 @@ const Team = () => {
       </div>
       <AddTeamMemForm
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditMember(null);
+        }}
         onSubmit={handleFormSubmit}
+        editData={editMember}
       />
     </div>
   );

@@ -5,18 +5,7 @@ import { CheckSquare, Square, Edit3, Save, X, Mail, Phone, MapPin } from "lucide
 import Breadcrumb from "../../components/common/Breadcrumb";
 import toast from "react-hot-toast";
 
-// Move roles to a constants file or keep here based on your project structure
-const ROLES = [
-  "Sales Management",
-  "Customer Management",
-  "Stock Management",
-  "LC Management",
-  "Team Management",
-  "Banking",
-  "Daily Cash Flow",
-  "Invoice Generator",
-  "Settings",
-];
+import { ROLES } from "../../data/data";
 
 // Simulate API call for saving roles
 const saveUserRoles = async (userId, roles) => {
@@ -207,18 +196,14 @@ const TeamDetails = () => {
                       {member.name.split(' ').map(n => n[0]).join('')}
                     </div>
                   </div>
-                  {member.isActive && (
+                  {member.status === 'Active' && (
                     <div className="absolute bottom-2 right-2 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                   )}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 text-center">{member.name}</h2>
                 <p className="text-gray-600">{member.role}</p>
-                <span className={`mt-2 px-3 py-1 rounded-full text-xs font-medium ${
-                  member.isActive 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {member.isActive ? 'Active' : 'Inactive'}
+                <span className={`mt-2 px-3 py-1 rounded-full text-xs font-medium ${member.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  {member.status}
                 </span>
               </div>
               
@@ -280,13 +265,7 @@ const TeamDetails = () => {
                 {ROLES.map((role) => (
                   <div
                     key={role}
-                    className={`flex items-center justify-between p-4 border border-gray-200 rounded-lg transition-all ${
-                      isEditing 
-                        ? "cursor-pointer hover:bg-blue-50 hover:border-blue-200" 
-                        : "hover:bg-gray-50"
-                    } ${
-                      userRoles.has(role) ? "border-green-200 bg-green-50" : ""
-                    }`}
+                    className={`flex items-center justify-between p-4 border border-gray-200 rounded-lg transition-all ${isEditing ? "cursor-pointer hover:bg-blue-50 hover:border-blue-200" : "hover:bg-gray-50"} ${userRoles.has(role) ? "border-green-200 bg-green-50" : ""}`}
                     onClick={() => isEditing && handleRoleToggle(role)}
                   >
                     <div className="flex items-center">
@@ -294,9 +273,7 @@ const TeamDetails = () => {
                     </div>
                     
                     <button 
-                      className={`focus:outline-none transition-colors ${
-                        isEditing ? "cursor-pointer hover:scale-110" : "cursor-not-allowed opacity-50"
-                      }`}
+                      className={`focus:outline-none transition-colors ${isEditing ? "cursor-pointer hover:scale-110" : "cursor-not-allowed opacity-50"}`}
                       disabled={!isEditing}
                       onClick={(e) => {
                         e.stopPropagation();

@@ -1,8 +1,8 @@
-import { MapPin, Phone, User } from "lucide-react";
+import { MapPin, Phone, User, Edit } from "lucide-react";
 import React from "react";
 import { Link } from "react-router";
 
-const TeamMemberCard = ({ member }) => {
+const TeamMemberCard = ({ member, onEdit }) => {
   const getRoleColor = (role) => {
     switch (role.toLowerCase()) {
       case 'manager':
@@ -27,8 +27,11 @@ const TeamMemberCard = ({ member }) => {
   };
 
   return (
-    <Link to={`/team/${member.id}`}>
-      <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200">
+    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 relative">
+      <button onClick={() => onEdit(member)} className="absolute top-2 right-2 p-1 bg-gray-100 rounded-full hover:bg-gray-200">
+        <Edit size={16} />
+      </button>
+      <Link to={`/team/${member.id}`}>
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
@@ -61,13 +64,11 @@ const TeamMemberCard = ({ member }) => {
           <div className="flex items-center gap-2 text-gray-600">
             <MapPin size={12} className="sm:hidden flex-shrink-0" />
             <MapPin size={14} className="hidden sm:block flex-shrink-0" />
-            <span className="text-xs sm:text-sm truncate">
-              {member.location}
-            </span>
+            <span className="text-xs sm:text-sm truncate">{member.location}</span>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 };
 

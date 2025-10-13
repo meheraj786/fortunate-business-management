@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiUser, FiPhone, FiMapPin, FiBriefcase } from "react-icons/fi";
+import { FiX, FiUser, FiPhone, FiMapPin, FiBriefcase, FiImage, FiChevronDown } from "react-icons/fi";
 import Dropdown from "../../components/layout/Dropdown";
 
 const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
@@ -9,6 +9,8 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
     phone: "",
     role: "",
     location: "",
+    status: "Active",
+    avatar: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -35,6 +37,8 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
         phone: editData.phone || "",
         role: editData.role || "",
         location: editData.location || "",
+        status: editData.status || "Active",
+        avatar: editData.avatar || "",
       });
     } else {
       setFormData({
@@ -42,6 +46,8 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
         phone: "",
         role: "",
         location: "",
+        status: "Active",
+        avatar: "",
       });
     }
     setErrors({});
@@ -105,6 +111,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
       const submitData = {
         ...formData,
         id: editData ? editData.id : Date.now(),
+        avatar: formData.avatar || `https://i.pravatar.cc/150?u=${formData.name}`,
       };
 
       onSubmit(submitData);
@@ -118,6 +125,8 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
       phone: "",
       role: "",
       location: "",
+      status: "Active",
+      avatar: "",
     });
     setErrors({});
     onClose();
@@ -164,6 +173,25 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
 
             <div className="overflow-y-auto">
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                {/* Avatar Field */}
+                <div className="space-y-2">
+                    <label
+                        htmlFor="avatar"
+                        className="flex items-center text-sm font-medium text-gray-700"
+                    >
+                        <FiImage className="mr-2 text-gray-400" />
+                        Avatar URL
+                    </label>
+                    <input
+                        type="text"
+                        id="avatar"
+                        name="avatar"
+                        value={formData.avatar}
+                        onChange={handleChange}
+                        className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 border-gray-300 focus:border-blue-500 focus:ring-blue-200`}
+                        placeholder="Enter image URL or leave for default"
+                    />
+                </div>
                 {/* Name Field */}
                 <div className="space-y-2">
                   <label
@@ -181,11 +209,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                     value={formData.name}
                     onChange={handleChange}
                     onFocus={() => handleFocus(nameInputRef)}
-                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
-                      errors.name
-                        ? "border-red-300 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${errors.name ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"}`}
                     placeholder="Enter full name"
                   />
                   {errors.name && (
@@ -216,11 +240,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                     value={formData.phone}
                     onChange={handleChange}
                     onFocus={() => handleFocus(phoneInputRef)}
-                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
-                      errors.phone
-                        ? "border-red-300 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${errors.phone ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"}`}
                     placeholder="+880 XXXX-XXXXXX"
                   />
                   {errors.phone && (
@@ -239,9 +259,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                   <Dropdown
                     options={roles}
                     selected={formData.role}
-                    onSelect={(role) =>
-                      handleChange({ target: { name: "role", value: role } })
-                    }
+                    onSelect={(role) => handleChange({ target: { name: "role", value: role } })}
                     placeholder="Select a role"
                     label="Role"
                     icon={FiBriefcase}
@@ -266,11 +284,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                     value={formData.location}
                     onChange={handleChange}
                     onFocus={() => handleFocus(locationInputRef)}
-                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${
-                      errors.location
-                        ? "border-red-300 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 ${errors.location ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"}`}
                     placeholder="Enter location (e.g., Dhaka, Bangladesh)"
                   />
                   {errors.location && (
@@ -282,6 +296,25 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                       {errors.location}
                     </motion.p>
                   )}
+                </div>
+                {/* Status Dropdown */}
+                <div className="space-y-2">
+                    <label
+                        htmlFor="status"
+                        className="flex items-center text-sm font-medium text-gray-700"
+                    >
+                        <FiChevronDown className="mr-2 text-gray-400" />
+                        Status
+                    </label>
+                    <Dropdown
+                        options={["Active", "Suspended"]}
+                        selected={formData.status}
+                        onSelect={(status) => handleChange({ target: { name: "status", value: status } })}
+                        placeholder="Select a status"
+                        label="Status"
+                        icon={FiBriefcase}
+                        error={errors.status}
+                    />
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button
@@ -308,3 +341,4 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
 };
 
 export default AddTeamMemForm;
+

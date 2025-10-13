@@ -366,6 +366,8 @@ export const teamMembers = [
     location: "Dhaka, Bangladesh",
     email: "rashid.khan@example.com",
     avatar: "https://i.pravatar.cc/150?u=rashidkhan",
+    status: "Active",
+    roles: [],
   },
   {
     id: 2,
@@ -375,6 +377,8 @@ export const teamMembers = [
     location: "Chittagong, Bangladesh",
     email: "fatima.ahmed@example.com",
     avatar: "https://i.pravatar.cc/150?u=fatimaahmed",
+    status: "Active",
+    roles: [],
   },
   {
     id: 3,
@@ -384,6 +388,8 @@ export const teamMembers = [
     location: "Dhaka, Bangladesh",
     email: "nasir.rahman@example.com",
     avatar: "https://i.pravatar.cc/150?u=nasirrahman",
+    status: "Active",
+    roles: [],
   },
   {
     id: 4,
@@ -393,6 +399,8 @@ export const teamMembers = [
     location: "Rajshahi, Bangladesh",
     email: "ayesha.islam@example.com",
     avatar: "https://i.pravatar.cc/150?u=ayeshaislam",
+    status: "Active",
+    roles: [],
   },
   {
     id: 5,
@@ -402,6 +410,8 @@ export const teamMembers = [
     location: "Khulna, Bangladesh",
     email: "karim.hassan@example.com",
     avatar: "https://i.pravatar.cc/150?u=karimhassan",
+    status: "Active",
+    roles: [],
   },
   {
     id: 6,
@@ -411,6 +421,8 @@ export const teamMembers = [
     location: "Barishal, Bangladesh",
     email: "nadia.khan@example.com",
     avatar: "https://i.pravatar.cc/150?u=nadiakhan",
+    status: "Active",
+    roles: [],
   },
   {
     id: 7,
@@ -420,6 +432,8 @@ export const teamMembers = [
     location: "Comilla, Bangladesh",
     email: "omar.ali@example.com",
     avatar: "https://i.pravatar.cc/150?u=omarali",
+    status: "Active",
+    roles: [],
   },
   {
     id: 8,
@@ -429,6 +443,8 @@ export const teamMembers = [
     location: "Dhaka, Bangladesh",
     email: "zainab.rahman@example.com",
     avatar: "https://i.pravatar.cc/150?u=zainabrahman",
+    status: "Active",
+    roles: [],
   },
   {
     id: 9,
@@ -438,6 +454,8 @@ export const teamMembers = [
     location: "Chittagong, Bangladesh",
     email: "mahmud.hasan@example.com",
     avatar: "https://i.pravatar.cc/150?u=mahmudhasan",
+    status: "Active",
+    roles: [],
   },
   {
     id: 10,
@@ -447,7 +465,21 @@ export const teamMembers = [
     location: "Sylhet, Bangladesh",
     email: "ruma.begum@example.com",
     avatar: "https://i.pravatar.cc/150?u=rumabegum",
+    status: "Active",
+    roles: [],
   },
+];
+
+export const ROLES = [
+  "Sales Management",
+  "Customer Management",
+  "Stock Management",
+  "LC Management",
+  "Team Management",
+  "Banking",
+  "Daily Cash Flow",
+  "Invoice Generator",
+  "Settings",
 ];
 
 export const categories = [
