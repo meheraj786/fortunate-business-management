@@ -28,6 +28,8 @@ import DueInvoices from "./pages/Sales/DueInvoices";
 import PaidInvoices from "./pages/Sales/PaidInvoices";
 import CancelledSales from "./pages/Sales/CancelledSales";
 import DisplayInvoice from "./pages/Sales/DisplayInvoice";
+import CategorySettings from "./pages/Settings/CategorySettings";
+import UnitsSettings from "./pages/Settings/UnitsSettings";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -50,6 +52,16 @@ const router = createBrowserRouter([
       {
         path: "settings",
         element: <Settings />,
+        children: [
+          {
+            index: true,
+            element: <CategorySettings />,
+          },
+          {
+            path: "units",
+            element: <UnitsSettings />,
+          },
+        ],
       },
       {
         path: "lc-details/:id",
