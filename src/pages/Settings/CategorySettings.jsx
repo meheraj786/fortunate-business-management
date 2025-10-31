@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import FormDialog from "../../components/common/FormDialog";
 import FormDialogInput from "../../components/common/FormDialogInput";
 import FormDialogTextarea from "../../components/common/FormDialogTextarea";
@@ -14,12 +15,43 @@ export default function Category() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const handleCreateCategory = () => {
-    // Handle category creation logic here
-    closeModal();
+  const handleCreateCategory = async (data) => {
+    try {
+      const categoryData = { name: data.name };
+      if (data.description) {
+        categoryData.description = data.description;
+      }
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/category/create",
+        categoryData
+      );
+      setCategories([...categories, response.data.data]);
+      closeModal();
+    } catch (error) {
+      console.error("Error creating category:", error);
+      setError(error.message);
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    try {
+      await axios.delete(
+        `http://localhost:3000/api/v1/category/delete/${id}`
+      );
+      setCategories(categories.filter((category) => category._id !== id));
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      setError(error.message);
+    }
   };
 
   useEffect(() => {
@@ -29,7 +61,6 @@ export default function Category() {
         const response = await axios.get(
           "http://localhost:3000/api/v1/category/get"
         );
-        console.log("Fetched data:", response.data);
         setCategories(response.data.data);
         setError(null);
       } catch (error) {
@@ -46,22 +77,19 @@ export default function Category() {
   if (loading) {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="sm:flex sm:items-center">
+        <div className="flex justify-between items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-base font-semibold text-gray-900 dark:text-black">
-              Users
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-black">
+              Categories
             </h1>
-            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-              A list of all the users in your account including their name,
-              email, phone, and role.
-            </p>
           </div>
-          <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+          <div className="sm:mt-0 sm:ml-16 sm:flex-none flex justify-center items-center">
             <button
               type="button"
-              className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-black shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500"
+              onClick={openModal}
+              className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500 cursor-pointer"
             >
-              Add user
+              Create New
             </button>
           </div>
         </div>
@@ -79,29 +107,26 @@ export default function Category() {
   if (error) {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="sm:flex sm:items-center">
+        <div className="flex justify-between items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-base font-semibold text-gray-900 dark:text-black">
-              Users
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-black">
+              Categories
             </h1>
-            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-              A list of all the users in your account including their name,
-              email, phone, and role.
-            </p>
           </div>
-          <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+          <div className="sm:mt-0 sm:ml-16 sm:flex-none flex justify-center items-center">
             <button
               type="button"
-              className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-black shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500"
+              onClick={openModal}
+              className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500 cursor-pointer"
             >
-              Add user
+              Create New
             </button>
           </div>
         </div>
         <div className="mt-8 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="flex items-center justify-center h-15 text-black">
-              Error: {error.message}
+              Error: {error}
             </div>
           </div>
         </div>
@@ -153,7 +178,7 @@ export default function Category() {
           </thead>
           <tbody>
             {categories.map((plan, planIdx) => (
-              <tr key={plan.id}>
+              <tr key={plan._id}>
                 <td
                   className={classNames(
                     planIdx === 0
@@ -196,6 +221,7 @@ export default function Category() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => handleDeleteCategory(plan._id)}
                       className="inline-flex items-center rounded-md bg-black px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-black dark:bg-black/10 dark:text-black dark:ring-black/10 dark:hover:bg-black/15 dark:disabled:hover:bg-black/10 cursor-pointer"
                     >
                       Delete
@@ -213,7 +239,7 @@ export default function Category() {
         title="Create New Category"
         primaryButtonText="Create Category"
         secondaryButtonText="Cancel"
-        onSubmit={handleCreateCategory}
+        onSubmit={handleSubmit(handleCreateCategory)}
       >
         <FormDialogInput
           id="name"
@@ -221,6 +247,9 @@ export default function Category() {
           label="Category Name"
           type="text"
           placeholder="Enter category name"
+          register={register}
+          error={errors.name}
+          validation={{ required: "Category name is required" }}
         />
         <FormDialogTextarea
           id="description"
@@ -228,6 +257,7 @@ export default function Category() {
           label="Description"
           rows={4}
           placeholder="Enter category description"
+          register={register}
         />
       </FormDialog>
     </div>
