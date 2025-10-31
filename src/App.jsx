@@ -21,7 +21,7 @@ import ProductDetails from "./pages/stock_management/ProductDetails";
 import SaleDetails from "./pages/Sales/SaleDetails";
 import InvoiceGenerator from "./pages/InvoiceGenerator";
 import TeamDetails from "./pages/Team/TeamDetails";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
 import NotInvoicedSales from "./pages/Sales/NotInvoicedSales";
 import DueInvoices from "./pages/Sales/DueInvoices";
@@ -33,187 +33,101 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   {
     path: "/",
-    element: (
-      <Layout>
-        <Dashboard />
-      </Layout>
-    ),
-  },
-  {
-    path: "/lc-management",
-    element: (
-      <Layout>
-        <LC />
-      </Layout>
-    ),
-  },
-  {
-    path: "/customers",
-    element: (
-      <Layout>
-        <Customers />
-      </Layout>
-    ),
-  },
-  {
-    path: "/settings",
-    element: (
-      <Layout>
-        <Settings />
-      </Layout>
-    ),
-  },
-  {
-    path: "/lc-details/:id",
-    element: (
-      <Layout>
-        <LCdetails />
-      </Layout>
-    ),
-  },
-  {
-    path: "/customer-details/:id",
-    element: (
-      <Layout>
-        <CustomerDetails />
-      </Layout>
-    ),
-  },
-  {
-    path: "/stock-management",
-    element: (
-      <Layout>
-        <Stock />
-      </Layout>
-    ),
-  },
-  {
-    path: "/stock/:warehouseId",
-    element: (
-      <Layout>
-        <WarehouseStock />
-      </Layout>
-    ),
-  },
-  {
-    path: "/stock/product/:productId",
-    element: (
-      <Layout>
-        <ProductDetails />
-      </Layout>
-    ),
-  },
-  {
-    path: "/team",
-    element: (
-      <Layout>
-        <Team />
-      </Layout>
-    ),
-  },
-  {
-    path: "/team/:id",
-    element: (
-      <Layout>
-        <TeamDetails />
-      </Layout>
-    ),
-  },
-  {
-    path: "/sales",
-    element: (
-      <Layout>
-        <Sales />
-      </Layout>
-    ),
-  },
-  {
-    path: "/sales/not-invoiced",
-    element: (
-      <Layout>
-        <NotInvoicedSales />
-      </Layout>
-    ),
-  },
-  {
-    path: "/sales/due-invoices",
-    element: (
-      <Layout>
-        <DueInvoices />
-      </Layout>
-    ),
-  },
-  {
-    path: "/sales/paid-invoices",
-    element: (
-      <Layout>
-        <PaidInvoices />
-      </Layout>
-    ),
-  },
-  {
-    path: "/sales/cancelled",
-    element: (
-      <Layout>
-        <CancelledSales />
-      </Layout>
-    ),
-  },
-  {
-    path: "/sales/:id",
-    element: (
-      <Layout>
-        <SaleDetails />
-      </Layout>
-    ),
-  },
-  {
-    path: "/sales/:id/invoice/:invoiceId",
-    element: (
-      <Layout>
-        <DisplayInvoice />
-      </Layout>
-    ),
-  },
-  {
-    path: "/daily-cash-flow",
-    element: (
-      <Layout>
-        <DailyCashFlow />
-      </Layout>
-    ),
-  },
-  {
-    path: "/banking",
-    element: (
-      <Layout>
-        <Banking />
-      </Layout>
-    ),
-  },
-  {
-    path: "/lc-form",
-    element: (
-      <Layout>
-        <LCform />
-      </Layout>
-    ),
-  },
-  {
-    path: "/customer-form",
-    element: (
-      <Layout>
-        <CustomerForm />
-      </Layout>
-    ),
-  },
-  {
-    path: "/invoice",
-    element: (
-      <Layout>
-        <InvoiceGenerator />
-      </Layout>
-    ),
+    element: <Layout />,
+    children: [
+      {
+        index: true,
+        element: <Dashboard />,
+      },
+      {
+        path: "lc-management",
+        element: <LC />,
+      },
+      {
+        path: "customers",
+        element: <Customers />,
+      },
+      {
+        path: "settings",
+        element: <Settings />,
+      },
+      {
+        path: "lc-details/:id",
+        element: <LCdetails />,
+      },
+      {
+        path: "customer-details/:id",
+        element: <CustomerDetails />,
+      },
+      {
+        path: "stock-management",
+        element: <Stock />,
+      },
+      {
+        path: "stock/:warehouseId",
+        element: <WarehouseStock />,
+      },
+      {
+        path: "stock/product/:productId",
+        element: <ProductDetails />,
+      },
+      {
+        path: "team",
+        element: <Team />,
+      },
+      {
+        path: "team/:id",
+        element: <TeamDetails />,
+      },
+      {
+        path: "sales",
+        element: <Sales />,
+      },
+      {
+        path: "sales/not-invoiced",
+        element: <NotInvoicedSales />,
+      },
+      {
+        path: "sales/due-invoices",
+        element: <DueInvoices />,
+      },
+      {
+        path: "sales/paid-invoices",
+        element: <PaidInvoices />,
+      },
+      {
+        path: "sales/cancelled",
+        element: <CancelledSales />,
+      },
+      {
+        path: "sales/:id",
+        element: <SaleDetails />,
+      },
+      {
+        path: "sales/:id/invoice/:invoiceId",
+        element: <DisplayInvoice />,
+      },
+      {
+        path: "daily-cash-flow",
+        element: <DailyCashFlow />,
+      },
+      {
+        path: "banking",
+        element: <Banking />,
+      },
+      {
+        path: "lc-form",
+        element: <LCform />,
+      },
+      {
+        path: "customer-form",
+        element: <CustomerForm />,
+      },
+      {
+        path: "invoice",
+        element: <InvoiceGenerator />,
+      },
+    ],
   },
 ]);
 
@@ -221,13 +135,13 @@ const App = () => {
   return (
     <>
       <RouterProvider router={router} />
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#fff',
-            color: '#000',
+            background: "#fff",
+            color: "#000",
           },
         }}
       />
