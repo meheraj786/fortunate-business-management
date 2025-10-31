@@ -14,17 +14,36 @@ export default function Category() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingCategory, setEditingCategory] = useState(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+    setValue,
+    reset,
+  } = useForm({ defaultValues: { description: "" } });
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openModal = (category = null) => {
+    if (category) {
+      setEditingCategory(category);
+      setValue("name", category.name);
+      setValue("description", category.description);
+    } else {
+      setEditingCategory(null);
+      reset();
+    }
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setEditingCategory(null);
+    setIsModalOpen(false);
+    reset();
+  };
 
   const handleCreateCategory = async (data) => {
+    const previousCategories = categories;
     try {
       const categoryData = { name: data.name };
       if (data.description) {
@@ -35,24 +54,52 @@ export default function Category() {
         categoryData
       );
       setCategories([...categories, response.data.data]);
+      setRefetch((prev) => !prev);
       closeModal();
     } catch (error) {
       console.error("Error creating category:", error);
+      setCategories(previousCategories);
+      setError(error.message);
+    }
+  };
+
+  const handleUpdateCategory = async (data) => {
+    if (!editingCategory) return;
+
+    const previousCategories = categories;
+    try {
+      const response = await axios.put(
+        `http://localhost:3000/api/v1/category/update/${editingCategory._id}`,
+        data
+      );
+      setCategories(
+        categories.map((category) =>
+          category._id === editingCategory._id ? response.data.data : category
+        )
+      );
+      setRefetch((prev) => !prev);
+      closeModal();
+    } catch (error) {
+      console.error("Error updating category:", error);
+      setCategories(previousCategories);
       setError(error.message);
     }
   };
 
   const handleDeleteCategory = async (id) => {
+    const previousCategories = categories;
     try {
-      await axios.delete(
-        `http://localhost:3000/api/v1/category/delete/${id}`
-      );
+      await axios.delete(`http://localhost:3000/api/v1/category/delete/${id}`);
       setCategories(categories.filter((category) => category._id !== id));
+      setRefetch((prev) => !prev);
     } catch (error) {
       console.error("Error deleting category:", error);
+      setCategories(previousCategories);
       setError(error.message);
     }
   };
+
+  const [refetch, setRefetch] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -72,7 +119,7 @@ export default function Category() {
     };
 
     fetchCategories();
-  }, []);
+  }, [refetch]);
 
   if (loading) {
     return (
@@ -145,7 +192,10 @@ export default function Category() {
         <div className="sm:mt-0 sm:ml-16 sm:flex-none flex justify-center items-center">
           <button
             type="button"
-            onClick={openModal}
+            onClick={() => {
+              setEditingCategory(null);
+              openModal();
+            }}
             className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-500 cursor-pointer"
           >
             Create New
@@ -215,6 +265,7 @@ export default function Category() {
                   <div className="flex flex-col sm:flex-row w-max gap-2">
                     <button
                       type="button"
+                      onClick={() => openModal(plan)}
                       className="text-center justify-center inline-flex items-center rounded-md bg-black px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-black dark:bg-black/10 dark:text-black dark:ring-black/10 dark:hover:bg-black/15 dark:disabled:hover:bg-black/10 cursor-pointer"
                     >
                       Edit
@@ -233,33 +284,38 @@ export default function Category() {
           </tbody>
         </table>
       </div>
-      <FormDialog
-        open={isModalOpen}
-        onClose={closeModal}
-        title="Create New Category"
-        primaryButtonText="Create Category"
-        secondaryButtonText="Cancel"
-        onSubmit={handleSubmit(handleCreateCategory)}
-      >
-        <FormDialogInput
-          id="name"
-          name="name"
-          label="Category Name"
-          type="text"
-          placeholder="Enter category name"
-          register={register}
-          error={errors.name}
-          validation={{ required: "Category name is required" }}
-        />
-        <FormDialogTextarea
-          id="description"
-          name="description"
-          label="Description"
-          rows={4}
-          placeholder="Enter category description"
-          register={register}
-        />
-      </FormDialog>
+
+      {isModalOpen && (
+        <FormDialog
+          open={isModalOpen}
+          onClose={closeModal}
+          title={editingCategory ? "Edit Category" : "Create New Category"}
+          primaryButtonText={editingCategory ? "Update" : "Create Category"}
+          secondaryButtonText="Cancel"
+          onSubmit={handleSubmit(
+            editingCategory ? handleUpdateCategory : handleCreateCategory
+          )}
+        >
+          <FormDialogInput
+            id="name"
+            name="name"
+            label="Category Name"
+            type="text"
+            placeholder="Enter category name"
+            register={register}
+            error={errors.name}
+            validation={{ required: "Category name is required" }}
+          />
+          <FormDialogTextarea
+            id="description"
+            name="description"
+            label="Description"
+            rows={4}
+            placeholder="Enter category description"
+            register={register}
+          />
+        </FormDialog>
+      )}
     </div>
   );
 }
