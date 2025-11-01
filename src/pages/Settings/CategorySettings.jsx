@@ -4,6 +4,8 @@ import FormDialog from "../../components/common/FormDialog";
 import FormDialogInput from "../../components/common/FormDialogInput";
 import FormDialogTextarea from "../../components/common/FormDialogTextarea";
 import axios from "axios";
+import { useContext } from "react";
+import { UrlContext } from "../../context/UrlContext";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -15,6 +17,7 @@ export default function Category() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
+  const { baseUrl } = useContext(UrlContext);
 
   const {
     register,
@@ -50,7 +53,7 @@ export default function Category() {
         categoryData.description = data.description;
       }
       const response = await axios.post(
-        "http://localhost:3000/api/v1/category/create",
+        `${baseUrl}category/create`,
         categoryData
       );
       setCategories([...categories, response.data.data]);
@@ -69,7 +72,7 @@ export default function Category() {
     const previousCategories = categories;
     try {
       const response = await axios.put(
-        `http://localhost:3000/api/v1/category/update/${editingCategory._id}`,
+        `${baseUrl}category/update/${editingCategory._id}`,
         data
       );
       setCategories(
@@ -89,7 +92,7 @@ export default function Category() {
   const handleDeleteCategory = async (id) => {
     const previousCategories = categories;
     try {
-      await axios.delete(`http://localhost:3000/api/v1/category/delete/${id}`);
+      await axios.delete(`${baseUrl}category/delete/${id}`);
       setCategories(categories.filter((category) => category._id !== id));
       setRefetch((prev) => !prev);
     } catch (error) {
@@ -105,9 +108,7 @@ export default function Category() {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          "http://localhost:3000/api/v1/category/get"
-        );
+        const response = await axios.get(`${baseUrl}category/get`);
         setCategories(response.data.data);
         setError(null);
       } catch (error) {
