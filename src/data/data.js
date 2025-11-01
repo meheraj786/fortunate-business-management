@@ -102,10 +102,7 @@ export const lcData = [
       transport_cost_bdt: 300000,
     },
     documents_notes: {
-      uploaded_documents: [
-        "ProformaInvoice.pdf",
-        "DraftBL.pdf",
-      ],
+      uploaded_documents: ["ProformaInvoice.pdf", "DraftBL.pdf"],
       remarks: "Awaiting final shipping documents.",
     },
   },
@@ -171,7 +168,8 @@ export const customers = [
     email: "ahmed.hassan@email.com",
     billingAddress: "45 Dhanmondi Road, Dhaka-1205, Bangladesh",
     creditLimit: 5000,
-    customerNote: "Regular customer. Prefers Bengali communication. Usually orders textile items.",
+    customerNote:
+      "Regular customer. Prefers Bengali communication. Usually orders textile items.",
     customerId: "CUST-2023-0001",
     customerType: "Retail",
     customerStatus: "Active",
@@ -199,7 +197,8 @@ export const customers = [
     email: "sarah.khan@business.com",
     billingAddress: "78 Agrabad Commercial Area, Chittagong-4100, Bangladesh",
     creditLimit: 10000,
-    customerNote: "Growing business. Interested in bulk orders. Good payment history.",
+    customerNote:
+      "Growing business. Interested in bulk orders. Good payment history.",
     customerId: "CUST-2023-0002",
     customerType: "Wholesale",
     customerStatus: "Active",
@@ -233,7 +232,8 @@ export const customers = [
     email: "mohammad.ali@gmail.com",
     billingAddress: "234 Zindabazar, Sylhet-3100, Bangladesh",
     creditLimit: 8000,
-    customerNote: "Previously regular customer. Payment delays in recent months. Requires follow-up.",
+    customerNote:
+      "Previously regular customer. Payment delays in recent months. Requires follow-up.",
     customerId: "CUST-2023-0003",
     customerType: "Retail",
     customerStatus: "Inactive",
@@ -261,7 +261,8 @@ export const customers = [
     email: "fatima.rahman@textiles.com",
     billingAddress: "567 Silk City, Rajshahi-6000, Bangladesh",
     creditLimit: 3000,
-    customerNote: "New customer with textile manufacturing background. Shows potential for large orders.",
+    customerNote:
+      "New customer with textile manufacturing background. Shows potential for large orders.",
     customerId: "CUST-2023-0004",
     customerType: "Wholesale",
     customerStatus: "Pending",
@@ -295,7 +296,8 @@ export const customers = [
     email: "karim@spiceexports.com",
     billingAddress: "890 Spice Market, Khulna-9000, Bangladesh",
     creditLimit: 15000,
-    customerNote: "Excellent customer with consistent orders. Specializes in organic spices. Very reliable.",
+    customerNote:
+      "Excellent customer with consistent orders. Specializes in organic spices. Very reliable.",
     customerId: "CUST-2023-0005",
     customerType: "Wholesale",
     customerStatus: "Active",
@@ -329,7 +331,8 @@ export const customers = [
     email: "nadia.islam@healthcare.com",
     billingAddress: "123 Medical Plaza, Barishal-8200, Bangladesh",
     creditLimit: 2000,
-    customerNote: "New customer in healthcare sector. Requires regulatory compliance support. Potential for growth.",
+    customerNote:
+      "New customer in healthcare sector. Requires regulatory compliance support. Potential for growth.",
     customerId: "CUST-2023-0006",
     customerType: "Retail",
     customerStatus: "Pending",
@@ -836,31 +839,97 @@ export const invoiceHistory = [
     generationDate: "2024-09-21T10:00:00.000Z",
     saleId: 1,
     saleDate: "2024-09-21",
-    customer: { id: 1, name: "Rahman Steel Works", contactInfo: { email: "rahman.steel@example.com", billingAddress: "123 Steel Mill Rd, Chittagong"}, phone: "+8801700000001" },
-    product: { productName: "Mild Steel Rod", quantity: 25, unit: "pieces", pricePerUnit: 25.5, totalAmount: 637.5 },
-    financials: { totalAmount: 637.5, deliveryCharge: 500, otherCharges: [{ name: "Loading Charge", amount: 100 }], discount: 50, netAmount: 1187.5, totalPayments: 0, balanceDue: 1187.5 },
-    notes: "Initial invoice generation."
+    customer: {
+      id: 1,
+      name: "Rahman Steel Works",
+      contactInfo: {
+        email: "rahman.steel@example.com",
+        billingAddress: "123 Steel Mill Rd, Chittagong",
+      },
+      phone: "+8801700000001",
+    },
+    product: {
+      productName: "Mild Steel Rod",
+      quantity: 25,
+      unit: "pieces",
+      pricePerUnit: 25.5,
+      totalAmount: 637.5,
+    },
+    financials: {
+      totalAmount: 637.5,
+      deliveryCharge: 500,
+      otherCharges: [{ name: "Loading Charge", amount: 100 }],
+      discount: 50,
+      netAmount: 1187.5,
+      totalPayments: 0,
+      balanceDue: 1187.5,
+    },
+    notes: "Initial invoice generation.",
   },
   {
     invoiceId: "INV-4-1",
     generationDate: "2024-09-23T14:00:00.000Z",
     saleId: 4,
     saleDate: "2024-09-23",
-    customer: { id: 4, name: "Fatima Rahman", contactInfo: { email: "fatima.r@example.com", billingAddress: "456 Silk Road, Rajshahi"}, phone: "+8801800000004" },
-    product: { productName: "Stainless Steel Plate", quantity: 12, unit: "plates", pricePerUnit: 150.0, totalAmount: 1800.0 },
-    financials: { totalAmount: 1800.0, deliveryCharge: 200, otherCharges: [], discount: 100, netAmount: 1900.0, totalPayments: 0, balanceDue: 1900.0 },
-    notes: "First invoice."
+    customer: {
+      id: 4,
+      name: "Fatima Rahman",
+      contactInfo: {
+        email: "fatima.r@example.com",
+        billingAddress: "456 Silk Road, Rajshahi",
+      },
+      phone: "+8801800000004",
+    },
+    product: {
+      productName: "Stainless Steel Plate",
+      quantity: 12,
+      unit: "plates",
+      pricePerUnit: 150.0,
+      totalAmount: 1800.0,
+    },
+    financials: {
+      totalAmount: 1800.0,
+      deliveryCharge: 200,
+      otherCharges: [],
+      discount: 100,
+      netAmount: 1900.0,
+      totalPayments: 0,
+      balanceDue: 1900.0,
+    },
+    notes: "First invoice.",
   },
   {
     invoiceId: "INV-4-2",
     generationDate: "2024-09-25T11:30:00.000Z",
     saleId: 4,
     saleDate: "2024-09-23",
-    customer: { id: 4, name: "Fatima Rahman", contactInfo: { email: "fatima.r@example.com", billingAddress: "456 Silk Road, Rajshahi"}, phone: "+8801800000004" },
-    product: { productName: "Stainless Steel Plate", quantity: 12, unit: "plates", pricePerUnit: 150.0, totalAmount: 1800.0 },
-    financials: { totalAmount: 1800.0, deliveryCharge: 200, otherCharges: [], discount: 100, netAmount: 1900.0, totalPayments: 1000, balanceDue: 900.0 },
-    notes: "Updated invoice after partial payment."
-  }
+    customer: {
+      id: 4,
+      name: "Fatima Rahman",
+      contactInfo: {
+        email: "fatima.r@example.com",
+        billingAddress: "456 Silk Road, Rajshahi",
+      },
+      phone: "+8801800000004",
+    },
+    product: {
+      productName: "Stainless Steel Plate",
+      quantity: 12,
+      unit: "plates",
+      pricePerUnit: 150.0,
+      totalAmount: 1800.0,
+    },
+    financials: {
+      totalAmount: 1800.0,
+      deliveryCharge: 200,
+      otherCharges: [],
+      discount: 100,
+      netAmount: 1900.0,
+      totalPayments: 1000,
+      balanceDue: 900.0,
+    },
+    notes: "Updated invoice after partial payment.",
+  },
 ];
 
 export const dailyCashFlowData = {
