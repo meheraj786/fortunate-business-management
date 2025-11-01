@@ -1,15 +1,29 @@
 import React from "react";
-import { customers } from "../../data/data";
+// import { customers } from "../../data/data";
 import CustomerCard from "../../layout/CustomerCard";
 import Input from "../../layout/Input";
 import { Filter, Plus, Search } from "lucide-react";
 import { Link } from "react-router";
 import Button from "../../components/common/Button";
 import Flex from "../../layout/Flex";
+import { Toaster } from "react-hot-toast";
+import { useState } from "react";
+import { useEffect } from "react";
+import axios from "axios";
+import { useContext } from "react";
+import { UrlContext } from "../../context/UrlContext";
 
 const Customers = () => {
+  const { baseUrl } = useContext(UrlContext);
+  const [customers, setCustomers] = useState([]);
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}customer/get-customers`)
+      .then((res) => setCustomers(res?.data?.data));
+  }, []);
   return (
     <div className="pt-8 p-6 h-full w-full">
+      <Toaster position="top-right" />
       <div class=" items-center flex-wrap flex justify-between">
         <h2 className="text-3xl font-semibold mb-4">Your Customers</h2>
         <Link to="/customer-form">
@@ -38,7 +52,7 @@ const Customers = () => {
       </div>
       <div className="grid grid-cols-1 mt-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {customers.map((customer) => (
-          <CustomerCard key={customer.id} customer={customer} />
+          <CustomerCard key={customer._id} customer={customer} />
         ))}
       </div>
     </div>

@@ -26,7 +26,7 @@ const CustomerCard = ({ customer }) => {
   const lastPurchase = customerSales.sort((a, b) => new Date(b.saleDate) - new Date(a.saleDate))[0];
 
   return (
-    <Link to={`/customer-details/${customer.id}`}>
+    <Link to={`/customer-details/${customer._id}`}>
       <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">

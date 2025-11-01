@@ -120,7 +120,7 @@ export default function Category() {
     };
 
     fetchCategories();
-  }, [refetch]);
+  }, [refetch, baseUrl]);
 
   if (loading) {
     return (
