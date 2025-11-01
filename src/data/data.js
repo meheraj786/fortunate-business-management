@@ -474,15 +474,15 @@ export const teamMembers = [
 ];
 
 export const ROLES = [
-  "Sales Management",
-  "Customer Management",
-  "Stock Management",
-  "LC Management",
-  "Team Management",
-  "Banking",
-  "Daily Cash Flow",
-  "Invoice Generator",
-  "Settings",
+  "Manager",
+  "Warehouse Keeper",
+  "Accountant",
+  "Sales Executive",
+  "Operations Coordinator",
+  "Logistics Officer",
+  "Quality Inspector",
+  "Customs Officer",
+  "No Role",
 ];
 
 export const categories = [

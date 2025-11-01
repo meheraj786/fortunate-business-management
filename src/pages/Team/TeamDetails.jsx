@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router";
 import { teamMembers } from "../../data/data";
 import { CheckSquare, Square, Edit3, Save, X, Mail, Phone, MapPin } from "lucide-react";
@@ -6,10 +6,11 @@ import Breadcrumb from "../../components/common/Breadcrumb";
 import toast from "react-hot-toast";
 
 import { ROLES } from "../../data/data";
+import axios from "axios";
+import { UrlContext } from "../../context/UrlContext";
 
 // Simulate API call for saving roles
 const saveUserRoles = async (userId, roles) => {
-  // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
   // Simulate random success/failure for demo (remove in production)
@@ -27,20 +28,17 @@ const TeamDetails = () => {
   const [userRoles, setUserRoles] = useState(new Set());
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+    const { baseUrl } = useContext(UrlContext);
 
   useEffect(() => {
-    const foundMember = teamMembers.find((m) => m.id === parseInt(id));
-    
-    if (!foundMember) {
-      setIsLoading(false);
-      return;
-    }
-
-    setMember(foundMember);
-    // Initialize with member's existing roles if available
-    setUserRoles(new Set(foundMember.roles || []));
+        axios
+      .get(`${baseUrl}auth/get-user/${id}`)
+      .then((res) => setMember(res.data.data));
     setIsLoading(false);
   }, [id]);
+  console.log(member);
+  
 
   const handleRoleToggle = (role) => {
     const newRoles = new Set(userRoles);
@@ -57,7 +55,7 @@ const TeamDetails = () => {
 
     // Use toast.promise for the save operation
     toast.promise(
-      saveUserRoles(member.id, Array.from(userRoles)),
+      saveUserRoles(member?.id, Array.from(userRoles)),
       {
         loading: 'Saving roles...',
         success: (data) => {
@@ -125,7 +123,7 @@ const TeamDetails = () => {
 
   const breadcrumbItems = [
     { label: "Team", path: "/team" },
-    { label: member.name },
+    { label: member?.name },
   ];
 
   return (
@@ -182,8 +180,8 @@ const TeamDetails = () => {
                 <div className="relative mb-4">
                   <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
                     <img 
-                      src={member.avatar} 
-                      alt={member.name}
+                      src={member?.avatar} 
+                      alt={member?.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.style.display = 'none';
@@ -193,17 +191,17 @@ const TeamDetails = () => {
                     <div 
                       className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-2xl hidden"
                     >
-                      {member.name.split(' ').map(n => n[0]).join('')}
+                      {member?.name.split(' ').map(n => n[0]).join('')}
                     </div>
                   </div>
-                  {member.status === 'Active' && (
+                  {member?.status === 'Active' && (
                     <div className="absolute bottom-2 right-2 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                   )}
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 text-center">{member.name}</h2>
-                <p className="text-gray-600">{member.role}</p>
-                <span className={`mt-2 px-3 py-1 rounded-full text-xs font-medium ${member.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                  {member.status}
+                <h2 className="text-2xl font-bold text-gray-900 text-center">{member?.name}</h2>
+                <p className="text-gray-600">{member?.role}</p>
+                <span className={`mt-2 px-3 py-1 rounded-full text-xs font-medium ${member?.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  {member?.status}
                 </span>
               </div>
               
@@ -214,29 +212,29 @@ const TeamDetails = () => {
                 <div className="space-y-4">
                   <div 
                     className="flex items-center text-gray-700 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                    onClick={() => copyToClipboard(member.email, 'Email')}
+                    onClick={() => copyToClipboard(member?.email, 'Email')}
                   >
                     <Mail size={18} className="text-gray-400 mr-3" />
                     <div className="flex-1">
                       <p className="font-medium text-sm text-gray-500">Email</p>
-                      <p className="text-primary break-all">{member.email}</p>
+                      <p className="text-primary break-all">{member?.email}</p>
                     </div>
                   </div>
                   <div 
                     className="flex items-center text-gray-700 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                    onClick={() => copyToClipboard(member.phone, 'Phone number')}
+                    onClick={() => copyToClipboard(member?.phone, 'Phone number')}
                   >
                     <Phone size={18} className="text-gray-400 mr-3" />
                     <div className="flex-1">
                       <p className="font-medium text-sm text-gray-500">Phone</p>
-                      <p className="text-primary">{member.phone}</p>
+                      <p className="text-primary">{member?.phone}</p>
                     </div>
                   </div>
                   <div className="flex items-center text-gray-700">
                     <MapPin size={18} className="text-gray-400 mr-3" />
                     <div className="flex-1">
                       <p className="font-medium text-sm text-gray-500">Location</p>
-                      <p>{member.location}</p>
+                      <p>{member?.location}</p>
                     </div>
                   </div>
                 </div>

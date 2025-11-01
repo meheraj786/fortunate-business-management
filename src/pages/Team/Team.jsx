@@ -1,14 +1,25 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Search, Plus, User } from "lucide-react";
 import { teamMembers as initialTeamMembers } from "../../data/data";
 import TeamMemberCard from "../../layout/TeamMemberCard";
 import AddTeamMemForm from "./AddTeamMemForm";
+import axios from "axios";
+import { UrlContext } from "../../context/UrlContext";
+import { Toaster } from "react-hot-toast";
 
 const Team = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [teamMembers, setTeamMembers] = useState(initialTeamMembers);
+  const [teamMembers, setTeamMembers] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editMember, setEditMember] = useState(null);
+  const { baseUrl } = useContext(UrlContext);
+
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}auth/get-users`)
+      .then((res) => setTeamMembers(res.data.data));
+  }, []);
+  console.log(teamMembers);
 
   const handleFormSubmit = (newMember) => {
     if (editMember) {
@@ -27,16 +38,17 @@ const Team = () => {
     setIsFormOpen(true);
   };
 
-  const filteredMembers = teamMembers.filter(
+  const filteredMembers = teamMembers?.filter(
     (member) =>
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.phone.includes(searchTerm)
+      member?.name.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      member?.role.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      member?.location.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      member?.phone.includes(searchTerm)
   );
 
   return (
     <div className="min-h-screen p-4 sm:p-6">
+      <Toaster position="top-right"/>
       <div className=" mx-auto">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
@@ -78,7 +90,11 @@ const Team = () => {
 
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {filteredMembers.map((member) => (
-            <TeamMemberCard key={member.id} member={member} onEdit={handleEdit} />
+            <TeamMemberCard
+              key={member.id}
+              member={member}
+              onEdit={handleEdit}
+            />
           ))}
         </div>
 
