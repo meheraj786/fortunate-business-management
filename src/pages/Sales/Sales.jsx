@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import {
   Plus,
   ChevronLeft,
@@ -13,13 +13,21 @@ import { salesData as initialSalesData } from "../../data/data";
 import AddSales from "./AddSales";
 import SalesTable from "../../components/common/SalesTable";
 import SalesStatCard from "../../components/common/SalesStatCard";
+import axios from "axios";
+import { UrlContext } from "../../context/UrlContext";
 
 const Sales = () => {
   const [salesData, setSalesData] = useState(initialSalesData);
   const [showAddSale, setShowAddSale] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const { baseUrl } = useContext(UrlContext);
 
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}sales/get-all-sales`)
+      .then((res) => setSalesData(res.data.data));
+  }, []);
   const { notInvoiced, dueInvoices, paidInvoices, cancelled } = useMemo(() => {
     return salesData.reduce(
       (acc, sale) => {
@@ -40,9 +48,13 @@ const Sales = () => {
       { notInvoiced: 0, dueInvoices: 0, paidInvoices: 0, cancelled: 0 }
     );
   }, [salesData]);
+console.log(salesData);
 
   const sortedData = useMemo(
-    () => [...salesData].sort((a, b) => new Date(b.saleDate) - new Date(a.saleDate)),
+    () =>
+      [...salesData].sort(
+        (a, b) => new Date(b.saleDate) - new Date(a.saleDate)
+      ),
     [salesData]
   );
 
@@ -130,7 +142,7 @@ const Sales = () => {
                   All Sales Records
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                  Showing {paginatedData.length} of {sortedData.length} records
+                  Showing {salesData.length} of {salesData.length} records
                 </p>
               </div>
               {totalPages > 1 && (
@@ -159,7 +171,7 @@ const Sales = () => {
             </div>
           </div>
 
-          <SalesTable sales={paginatedData} />
+          <SalesTable sales={salesData} />
         </div>
       </div>
     </div>

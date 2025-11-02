@@ -38,26 +38,26 @@ const SalesTable = ({ sales }) => {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {sales.map((sale) => (
-            <tr key={sale.id} className="hover:bg-gray-50 cursor-pointer">
+            <tr key={sale._id} className="hover:bg-gray-50 cursor-pointer">
               <td className="px-6 py-4 whitespace-nowrap">
-                <Link to={`/sales/${sale.id}`}>
+                <Link to={`/sales/${sale._id}`}>
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{sale.productName}</div>
+                    <div className="text-sm font-medium text-gray-900">{sale?.product?.name}</div>
                   </div>
                 </Link>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{getProductLcNumber(sale.productId)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale?.lcNumber}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.quantity} {sale.unit}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${parseFloat(sale.pricePerUnit || 0).toFixed(2)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${(sale.pricePerUnit * sale.quantity).toFixed(2)}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.customerName}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${sale?.product?.unitPrice}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${sale?.totalAmount}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale?.customer?.name}</td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {sale.invoiceStatus === 'Invoiced' ? (
+                {sale.invoiceStatus === 'yes' ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     <Check className="w-3 h-3 mr-1" />
                     Invoiced
                   </span>
-                ) : sale.invoiceStatus === 'Not Invoiced' ? (
+                ) : sale.invoiceStatus === 'no' ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                     <X className="w-3 h-3 mr-1" />
                     Not Invoiced
