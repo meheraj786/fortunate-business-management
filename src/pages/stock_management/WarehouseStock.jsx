@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import {
   Search,
@@ -13,10 +13,21 @@ import ProductCard from "../../layout/ProductCard";
 import StatBox from "../../components/common/StatBox";
 import AddProductForm from "./AddProductForm";
 import Breadcrumb from "../../components/common/Breadcrumb";
+import { UrlContext } from "../../context/UrlContext";
+import axios from "axios";
 
 const WarehouseStock = () => {
   const { warehouseId } = useParams();
-  const warehouse = warehouses.find((w) => w.id === parseInt(warehouseId));
+  const [warehouse, setWarehouse] = useState(null);
+  // const warehouse = warehouses.find((w) => w.id === parseInt(warehouseId));
+  const { baseUrl } = useContext(UrlContext);
+
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}warehouse/get-warehouse/${warehouseId}`)
+      .then((res) => setWarehouse(res.data.data));
+  }, []);
+  console.log(warehouse);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -46,21 +57,21 @@ const WarehouseStock = () => {
     return parts.join(" x ");
   };
 
-  const filteredProducts = productList.filter((product) => {
-    const sizeString = formatSize(product);
-    const matchesSearch =
-      product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (sizeString &&
-        sizeString.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (product.color &&
-        product.color.toLowerCase().includes(searchTerm.toLowerCase()));
+  // const filteredProducts = warehouse?.product.filter((product) => {
+  //   const sizeString = formatSize(product);
+  //   const matchesSearch =
+  //     product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     (sizeString &&
+  //       sizeString.toLowerCase().includes(searchTerm.toLowerCase())) ||
+  //     (product.color &&
+  //       product.color.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesCategory =
-      categoryFilter === "All" || product.category === categoryFilter;
+  //   const matchesCategory =
+  //     categoryFilter === "All" || product.category === categoryFilter;
 
-    return matchesSearch && matchesCategory;
-  });
+  //   return matchesSearch && matchesCategory;
+  // });
 
   const breadcrumbItems = [
     { label: "Stock", path: "/stock-management" },
@@ -151,12 +162,12 @@ const WarehouseStock = () => {
         </div>
 
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          {filteredProducts.map((product) => (
+          {warehouse?.product.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
 
-        {filteredProducts.length === 0 && (
+        {warehouse?.product.length === 0 && (
           <div className="text-center py-8 sm:py-12">
             <div className="text-gray-400 mb-2">
               <Package size={32} className="sm:hidden mx-auto" />

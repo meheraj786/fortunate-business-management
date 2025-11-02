@@ -30,12 +30,12 @@ const ProductCard = ({ product }) => {
   const warehouse = warehouses.find(w => w.id === product.productLocation);
 
   return (
-    <Link to={`/stock/product/${product.id}`}>
+    <Link to={`/stock/product/${product._id}`}>
       <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 h-full">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate pr-2">
-              {product.productName}
+              {product.name}
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 truncate">{product.category}</p>
           </div>
@@ -48,7 +48,7 @@ const ProductCard = ({ product }) => {
           <div className="flex items-center gap-2 text-gray-600">
             <Ruler size={12} className="sm:hidden flex-shrink-0" />
             <Ruler size={14} className="hidden sm:block flex-shrink-0" />
-            <span className="text-xs sm:text-sm">Size: {formatSize(product)}</span>
+            <span className="text-xs sm:text-sm">Size: {product.size}</span>
           </div>
           
           <div className="flex items-center gap-2 text-gray-600">

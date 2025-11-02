@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, Save, Warehouse, MapPin } from 'lucide-react';
+import React, { useContext, useEffect, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { X, Save, Warehouse, MapPin } from "lucide-react";
+import { UrlContext } from "../../context/UrlContext";
+import axios from "axios";
+import toast from "react-hot-toast";
 
-const InputField = ({ 
-  label, 
-  type = "text", 
-  value, 
-  onChange, 
-  required = false, 
-  placeholder = "", 
-  icon: Icon
+const InputField = ({
+  label,
+  type = "text",
+  value,
+  onChange,
+  required = false,
+  placeholder = "",
+  icon: Icon,
 }) => (
   <div className="space-y-2">
     <label className="block text-sm font-medium text-gray-700">
@@ -28,7 +31,7 @@ const InputField = ({
         required={required}
         placeholder={placeholder}
         className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
-          Icon ? 'pl-10' : ''
+          Icon ? "pl-10" : ""
         }`}
       />
     </div>
@@ -38,24 +41,29 @@ const InputField = ({
 const AddWarehouseForm = ({ onClose, onWarehouseAdded, isOpen = false }) => {
   const [formData, setFormData] = useState({
     name: "",
-    address: ""
+    address: "",
   });
+  const { baseUrl } = useContext(UrlContext);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.address) {
-      alert('Please fill in all required fields');
+      alert("Please fill in all required fields");
       return;
     }
-
+    await axios.post(`${baseUrl}warehouse/create-warehouse`, {
+      name: formData.name,
+      location: formData.address,
+    });
+    toast.success("Warehouse Created");
     onWarehouseAdded(formData);
   };
 
@@ -83,7 +91,9 @@ const AddWarehouseForm = ({ onClose, onWarehouseAdded, isOpen = false }) => {
                   <Warehouse className="w-6 h-6" />
                   <div>
                     <h2 className="text-xl font-bold">Add New Warehouse</h2>
-                    <p className="text-blue-100 text-sm">Enter details of the new warehouse</p>
+                    <p className="text-blue-100 text-sm">
+                      Enter details of the new warehouse
+                    </p>
                   </div>
                 </div>
                 <button
@@ -101,7 +111,7 @@ const AddWarehouseForm = ({ onClose, onWarehouseAdded, isOpen = false }) => {
                 <InputField
                   label="Warehouse Name"
                   value={formData.name}
-                  onChange={(value) => handleInputChange('name', value)}
+                  onChange={(value) => handleInputChange("name", value)}
                   required
                   placeholder="e.g., Main Warehouse"
                   icon={Warehouse}
@@ -109,7 +119,7 @@ const AddWarehouseForm = ({ onClose, onWarehouseAdded, isOpen = false }) => {
                 <InputField
                   label="Warehouse Address"
                   value={formData.address}
-                  onChange={(value) => handleInputChange('address', value)}
+                  onChange={(value) => handleInputChange("address", value)}
                   required
                   placeholder="e.g., 123 Industrial Park, Dhaka"
                   icon={MapPin}

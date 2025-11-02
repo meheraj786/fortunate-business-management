@@ -1,16 +1,34 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { products, salesData, warehouses } from "../../data/data";
-import { Package, DollarSign, ShoppingCart, FileWarning, FileClock } from "lucide-react";
+import {
+  Package,
+  DollarSign,
+  ShoppingCart,
+  FileWarning,
+  FileClock,
+} from "lucide-react";
 import StatBox from "../../components/common/StatBox";
 import Breadcrumb from "../../components/common/Breadcrumb";
+import { UrlContext } from "../../context/UrlContext";
+import axios from "axios";
 
 const ProductDetails = () => {
   const { productId } = useParams();
-  const product = products.find((p) => p.id === parseInt(productId));
+  const [product, setProduct] = useState(null);
+  // const product = products.find((p) => p.id === parseInt(productId));
   const sales = salesData.filter((s) => s.productId === parseInt(productId));
 
+  const { baseUrl } = useContext(UrlContext);
+
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}product/get-product/${productId}`)
+      .then((res) => setProduct(res.data.data));
+  }, []);
+
   const navigate = useNavigate();
+  console.log(product);
 
   const totalUnitsSold = sales.reduce((acc, sale) => acc + sale.quantity, 0);
   const totalRevenue = sales.reduce(
@@ -18,8 +36,12 @@ const ProductDetails = () => {
     0
   );
 
-  const totalDueInvoices = sales.filter(s => s.paymentStatus === 'Due Payment').length;
-  const totalNotInvoiced = sales.filter(s => s.invoiceStatus === 'Not Invoiced').length;
+  const totalDueInvoices = sales.filter(
+    (s) => s.paymentStatus === "Due Payment"
+  ).length;
+  const totalNotInvoiced = sales.filter(
+    (s) => s.invoiceStatus === "Not Invoiced"
+  ).length;
 
   const warehouse = warehouses.find((w) => w.id === product?.productLocation);
 
@@ -33,8 +55,11 @@ const ProductDetails = () => {
 
   const breadcrumbItems = [
     { label: "Stock", path: "/stock-management" },
-    { label: warehouse?.name, path: `/stock/${product.productLocation}` },
-    { label: product.productName },
+    {
+      label: product?.warehouse?.name,
+      path: `/stock/${product.warehouse?._id}`,
+    },
+    { label: product.name },
   ];
 
   return (
@@ -47,7 +72,7 @@ const ProductDetails = () => {
             <Package className="h-8 w-8 text-gray-600" />
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {product.productName}
+                {product.name}
               </h1>
               <p className="text-gray-600 mt-1">{product.category}</p>
             </div>
@@ -240,10 +265,24 @@ const ProductDetails = () => {
                     </div>
                     <div className="border-t border-gray-100 my-2"></div>
                     <div className="flex justify-between items-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.invoiceStatus === 'Invoiced' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          sale.invoiceStatus === "Invoiced"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
                         {sale.invoiceStatus}
                       </span>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.paymentStatus === 'Paid Payment' ? 'bg-green-100 text-green-800' : sale.paymentStatus === 'Due Payment' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          sale.paymentStatus === "Paid Payment"
+                            ? "bg-green-100 text-green-800"
+                            : sale.paymentStatus === "Due Payment"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {sale.paymentStatus}
                       </span>
                     </div>
@@ -342,12 +381,26 @@ const ProductDetails = () => {
                       ).toFixed(2)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.invoiceStatus === 'Invoiced' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          sale.invoiceStatus === "Invoiced"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
                         {sale.invoiceStatus}
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sale.paymentStatus === 'Paid Payment' ? 'bg-green-100 text-green-800' : sale.paymentStatus === 'Due Payment' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          sale.paymentStatus === "Paid Payment"
+                            ? "bg-green-100 text-green-800"
+                            : sale.paymentStatus === "Due Payment"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {sale.paymentStatus}
                       </span>
                     </td>
