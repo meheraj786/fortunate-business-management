@@ -3,8 +3,14 @@ import { Plus, Search, Filter } from "lucide-react";
 import { lcData } from "../data/data";
 import Input from "./Input";
 import { Link } from "react-router";
+import { useEffect } from "react";
+import axios from "axios";
+import { useContext } from "react";
+import { UrlContext } from "../context/UrlContext";
 
 const LCTable = () => {
+  const [lcData, setLcData] = useState([]);
+  const { baseUrl } = useContext(UrlContext);
   const getStatusColor = (status) => {
     if (!status) return "bg-gray-100 text-gray-800";
     switch (status.toLowerCase()) {
@@ -23,16 +29,33 @@ const LCTable = () => {
     }
   };
 
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}lc/get-all-lc`)
+      .then((res) => setLcData(res.data.data));
+  }, []);
+  console.log(lcData[0]?._id);
+
   const calculateTotalCost = (lc) => {
     const { financial_info, shipping_customs_info, agent_transport_info } = lc;
     if (!financial_info || !shipping_customs_info || !agent_transport_info) {
       return 0;
     }
-    const customs_total_bdt = (shipping_customs_info.customs_duty_bdt || 0) + (shipping_customs_info.vat_bdt || 0) + (shipping_customs_info.ait_bdt || 0) + (shipping_customs_info.other_port_expenses_bdt || 0);
+    const customs_total_bdt =
+      (shipping_customs_info.customs_duty_bdt || 0) +
+      (shipping_customs_info.vat_bdt || 0) +
+      (shipping_customs_info.ait_bdt || 0) +
+      (shipping_customs_info.other_port_expenses_bdt || 0);
     const transport_other_bdt = agent_transport_info.transport_cost_bdt || 0;
-    const total_lc_cost_bdt = (financial_info.lc_amount_bdt || 0) + (financial_info.bank_charges_bdt || 0) + (financial_info.insurance_cost_bdt || 0) + customs_total_bdt + (agent_transport_info.cnf_agent_commission_bdt || 0) + transport_other_bdt;
+    const total_lc_cost_bdt =
+      (financial_info.lc_amount_bdt || 0) +
+      (financial_info.bank_charges_bdt || 0) +
+      (financial_info.insurance_cost_bdt || 0) +
+      customs_total_bdt +
+      (agent_transport_info.cnf_agent_commission_bdt || 0) +
+      transport_other_bdt;
     return total_lc_cost_bdt;
-  }
+  };
 
   return (
     <div className="min-h-screen mt-10">
@@ -76,12 +99,9 @@ const LCTable = () => {
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="block sm:hidden">
-            {lcData.map((lc) => (
-              <Link to={`/lc-details/${lc.id}`}>
-                <div
-                  key={lc.id}
-                  className="border-b border-gray-200 p-4 hover:bg-gray-50 transition-colors"
-                >
+            {lcData?.map((lc) => (
+              <Link to={`/lc-details/${lc._id}`} key={lc._id}>
+                <div className="border-b border-gray-200 p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex justify-between items-start mb-3">
                     <div className="font-medium text-gray-900">
                       {lc.basic_info?.lc_number}
@@ -103,11 +123,15 @@ const LCTable = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Open Date:</span>
-                      <span className="text-gray-900">{lc.basic_info?.lc_opening_date}</span>
+                      <span className="text-gray-900">
+                        {lc.basic_info?.lc_opening_date}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Due Date:</span>
-                      <span className="text-gray-900">{lc.shipping_customs_info?.expected_arrival_date}</span>
+                      <span className="text-gray-900">
+                        {lc.shipping_customs_info?.expected_arrival_date}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Products:</span>
@@ -120,7 +144,9 @@ const LCTable = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Quantity:</span>
-                      <span className="text-gray-900">{lc.product_info?.quantity_ton}</span>
+                      <span className="text-gray-900">
+                        {lc.product_info?.quantity_ton}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Amount:</span>
@@ -167,18 +193,20 @@ const LCTable = () => {
               <tbody className="divide-y divide-gray-200">
                 {lcData.map((lc) => (
                   <tr
-                    key={lc.id}
+                    key={lc._id}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="py-4 px-6">
-                      <Link to={`/lc-details/${lc.id}`}>
+                      <Link to={`/lc-details/${lc._id}`}>
                         <div className="font-medium text-gray-900">
                           {lc.basic_info?.lc_number}
                         </div>
                       </Link>
                     </td>
                     <td className="py-4 px-6">
-                      <div className="text-gray-900">{lc.basic_info?.supplier_name}</div>
+                      <div className="text-gray-900">
+                        {lc.basic_info?.supplier_name}
+                      </div>
                     </td>
                     <td className="py-4 px-6">
                       <span
@@ -189,8 +217,12 @@ const LCTable = () => {
                         {lc.basic_info?.status}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-gray-900">{lc.basic_info?.lc_opening_date}</td>
-                    <td className="py-4 px-6 text-gray-900">{lc.shipping_customs_info?.expected_arrival_date}</td>
+                    <td className="py-4 px-6 text-gray-900">
+                      {lc.basic_info?.lc_opening_date}
+                    </td>
+                    <td className="py-4 px-6 text-gray-900">
+                      {lc.shipping_customs_info?.expected_arrival_date}
+                    </td>
                     <td className="py-4 px-6">
                       <div
                         className="text-gray-900 max-w-xs truncate"
@@ -199,7 +231,9 @@ const LCTable = () => {
                         {lc.product_info?.item_name}
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-900">{lc.product_info?.quantity_ton}</td>
+                    <td className="py-4 px-6 text-gray-900">
+                      {lc.product_info?.quantity_ton}
+                    </td>
                     <td className="py-4 px-6">
                       <div className="font-semibold text-gray-900">
                         ${calculateTotalCost(lc).toLocaleString()}
