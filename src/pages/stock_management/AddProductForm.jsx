@@ -1,31 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  X, 
-  Save, 
-  Package, 
-  Tag, 
+import React, { useState, useEffect, useContext } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  X,
+  Save,
+  Package,
+  Tag,
   Ruler,
   Palette,
   Hash,
   DollarSign,
   MapPin,
-  Layers
-} from 'lucide-react';
-import { warehouses, categories } from '../../data/data';
+  Layers,
+} from "lucide-react";
+import { warehouses, categories } from "../../data/data";
+import { UrlContext } from "../../context/UrlContext";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 // Helper components moved outside the main component to prevent re-creation on re-renders
-const InputField = ({ 
-  label, 
-  type = "text", 
-  value, 
-  onChange, 
-  required = false, 
-  placeholder = "", 
+const InputField = ({
+  label,
+  type = "text",
+  value,
+  onChange,
+  required = false,
+  placeholder = "",
   icon: Icon,
   min,
   step,
-  disabled = false
+  disabled = false,
 }) => (
   <div className="space-y-2">
     <label className="block text-sm font-medium text-gray-700">
@@ -47,14 +50,21 @@ const InputField = ({
         step={step}
         disabled={disabled}
         className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
-          Icon ? 'pl-10' : ''
-        } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+          Icon ? "pl-10" : ""
+        } ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}`}
       />
     </div>
   </div>
 );
 
-const SelectField = ({ label, value, onChange, options, required = false, icon: Icon }) => (
+const SelectField = ({
+  label,
+  value,
+  onChange,
+  options,
+  required = false,
+  icon: Icon,
+}) => (
   <div className="space-y-2">
     <label className="block text-sm font-medium text-gray-700">
       {label} {required && <span className="text-red-500">*</span>}
@@ -70,13 +80,13 @@ const SelectField = ({ label, value, onChange, options, required = false, icon: 
         onChange={(e) => onChange(e.target.value)}
         required={required}
         className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
-          Icon ? 'pl-10' : ''
+          Icon ? "pl-10" : ""
         }`}
       >
         <option value="">Select {label}</option>
         {options.map((option, index) => (
-          <option key={index} value={option.value || option}>
-            {option.label || option}
+          <option value={option._id || option.value || option}>
+            {option.name || option.label || option}
           </option>
         ))}
       </select>
@@ -84,7 +94,14 @@ const SelectField = ({ label, value, onChange, options, required = false, icon: 
   </div>
 );
 
-const TextAreaField = ({ label, value, onChange, required = false, placeholder = "", rows = 3 }) => (
+const TextAreaField = ({
+  label,
+  value,
+  onChange,
+  required = false,
+  placeholder = "",
+  rows = 3,
+}) => (
   <div className="space-y-2">
     <label className="block text-sm font-medium text-gray-700">
       {label} {required && <span className="text-red-500">*</span>}
@@ -100,19 +117,43 @@ const TextAreaField = ({ label, value, onChange, required = false, placeholder =
   </div>
 );
 
-const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = false, warehouseId = null }) => {
+const AddProductForm = ({
+  onClose,
+  onProductAdded,
+  editData = null,
+  isOpen = false,
+  warehouse = null,
+}) => {
   const [formData, setFormData] = useState({
     name: "",
-    categoryId: "",
+    category: "",
+    LC: "",
     size: "",
     color: "",
     quantity: "",
     unit: "pieces",
     unitPrice: "",
-    warehouseId: warehouseId || ""
+    warehouse: warehouse?._id || "",
   });
 
-  const productCategories = categories.map(c => ({ value: c.id, label: c.name }));
+  const { baseUrl } = useContext(UrlContext);
+
+  const [productCategories, setProductCategories] = useState([]);
+  const [completedLc, setCompletedLc] = useState([]);
+
+  // const productCategories = categories.map(c => ({ value: c.id, label: c.name }));
+
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}category/get`)
+      .then((res) => setProductCategories(res.data.data));
+  }, []);
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}lc/completed-lc`)
+      .then((res) => setCompletedLc(res.data.data));
+  }, []);
+  console.log(completedLc);
 
   const unitOptions = [
     { value: "pieces", label: "Pieces" },
@@ -125,21 +166,37 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
     { value: "meters", label: "Meters" },
     { value: "feet", label: "Feet" },
     { value: "bundles", label: "Bundles" },
-    { value: "packs", label: "Packs" }
+    { value: "packs", label: "Packs" },
   ];
 
   const colorOptions = [
-    "Silver", "Black", "Gray", "Dark Gray", "Brown", "Galvanized", 
-    "Stainless", "Coated", "Painted", "Natural", "Blue", "Green", "Red"
+    "Silver",
+    "Black",
+    "Gray",
+    "Dark Gray",
+    "Brown",
+    "Galvanized",
+    "Stainless",
+    "Coated",
+    "Painted",
+    "Natural",
+    "Blue",
+    "Green",
+    "Red",
   ];
 
-  const locationOptions = warehouses.map(w => ({ value: w.id, label: w.name }));
+  const locationOptions = warehouses.map((w) => ({
+    value: w.id,
+    label: w.name,
+  }));
 
   useEffect(() => {
     if (editData) {
       const cleanEditData = {
         ...editData,
-        unitPrice: editData.unitPrice ? editData.unitPrice.replace('$', '') : ''
+        unitPrice: editData.unitPrice
+          ? editData.unitPrice.replace("$", "")
+          : "",
       };
       setFormData(cleanEditData);
     } else if (isOpen) {
@@ -151,37 +208,58 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
         quantity: "",
         unit: "pieces",
         unitPrice: "",
-        warehouseId: warehouseId || ""
+        warehouseId: warehouse?._id || "",
       });
     }
-  }, [editData, isOpen, warehouseId]);
+  }, [editData, isOpen]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.categoryId || !formData.quantity || !formData.unitPrice) {
-      alert('Please fill in all required fields');
+    console.log(formData);
+
+    // Validation
+    if (
+      !formData.name ||
+      !formData.category ||
+      !formData.quantity ||
+      !formData.unitPrice ||
+      !formData.warehouse ||
+      !formData.LC
+    ) {
+      alert("Please fill in all required fields");
       return;
     }
 
-    if (parseFloat(formData.quantity) < 0 || parseFloat(formData.unitPrice) <= 0) {
-      alert('Quantity must be non-negative and price must be greater than 0');
+    if (
+      parseFloat(formData.quantity) < 0 ||
+      parseFloat(formData.unitPrice) <= 0
+    ) {
+      alert("Quantity must be non-negative and price must be greater than 0");
       return;
     }
 
+    // Final data (number conversion)
     const dataToSave = {
       ...formData,
-      unitPrice: `$${parseFloat(formData.unitPrice).toFixed(2)}`
+      quantity: Number(formData.quantity),
+      unitPrice: Number(formData.unitPrice),
     };
 
-    onProductAdded(dataToSave);
+    try {
+      await axios.post(`${baseUrl}product/create-product`, dataToSave);
+      toast.success("Product Created");
+      onProductAdded(dataToSave);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to create product");
+    }
   };
 
   return (
@@ -207,10 +285,12 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                 <Package className="w-6 h-6" />
                 <div>
                   <h2 className="text-xl font-bold">
-                    {editData ? 'Edit Product' : 'Add New Product'}
+                    {editData ? "Edit Product" : "Add New Product"}
                   </h2>
                   <p className="text-blue-100 text-sm">
-                    {editData ? 'Update product information' : 'Enter details of the new product'}
+                    {editData
+                      ? "Update product information"
+                      : "Enter details of the new product"}
                   </p>
                 </div>
               </div>
@@ -235,33 +315,44 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                   <InputField
                     label="Product Name"
                     value={formData.name}
-                    onChange={(value) => handleInputChange('name', value)}
+                    onChange={(value) => handleInputChange("name", value)}
                     required
                     placeholder="Mild Steel Rod"
                     icon={Package}
                   />
-                  
+
                   <SelectField
                     label="Category"
-                    value={formData.categoryId}
-                    onChange={(value) => handleInputChange('categoryId', value)}
+                    value={formData.category}
+                    onChange={(value) => handleInputChange("category", value)}
                     options={productCategories}
                     required
                     icon={Tag}
                   />
-                  
+                  <SelectField
+                    label="LC"
+                    value={formData.LC}
+                    onChange={(value) => handleInputChange("LC", value)}
+                    options={completedLc.map((lc) => ({
+                      value: lc?._id,
+                      label: lc?.basic_info?.lc_number || "Untitled LC",
+                    }))}
+                    required
+                    icon={Tag}
+                  />
+
                   <InputField
                     label="Size/Dimensions"
                     value={formData.size}
-                    onChange={(value) => handleInputChange('size', value)}
+                    onChange={(value) => handleInputChange("size", value)}
                     placeholder="12mm x 12m"
                     icon={Ruler}
                   />
-                  
+
                   <SelectField
                     label="Color/Finish"
                     value={formData.color}
-                    onChange={(value) => handleInputChange('color', value)}
+                    onChange={(value) => handleInputChange("color", value)}
                     options={colorOptions}
                     icon={Palette}
                   />
@@ -278,26 +369,26 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                     label="Quantity in Stock"
                     type="text"
                     value={formData.quantity}
-                    onChange={(value) => handleInputChange('quantity', value)}
+                    onChange={(value) => handleInputChange("quantity", value)}
                     required
                     placeholder="150"
                     icon={Hash}
                   />
-                  
+
                   <SelectField
                     label="Unit of Measure"
                     value={formData.unit}
-                    onChange={(value) => handleInputChange('unit', value)}
+                    onChange={(value) => handleInputChange("unit", value)}
                     options={unitOptions}
                     required
                     icon={Package}
                   />
-                  
+
                   <InputField
                     label="Unit Price ($)"
                     type="text"
                     value={formData.unitPrice}
-                    onChange={(value) => handleInputChange('unitPrice', value)}
+                    onChange={(value) => handleInputChange("unitPrice", value)}
                     required
                     placeholder="25.50"
                     icon={DollarSign}
@@ -311,18 +402,20 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                   <span>Storage Information</span>
                 </h3>
                 <div className="grid grid-cols-1 gap-6">
-                  <SelectField
-                    label="Storage Location"
-                    value={formData.warehouseId}
-                    onChange={(value) => handleInputChange('warehouseId', value)}
-                    options={locationOptions}
+                  <InputField
+                    label="Warehouse"
+                    value={warehouse?.name || "Unknown Warehouse"}
+                    onChange={() => {}}
+                    disabled
                     icon={MapPin}
                   />
-                  
+
                   <TextAreaField
                     label="Location Notes (Optional)"
                     value={formData.locationNotes || ""}
-                    onChange={(value) => handleInputChange('locationNotes', value)}
+                    onChange={(value) =>
+                      handleInputChange("locationNotes", value)
+                    }
                     placeholder="Specific shelf, rack number, or additional location details..."
                     rows={2}
                   />
@@ -338,32 +431,34 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                   <TextAreaField
                     label="Product Description"
                     value={formData.description || ""}
-                    onChange={(value) => handleInputChange('description', value)}
+                    onChange={(value) =>
+                      handleInputChange("description", value)
+                    }
                     placeholder="Detailed description, material specifications, grade, standards compliance..."
                     rows={3}
                   />
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <InputField
                       label="Weight (kg per unit)"
                       type="text"
                       value={formData.weight || ""}
-                      onChange={(value) => handleInputChange('weight', value)}
+                      onChange={(value) => handleInputChange("weight", value)}
                       placeholder="7.5"
                     />
-                    
+
                     <InputField
                       label="Grade/Standard"
                       value={formData.grade || ""}
-                      onChange={(value) => handleInputChange('grade', value)}
+                      onChange={(value) => handleInputChange("grade", value)}
                       placeholder="ASTM A36, ISO 9001, etc."
                     />
                   </div>
-                  
+
                   <InputField
                     label="Supplier/Manufacturer"
                     value={formData.supplier || ""}
-                    onChange={(value) => handleInputChange('supplier', value)}
+                    onChange={(value) => handleInputChange("supplier", value)}
                     placeholder="Manufacturer name or supplier information"
                   />
                 </div>
@@ -378,13 +473,13 @@ const AddProductForm = ({ onClose, onProductAdded, editData = null, isOpen = fal
                   <X className="w-4 h-4" />
                   <span>Cancel</span>
                 </button>
-                
+
                 <button
                   type="submit"
                   className="px-6 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 font-medium flex items-center justify-center space-x-2"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{editData ? 'Update Product' : 'Add Product'}</span>
+                  <span>{editData ? "Update Product" : "Add Product"}</span>
                 </button>
               </div>
             </form>

@@ -186,7 +186,7 @@ const WarehouseStock = () => {
         <AddProductForm
           onClose={() => setShowAddProductForm(false)}
           onProductAdded={handleProductAdded}
-          warehouseId={parseInt(warehouseId)}
+          warehouse={warehouse}
         />
       )}
     </div>
