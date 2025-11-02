@@ -34,7 +34,7 @@ const LCTable = () => {
       .get(`${baseUrl}lc/get-all-lc`)
       .then((res) => setLcData(res.data.data));
   }, []);
-  console.log(lcData[0]?._id);
+  console.log(lcData.map((p) => p.product_info.map((pr) => pr.item_name)));
 
   const calculateTotalCost = (lc) => {
     const { financial_info, shipping_customs_info, agent_transport_info } = lc;
@@ -135,12 +135,14 @@ const LCTable = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Products:</span>
-                      <span
-                        className="text-gray-900 text-right max-w-40 truncate"
-                        title={lc.product_info?.item_name}
-                      >
-                        {lc.product_info?.item_name}
-                      </span>
+                      {lc?.product_info.map((p) => (
+                        <span
+                          className="text-gray-900 text-right max-w-40 truncate"
+                          title={p?.item_name}
+                        >
+                          {p?.item_name}
+                        </span>
+                      ))}
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Quantity:</span>
@@ -224,12 +226,14 @@ const LCTable = () => {
                       {lc.shipping_customs_info?.expected_arrival_date}
                     </td>
                     <td className="py-4 px-6">
-                      <div
-                        className="text-gray-900 max-w-xs truncate"
-                        title={lc.product_info?.item_name}
-                      >
-                        {lc.product_info?.item_name}
-                      </div>
+                      {lc?.product_info.map((p) => (
+                        <div
+                          className="text-gray-900 max-w-xs truncate"
+                          title={p?.item_name}
+                        >
+                          {p?.item_name}
+                        </div>
+                      ))}
                     </td>
                     <td className="py-4 px-6 text-gray-900">
                       {lc.product_info?.quantity_ton}
