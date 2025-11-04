@@ -134,49 +134,49 @@ const CustomerDetails = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <DataField
                   label="Company Name"
-                  value={customerData?.businessInfo?.companyName}
+                  value={customerData?.companyName}
                   icon={<FiBriefcase />}
                 />
 
                 <DataField
                   label="Email"
-                  value={customerData?.contactInfo?.email}
+                  value={customerData?.email}
                   icon={<FiMail />}
                 />
 
                 <DataField
                   label="Billing Address"
-                  value={customerData?.contactInfo?.billingAddress}
+                  value={customerData?.billingAddress}
                   icon={<FiMapPin />}
                 />
 
                 <DataField
                   label="Credit Limit"
-                  value={customerData?.businessInfo?.creditLimit?.toLocaleString()}
+                  value={customerData?.creditLimit?.toLocaleString()}
                   icon={<FiDollarSign />}
                 />
 
                 <DataField
                   label="Customer Status"
                   value={
-                    <StatusBadge status={customerData?.basicInfo?.status} />
+                    <StatusBadge status={customerData?.customerStatus} />
                   }
                 />
 
                 <DataField
                   label="Customer Type"
-                  value={customerData?.basicInfo?.type}
+                  value={customerData?.customerType}
                 />
 
                 <DataField
                   label="Customer Joined Date"
-                  value={customerData?.basicInfo?.joinDate}
+                  value={customerData?.joinDate}
                   icon={<FiCalendar />}
                 />
 
                 <DataField
                   label="Customer Note"
-                  value={customerData?.notes?.remarks}
+                  value={customerData?.customerNote}
                 />
               </div>
             </CollapsibleCard>
@@ -288,7 +288,7 @@ const CustomerDetails = () => {
                   <DataField
                     label="Customer Status"
                     value={
-                      <StatusBadge status={customerData?.basicInfo?.status} />
+                      <StatusBadge status={customerData?.customerStatus} />
                     }
                   />
                   <DataField

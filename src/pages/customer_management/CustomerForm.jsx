@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router";
+import { useForm } from "react-hook-form";
 import FormSection from "../../components/common/FormSection";
 import {
   Save,
@@ -15,21 +16,19 @@ import {
   Calendar,
   DollarSign,
   Shield,
-  BadgeCheck,
   Upload,
-  Plus,
   Trash2,
 } from "lucide-react";
 import axios from "axios";
-import { useContext } from "react";
 import { UrlContext } from "../../context/UrlContext";
 import toast, { Toaster } from "react-hot-toast";
 
 const InputField = ({
   label,
+  name,
+  register,
+  errors,
   type = "text",
-  value,
-  onChange,
   required = false,
   placeholder = "",
   icon: Icon,
@@ -48,23 +47,25 @@ const InputField = ({
       )}
       <input
         type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
+        {...register(name, { required })}
         placeholder={placeholder}
         disabled={disabled}
         className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
           Icon ? "pl-10" : ""
         } ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}`}
       />
+      {errors[name] && (
+        <span className="text-red-500 text-sm">This field is required</span>
+      )}
     </div>
   </div>
 );
 
 const SelectField = ({
   label,
-  value,
-  onChange,
+  name,
+  register,
+  errors,
   options,
   required = false,
   icon: Icon,
@@ -80,9 +81,7 @@ const SelectField = ({
         </div>
       )}
       <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
+        {...register(name, { required })}
         className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
           Icon ? "pl-10" : ""
         }`}
@@ -94,14 +93,18 @@ const SelectField = ({
           </option>
         ))}
       </select>
+      {errors[name] && (
+        <span className="text-red-500 text-sm">This field is required</span>
+      )}
     </div>
   </div>
 );
 
 const TextAreaField = ({
   label,
-  value,
-  onChange,
+  name,
+  register,
+  errors,
   required = false,
   placeholder = "",
   rows = 3,
@@ -111,44 +114,29 @@ const TextAreaField = ({
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      required={required}
+      {...register(name, { required })}
       placeholder={placeholder}
       rows={rows}
       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 resize-vertical"
     />
+    {errors[name] && (
+      <span className="text-red-500 text-sm">This field is required</span>
+    )}
   </div>
 );
 
-const CustomerForm = ({ onClose, onSave, editData = null }) => {
+const CustomerForm = ({ editData = null }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm();
   const [expandedSections, setExpandedSections] = useState({});
   const [documents, setDocuments] = useState([]);
   const { baseUrl } = useContext(UrlContext);
   const sectionRefs = useRef({});
   const navigate = useNavigate();
-
-  const initialFormData = {
-    basicInfo: {
-      fullName: "",
-      companyName: "",
-      customerType: "Retail Customer",
-      customerStatus: "Active",
-      joinDate: new Date().toISOString().split("T")[0],
-      creditLimit: "",
-    },
-    contactInfo: {
-      phoneNumber: "",
-      alternativePhoneNumber: "",
-      email: "",
-      billingAddress: "",
-    },
-    others: {
-      notes: "",
-    },
-  };
-
-  const [formData, setFormData] = useState(initialFormData);
 
   const sections = [
     { id: "basic", title: "Basic Information", icon: User },
@@ -157,26 +145,37 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
   ];
 
   const customerTypes = [
-    { value: "Retail Customer", label: "Retail Customer" },
-    { value: "Wholesale Customer", label: "Wholesale Customer" },
-    { value: "manufacturer", label: "manufacturer" },
-    { value: "Distributor", label: "Distributor" },
-    { value: "Contractor", label: "Contractor" },
-    { value: "Corporate Client", label: "Corporate Client" },
-    { value: "Government Entity", label: "Government Entity" },
+    { value: "Retail", label: "Retail" },
+    { value: "Wholesale", label: "Wholesale" },
   ];
 
   const statusOptions = [
     { value: "Active", label: "Active" },
-    { value: "Suspended", label: "Suspended" },
+    { value: "Suspense", label: "Suspense" },
   ];
 
   useEffect(() => {
     if (editData) {
-      setFormData(editData);
+      setValue("name", editData.name);
+      setValue("companyName", editData.companyName);
+      setValue("customerType", editData.customerType);
+      setValue("customerStatus", editData.customerStatus);
+      setValue(
+        "joinDate",
+        new Date(editData.joinDate).toISOString().split("T")[0]
+      );
+      setValue("creditLimit", editData.creditLimit);
+      setValue("phone", editData.phone);
+      setValue("email", editData.email);
+      setValue("billingAddress", editData.billingAddress);
+      setValue("customerNote", editData.customerNote);
       setDocuments(editData.documents || []);
+    } else {
+      setValue("joinDate", new Date().toISOString().split("T")[0]);
+      setValue("customerType", "Retail Customer");
+      setValue("customerStatus", "Active");
     }
-  }, [editData]);
+  }, [editData, setValue]);
 
   useEffect(() => {
     setExpandedSections((prev) => ({ ...prev, [sections[0].id]: true }));
@@ -199,16 +198,6 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
     }
   };
 
-  const handleInputChange = (section, field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
-    }));
-  };
-
   const handleFileUpload = (event) => {
     const files = Array.from(event.target.files);
     const newDocuments = files.map((file) => ({
@@ -225,89 +214,29 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
     setDocuments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (
-      !formData.basicInfo.fullName ||
-      !formData.contactInfo.phoneNumber ||
-      !formData.contactInfo.email
-    ) {
-      alert("Please fill in all required fields");
-      return;
-    }
-
- const payload = {
-  name: formData.basicInfo.fullName,
-  phone: formData.contactInfo.phoneNumber,
-  location: "",
-
-  basicInfo: {
-    joinDate: formData.basicInfo.joinDate,
-    profilePhoto: null, 
-  },
-
-  contactInfo: {
-    phone: formData.contactInfo.phoneNumber,
-    email: formData.contactInfo.email,
-    billingAddress: formData.contactInfo.billingAddress,
-    shippingAddress: "", 
-    contactPerson: "", 
-    contactPersonPhone: formData.contactInfo.alternativePhoneNumber,
-    contactPersonEmail: "", 
-    website: "", 
-  },
-
-  businessInfo: {
-    companyName: formData.basicInfo.companyName,
-    businessType: "", 
-    tradeLicense: "", 
-    tin: "", 
-    vatInfo: "", 
-    creditLimit: formData.basicInfo.creditLimit || 0,
-    paymentTerms: "", 
-    currency: "BDT",
-  },
-
-  bankInfo: {
-    bankName: "",
-    branch: "",
-    accountNumber: "",
-    routingNumber: "",
-    swiftCode: "",
-    iban: "",
-  },
-
-  documents: documents.map((doc) => ({
-    name: doc.name,
-    type: doc.type,
-    size: doc.size,
-    uploadDate: doc.uploadDate,
-  })),
-
-  notes: {
-    remarks: formData.others.notes,
-    assignedManager: "",
-    managerContact: "",
-    lastContact: null,
-    nextFollowUp: null,
-    specialInstructions: "",
-  },
-
-  transactions: [],
-};
-
-
-    await axios.post(`${baseUrl}customer/create-customer`, payload);
-    toast.success("Customer Created");
-    navigate("/customers");
-
-    const completeData = {
-      ...formData,
-      documents,
+  const onSubmit = async (data) => {
+    const payload = {
+      ...data,
+      creditLimit: parseFloat(data.creditLimit) || 0,
+      documents: documents.map((doc) => ({
+        name: doc.name,
+        type: doc.type,
+        size: doc.size,
+        uploadDate: doc.uploadDate,
+      })),
     };
 
-    onSave(completeData);
+    console.log(payload);
+    console.log(data);
+
+    try {
+      await axios.post(`${baseUrl}customer/create-customer`, payload);
+      toast.success("Customer Created Successfully!");
+      navigate("/customers");
+    } catch (error) {
+      toast.error("Failed to create customer.");
+      console.error(error);
+    }
   };
 
   return (
@@ -333,16 +262,13 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link to="/customers">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2"
-                >
+                <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2">
                   <X className="w-4 h-4" />
                   <span>Cancel</span>
                 </button>
               </Link>
               <button
-                onClick={handleSubmit}
+                onClick={handleSubmit(onSubmit)}
                 className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 flex items-center space-x-2"
               >
                 <Save className="w-4 h-4" />
@@ -352,7 +278,7 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {sections.map((section) => (
             <FormSection
               key={section.id}
@@ -366,60 +292,54 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <InputField
                     label="Full Name"
-                    value={formData.basicInfo.fullName}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "fullName", v)
-                    }
+                    name="name"
+                    register={register}
+                    errors={errors}
                     required
                     placeholder="Ahmed Hassan"
                     icon={User}
                   />
                   <InputField
                     label="Company Name"
-                    value={formData.basicInfo.companyName}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "companyName", v)
-                    }
+                    name="companyName"
+                    register={register}
+                    errors={errors}
                     placeholder="Hassan Trading"
                     icon={Building}
                   />
                   <SelectField
                     label="Customer Type"
-                    value={formData.basicInfo.customerType}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "customerType", v)
-                    }
+                    name="customerType"
+                    register={register}
+                    errors={errors}
                     options={customerTypes}
                     required
                     icon={Building}
                   />
                   <SelectField
                     label="Customer Status"
-                    value={formData.basicInfo.customerStatus}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "customerStatus", v)
-                    }
+                    name="customerStatus"
+                    register={register}
+                    errors={errors}
                     options={statusOptions}
                     required
                     icon={Shield}
                   />
                   <InputField
                     label="Customer Join"
+                    name="joinDate"
+                    register={register}
+                    errors={errors}
                     type="date"
-                    value={formData.basicInfo.joinDate}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "joinDate", v)
-                    }
                     required
                     icon={Calendar}
                   />
                   <InputField
                     label="Credit Limit"
+                    name="creditLimit"
+                    register={register}
+                    errors={errors}
                     type="text"
-                    value={formData.basicInfo.creditLimit}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "creditLimit", v)
-                    }
                     placeholder="5000"
                     icon={DollarSign}
                   />
@@ -429,34 +349,19 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <InputField
                     label="Phone Number"
-                    value={formData.contactInfo.phoneNumber}
-                    onChange={(v) =>
-                      handleInputChange("contactInfo", "phoneNumber", v)
-                    }
+                    name="phone"
+                    register={register}
+                    errors={errors}
                     required
                     placeholder="+880 1712-345678"
                     icon={Phone}
                   />
                   <InputField
-                    label="Alternative Phone Number"
-                    value={formData.contactInfo.alternativePhoneNumber}
-                    onChange={(v) =>
-                      handleInputChange(
-                        "contactInfo",
-                        "alternativePhoneNumber",
-                        v
-                      )
-                    }
-                    placeholder="+880 1712-345678"
-                    icon={Phone}
-                  />
-                  <InputField
                     label="Email Address"
+                    name="email"
+                    register={register}
+                    errors={errors}
                     type="email"
-                    value={formData.contactInfo.email}
-                    onChange={(v) =>
-                      handleInputChange("contactInfo", "email", v)
-                    }
                     required
                     placeholder="ahmed.hassan@email.com"
                     icon={Mail}
@@ -464,10 +369,9 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
                   <div className="lg:col-span-2">
                     <TextAreaField
                       label="Billing Address"
-                      value={formData.contactInfo.billingAddress}
-                      onChange={(v) =>
-                        handleInputChange("contactInfo", "billingAddress", v)
-                      }
+                      name="billingAddress"
+                      register={register}
+                      errors={errors}
                       required
                       placeholder="45 Dhanmondi Road, Dhaka-1205, Bangladesh"
                       rows={2}
@@ -479,8 +383,9 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
                 <div className="space-y-6">
                   <TextAreaField
                     label="Notes"
-                    value={formData.others.notes}
-                    onChange={(v) => handleInputChange("others", "notes", v)}
+                    name="customerNote"
+                    register={register}
+                    errors={errors}
                     placeholder="Add any relevant notes here..."
                     rows={4}
                   />
@@ -554,7 +459,6 @@ const CustomerForm = ({ onClose, onSave, editData = null }) => {
             <Link to="/customers">
               <button
                 type="button"
-                onClick={onClose}
                 className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
               >
                 Cancel
