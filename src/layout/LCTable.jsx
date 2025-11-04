@@ -124,13 +124,17 @@ const LCTable = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-500">Open Date:</span>
                       <span className="text-gray-900">
-                        {lc.basic_info?.lc_opening_date}
+                        {new Date(
+                          lc.basic_info?.lc_opening_date
+                        ).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Due Date:</span>
                       <span className="text-gray-900">
-                        {lc.shipping_customs_info?.expected_arrival_date}
+                        {new Date(
+                          lc.shipping_customs_info?.expected_arrival_date
+                        ).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -147,13 +151,15 @@ const LCTable = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-500">Quantity:</span>
                       <span className="text-gray-900">
-                        {lc.product_info?.quantity_ton}
+                        {lc.product_info
+                          ?.reduce((acc, item) => acc + item.quantity_ton, 0)
+                          .toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Amount:</span>
+                      <span className="text-gray-500">Total Cost (BDT):</span>
                       <span className="font-semibold text-gray-900">
-                        ${calculateTotalCost(lc).toLocaleString()}
+                        {calculateTotalCost(lc).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -188,7 +194,7 @@ const LCTable = () => {
                     Quantity
                   </th>
                   <th className="text-left py-4 px-6 font-semibold text-gray-900">
-                    Total Amount
+                    Total Cost (BDT)
                   </th>
                 </tr>
               </thead>
@@ -220,10 +226,12 @@ const LCTable = () => {
                       </span>
                     </td>
                     <td className="py-4 px-6 text-gray-900">
-                      {lc.basic_info?.lc_opening_date}
+                      {new Date(lc.basic_info?.lc_opening_date).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-6 text-gray-900">
-                      {lc.shipping_customs_info?.expected_arrival_date}
+                      {new Date(
+                        lc.shipping_customs_info?.expected_arrival_date
+                      ).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-6">
                       {lc?.product_info.map((p) => (
@@ -236,11 +244,13 @@ const LCTable = () => {
                       ))}
                     </td>
                     <td className="py-4 px-6 text-gray-900">
-                      {lc.product_info?.quantity_ton}
+                      {lc.product_info
+                        ?.reduce((acc, item) => acc + item.quantity_ton, 0)
+                        .toLocaleString()}
                     </td>
                     <td className="py-4 px-6">
                       <div className="font-semibold text-gray-900">
-                        ${calculateTotalCost(lc).toLocaleString()}
+                        {calculateTotalCost(lc).toLocaleString()}
                       </div>
                     </td>
                   </tr>

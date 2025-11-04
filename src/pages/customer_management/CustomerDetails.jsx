@@ -17,6 +17,8 @@ import {
   FiDownload,
   FiPieChart,
 } from "react-icons/fi";
+import { FiTrash2 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
 import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
