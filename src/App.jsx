@@ -136,6 +136,10 @@ const router = createBrowserRouter([
         element: <CustomerForm />,
       },
       {
+        path: "customer-form/:id",
+        element: <CustomerForm />,
+      },
+      {
         path: "invoice",
         element: <InvoiceGenerator />,
       },

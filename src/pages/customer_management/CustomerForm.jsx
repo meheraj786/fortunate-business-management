@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { useForm } from "react-hook-form";
 import FormSection from "../../components/common/FormSection";
 import {
@@ -125,7 +125,8 @@ const TextAreaField = ({
   </div>
 );
 
-const CustomerForm = ({ editData = null }) => {
+const CustomerForm = () => {
+  const { id } = useParams();
   const {
     register,
     handleSubmit,
@@ -155,27 +156,33 @@ const CustomerForm = ({ editData = null }) => {
   ];
 
   useEffect(() => {
-    if (editData) {
-      setValue("name", editData.name);
-      setValue("companyName", editData.companyName);
-      setValue("customerType", editData.customerType);
-      setValue("customerStatus", editData.customerStatus);
-      setValue(
-        "joinDate",
-        new Date(editData.joinDate).toISOString().split("T")[0]
-      );
-      setValue("creditLimit", editData.creditLimit);
-      setValue("phone", editData.phone);
-      setValue("email", editData.email);
-      setValue("billingAddress", editData.billingAddress);
-      setValue("customerNote", editData.customerNote);
-      setDocuments(editData.documents || []);
+    if (id) {
+      axios
+        .get(`${baseUrl}customer/get-customer/${id}`)
+        .then((res) => {
+          const customer = res.data.data;
+          setValue("name", customer.name);
+          setValue("companyName", customer.companyName);
+          setValue("customerType", customer.customerType);
+          setValue("customerStatus", customer.customerStatus);
+          setValue(
+            "joinDate",
+            new Date(customer.joinDate).toISOString().split("T")[0]
+          );
+          setValue("creditLimit", customer.creditLimit);
+          setValue("phone", customer.phone);
+          setValue("email", customer.email);
+          setValue("billingAddress", customer.billingAddress);
+          setValue("customerNote", customer.customerNote);
+          setDocuments(customer.documents || []);
+        })
+        .catch((err) => console.error(err));
     } else {
       setValue("joinDate", new Date().toISOString().split("T")[0]);
       setValue("customerType", "Retail Customer");
       setValue("customerStatus", "Active");
     }
-  }, [editData, setValue]);
+  }, [id, setValue, baseUrl]);
 
   useEffect(() => {
     setExpandedSections((prev) => ({ ...prev, [sections[0].id]: true }));
@@ -226,15 +233,19 @@ const CustomerForm = ({ editData = null }) => {
       })),
     };
 
-    console.log(payload);
-    console.log(data);
-
     try {
-      await axios.post(`${baseUrl}customer/create-customer`, payload);
-      toast.success("Customer Created Successfully!");
+      if (id) {
+        await axios.patch(`${baseUrl}customer/update-customer/${id}`, payload);
+        toast.success("Customer Updated Successfully!");
+      } else {
+        await axios.post(`${baseUrl}customer/create-customer`, payload);
+        toast.success("Customer Created Successfully!");
+      }
       navigate("/customers");
     } catch (error) {
-      toast.error("Failed to create customer.");
+      toast.error(
+        id ? "Failed to update customer." : "Failed to create customer."
+      );
       console.error(error);
     }
   };
@@ -252,10 +263,10 @@ const CustomerForm = ({ editData = null }) => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {editData ? "Edit Customer" : "Add New Customer"}
+                {id ? "Edit Customer" : "Add New Customer"}
               </h1>
               <p className="text-gray-600">
-                {editData
+                {id
                   ? "Update customer information and details"
                   : "Complete the form below to add a new customer"}
               </p>
@@ -272,7 +283,7 @@ const CustomerForm = ({ editData = null }) => {
                 className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 flex items-center space-x-2"
               >
                 <Save className="w-4 h-4" />
-                <span>{editData ? "Update Customer" : "Save Customer"}</span>
+                <span>{id ? "Update Customer" : "Save Customer"}</span>
               </button>
             </div>
           </div>
@@ -473,7 +484,7 @@ const CustomerForm = ({ editData = null }) => {
               type="submit"
               className="px-6 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 font-medium"
             >
-              {editData ? "Update Customer" : "Save Customer"}
+              {id ? "Update Customer" : "Save Customer"}
             </button>
           </motion.div>
         </form>

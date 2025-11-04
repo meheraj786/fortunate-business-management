@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { customers, salesData } from "../../data/data";
 import {
   FiUser,
@@ -17,8 +17,7 @@ import {
   FiDownload,
   FiPieChart,
 } from "react-icons/fi";
-import { FiTrash2 } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
 import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
@@ -103,6 +102,20 @@ const CustomerDetails = () => {
     return acc;
   }, 0);
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const navigate = useNavigate();
+
+  const handleDelete = () => {
+    axios
+      .delete(`${baseUrl}customer/delete-customer/${id}`)
+      .then((res) => {
+        console.log("Delete Response:", res.data);
+        setShowDeleteConfirm(false);
+        navigate("/customers");
+      })
+      .catch((err) => console.error(err));
+  };
+
   if (!customerData) {
     return <div>Customer not found</div>;
   }
@@ -127,7 +140,46 @@ const CustomerDetails = () => {
               </div>
             </div>
           </div>
+          <div className="flex items-center gap-x-3">
+            <button
+              onClick={() => navigate(`/customer-form/${id}`)}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            >
+              <FiEdit size={20} />
+              Edit Customer
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            >
+              <FiTrash2 size={20} />
+              Delete Customer
+            </button>
+          </div>
         </div>
+
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center">
+            <div className="m-4 bg-white p-8 rounded-lg shadow-lg">
+              <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
+              <p>Are you sure you want to delete this customer?</p>
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg mr-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Column 1 */}
@@ -160,9 +212,7 @@ const CustomerDetails = () => {
 
                 <DataField
                   label="Customer Status"
-                  value={
-                    <StatusBadge status={customerData?.customerStatus} />
-                  }
+                  value={<StatusBadge status={customerData?.customerStatus} />}
                 />
 
                 <DataField
