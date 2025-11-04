@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Link } from 'react-router';
 import { Check, X, Calendar, Package } from 'lucide-react';
 import { products } from '../../data/data';
+import { UrlContext } from '../../context/UrlContext';
 
 const getProductLcNumber = (productId) => {
   const product = products.find((p) => p.id === productId);
@@ -9,6 +10,7 @@ const getProductLcNumber = (productId) => {
 };
 
 const SalesTable = ({ sales }) => {
+
   if (!sales || sales.length === 0) {
     return (
       <div className="text-center py-8 sm:py-12">
