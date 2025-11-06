@@ -1,16 +1,30 @@
-import React from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Flex from "../../layout/Flex";
-import { BiMoney, BiUser } from "react-icons/bi";
 import StatBox from "../../components/common/StatBox";
 import LCTable from "../../layout/LCTable";
-import { lcData } from "../../data/data";
 import { BookmarkCheck, BookmarkX, Gpu, MonitorDot } from "lucide-react";
+import axios from "axios";
+import { UrlContext } from "../../context/UrlContext";
 
 const LC = () => {
-  const activeLC = lcData.filter((i) => i.status == "Active");
-  const processingLC = lcData.filter((i) => i.status == "Processing");
-  const completedLC = lcData.filter((i) => i.status == "Completed");
-  const canceledLC = lcData.filter((i) => i.status == "Canceled");
+  const [lcData, setLcData] = useState([]);
+  const { baseUrl } = useContext(UrlContext);
+
+  useEffect(() => {
+    axios.get(`${baseUrl}lc/get-all-lc`).then((res) => {
+      if (Array.isArray(res.data.message)) {
+        setLcData(res.data.message);
+      } else {
+        setLcData([]);
+      }
+    });
+  }, [baseUrl]);
+
+  const activeLC = lcData.filter((i) => i.basic_info?.status === "Active");
+  const processingLC = lcData.filter((i) => i.basic_info?.status === "Draft");
+  const completedLC = lcData.filter((i) => i.basic_info?.status === "Completed");
+  const canceledLC = lcData.filter((i) => i.basic_info?.status === "Canceled");
+
   return (
     <div className="pt-8 p-6 h-full w-full">
       <h2 className="text-3xl font-bold mb-4">LC Management</h2>
@@ -25,16 +39,16 @@ const LC = () => {
           textColor="green"
         />
         <StatBox
-          title="Processing LC"
-          Icon={Gpu}
-          number={processingLC.length}
-          textColor="yellow"
-        />
-        <StatBox
           title="Completed LC"
           Icon={BookmarkCheck}
           number={completedLC.length}
           textColor="blue"
+        />
+        <StatBox
+          title="Draft LC"
+          Icon={Gpu}
+          number={processingLC.length}
+          textColor="yellow"
         />
         <StatBox
           title="Canceled LC"
@@ -43,7 +57,7 @@ const LC = () => {
           textColor="red"
         />
       </Flex>
-      <LCTable />
+      <LCTable lcData={lcData} />
     </div>
   );
 };

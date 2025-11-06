@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { Link, useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import FormSection from "../../components/common/FormSection";
-
 import {
   Plus,
   Trash2,
@@ -15,6 +14,7 @@ import {
   Package,
   Clipboard,
   UploadCloud,
+  Paperclip,
 } from "lucide-react";
 import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
@@ -46,7 +46,14 @@ const InputField = ({
   </div>
 );
 
-const SelectField = ({ label, value, onChange, options, required = false }) => (
+const SelectField = ({
+  label,
+  value,
+  onChange,
+  options,
+  required = false,
+  placeholder,
+}) => (
   <div className="space-y-2">
     <label className="block text-sm font-medium text-gray-700">
       {label} {required && <span className="text-red-500">*</span>}
@@ -57,6 +64,7 @@ const SelectField = ({ label, value, onChange, options, required = false }) => (
       required={required}
       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200"
     >
+      {placeholder && <option value="">{placeholder}</option>}
       {options.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}
@@ -89,26 +97,99 @@ const TextAreaField = ({
   </div>
 );
 
+const FileInput = ({ files, onFileChange, onFileRemove }) => {
+  const fileInputRef = useRef(null);
+
+  const handleLabelClick = () => {
+    fileInputRef.current.click();
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Documents
+      </label>
+      <div className="flex items-center justify-center w-full">
+        <div
+          onClick={handleLabelClick}
+          className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+        >
+          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+            <UploadCloud className="w-8 h-8 mb-3 text-gray-400" />
+            <p className="mb-2 text-sm text-gray-500">
+              <span className="font-semibold">Click to upload</span> or drag and
+              drop
+            </p>
+            <p className="text-xs text-gray-500">
+              Any format (PDF, Excel, Image, etc.)
+            </p>
+          </div>
+          <input
+            ref={fileInputRef}
+            id="file-upload"
+            type="file"
+            multiple
+            className="hidden"
+            onChange={onFileChange}
+          />
+        </div>
+      </div>
+      {files.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <h4 className="font-semibold text-gray-800">Selected Files:</h4>
+          <ul className="space-y-2">
+            {Array.from(files).map((file, index) => (
+              <li
+                key={index}
+                className="flex items-center justify-between p-2 bg-gray-100 rounded-lg"
+              >
+                <div className="flex items-center space-x-2">
+                  <Paperclip className="w-5 h-5 text-gray-500" />
+                  <span className="text-sm text-gray-700">{file.name}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onFileRemove(index)}
+                  className="p-1 text-red-600 hover:bg-red-100 rounded-full transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
 let productIdCounter = 0;
+let expenseIdCounter = 0;
+
+const getNewProduct = () => ({
+  id: productIdCounter++,
+  item_name: "",
+  specification: {
+    thickness_mm: "",
+    width_mm: "",
+    length_mm: "",
+    grade: "",
+  },
+  quantity_unit: "",
+  quantity_ton: "",
+  unit_price_usd: "",
+  total_value_usd: "",
+});
+
+const getNewExpense = () => ({
+  id: expenseIdCounter++,
+  name: "",
+  amount: "",
+});
 
 const LCForm = ({ onSave, editData = null }) => {
   const { baseUrl } = useContext(UrlContext);
   const navigate = useNavigate();
-
-  const getNewProduct = () => ({
-    id: productIdCounter++,
-    item_name: "",
-    specification: {
-      thickness_mm: "",
-      width_mm: "",
-      length_mm: "",
-      grade: "",
-    },
-    quantity_ton: "",
-    unit_price_usd: "",
-    total_value_usd: "",
-    total_value_bdt: "",
-  });
 
   const initialFormData = {
     basic_info: {
@@ -126,49 +207,88 @@ const LCForm = ({ onSave, editData = null }) => {
       lc_margin_paid_bdt: "",
       bank_charges_bdt: "",
       insurance_cost_bdt: "",
+      other_expenses: [],
     },
     product_info: [getNewProduct()],
     shipping_customs_info: {
       port_of_shipment: "Chittagong",
-      port_of_arrival: "",
       expected_arrival_date: "",
       customs_duty_bdt: "",
       vat_bdt: "",
       ait_bdt: "",
-      other_port_expenses_bdt: "",
+      other_expenses: [],
     },
     agent_transport_info: {
       cnf_agent_name: "",
       cnf_agent_commission_bdt: "",
       indenting_agent_commission_bdt: "",
       transport_cost_bdt: "",
+      other_expenses: [],
     },
     documents_notes: {
-      uploaded_documents: [],
       remarks: "",
     },
   };
 
   const [formData, setFormData] = useState(editData || initialFormData);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [expandedSections, setExpandedSections] = useState({
     basic_info: true,
   });
   const sectionRefs = useRef({});
 
   useEffect(() => {
+    const { lc_amount_usd, exchange_rate } = formData.financial_info;
+    if (lc_amount_usd && exchange_rate) {
+      const bdtAmount = parseFloat(lc_amount_usd) * parseFloat(exchange_rate);
+      handleInputChange(
+        "financial_info",
+        "lc_amount_bdt",
+        bdtAmount.toFixed(2)
+      );
+    }
+  }, [
+    formData.financial_info.lc_amount_usd,
+    formData.financial_info.exchange_rate,
+  ]);
+
+  useEffect(() => {
+    const updatedProducts = formData.product_info.map((product) => {
+      const { quantity_ton, unit_price_usd } = product;
+      if (quantity_ton && unit_price_usd) {
+        const totalValue =
+          parseFloat(quantity_ton) * parseFloat(unit_price_usd);
+        return { ...product, total_value_usd: totalValue.toFixed(2) };
+      }
+      return product;
+    });
+
+    if (
+      JSON.stringify(updatedProducts) !== JSON.stringify(formData.product_info)
+    ) {
+      setFormData((prev) => ({ ...prev, product_info: updatedProducts }));
+    }
+  }, [JSON.stringify(formData.product_info)]);
+
+  useEffect(() => {
     if (editData) {
-      // If editData has product_info as object, convert to array
       const productsArray = Array.isArray(editData.product_info)
-        ? editData.product_info.map((p) => (p.id ? p : { ...p, id: productIdCounter++ }))
+        ? editData.product_info.map((p) =>
+            p.id ? p : { ...p, id: productIdCounter++ }
+          )
         : [{ ...editData.product_info, id: productIdCounter++ }];
-      
+
       setFormData({ ...editData, product_info: productsArray });
     }
   }, [editData]);
 
   const sections = [
     { id: "basic_info", title: "Basic Information", icon: FileText },
-    { id: "financial_info", title: "Financial Information", icon: DollarSign },
+    {
+      id: "financial_info",
+      title: "Financial Information",
+      icon: DollarSign,
+    },
     { id: "product_info", title: "Product Information", icon: Package },
     { id: "shipping_customs_info", title: "Shipping & Customs", icon: Truck },
     { id: "agent_transport_info", title: "Agent & Transport", icon: User },
@@ -232,16 +352,94 @@ const LCForm = ({ onSave, editData = null }) => {
     }
   };
 
+  const handleOtherExpenseChange = (section, id, field, value) => {
+    setFormData((prev) => {
+      const updatedExpenses = prev[section].other_expenses.map((expense) =>
+        expense.id === id ? { ...expense, [field]: value } : expense
+      );
+      return {
+        ...prev,
+        [section]: {
+          ...prev[section],
+          other_expenses: updatedExpenses,
+        },
+      };
+    });
+  };
+
+  const addOtherExpense = (section) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        other_expenses: [...prev[section].other_expenses, getNewExpense()],
+      },
+    }));
+  };
+
+  const removeOtherExpense = (section, id) => {
+    setFormData((prev) => {
+      const updatedExpenses = prev[section].other_expenses.filter(
+        (expense) => expense.id !== id
+      );
+      return {
+        ...prev,
+        [section]: {
+          ...prev[section],
+          other_expenses: updatedExpenses,
+        },
+      };
+    });
+  };
+
+  const handleFileChange = (e) => {
+    setUploadedFiles((prevFiles) => [...prevFiles, ...e.target.files]);
+  };
+
+  const handleFileRemove = (index) => {
+    setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Remove 'id' field from products before sending to backend
       const dataToSend = {
         ...formData,
-        product_info: formData.product_info.map(({ id, ...product }) => product),
+        product_info: formData.product_info.map(
+          ({ id, ...product }) => product
+        ),
+        financial_info: {
+          ...formData.financial_info,
+          other_expenses: formData.financial_info.other_expenses.map(
+            ({ id, ...expense }) => expense
+          ),
+        },
+        shipping_customs_info: {
+          ...formData.shipping_customs_info,
+          other_expenses: formData.shipping_customs_info.other_expenses.map(
+            ({ id, ...expense }) => expense
+          ),
+        },
+        agent_transport_info: {
+          ...formData.agent_transport_info,
+          other_expenses: formData.agent_transport_info.other_expenses.map(
+            ({ id, ...expense }) => expense
+          ),
+        },
       };
 
-      await axios.post(`${baseUrl}lc/create-lc`, dataToSend);
+      const payload = new FormData();
+      payload.append("lc_data", JSON.stringify(dataToSend));
+      uploadedFiles.forEach((file) => {
+        payload.append("documents", file);
+      });
+
+      await axios.post(`${baseUrl}lc/create-lc`, payload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       toast.success("LC Created");
       navigate("/lc-management");
       if (onSave) onSave(formData);
@@ -256,6 +454,63 @@ const LCForm = ({ onSave, editData = null }) => {
     animate: { height: "auto", opacity: 1, transition: { duration: 0.3 } },
     exit: { height: 0, opacity: 0, transition: { duration: 0.3 } },
   };
+
+  const renderOtherExpenses = (section) => (
+    <div className="space-y-4 col-span-1 md:col-span-2">
+      <h4 className="font-semibold text-gray-800">Other Expenses</h4>
+      <AnimatePresence>
+        {formData[section].other_expenses.map((expense, index) => (
+          <motion.div
+            key={expense.id}
+            {...sectionAnimation}
+            className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center p-3 bg-gray-100 rounded-lg"
+          >
+            <div className="sm:col-span-6">
+              <InputField
+                label={`Expense Name ${index + 1}`}
+                value={expense.name}
+                onChange={(v) =>
+                  handleOtherExpenseChange(section, expense.id, "name", v)
+                }
+                placeholder="e.g., Port Fees"
+                required
+              />
+            </div>
+            <div className="sm:col-span-5">
+              <InputField
+                label="Amount (BDT)"
+                type="number"
+                value={expense.amount}
+                onChange={(v) =>
+                  handleOtherExpenseChange(section, expense.id, "amount", v)
+                }
+                placeholder="e.g., 5000"
+                required
+              />
+            </div>
+            <div className="sm:col-span-1 flex items-end justify-end">
+              <button
+                type="button"
+                onClick={() => removeOtherExpense(section, expense.id)}
+                className="p-2 text-red-600 hover:bg-red-100 rounded-full transition-colors"
+                title="Remove Expense"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+      <button
+        type="button"
+        onClick={() => addOtherExpense(section)}
+        className="flex items-center space-x-2 px-4 py-2 border border-dashed border-gray-400 text-gray-600 rounded-lg hover:bg-gray-100 hover:border-gray-500 hover:text-gray-800 transition-colors"
+      >
+        <Plus className="w-4 h-4" />
+        <span>Add Other Expense</span>
+      </button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -275,7 +530,10 @@ const LCForm = ({ onSave, editData = null }) => {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link to="/lc-management">
-                <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2"
+                >
                   <X className="w-4 h-4" />
                   <span>Cancel</span>
                 </button>
@@ -332,6 +590,7 @@ const LCForm = ({ onSave, editData = null }) => {
                       { value: "Cancelled", label: "Cancelled" },
                       { value: "Draft", label: "Draft" },
                     ]}
+                    required
                   />
                   <InputField
                     label="Bank Name"
@@ -339,6 +598,7 @@ const LCForm = ({ onSave, editData = null }) => {
                     onChange={(v) =>
                       handleInputChange("basic_info", "bank_name", v)
                     }
+                    required
                   />
                   <InputField
                     label="Supplier Name"
@@ -346,6 +606,7 @@ const LCForm = ({ onSave, editData = null }) => {
                     onChange={(v) =>
                       handleInputChange("basic_info", "supplier_name", v)
                     }
+                    required
                   />
                   <SelectField
                     label="Supplier Country"
@@ -358,6 +619,7 @@ const LCForm = ({ onSave, editData = null }) => {
                       { value: "India", label: "India" },
                       { value: "US", label: "United States" },
                     ]}
+                    required
                   />
                 </div>
               )}
@@ -371,6 +633,7 @@ const LCForm = ({ onSave, editData = null }) => {
                     onChange={(v) =>
                       handleInputChange("financial_info", "lc_amount_usd", v)
                     }
+                    required
                   />
                   <InputField
                     label="Exchange Rate"
@@ -379,6 +642,7 @@ const LCForm = ({ onSave, editData = null }) => {
                     onChange={(v) =>
                       handleInputChange("financial_info", "exchange_rate", v)
                     }
+                    required
                   />
                   <InputField
                     label="LC Amount (BDT)"
@@ -387,6 +651,7 @@ const LCForm = ({ onSave, editData = null }) => {
                     onChange={(v) =>
                       handleInputChange("financial_info", "lc_amount_bdt", v)
                     }
+                    disabled
                   />
                   <InputField
                     label="LC Margin Paid (BDT)"
@@ -399,6 +664,7 @@ const LCForm = ({ onSave, editData = null }) => {
                         v
                       )
                     }
+                    required
                   />
                   <InputField
                     label="Bank Charges (BDT)"
@@ -407,6 +673,7 @@ const LCForm = ({ onSave, editData = null }) => {
                     onChange={(v) =>
                       handleInputChange("financial_info", "bank_charges_bdt", v)
                     }
+                    required
                   />
                   <InputField
                     label="Insurance Cost (BDT)"
@@ -419,7 +686,9 @@ const LCForm = ({ onSave, editData = null }) => {
                         v
                       )
                     }
+                    required
                   />
+                  {renderOtherExpenses("financial_info")}
                 </div>
               )}
 
@@ -444,13 +713,14 @@ const LCForm = ({ onSave, editData = null }) => {
                         <h4 className="font-semibold text-gray-900 mb-4">
                           Product {index + 1}
                         </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                           <InputField
-                            label="Item Name"
+                            label="Product Name"
                             value={product.item_name}
                             onChange={(v) =>
                               handleProductChange(product.id, "item_name", v)
                             }
+                            required
                           />
                           <InputField
                             label="Thickness (mm)"
@@ -491,13 +761,32 @@ const LCForm = ({ onSave, editData = null }) => {
                               handleProductSpecChange(product.id, "grade", v)
                             }
                           />
+                          <SelectField
+                            label="Quantity Unit"
+                            value={product.quantity_unit}
+                            onChange={(v) =>
+                              handleProductChange(
+                                product.id,
+                                "quantity_unit",
+                                v
+                              )
+                            }
+                            options={[
+                              { value: "Ton", label: "Ton" },
+                              { value: "KG", label: "KG" },
+                              { value: "PCS", label: "PCS" },
+                            ]}
+                            placeholder="Select Unit"
+                            required
+                          />
                           <InputField
-                            label="Quantity (Ton)"
+                            label="Product Quantity"
                             type="number"
                             value={product.quantity_ton}
                             onChange={(v) =>
                               handleProductChange(product.id, "quantity_ton", v)
                             }
+                            required
                           />
                           <InputField
                             label="Unit Price (USD)"
@@ -510,6 +799,7 @@ const LCForm = ({ onSave, editData = null }) => {
                                 v
                               )
                             }
+                            required
                           />
                           <InputField
                             label="Total Value (USD)"
@@ -522,18 +812,7 @@ const LCForm = ({ onSave, editData = null }) => {
                                 v
                               )
                             }
-                          />
-                          <InputField
-                            label="Total Value (BDT)"
-                            type="number"
-                            value={product.total_value_bdt}
-                            onChange={(v) =>
-                              handleProductChange(
-                                product.id,
-                                "total_value_bdt",
-                                v
-                              )
-                            }
+                            disabled
                           />
                         </div>
                       </motion.div>
@@ -568,17 +847,6 @@ const LCForm = ({ onSave, editData = null }) => {
                       { value: "Payra", label: "Payra Port" },
                       { value: "Matarbari", label: "Matarbari Port" },
                     ]}
-                  />
-                  <InputField
-                    label="Port of Arrival"
-                    value={formData.shipping_customs_info.port_of_arrival}
-                    onChange={(v) =>
-                      handleInputChange(
-                        "shipping_customs_info",
-                        "port_of_arrival",
-                        v
-                      )
-                    }
                   />
                   <InputField
                     label="Expected Arrival Date"
@@ -620,20 +888,7 @@ const LCForm = ({ onSave, editData = null }) => {
                       handleInputChange("shipping_customs_info", "ait_bdt", v)
                     }
                   />
-                  <InputField
-                    label="Other Port Expenses (BDT)"
-                    type="number"
-                    value={
-                      formData.shipping_customs_info.other_port_expenses_bdt
-                    }
-                    onChange={(v) =>
-                      handleInputChange(
-                        "shipping_customs_info",
-                        "other_port_expenses_bdt",
-                        v
-                      )
-                    }
-                  />
+                  {renderOtherExpenses("shipping_customs_info")}
                 </div>
               )}
 
@@ -691,9 +946,9 @@ const LCForm = ({ onSave, editData = null }) => {
                       )
                     }
                   />
+                  {renderOtherExpenses("agent_transport_info")}
                 </div>
               )}
-
               {section.id === "documents_notes" && (
                 <div className="space-y-4">
                   <TextAreaField
@@ -703,37 +958,32 @@ const LCForm = ({ onSave, editData = null }) => {
                       handleInputChange("documents_notes", "remarks", v)
                     }
                   />
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Documents
-                    </label>
-                    <button
-                      type="button"
-                      className="flex items-center justify-center space-x-2 w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-[#003b75] hover:text-[#003b75] transition-colors"
-                    >
-                      <UploadCloud className="w-5 h-5" />
-                      <span>Upload Documents</span>
-                    </button>
-                  </div>
+                  <FileInput
+                    files={uploadedFiles}
+                    onFileChange={handleFileChange}
+                    onFileRemove={handleFileRemove}
+                  />
                 </div>
               )}
+
+          
             </FormSection>
           ))}
 
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-end gap-4 mt-8">
             <Link to="/lc-management">
               <button
                 type="button"
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
+                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
             </Link>
             <button
               type="submit"
-              className="px-6 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 font-medium"
-              >
-              Save LC
+              className="px-6 py-3 bg-[#003b75] text-white font-semibold rounded-lg hover:bg-[#002a54] transition-colors"
+            >
+              {editData ? "Update LC" : "Save LC"}
             </button>
           </div>
         </form>

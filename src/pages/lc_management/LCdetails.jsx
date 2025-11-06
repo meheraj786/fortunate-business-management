@@ -22,7 +22,7 @@ import axios from "axios";
 
 const StatusBadge = ({ status }) => {
   if (!status) return null;
-  
+
   let bgColor, icon;
 
   switch (status.toLowerCase()) {
@@ -180,18 +180,12 @@ const LCdetails = () => {
           <div className="lg:col-span-2 space-y-4">
             <CollapsibleCard title="Basic LC Information" icon={<FiFile />}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DataField
-                  label="LC Number"
-                  value={basic_info.lc_number}
-                />
+                <DataField label="LC Number" value={basic_info.lc_number} />
                 <DataField
                   label="LC Opening Date"
                   value={basic_info.lc_opening_date}
                 />
-                <DataField
-                  label="Bank Name"
-                  value={basic_info.bank_name}
-                />
+                <DataField label="Bank Name" value={basic_info.bank_name} />
                 <DataField
                   label="Status"
                   value={<StatusBadge status={basic_info.status} />}
@@ -240,36 +234,52 @@ const LCdetails = () => {
             </CollapsibleCard>
 
             <CollapsibleCard title="Product Information" icon={<FiBox />}>
-            {
-              product_info.map((p)=>(
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DataField label="Item Name" value={p.item_name} />
-                <DataField
-                  label="Unit Price (USD)"
-                  value={formatNumber(p.unit_price_usd)}
-                />
-                {(specification.thickness_mm || specification.width_mm || specification.length_mm || specification.grade) && (
+              {product_info.map((p) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <DataField label="Item Name" value={p.item_name} />
                   <DataField
-                    label="Specification"
-                    value={`${specification.thickness_mm ? `Thickness: ${specification.thickness_mm}mm` : ''}${specification.width_mm ? `, Width: ${specification.width_mm}mm` : ''}${specification.length_mm ? `, Length: ${specification.length_mm}mm` : ''}${specification.grade ? `, Grade: ${specification.grade}` : ''}`}
+                    label="Unit Price (USD)"
+                    value={formatNumber(p.unit_price_usd)}
                   />
-                )}
-                <DataField
-                  label="Total Value (USD)"
-                  value={formatNumber(p.total_value_usd)}
-                />
-                <DataField
-                  label="Quantity (Ton)"
-                  value={p.quantity_ton || "-"}
-                />
-                <DataField
-                  label="Total Value (BDT)"
-                  value={formatNumber(p.total_value_bdt)}
-                />
-              </div>
-
-              ))
-            }
+                  {(specification.thickness_mm ||
+                    specification.width_mm ||
+                    specification.length_mm ||
+                    specification.grade) && (
+                    <DataField
+                      label="Specification"
+                      value={`${
+                        specification.thickness_mm
+                          ? `Thickness: ${specification.thickness_mm}mm`
+                          : ""
+                      }${
+                        specification.width_mm
+                          ? `, Width: ${specification.width_mm}mm`
+                          : ""
+                      }${
+                        specification.length_mm
+                          ? `, Length: ${specification.length_mm}mm`
+                          : ""
+                      }${
+                        specification.grade
+                          ? `, Grade: ${specification.grade}`
+                          : ""
+                      }`}
+                    />
+                  )}
+                  <DataField
+                    label="Total Value (USD)"
+                    value={formatNumber(p.total_value_usd)}
+                  />
+                  <DataField
+                    label="Quantity (Ton)"
+                    value={p.quantity_ton || "-"}
+                  />
+                  <DataField
+                    label="Total Value (BDT)"
+                    value={formatNumber(p.total_value_bdt)}
+                  />
+                </div>
+              ))}
             </CollapsibleCard>
 
             <CollapsibleCard
@@ -307,7 +317,9 @@ const LCdetails = () => {
                 />
                 <DataField
                   label="Other Port Expenses (BDT)"
-                  value={formatNumber(shipping_customs_info.other_port_expenses_bdt)}
+                  value={formatNumber(
+                    shipping_customs_info.other_port_expenses_bdt
+                  )}
                 />
               </div>
             </CollapsibleCard>
@@ -323,11 +335,15 @@ const LCdetails = () => {
                 />
                 <DataField
                   label="C&F Agent Commission (BDT)"
-                  value={formatNumber(agent_transport_info.cnf_agent_commission_bdt)}
+                  value={formatNumber(
+                    agent_transport_info.cnf_agent_commission_bdt
+                  )}
                 />
                 <DataField
                   label="Indenting Agent Commission (BDT)"
-                  value={formatNumber(agent_transport_info.indenting_agent_commission_bdt)}
+                  value={formatNumber(
+                    agent_transport_info.indenting_agent_commission_bdt
+                  )}
                 />
                 <DataField
                   label="Transport Cost (BDT)"
@@ -381,37 +397,35 @@ const LCdetails = () => {
 
             <CollapsibleCard title="Documents & Notes" icon={<FiClipboard />}>
               <div className="space-y-4">
-                {documents_notes.uploaded_documents && documents_notes.uploaded_documents.length > 0 && (
-                  <div>
-                    <div className="text-sm text-gray-500 mb-2">
-                      Uploaded Documents
-                    </div>
-                    <div className="space-y-2">
-                      {documents_notes.uploaded_documents.map(
-                        (file, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center p-2 bg-gray-50 rounded-md"
-                          >
-                            <FiFile className="text-gray-400 mr-2" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-gray-700 truncate">
-                                {file}
+                {documents_notes.uploaded_documents &&
+                  documents_notes.uploaded_documents.length > 0 && (
+                    <div>
+                      <div className="text-sm text-gray-500 mb-2">
+                        Uploaded Documents
+                      </div>
+                      <div className="space-y-2">
+                        {documents_notes.uploaded_documents.map(
+                          (file, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center p-2 bg-gray-50 rounded-md"
+                            >
+                              <FiFile className="text-gray-400 mr-2" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-700 truncate">
+                                  {file}
+                                </div>
                               </div>
+                              <button className="ml-2 text-[#003b75] hover:text-blue-800">
+                                <FiDownload />
+                              </button>
                             </div>
-                            <button className="ml-2 text-[#003b75] hover:text-blue-800">
-                              <FiDownload />
-                            </button>
-                          </div>
-                        )
-                      )}
+                          )
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-                <DataField
-                  label="Remarks"
-                  value={documents_notes.remarks}
-                />
+                  )}
+                <DataField label="Remarks" value={documents_notes.remarks} />
               </div>
             </CollapsibleCard>
           </div>

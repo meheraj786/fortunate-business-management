@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Search, Filter } from "lucide-react";
-import { lcData } from "../data/data";
+
 import Input from "./Input";
 import { Link } from "react-router";
 import { useEffect } from "react";
@@ -8,8 +8,7 @@ import axios from "axios";
 import { useContext } from "react";
 import { UrlContext } from "../context/UrlContext";
 
-const LCTable = () => {
-  const [lcData, setLcData] = useState([]);
+const LCTable = ({ lcData }) => {
   const { baseUrl } = useContext(UrlContext);
   const getStatusColor = (status) => {
     if (!status) return "bg-gray-100 text-gray-800";
@@ -29,31 +28,44 @@ const LCTable = () => {
     }
   };
 
-  useEffect(() => {
-    axios
-      .get(`${baseUrl}lc/get-all-lc`)
-      .then((res) => setLcData(res.data.data));
-  }, []);
-  console.log(lcData.map((p) => p.product_info.map((pr) => pr.item_name)));
+  console.log(lcData?.map((p) => p.product_info.map((pr) => pr.item_name)));
 
   const calculateTotalCost = (lc) => {
     const { financial_info, shipping_customs_info, agent_transport_info } = lc;
     if (!financial_info || !shipping_customs_info || !agent_transport_info) {
       return 0;
     }
+
+    const financialOtherExpenses = financial_info.other_expenses?.reduce(
+      (sum, expense) => sum + (expense.amount || 0),
+      0
+    );
+    const shippingOtherExpenses = shipping_customs_info.other_expenses?.reduce(
+      (sum, expense) => sum + (expense.amount || 0),
+      0
+    );
+    const agentTransportOtherExpenses = agent_transport_info.other_expenses?.reduce(
+      (sum, expense) => sum + (expense.amount || 0),
+      0
+    );
+
     const customs_total_bdt =
       (shipping_customs_info.customs_duty_bdt || 0) +
       (shipping_customs_info.vat_bdt || 0) +
       (shipping_customs_info.ait_bdt || 0) +
-      (shipping_customs_info.other_port_expenses_bdt || 0);
-    const transport_other_bdt = agent_transport_info.transport_cost_bdt || 0;
+      shippingOtherExpenses;
+
     const total_lc_cost_bdt =
       (financial_info.lc_amount_bdt || 0) +
       (financial_info.bank_charges_bdt || 0) +
       (financial_info.insurance_cost_bdt || 0) +
+      financialOtherExpenses +
       customs_total_bdt +
       (agent_transport_info.cnf_agent_commission_bdt || 0) +
-      transport_other_bdt;
+      (agent_transport_info.indenting_agent_commission_bdt || 0) +
+      (agent_transport_info.transport_cost_bdt || 0) +
+      agentTransportOtherExpenses;
+
     return total_lc_cost_bdt;
   };
 
@@ -139,14 +151,14 @@ const LCTable = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Products:</span>
-                      {lc?.product_info.map((p) => (
-                        <span
-                          className="text-gray-900 text-right max-w-40 truncate"
-                          title={p?.item_name}
-                        >
-                          {p?.item_name}
-                        </span>
-                      ))}
+                      <div className="text-gray-900 text-right max-w-40 truncate">
+                        {lc?.product_info.map((p, idx) => (
+                          <span key={idx} title={p?.item_name}>
+                            {p?.item_name} ({p?.quantity_ton} {p?.quantity_unit})
+                            {idx < lc.product_info.length - 1 ? ", " : ""}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Quantity:</span>
@@ -234,12 +246,13 @@ const LCTable = () => {
                       ).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-6">
-                      {lc?.product_info.map((p) => (
+                      {lc?.product_info.map((p, idx) => (
                         <div
+                          key={idx}
                           className="text-gray-900 max-w-xs truncate"
                           title={p?.item_name}
                         >
-                          {p?.item_name}
+                          {p?.item_name} ({p?.quantity_ton} {p?.quantity_unit})
                         </div>
                       ))}
                     </td>

@@ -27,3 +27,5 @@ dist-ssr
 .gemini/
 gha-creds-*.json
 /.github
+/src/schema
+/src/controllers
