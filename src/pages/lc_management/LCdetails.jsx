@@ -89,10 +89,9 @@ const LCdetails = () => {
     if (!id) return;
     axios
       .get(`${baseUrl}lc/get-lc/${id}`)
-      .then((res) => setLcData(res.data.data))
+      .then((res) => setLcData(res.data.message)) 
       .catch((err) => console.error(err));
   }, [id, baseUrl]);
-
   if (!lcData) {
     return (
       <div className="min-h-screen flex justify-center items-center">
@@ -101,22 +100,48 @@ const LCdetails = () => {
     );
   }
 
+  // Helper function to safely format numbers
+  const formatNumber = (value) => {
+    return value != null ? value.toLocaleString() : "-";
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   // Safely extract data with fallbacks
   const financial_info = lcData?.financial_info || {};
   const shipping_customs_info = lcData?.shipping_customs_info || {};
   const agent_transport_info = lcData?.agent_transport_info || {};
-  const product_info = lcData?.product_info || {};
+  const product_info = lcData?.product_info || [];
   const basic_info = lcData?.basic_info || {};
   const documents_notes = lcData?.documents_notes || {};
-  const specification = product_info?.specification || {};
 
+  const sumOtherExpenses = (expenses) => {
+    if (!expenses || !Array.isArray(expenses)) return 0;
+    return expenses.reduce((total, expense) => total + (expense.amount || 0), 0);
+  };
+
+  const other_financial_expenses = sumOtherExpenses(financial_info.other_expenses);
+  const other_shipping_expenses = sumOtherExpenses(
+    shipping_customs_info.other_expenses
+  );
+  const other_agent_expenses = sumOtherExpenses(
+    agent_transport_info.other_expenses
+  );
   const customs_total_bdt =
     (shipping_customs_info.customs_duty_bdt || 0) +
     (shipping_customs_info.vat_bdt || 0) +
     (shipping_customs_info.ait_bdt || 0) +
-    (shipping_customs_info.other_port_expenses_bdt || 0);
+    other_shipping_expenses;
 
-  const transport_other_bdt = agent_transport_info.transport_cost_bdt || 0;
+  const transport_other_bdt =
+    (agent_transport_info.transport_cost_bdt || 0) + other_agent_expenses;
 
   const total_lc_cost_bdt =
     (financial_info.lc_amount_bdt || 0) +
@@ -124,26 +149,30 @@ const LCdetails = () => {
     (financial_info.insurance_cost_bdt || 0) +
     customs_total_bdt +
     (agent_transport_info.cnf_agent_commission_bdt || 0) +
-    transport_other_bdt;
+    (agent_transport_info.indenting_agent_commission_bdt || 0) +
+    transport_other_bdt +
+    other_financial_expenses;
 
-  const per_unit_landing_cost_bdt = product_info.quantity_ton
-    ? total_lc_cost_bdt / product_info.quantity_ton
+  const total_quantity_ton = product_info.reduce(
+    (total, p) => total + (p.quantity_ton || 0),
+    0
+  );
+
+  const per_unit_landing_cost_bdt = total_quantity_ton
+    ? total_lc_cost_bdt / total_quantity_ton
     : 0;
-
   const cost_summary = {
     lc_amount_bdt: financial_info.lc_amount_bdt || 0,
     bank_charges_bdt: financial_info.bank_charges_bdt || 0,
     insurance_cost_bdt: financial_info.insurance_cost_bdt || 0,
     customs_total_bdt,
-    agent_commission_bdt: agent_transport_info.cnf_agent_commission_bdt || 0,
+    agent_commission_bdt:
+      (agent_transport_info.cnf_agent_commission_bdt || 0) +
+      (agent_transport_info.indenting_agent_commission_bdt || 0),
     transport_other_bdt,
     total_lc_cost_bdt,
     per_unit_landing_cost_bdt,
-  };
-
-  // Helper function to safely format numbers
-  const formatNumber = (value) => {
-    return value != null ? value.toLocaleString() : "-";
+    other_financial_expenses,
   };
 
   return (
@@ -183,7 +212,7 @@ const LCdetails = () => {
                 <DataField label="LC Number" value={basic_info.lc_number} />
                 <DataField
                   label="LC Opening Date"
-                  value={basic_info.lc_opening_date}
+                  value={formatDate(basic_info.lc_opening_date)}
                 />
                 <DataField label="Bank Name" value={basic_info.bank_name} />
                 <DataField
@@ -231,39 +260,52 @@ const LCdetails = () => {
                   value={formatNumber(financial_info.insurance_cost_bdt)}
                 />
               </div>
+              {financial_info.other_expenses?.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-300">
+                  <h3 className="text-md font-semibold mb-2">Other Expenses</h3>
+                  <div className="space-y-2">
+                    {financial_info.other_expenses.map((expense) => (
+                      <div
+                        key={expense._id}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="text-gray-600">{expense.name}</span>
+                        <span className="font-medium">
+                          {formatNumber(expense.amount)} BDT
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CollapsibleCard>
 
             <CollapsibleCard title="Product Information" icon={<FiBox />}>
-              {product_info.map((p) => (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {product_info.map((p, index) => (
+                <div
+                  key={p._id || index}
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b  border-gray-300 pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0"
+                >
                   <DataField label="Item Name" value={p.item_name} />
                   <DataField
                     label="Unit Price (USD)"
                     value={formatNumber(p.unit_price_usd)}
                   />
-                  {(specification.thickness_mm ||
-                    specification.width_mm ||
-                    specification.length_mm ||
-                    specification.grade) && (
+                  {p.specification && (
                     <DataField
                       label="Specification"
-                      value={`${
-                        specification.thickness_mm
-                          ? `Thickness: ${specification.thickness_mm}mm`
-                          : ""
-                      }${
-                        specification.width_mm
-                          ? `, Width: ${specification.width_mm}mm`
-                          : ""
-                      }${
-                        specification.length_mm
-                          ? `, Length: ${specification.length_mm}mm`
-                          : ""
-                      }${
-                        specification.grade
-                          ? `, Grade: ${specification.grade}`
-                          : ""
-                      }`}
+                      value={[
+                        p.specification.thickness_mm &&
+                          `Thickness: ${p.specification.thickness_mm}mm`,
+                        p.specification.width_mm &&
+                          `Width: ${p.specification.width_mm}mm`,
+                        p.specification.length_mm &&
+                          `Length: ${p.specification.length_mm}mm`,
+                        p.specification.grade &&
+                          `Grade: ${p.specification.grade}`,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
                     />
                   )}
                   <DataField
@@ -271,7 +313,11 @@ const LCdetails = () => {
                     value={formatNumber(p.total_value_usd)}
                   />
                   <DataField
-                    label="Quantity (Ton)"
+                    label="Quantity Unit"
+                    value={p.quantity_unit || "-"}
+                  />
+                  <DataField
+                    label={`Quantity (${p.quantity_unit || 'N/A'})`}
                     value={p.quantity_ton || "-"}
                   />
                   <DataField
@@ -292,16 +338,8 @@ const LCdetails = () => {
                   value={shipping_customs_info.port_of_shipment}
                 />
                 <DataField
-                  label="Port of Arrival"
-                  value={shipping_customs_info.port_of_arrival}
-                />
-                <DataField
                   label="Expected Arrival Date"
-                  value={shipping_customs_info.expected_arrival_date}
-                />
-                <DataField
-                  label="Actual Arrival Date"
-                  value={shipping_customs_info.actual_arrival_date}
+                  value={formatDate(shipping_customs_info.expected_arrival_date)}
                 />
                 <DataField
                   label="Customs Duty (BDT)"
@@ -315,13 +353,25 @@ const LCdetails = () => {
                   label="AIT (BDT)"
                   value={formatNumber(shipping_customs_info.ait_bdt)}
                 />
-                <DataField
-                  label="Other Port Expenses (BDT)"
-                  value={formatNumber(
-                    shipping_customs_info.other_port_expenses_bdt
-                  )}
-                />
               </div>
+              {shipping_customs_info.other_expenses?.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-300">
+                  <h3 className="text-md font-semibold mb-2">Other Expenses</h3>
+                  <div className="space-y-2">
+                    {shipping_customs_info.other_expenses.map((expense) => (
+                      <div
+                        key={expense._id}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="text-gray-600">{expense.name}</span>
+                        <span className="font-medium">
+                          {formatNumber(expense.amount)} BDT
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CollapsibleCard>
 
             <CollapsibleCard
@@ -350,6 +400,24 @@ const LCdetails = () => {
                   value={formatNumber(agent_transport_info.transport_cost_bdt)}
                 />
               </div>
+              {agent_transport_info.other_expenses?.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-300">
+                  <h3 className="text-md font-semibold mb-2">Other Expenses</h3>
+                  <div className="space-y-2">
+                    {agent_transport_info.other_expenses.map((expense) => (
+                      <div
+                        key={expense._id}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="text-gray-600">{expense.name}</span>
+                        <span className="font-medium">
+                          {formatNumber(expense.amount)} BDT
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CollapsibleCard>
           </div>
 
@@ -370,6 +438,10 @@ const LCdetails = () => {
                   value={formatNumber(cost_summary.insurance_cost_bdt)}
                 />
                 <DataField
+                  label="Other Financial Expenses"
+                  value={formatNumber(cost_summary.other_financial_expenses)}
+                />
+                <DataField
                   label="Customs Total (BDT)"
                   value={formatNumber(cost_summary.customs_total_bdt)}
                 />
@@ -388,10 +460,6 @@ const LCdetails = () => {
                     {formatNumber(cost_summary.total_lc_cost_bdt)}
                   </p>
                 </div>
-                <DataField
-                  label="Per Unit Landing Cost (BDT)"
-                  value={formatNumber(cost_summary.per_unit_landing_cost_bdt)}
-                />
               </div>
             </CollapsibleCard>
 
@@ -404,24 +472,28 @@ const LCdetails = () => {
                         Uploaded Documents
                       </div>
                       <div className="space-y-2">
-                        {documents_notes.uploaded_documents.map(
-                          (file, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center p-2 bg-gray-50 rounded-md"
-                            >
-                              <FiFile className="text-gray-400 mr-2" />
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-gray-700 truncate">
-                                  {file}
-                                </div>
+                        {documents_notes.uploaded_documents.map((doc) => (
+                          <div
+                            key={doc._id}
+                            className="flex items-center p-2 bg-gray-50 rounded-md"
+                          >
+                            <FiFile className="text-gray-400 mr-2 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-gray-700 truncate">
+                                {doc.original_name}
                               </div>
-                              <button className="ml-2 text-[#003b75] hover:text-blue-800">
-                                <FiDownload />
-                              </button>
                             </div>
-                          )
-                        )}
+                            <a
+                              href={`${baseUrl}lc/${lcData._id}/documents/${doc.stored_name}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download
+                              className="ml-2 text-[#003b75] hover:text-blue-800"
+                            >
+                              <FiDownload />
+                            </a>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
