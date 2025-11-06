@@ -1,7 +1,36 @@
 import { Layers, Palette, Ruler } from 'lucide-react';
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router';
 import { warehouses } from '../data/data'; // Import warehouses
+import { UrlContext } from '../context/UrlContext';
+import axios from 'axios';
+
+const CategoryName = ({ categoryId }) => {
+  const [categoryName, setCategoryName] = useState('Loading...');
+  const { baseUrl } = useContext(UrlContext);
+
+  useEffect(() => {
+    if (!categoryId) {
+      setCategoryName('N/A');
+      return;
+    }
+
+    axios
+      .get(`${baseUrl}category/get/${categoryId}`)
+      .then((res) => {
+        if (res.data && res.data.data && res.data.data.name) {
+          setCategoryName(res.data.data.name);
+        } else {
+          setCategoryName('Unknown Category');
+        }
+      })
+      .catch(() => {
+        setCategoryName('Error');
+      });
+  }, [categoryId, baseUrl]);
+
+  return <p className="text-xs sm:text-sm text-gray-600 truncate">{categoryName}</p>;
+};
 
 const ProductCard = ({ product }) => {
   const getStockColor = (quantity) => {
@@ -37,7 +66,7 @@ const ProductCard = ({ product }) => {
             <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate pr-2">
               {product.name}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600 truncate">{product.category}</p>
+            <CategoryName categoryId={product.category} />
           </div>
           <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStockColor(product.quantity)}`}>
             {getStockStatus(product.quantity)}
@@ -69,14 +98,9 @@ const ProductCard = ({ product }) => {
             <span className="text-xs text-gray-500">Unit Price</span>
             <span className="font-semibold text-gray-900 text-sm">{product.unitPrice || 'N/A'}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-500">Location</span>
-            <span className="text-xs text-gray-700">{warehouse ? warehouse.name : 'N/A'}</span>
-          </div>
         </div>
       </div>
     </Link>
   );
 };
-
 export default ProductCard;

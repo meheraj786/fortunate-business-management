@@ -56,7 +56,7 @@ const Warehouses = () => {
                   </div>
                   <div>
                     <p className="text-[12px] text-gray-500">
-                      Warehouse #{warehouse._id}
+                      Total products #{warehouse.productCount}
                     </p>
                     <h2 className="text-lg font-semibold text-gray-800">
                       {warehouse.name}

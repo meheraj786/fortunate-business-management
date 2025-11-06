@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
-import { products, salesData, warehouses } from "../../data/data";
+import { salesData } from "../../data/data";
 import {
   Package,
   DollarSign,
@@ -16,7 +16,6 @@ import axios from "axios";
 const ProductDetails = () => {
   const { productId } = useParams();
   const [product, setProduct] = useState(null);
-  // const product = products.find((p) => p.id === parseInt(productId));
   const sales = salesData.filter((s) => s.productId === parseInt(productId));
 
   const { baseUrl } = useContext(UrlContext);
@@ -25,10 +24,9 @@ const ProductDetails = () => {
     axios
       .get(`${baseUrl}product/get-product/${productId}`)
       .then((res) => setProduct(res.data.data));
-  }, []);
+  }, [productId, baseUrl]);
 
   const navigate = useNavigate();
-  console.log(product);
 
   const totalUnitsSold = sales.reduce((acc, sale) => acc + sale.quantity, 0);
   const totalRevenue = sales.reduce(
@@ -43,12 +41,10 @@ const ProductDetails = () => {
     (s) => s.invoiceStatus === "Not Invoiced"
   ).length;
 
-  const warehouse = warehouses.find((w) => w.id === product?.productLocation);
-
   if (!product) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
-        Product not found
+        Loading Product Details...
       </div>
     );
   }
@@ -57,7 +53,7 @@ const ProductDetails = () => {
     { label: "Stock", path: "/stock-management" },
     {
       label: product?.warehouse?.name,
-      path: `/stock/${product.warehouse?._id}`,
+      path: `/stock/${product?.warehouse?._id}`,
     },
     { label: product.name },
   ];
@@ -74,7 +70,7 @@ const ProductDetails = () => {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 {product.name}
               </h1>
-              <p className="text-gray-600 mt-1">{product.category}</p>
+              <p className="text-gray-600 mt-1">{product?.category?.name}</p>
             </div>
           </div>
         </div>
@@ -90,13 +86,13 @@ const ProductDetails = () => {
                 <div>
                   <p className="text-sm text-gray-600">LC Number</p>
                   <p className="font-medium text-gray-900">
-                    {product.lcNumber}
+                    {product.LC?.basic_info?.lc_number || "N/A"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Category</p>
                   <p className="font-medium text-gray-900">
-                    {product.category}
+                    {product?.category?.name}
                   </p>
                 </div>
               </div>
@@ -109,6 +105,24 @@ const ProductDetails = () => {
                 Specifications
               </h3>
               <div className="grid grid-cols-2 gap-4">
+                {product.thickness && (
+                  <div>
+                    <p className="text-sm text-gray-600">Thickness</p>
+                    <p className="font-medium text-gray-900">{product.thickness} mm</p>
+                  </div>
+                )}
+                {product.width && (
+                  <div>
+                    <p className="text-sm text-gray-600">Width</p>
+                    <p className="font-medium text-gray-900">{product.width} mm</p>
+                  </div>
+                )}
+                {product.length && (
+                  <div>
+                    <p className="text-sm text-gray-600">Length</p>
+                    <p className="font-medium text-gray-900">{product.length} mm</p>
+                  </div>
+                )}
                 {product.grade && (
                   <div>
                     <p className="text-sm text-gray-600">Grade</p>
@@ -119,54 +133,6 @@ const ProductDetails = () => {
                   <div>
                     <p className="text-sm text-gray-600">Color</p>
                     <p className="font-medium text-gray-900">{product.color}</p>
-                  </div>
-                )}
-                {product.thickness_mm && (
-                  <div>
-                    <p className="text-sm text-gray-600">Thickness</p>
-                    <p className="font-medium text-gray-900">
-                      {product.thickness_mm} mm
-                    </p>
-                  </div>
-                )}
-                {product.width_mm && (
-                  <div>
-                    <p className="text-sm text-gray-600">Width</p>
-                    <p className="font-medium text-gray-900">
-                      {product.width_mm} mm
-                    </p>
-                  </div>
-                )}
-                {product.length_m && (
-                  <div>
-                    <p className="text-sm text-gray-600">Length</p>
-                    <p className="font-medium text-gray-900">
-                      {product.length_m} m
-                    </p>
-                  </div>
-                )}
-                {product.width_ft && (
-                  <div>
-                    <p className="text-sm text-gray-600">Width</p>
-                    <p className="font-medium text-gray-900">
-                      {product.width_ft} ft
-                    </p>
-                  </div>
-                )}
-                {product.length_ft && (
-                  <div>
-                    <p className="text-sm text-gray-600">Length</p>
-                    <p className="font-medium text-gray-900">
-                      {product.length_ft} ft
-                    </p>
-                  </div>
-                )}
-                {product.width_inch && (
-                  <div>
-                    <p className="text-sm text-gray-600">Width</p>
-                    <p className="font-medium text-gray-900">
-                      {product.width_inch}"
-                    </p>
                   </div>
                 )}
               </div>
@@ -187,7 +153,7 @@ const ProductDetails = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Location</p>
-                  <p className="font-medium text-gray-900">{warehouse?.name}</p>
+                  <p className="font-medium text-gray-900">{product?.warehouse?.name}</p>
                 </div>
                 {product.unitPrice && (
                   <div>

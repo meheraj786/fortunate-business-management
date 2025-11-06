@@ -128,12 +128,17 @@ const AddProductForm = ({
     name: "",
     category: "",
     LC: "",
-    size: "",
+    thickness: "",
+    width: "",
+    length: "",
+    grade: "",
     color: "",
     quantity: "",
     unit: "pieces",
     unitPrice: "",
     warehouse: warehouse?._id || "",
+    productDescription: "",
+    supplierName: "",
   });
 
   const { baseUrl } = useContext(UrlContext);
@@ -190,28 +195,7 @@ const AddProductForm = ({
     label: w.name,
   }));
 
-  useEffect(() => {
-    if (editData) {
-      const cleanEditData = {
-        ...editData,
-        unitPrice: editData.unitPrice
-          ? editData.unitPrice.replace("$", "")
-          : "",
-      };
-      setFormData(cleanEditData);
-    } else if (isOpen) {
-      setFormData({
-        name: "",
-        categoryId: "",
-        size: "",
-        color: "",
-        quantity: "",
-        unit: "pieces",
-        unitPrice: "",
-        warehouseId: warehouse?._id || "",
-      });
-    }
-  }, [editData, isOpen]);
+
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -231,7 +215,11 @@ const AddProductForm = ({
       !formData.quantity ||
       !formData.unitPrice ||
       !formData.warehouse ||
-      !formData.LC
+      !formData.LC ||
+      !formData.thickness ||
+      !formData.width ||
+      !formData.length ||
+      !formData.grade
     ) {
       alert("Please fill in all required fields");
       return;
@@ -250,6 +238,9 @@ const AddProductForm = ({
       ...formData,
       quantity: Number(formData.quantity),
       unitPrice: Number(formData.unitPrice),
+      thickness: Number(formData.thickness),
+      width: Number(formData.width),
+      length: Number(formData.length),
     };
 
     try {
@@ -342,11 +333,35 @@ const AddProductForm = ({
                   />
 
                   <InputField
-                    label="Size/Dimensions"
-                    value={formData.size}
-                    onChange={(value) => handleInputChange("size", value)}
-                    placeholder="12mm x 12m"
+                    label="Thickness (mm)"
+                    type="number"
+                    value={formData.thickness}
+                    onChange={(value) => handleInputChange("thickness", value)}
+                    placeholder="e.g., 12"
                     icon={Ruler}
+                  />
+                  <InputField
+                    label="Width (mm)"
+                    type="number"
+                    value={formData.width}
+                    onChange={(value) => handleInputChange("width", value)}
+                    placeholder="e.g., 1200"
+                    icon={Ruler}
+                  />
+                  <InputField
+                    label="Length (mm)"
+                    type="number"
+                    value={formData.length}
+                    onChange={(value) => handleInputChange("length", value)}
+                    placeholder="e.g., 2400"
+                    icon={Ruler}
+                  />
+                  <InputField
+                    label="Grade"
+                    value={formData.grade}
+                    onChange={(value) => handleInputChange("grade", value)}
+                    placeholder="e.g., ASTM A36"
+                    icon={Tag}
                   />
 
                   <SelectField
@@ -409,16 +424,6 @@ const AddProductForm = ({
                     disabled
                     icon={MapPin}
                   />
-
-                  <TextAreaField
-                    label="Location Notes (Optional)"
-                    value={formData.locationNotes || ""}
-                    onChange={(value) =>
-                      handleInputChange("locationNotes", value)
-                    }
-                    placeholder="Specific shelf, rack number, or additional location details..."
-                    rows={2}
-                  />
                 </div>
               </div>
 
@@ -430,35 +435,18 @@ const AddProductForm = ({
                 <div className="grid grid-cols-1 gap-6">
                   <TextAreaField
                     label="Product Description"
-                    value={formData.description || ""}
+                    value={formData.productDescription || ""}
                     onChange={(value) =>
-                      handleInputChange("description", value)
+                      handleInputChange("productDescription", value)
                     }
                     placeholder="Detailed description, material specifications, grade, standards compliance..."
                     rows={3}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <InputField
-                      label="Weight (kg per unit)"
-                      type="text"
-                      value={formData.weight || ""}
-                      onChange={(value) => handleInputChange("weight", value)}
-                      placeholder="7.5"
-                    />
-
-                    <InputField
-                      label="Grade/Standard"
-                      value={formData.grade || ""}
-                      onChange={(value) => handleInputChange("grade", value)}
-                      placeholder="ASTM A36, ISO 9001, etc."
-                    />
-                  </div>
-
                   <InputField
                     label="Supplier/Manufacturer"
-                    value={formData.supplier || ""}
-                    onChange={(value) => handleInputChange("supplier", value)}
+                    value={formData.supplierName || ""}
+                    onChange={(value) => handleInputChange("supplierName", value)}
                     placeholder="Manufacturer name or supplier information"
                   />
                 </div>
