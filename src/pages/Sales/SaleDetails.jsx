@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, Link, useNavigate } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import { ChevronLeft, FileText, User, Calendar, DollarSign, Truck, Info, ShoppingCart, Package, Printer } from 'lucide-react';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { UrlContext } from '../../context/UrlContext';
-import { invoiceHistory as allInvoiceHistory } from '../../data/data';
 
 const SaleDetails = () => {
   const { id } = useParams();
@@ -13,6 +12,7 @@ const SaleDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [invoiceHistory, setInvoiceHistory] = useState([]);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     const fetchSaleDetails = async () => {
@@ -32,8 +32,21 @@ const SaleDetails = () => {
       }
     };
 
+    const fetchInvoiceHistory = async () => {
+      try {
+        const response = await fetch(`${baseUrl}invoice/sale/${id}`);
+        const result = await response.json();
+        if (result.success) {
+          setInvoiceHistory(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch invoice history:", error);
+      }
+    };
+
     if (baseUrl && id) {
       fetchSaleDetails();
+      fetchInvoiceHistory();
     }
   }, [id, baseUrl]);
 
@@ -43,47 +56,32 @@ const SaleDetails = () => {
   const netAmount = sale?.totalAmountToBePaid ?? 0;
   const balanceDue = netAmount - totalPayments;
 
-  const handleGenerateInvoice = () => {
-    const invoiceSnapshot = {
-      invoiceId: `INV-${sale._id}-${invoiceHistory.length + 1}`,
-      generationDate: new Date().toISOString(),
-      saleId: sale._id,
-      saleDate: sale.saleDate,
-      customer: sale.customer,
-      product: {
-        productName: sale.product.name,
-        quantity: sale.quantity,
-        unit: sale.unit,
-        pricePerUnit: sale.pricePerUnit,
-        totalAmount: sale.totalAmount,
-      },
-      financials: {
-        totalAmount: sale.totalAmount,
-        deliveryCharge: sale.deliveryCharge,
-        otherCharges: sale.otherCharges,
-        discount: sale.discount,
-        netAmount,
-        totalPayments,
-        balanceDue,
-      },
-      notes: sale.notes,
-    };
-
-    allInvoiceHistory.push(invoiceSnapshot);
-    setInvoiceHistory([...invoiceHistory, invoiceSnapshot]);
-
-    navigate(`/sales/${sale._id}/invoice/${invoiceSnapshot.invoiceId}`, { 
-      state: { invoice: invoiceSnapshot } 
-    });
+  const handleGenerateInvoice = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await fetch(`${baseUrl}invoice/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ saleId: id }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        navigate(`/sales/${id}/invoice/${result.data._id}`);
+      } else {
+        // Handle error - maybe show a toast notification
+        console.error("Failed to generate invoice:", result.message);
+      }
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   // Helper functions
   const formatCurrency = (amount) => `$${(amount || 0).toFixed(2)}`;
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
 
   // Loading and Error States
   if (loading) return <LoadingState />;
@@ -120,6 +118,7 @@ const SaleDetails = () => {
           invoiceHistory={invoiceHistory}
           onGenerateInvoice={handleGenerateInvoice}
           navigate={navigate}
+          isGenerating={isGenerating}
         />
       </div>
     </div>
@@ -154,12 +153,15 @@ const NotFoundState = () => (
   </div>
 );
 
-const BackToSalesLink = () => (
-  <Link to="/sales" className="inline-flex items-center text-blue-500 hover:text-blue-700 hover:underline transition-colors mt-4">
-    <ChevronLeft size={16} className="mr-1" />
-    Back to Sales
-  </Link>
-);
+const BackToSalesLink = () => {
+  const navigate = useNavigate();
+  return (
+    <button onClick={() => navigate('/sales')} className="inline-flex items-center text-blue-500 hover:text-blue-700 hover:underline transition-colors mt-4">
+      <ChevronLeft size={16} className="mr-1" />
+      Back to Sales
+    </button>
+  );
+};
 
 const HeaderSection = ({ sale, netAmount }) => (
   <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -389,7 +391,7 @@ const SectionHeader = ({ icon: Icon, title }) => (
   </h2>
 );
 
-const InvoiceSection = ({ sale, invoiceHistory, onGenerateInvoice, navigate }) => {
+const InvoiceSection = ({ sale, invoiceHistory, onGenerateInvoice, navigate, isGenerating }) => {
   if (sale.invoiceStatus !== 'Invoiced') return null;
 
   return (
@@ -400,10 +402,11 @@ const InvoiceSection = ({ sale, invoiceHistory, onGenerateInvoice, navigate }) =
       <div className="p-6">
         <button 
           onClick={onGenerateInvoice} 
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-4"
+          disabled={isGenerating}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-4 disabled:bg-blue-400"
         >
           <Printer size={16} />
-          Generate New Invoice
+          {isGenerating ? 'Generating...' : 'Generate New Invoice'}
         </button>
         <InvoiceList 
           invoices={invoiceHistory} 
@@ -419,15 +422,15 @@ const InvoiceList = ({ invoices, saleId, navigate }) => (
   <div className="space-y-2">
     {invoices.length > 0 ? (
       invoices.map(invoice => (
-        <div key={invoice.invoiceId} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+        <div key={invoice._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
           <div>
-            <p className="font-medium text-gray-800">{invoice.invoiceId}</p>
+            <p className="font-medium text-gray-800">Invoice #{invoice._id.slice(-6)}</p>
             <p className="text-sm text-gray-500">
-              Generated: {new Date(invoice.generationDate).toLocaleString()}
+              Generated: {new Date(invoice.invoiceGeneratedDate).toLocaleString()}
             </p>
           </div>
           <button 
-            onClick={() => navigate(`/sales/${saleId}/invoice/${invoice.invoiceId}`, { state: { invoice } })} 
+            onClick={() => navigate(`/sales/${saleId}/invoice/${invoice._id}`)} 
             className="text-sm text-blue-600 hover:underline"
           >
             View Invoice
