@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { salesData } from "../../data/data";
+
 import {
   Package,
   DollarSign,
@@ -19,24 +19,12 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   
   const [product, setProduct] = useState(null);
-  const sales = salesData.filter((s) => s.productId === parseInt(productId));
 
   useEffect(() => {
     axios
       .get(`${baseUrl}product/get-product/${productId}`)
       .then((res) => setProduct(res.data.data));
   }, [productId, baseUrl]);
-
-  // Calculate statistics
-  const stats = {
-    totalUnitsSold: sales.reduce((acc, sale) => acc + sale.quantity, 0),
-    totalRevenue: sales.reduce(
-      (acc, sale) => acc + sale.quantity * (parseFloat(sale.pricePerUnit) || 0),
-      0
-    ),
-    totalDueInvoices: sales.filter((s) => s.paymentStatus === "Due Payment").length,
-    totalNotInvoiced: sales.filter((s) => s.invoiceStatus === "Not Invoiced").length,
-  };
 
   if (!product) {
     return (
@@ -45,6 +33,14 @@ const ProductDetails = () => {
       </div>
     );
   }
+
+  const sales = product.recentSales || [];
+  const stats = {
+    totalUnitsSold: product.totalUnitsSold || 0,
+    totalRevenue: product.totalRevenue || 0,
+    totalDueInvoices: product.totalDueInvoices || 0,
+    totalNotInvoiced: product.totalNotInvoiced || 0,
+  };
 
   const breadcrumbItems = [
     { label: "Stock", path: "/stock-management" },
@@ -73,14 +69,14 @@ const ProductDetails = () => {
     <div className="space-y-2 sm:hidden">
       {sales.map((sale) => (
         <div
-          key={sale.id}
+          key={sale._id}
           className="border-t border-gray-200 last:border-b bg-white cursor-pointer hover:bg-gray-50 transition-colors"
-          onClick={() => navigate(`/sales/${sale.id}`)}
+          onClick={() => navigate(`/sales/${sale._id}`)}
         >
           <div className="px-4 py-4">
             <div className="flex justify-between items-center mb-2">
-              <div className="font-medium text-gray-900">{sale.customerName}</div>
-              <span className="text-sm text-gray-500">{sale.saleDate}</span>
+              <div className="font-medium text-gray-900">{sale.customer.name}</div>
+              <span className="text-sm text-gray-500">{new Date(sale.saleDate).toLocaleDateString()}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">Qty: {sale.quantity}</span>
@@ -101,7 +97,7 @@ const ProductDetails = () => {
             <div className="flex justify-between items-center">
               <span className="font-medium text-gray-700">Total</span>
               <span className="font-bold text-gray-900">
-                ${(sale.quantity * (parseFloat(sale.pricePerUnit) || 0)).toFixed(2)}
+                ${sale.totalAmount.toFixed(2)}
               </span>
             </div>
           </div>
@@ -126,18 +122,18 @@ const ProductDetails = () => {
         <tbody className="bg-white divide-y divide-gray-100">
           {sales.map((sale) => (
             <tr
-              key={sale.id}
+              key={sale._id}
               className="hover:bg-gray-50 transition-colors cursor-pointer"
-              onClick={() => navigate(`/sales/${sale.id}`)}
+              onClick={() => navigate(`/sales/${sale._id}`)}
             >
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{sale.saleDate}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{sale.customerName}</td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(sale.saleDate).toLocaleDateString()}</td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{sale.customer.name}</td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{sale.quantity}</td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                 ${parseFloat(sale.pricePerUnit || 0).toFixed(2)}
               </td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${(sale.quantity * (parseFloat(sale.pricePerUnit) || 0)).toFixed(2)}
+                ${sale.totalAmount.toFixed(2)}
               </td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                 <span className={getStatusBadge(sale.invoiceStatus, "invoice")}>
