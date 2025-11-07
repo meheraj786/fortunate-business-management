@@ -89,7 +89,7 @@ const LCdetails = () => {
     if (!id) return;
     axios
       .get(`${baseUrl}lc/get-lc/${id}`)
-      .then((res) => setLcData(res.data.message)) 
+      .then((res) => setLcData(res.data.data)) 
       .catch((err) => console.error(err));
   }, [id, baseUrl]);
   if (!lcData) {

@@ -12,8 +12,8 @@ const LC = () => {
 
   useEffect(() => {
     axios.get(`${baseUrl}lc/get-all-lc`).then((res) => {
-      if (Array.isArray(res.data.message)) {
-        setLcData(res.data.message);
+      if (Array.isArray(res.data.data)) {
+        setLcData(res.data.data);
       } else {
         setLcData([]);
       }
