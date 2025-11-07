@@ -1,23 +1,35 @@
-import React, { useState, useMemo } from 'react';
-import { salesData as initialSalesData } from '../../data/data';
+import React, { useState, useMemo, useEffect, useContext } from 'react';
+import axios from 'axios';
+import { UrlContext } from '../../context/UrlContext';
 import SalesTable from '../../components/common/SalesTable';
 import SearchBar from '../../components/common/SearchBar';
 import Breadcrumb from '../../components/common/Breadcrumb';
 
 const PaidInvoices = () => {
+  const [sales, setSales] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const { baseUrl } = useContext(UrlContext);
 
-  const paidInvoices = useMemo(() => {
-    return initialSalesData.filter(sale => sale.paymentStatus === 'Paid Payment');
-  }, []);
+  useEffect(() => {
+    axios.get(`${baseUrl}sales/get-all-paid-invoices`)
+      .then(res => {
+        if (res.data && res.data.data) {
+          setSales(res.data.data);
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching paid invoices:", error);
+      });
+  }, [baseUrl]);
 
   const filteredSales = useMemo(() => {
-    return paidInvoices.filter(sale =>
-      sale.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.id.toString().includes(searchTerm)
+    if (!sales) return [];
+    return sales.filter(sale =>
+      (sale.product?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (sale.customer?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (sale._id?.toString() || '').includes(searchTerm)
     );
-  }, [paidInvoices, searchTerm]);
+  }, [sales, searchTerm]);
 
   const breadcrumbItems = [
     { label: 'Sales', path: '/sales' },

@@ -17,7 +17,13 @@ import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
 
 const Sales = () => {
-  const [salesData, setSalesData] = useState(initialSalesData);
+  const [salesData, setSalesData] = useState([]); // Initialize with empty array
+  const [salesStats, setSalesStats] = useState({
+    notInvoiced: 0,
+    due: 0,
+    paid: 0,
+    cancelled: 0,
+  });
   const [showAddSale, setShowAddSale] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -26,29 +32,31 @@ const Sales = () => {
   useEffect(() => {
     axios
       .get(`${baseUrl}sales/get-all-sales`)
-      .then((res) => setSalesData(res.data.data));
-  }, []);
-  const { notInvoiced, dueInvoices, paidInvoices, cancelled } = useMemo(() => {
-    return salesData.reduce(
-      (acc, sale) => {
-        if (sale.invoiceStatus === "Not Invoiced") {
-          acc.notInvoiced++;
+      .then((res) => setSalesData(res.data.data || []))
+      .catch((error) => {
+        console.error("Error fetching all sales:", error);
+      });
+  }, [baseUrl]);
+
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}sales/get-all-invoices-status-count`)
+      .then((res) => {
+        if (res.data && res.data.data) {
+          setSalesStats({
+            notInvoiced: res.data.data.notInvoiced || 0,
+            due: res.data.data.due || 0,
+            paid: res.data.data.paid || 0,
+            cancelled: res.data.data.cancelled || 0,
+          });
         }
-        if (sale.paymentStatus === "Due Payment") {
-          acc.dueInvoices++;
-        }
-        if (sale.paymentStatus === "Paid Payment") {
-          acc.paidInvoices++;
-        }
-        if (sale.invoiceStatus === "Cancelled") {
-          acc.cancelled++;
-        }
-        return acc;
-      },
-      { notInvoiced: 0, dueInvoices: 0, paidInvoices: 0, cancelled: 0 }
-    );
-  }, [salesData]);
-console.log(salesData);
+      })
+      .catch((error) => {
+        console.error("Error fetching sales stats:", error);
+      });
+  }, [baseUrl]);
+
+  console.log(salesData);
 
   const sortedData = useMemo(
     () =>
@@ -106,28 +114,28 @@ console.log(salesData);
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <SalesStatCard
             title="Not Invoiced"
-            count={notInvoiced}
+            count={salesStats.notInvoiced}
             linkTo="/sales/not-invoiced"
             icon={FileWarning}
             color="yellow"
           />
           <SalesStatCard
             title="Due Invoices"
-            count={dueInvoices}
+            count={salesStats.due}
             linkTo="/sales/due-invoices"
             icon={FileClock}
             color="orange"
           />
           <SalesStatCard
             title="Paid Invoices"
-            count={paidInvoices}
+            count={salesStats.paid}
             linkTo="/sales/paid-invoices"
             icon={FileCheck}
             color="green"
           />
           <SalesStatCard
             title="Cancelled"
-            count={cancelled}
+            count={salesStats.cancelled}
             linkTo="/sales/cancelled"
             icon={FileX}
             color="red"

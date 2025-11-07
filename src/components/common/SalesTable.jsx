@@ -48,9 +48,9 @@ const SalesTable = ({ sales }) => {
                   </div>
                 </Link>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale?.lcNumber}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale?.product?.LC.basic_info.lc_number}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale.quantity} {sale.unit}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${sale?.product?.unitPrice}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${sale?.pricePerUnit}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${sale?.totalAmount}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{sale?.customer?.name}</td>
               <td className="px-6 py-4 whitespace-nowrap">
