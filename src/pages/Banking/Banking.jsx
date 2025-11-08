@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import {
   Building,
   Smartphone,
@@ -20,10 +20,18 @@ import {
   MapPin,
   User,
   Receipt,
-  Banknote
+  Banknote,
+  Plus,
+  Loader2,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { UrlContext } from "../../context/UrlContext";
+import FormDialog from "../../components/common/FormDialog";
+import InputField from "../../components/forms/InputField";
 
 const Banking = () => {
+  const { baseUrl } = useContext(UrlContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
@@ -32,6 +40,108 @@ const Banking = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedText, setCopiedText] = useState("");
   const itemsPerPage = 10;
+
+  // Data states
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [mobileBankingAccounts, setMobileBankingAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Form states
+  const [isBankFormOpen, setIsBankFormOpen] = useState(false);
+  const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const initialBankData = {
+    bankName: "",
+    branchName: "",
+    accountHolderName: "",
+    accountName: "",
+    accountNumber: "",
+    swiftCode: "",
+    routingNumber: "",
+    balance: "",
+  };
+  const [bankFormData, setBankFormData] = useState(initialBankData);
+
+  const initialMobileData = {
+    serviceName: "",
+    accountNumber: "", // This will map to mobileNumber in the schema
+    accountHolderName: "",
+    accountName: "",
+    balance: "",
+  };
+  const [mobileFormData, setMobileFormData] = useState(initialMobileData);
+
+  const fetchAccounts = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${baseUrl}bank/get-all-accounts`);
+      if (response.data.success) {
+        const allAccounts = response.data.data;
+        setBankAccounts(allAccounts.filter(acc => acc.accountType === 'Bank'));
+        setMobileBankingAccounts(allAccounts.filter(acc => acc.accountType === 'Mobile Banking'));
+      } else {
+        toast.error(response.data.message || "Failed to fetch accounts.");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred while fetching accounts.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (baseUrl) {
+      fetchAccounts();
+    }
+  }, [baseUrl]);
+
+  const handleBankFormChange = (e) => {
+    const { name, value } = e.target;
+    setBankFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleMobileFormChange = (e) => {
+    const { name, value } = e.target;
+    setMobileFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddAccount = async (formData, accountType) => {
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        ...formData,
+        accountType,
+        balance: Number(formData.balance) || 0,
+      };
+      
+      if (accountType === 'Mobile Banking') {
+        payload.mobileNumber = formData.accountNumber;
+        delete payload.accountNumber;
+      }
+
+      const response = await axios.post(`${baseUrl}bank/create-account`, payload);
+
+      if (response.data.success) {
+        toast.success(response.data.message || "Account created successfully!");
+        if (accountType === 'Bank') {
+          setIsBankFormOpen(false);
+          setBankFormData(initialBankData);
+        } else {
+          setIsMobileFormOpen(false);
+          setMobileFormData(initialMobileData);
+        }
+        fetchAccounts(); // Refresh data
+      } else {
+        toast.error(response.data.message || "Failed to create account.");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "An unexpected error occurred.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const salesDataWithPayment = [
     {
@@ -196,75 +306,9 @@ const Banking = () => {
     }
   ];
 
-  const bankAccounts = [
-    {
-      id: 1,
-      bankName: "Dutch Bangla Bank Limited",
-      branchName: "Dhanmondi Branch",
-      accountNumber: "1234567890123",
-      accountName: "Steel Trading Company",
-      routingNumber: "090270001",
-      swiftCode: "DBBLBDDHXXX"
-    },
-    {
-      id: 2,
-      bankName: "BRAC Bank Limited",
-      branchName: "Gulshan Branch", 
-      accountNumber: "9876543210987",
-      accountName: "Steel Trading Company",
-      routingNumber: "060270001",
-      swiftCode: "BRACBDDH"
-    },
-    {
-      id: 3,
-      bankName: "Islami Bank Bangladesh Limited",
-      branchName: "Motijheel Branch",
-      accountNumber: "5555444433332",
-      accountName: "Steel Trading Company",
-      routingNumber: "125270001",
-      swiftCode: "IBBLBDDH"
-    },
-    {
-      id: 4,
-      bankName: "City Bank Limited",
-      branchName: "Wari Branch",
-      accountNumber: "7777888899990",
-      accountName: "Steel Trading Company",
-      routingNumber: "225270001",
-      swiftCode: "CIBLBDDH"
-    }
-  ];
 
-  const mobileBankingAccounts = [
-    {
-      id: 1,
-      provider: "bKash",
-      type: "Personal",
-      number: "01712345678",
-      color: "bg-pink-500"
-    },
-    {
-      id: 2,
-      provider: "Nagad",
-      type: "Personal",
-      number: "01987654321",
-      color: "bg-orange-500"
-    },
-    {
-      id: 3,
-      provider: "Rocket",
-      type: "Personal",
-      number: "01555666777",
-      color: "bg-purple-500"
-    },
-    {
-      id: 4,
-      provider: "Upay",
-      type: "Merchant",
-      number: "01444333222",
-      color: "bg-green-500"
-    }
-  ];
+
+
 
   const paymentMethods = [
     { value: "all", label: "All Methods" },
@@ -418,92 +462,128 @@ const Banking = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
-              <Building className="w-5 h-5 text-blue-600" />
-              Bank Accounts
-            </h2>
-            <div className="space-y-4">
-              {bankAccounts.map((account) => (
-                <div key={account.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
-                      {account.bankName}
-                    </h3>
-                  </div>
-                  <div className="space-y-2 text-xs sm:text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-3 h-3" />
-                      <span>{account.branchName}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <User className="w-3 h-3" />
-                        <span>{account.accountName}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">A/C: {account.accountNumber}</span>
-                      <button
-                        onClick={() => copyToClipboard(account.accountNumber, 'account')}
-                        className="p-1 hover:bg-gray-100 rounded"
-                      >
-                        {copiedText === `account_${account.accountNumber}` ? (
-                          <Check className="w-3 h-3 text-green-600" />
-                        ) : (
-                          <Copy className="w-3 h-3 text-gray-500" />
-                        )}
-                      </button>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Routing: {account.routingNumber} | Swift: {account.swiftCode}
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+                <Building className="w-5 h-5 text-blue-600" />
+                Bank Accounts
+              </h2>
+              <button
+                onClick={() => setIsBankFormOpen(true)}
+                className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
+              >
+                <Plus size={16} />
+                Add Account
+              </button>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-purple-600" />
-              Mobile Banking
-            </h2>
             <div className="space-y-4">
-              {mobileBankingAccounts.map((account) => (
-                <div key={account.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 ${account.color} rounded-lg flex items-center justify-center`}>
-                        <Smartphone className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
-                          {account.provider}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-gray-600">
-                          {account.type} Account
-                        </p>
-                      </div>
+              {loading ? (
+                <div className="flex justify-center items-center p-8">
+                  <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
+                </div>
+              ) : bankAccounts.length > 0 ? (
+                bankAccounts.map((account) => (
+                  <div key={account._id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
+                        {account.bankName}
+                      </h3>
+                      <span className="font-bold text-lg text-green-600">৳{account.balance.toLocaleString()}</span>
                     </div>
-                    <div className="text-right">
+                    <div className="space-y-2 text-xs sm:text-sm text-gray-600">
                       <div className="flex items-center gap-2">
-                        <Phone className="w-3 h-3 text-gray-500" />
-                        <span className="font-mono text-sm">{account.number}</span>
+                        <MapPin className="w-3 h-3" />
+                        <span>{account.branchName}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <User className="w-3 h-3" />
+                          <span>{account.accountHolderName} ({account.accountName})</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">A/C: {account.accountNumber}</span>
                         <button
-                          onClick={() => copyToClipboard(account.number, 'mobile')}
+                          onClick={() => copyToClipboard(account.accountNumber, 'account')}
                           className="p-1 hover:bg-gray-100 rounded"
                         >
-                          {copiedText === `mobile_${account.number}` ? (
+                          {copiedText === `account_${account.accountNumber}` ? (
                             <Check className="w-3 h-3 text-green-600" />
                           ) : (
                             <Copy className="w-3 h-3 text-gray-500" />
                           )}
                         </button>
                       </div>
+                      <div className="text-xs text-gray-500">
+                        Routing: {account.routingNumber} | Swift: {account.swiftCode}
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500 py-4">No bank accounts found.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+                <Smartphone className="w-5 h-5 text-purple-600" />
+                Mobile Banking
+              </h2>
+              <button
+                onClick={() => setIsMobileFormOpen(true)}
+                className="flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
+              >
+                <Plus size={16} />
+                Add Account
+              </button>
+            </div>
+            <div className="space-y-4">
+              {loading ? (
+                <div className="flex justify-center items-center p-8">
+                  <Loader2 className="animate-spin h-8 w-8 text-purple-500" />
                 </div>
-              ))}
+              ) : mobileBankingAccounts.length > 0 ? (
+                mobileBankingAccounts.map((account) => (
+                  <div key={account._id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center`}>
+                          <Smartphone className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
+                            {account.serviceName}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            {account.accountHolderName} ({account.accountName})
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                         <p className="font-bold text-lg text-green-600">৳{account.balance.toLocaleString()}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Phone className="w-3 h-3 text-gray-500" />
+                          <span className="font-mono text-sm">{account.mobileNumber}</span>
+                          <button
+                            onClick={() => copyToClipboard(account.mobileNumber, 'mobile')}
+                            className="p-1 hover:bg-gray-100 rounded"
+                          >
+                            {copiedText === `mobile_${account.mobileNumber}` ? (
+                              <Check className="w-3 h-3 text-green-600" />
+                            ) : (
+                              <Copy className="w-3 h-3 text-gray-500" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500 py-4">No mobile banking accounts found.</p>
+              )}
             </div>
           </div>
         </div>
@@ -808,6 +888,47 @@ const Banking = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Bank Account Form */}
+      <FormDialog
+        open={isBankFormOpen}
+        onClose={() => setIsBankFormOpen(false)}
+        title="Add New Bank Account"
+        primaryButtonText={isSubmitting ? "Adding..." : "Add Account"}
+        secondaryButtonText="Cancel"
+        onSubmit={() => handleAddAccount(bankFormData, 'Bank')}
+        isPrimaryButtonDisabled={isSubmitting}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <InputField label="Bank Name" name="bankName" value={bankFormData.bankName} onChange={handleBankFormChange} required />
+          <InputField label="Branch Name" name="branchName" value={bankFormData.branchName} onChange={handleBankFormChange} required />
+          <InputField label="Account Holder Name" name="accountHolderName" value={bankFormData.accountHolderName} onChange={handleBankFormChange} required />
+          <InputField label="Account Name" name="accountName" value={bankFormData.accountName} onChange={handleBankFormChange} placeholder="e.g., Primary Business Account" required />
+          <InputField label="Account Number" name="accountNumber" value={bankFormData.accountNumber} onChange={handleBankFormChange} required />
+          <InputField label="SWIFT Code" name="swiftCode" value={bankFormData.swiftCode} onChange={handleBankFormChange} />
+          <InputField label="Routing Number" name="routingNumber" value={bankFormData.routingNumber} onChange={handleBankFormChange} />
+          <InputField label="Initial Balance" name="balance" type="number" value={bankFormData.balance} onChange={handleBankFormChange} required />
+        </div>
+      </FormDialog>
+
+      {/* Add Mobile Banking Account Form */}
+      <FormDialog
+        open={isMobileFormOpen}
+        onClose={() => setIsMobileFormOpen(false)}
+        title="Add New Mobile Banking Account"
+        primaryButtonText={isSubmitting ? "Adding..." : "Add Account"}
+        secondaryButtonText="Cancel"
+        onSubmit={() => handleAddAccount(mobileFormData, 'Mobile Banking')}
+        isPrimaryButtonDisabled={isSubmitting}
+      >
+        <div className="space-y-4">
+          <InputField label="Service Name" name="serviceName" value={mobileFormData.serviceName} onChange={handleMobileFormChange} placeholder="e.g., Bkash, Nagad" required />
+          <InputField label="Account Number" name="accountNumber" value={mobileFormData.accountNumber} onChange={handleMobileFormChange} required />
+          <InputField label="Account Holder Name" name="accountHolderName" value={mobileFormData.accountHolderName} onChange={handleMobileFormChange} required />
+          <InputField label="Account Name" name="accountName" value={mobileFormData.accountName} onChange={handleMobileFormChange} placeholder="e.g., Personal Bkash" required />
+          <InputField label="Initial Balance" name="balance" type="number" value={mobileFormData.balance} onChange={handleMobileFormChange} required />
+        </div>
+      </FormDialog>
     </div>
   );
 };

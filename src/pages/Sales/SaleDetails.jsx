@@ -34,6 +34,7 @@ const SaleDetails = () => {
   const [error, setError] = useState(null);
   const [invoiceHistory, setInvoiceHistory] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [accounts, setAccounts] = useState([]);
 
   // State for Add Payment Dialog
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
@@ -42,6 +43,7 @@ const SaleDetails = () => {
     amount: "",
     date: new Date().toISOString().split("T")[0],
     method: "cash",
+    bankAccount: "",
   });
 
   // State for Update Sale Modal
@@ -65,17 +67,35 @@ const SaleDetails = () => {
     }
   };
 
+  const fetchAccounts = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}bank/get-all-accounts`);
+      if (response.data.success) {
+        setAccounts(response.data.data || []);
+      } else {
+        toast.error("Failed to fetch accounts.");
+      }
+    } catch (error) {
+      console.error("Error fetching accounts:", error);
+      toast.error("An unexpected error occurred while fetching accounts.");
+    }
+  };
+
   const fetchInvoiceHistory = async () => {
     try {
       const response = await axios.get(`${baseUrl}invoice/sale/${id}`);
       if (response.data.success) {
         setInvoiceHistory(response.data.data || []);
       } else {
-        toast.error(response.data.message || "Failed to fetch invoice history.");
+        toast.error(
+          response.data.message || "Failed to fetch invoice history."
+        );
       }
     } catch (error) {
       console.error("Failed to fetch invoice history:", error);
-      toast.error("An unexpected error occurred while fetching invoice history.");
+      toast.error(
+        "An unexpected error occurred while fetching invoice history."
+      );
     }
   };
 
@@ -83,6 +103,7 @@ const SaleDetails = () => {
     if (baseUrl && id) {
       fetchSaleDetails();
       fetchInvoiceHistory();
+      fetchAccounts();
     }
   }, [id, baseUrl]);
 
@@ -157,10 +178,14 @@ const SaleDetails = () => {
 
   const handlePaymentFormChange = (e) => {
     const { name, value } = e.target;
-    setPaymentData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setPaymentData((prev) => {
+      const newState = { ...prev, [name]: value };
+      // Reset bank account if method changes
+      if (name === "method") {
+        newState.bankAccount = "";
+      }
+      return newState;
+    });
   };
 
   const handleAddPayment = async () => {
@@ -180,12 +205,24 @@ const SaleDetails = () => {
       return;
     }
 
+    // Prepare the payload
+    const payload = {
+      ...paymentData,
+      amount: amount,
+    };
+
+    if (paymentData.method === "cash") {
+      // For cash payments, explicitly set bankAccount to null
+      payload.bankAccount = null;
+    } else if (!paymentData.bankAccount) {
+      // For bank/mobile-banking, if bankAccount is missing, show error
+      toast.error("Please select an account for this payment method.");
+      return;
+    }
+
     setIsSubmittingPayment(true);
     try {
-      const response = await axios.post(`${baseUrl}sales/${id}/payments`, {
-        ...paymentData,
-        amount: amount,
-      });
+      const response = await axios.post(`${baseUrl}sales/${id}/payments`, payload);
       if (response.data.success) {
         toast.success(response.data.message || "Payment added successfully!");
         setIsPaymentDialogOpen(false);
@@ -193,13 +230,18 @@ const SaleDetails = () => {
           amount: "",
           date: new Date().toISOString().split("T")[0],
           method: "cash",
+          bankAccount: "",
         });
         await fetchSaleDetails();
       } else {
         toast.error(response.data.message || "Failed to add payment.");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || "An unexpected error occurred while adding the payment.");
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "An unexpected error occurred while adding the payment."
+      );
     } finally {
       setIsSubmittingPayment(false);
     }
@@ -671,12 +713,33 @@ const SaleDetails = () => {
               onChange={handlePaymentFormChange}
               options={[
                 { value: "cash", label: "Cash" },
-                { value: "bank", label: "Bank" },
-                { value: "card", label: "Card" },
-                { value: "other", label: "Other" },
+                { value: "bank", label: "Bank Transfer" },
+                { value: "mobile-banking", label: "Mobile Banking" },
               ]}
               required
             />
+            {(paymentData.method === "bank" ||
+              paymentData.method === "mobile-banking") && (
+              <SelectField
+                label="Account"
+                name="bankAccount"
+                value={paymentData.bankAccount}
+                onChange={handlePaymentFormChange}
+                options={accounts
+                  .filter((acc) =>
+                    paymentData.method === "bank"
+                      ? acc.accountType === "Bank"
+                      : acc.accountType === "Mobile Banking"
+                  )
+                  .map((acc) => ({
+                    value: acc._id,
+                    label: `${acc.accountName} (${
+                      acc.bankName || acc.serviceName
+                    })`,
+                  }))}
+                required
+              />
+            )}
           </div>
         </FormDialog>
 

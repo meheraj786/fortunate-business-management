@@ -81,6 +81,7 @@ const AddSales = ({
   const [products, setProducts] = useState([]);
 
   const [warehouses, setWarehouses] = useState([]);
+  const [accounts, setAccounts] = useState([]);
 
   // Fetch data when modal opens
 
@@ -89,24 +90,25 @@ const AddSales = ({
 
     const fetchData = async () => {
       try {
-        const [productsRes, customersRes, warehousesRes, categoriesRes] =
-          await Promise.all([
-            axios.get(`${baseUrl}product/get-all-product`),
-
-            axios.get(`${baseUrl}customer/get-customers`),
-
-            axios.get(`${baseUrl}warehouse/get-all-warehouse`),
-
-            axios.get(`${baseUrl}category/get`),
-          ]);
+        const [
+          productsRes,
+          customersRes,
+          warehousesRes,
+          categoriesRes,
+          accountsRes,
+        ] = await Promise.all([
+          axios.get(`${baseUrl}product/get-all-product`),
+          axios.get(`${baseUrl}customer/get-customers`),
+          axios.get(`${baseUrl}warehouse/get-all-warehouse`),
+          axios.get(`${baseUrl}category/get`),
+          axios.get(`${baseUrl}bank/get-all-accounts`),
+        ]);
 
         setProducts(productsRes.data.data || []);
-
         setCustomers(customersRes.data.data || []);
-
         setWarehouses(warehousesRes.data.data || []);
-
         setCategories(categoriesRes.data.data || []);
+        setAccounts(accountsRes.data.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
 
@@ -158,6 +160,7 @@ const AddSales = ({
           editData.payments?.map((p) => ({
             ...p,
             date: new Date(p.date).toISOString().split("T")[0],
+            bankAccount: p.bankAccount?._id || "",
           })) || [],
 
         notes: editData.notes || "",
@@ -375,6 +378,18 @@ const AddSales = ({
 
       if (salesData.invoiceStatus === "Invoiced") {
         salesData.paymentStatus = formData.paymentStatus;
+
+        for (const p of formData.payments) {
+          if (
+            (p.method === "bank" || p.method === "mobile-banking") &&
+            !p.bankAccount
+          ) {
+            toast.error(`Please select an account for the ${p.method} payment.`);
+            if (loadingToast) toast.dismiss(loadingToast);
+            return; // Stop submission
+          }
+        }
+
         salesData.payments = formData.payments
           .filter(p => p.amount && p.date && p.method)
           .map(p => ({
@@ -857,10 +872,38 @@ const AddSales = ({
                             onChange={(e) =>
                               handleArrayField("payments", "update", index, {
                                 method: e.target.value,
+                                bankAccount: "", // Reset bank account when method changes
                               })
                             }
                             options={paymentMethodOptions}
                           />
+
+                          {(payment.method === "bank" ||
+                            payment.method === "mobile-banking") && (
+                            <SelectField
+                              label="Account"
+                              name={`payments[${index}].bankAccount`}
+                              value={payment.bankAccount}
+                              onChange={(e) =>
+                                handleArrayField("payments", "update", index, {
+                                  bankAccount: e.target.value,
+                                })
+                              }
+                              options={accounts
+                                .filter((acc) =>
+                                  payment.method === "bank"
+                                    ? acc.accountType === "Bank"
+                                    : acc.accountType === "Mobile Banking"
+                                )
+                                .map((acc) => ({
+                                  value: acc._id,
+                                  label: `${acc.accountName} (${
+                                    acc.bankName || acc.serviceName
+                                  })`,
+                                }))}
+                              required
+                            />
+                          )}
 
                           <button
                             type="button"
@@ -882,6 +925,7 @@ const AddSales = ({
                               amount: "",
                               date: new Date().toISOString().split("T")[0],
                               method: "",
+                              bankAccount: "",
                             },
                           })
                         }
@@ -895,18 +939,47 @@ const AddSales = ({
                   )}
 
                   {formData.paymentStatus === "Paid payment" && (
-                    <SelectField
-                      label="Payment Method"
-                      name="payments[0].method"
-                      value={formData.payments[0]?.method || ""}
-                      onChange={(e) =>
-                        handleArrayField("payments", "update", 0, {
-                          method: e.target.value,
-                        })
-                      }
-                      options={paymentMethodOptions}
-                      required
-                    />
+                    <>
+                      <SelectField
+                        label="Payment Method"
+                        name="payments[0].method"
+                        value={formData.payments[0]?.method || ""}
+                        onChange={(e) =>
+                          handleArrayField("payments", "update", 0, {
+                            method: e.target.value,
+                            bankAccount: "", // Reset on change
+                          })
+                        }
+                        options={paymentMethodOptions}
+                        required
+                      />
+                      {(formData.payments[0]?.method === "bank" ||
+                        formData.payments[0]?.method === "mobile-banking") && (
+                        <SelectField
+                          label="Account"
+                          name="payments[0].bankAccount"
+                          value={formData.payments[0]?.bankAccount || ""}
+                          onChange={(e) =>
+                            handleArrayField("payments", "update", 0, {
+                              bankAccount: e.target.value,
+                            })
+                          }
+                          options={accounts
+                            .filter((acc) =>
+                              formData.payments[0]?.method === "bank"
+                                ? acc.accountType === "Bank"
+                                : acc.accountType === "Mobile Banking"
+                            )
+                            .map((acc) => ({
+                              value: acc._id,
+                              label: `${acc.accountName} (${
+                                acc.bankName || acc.serviceName
+                              })`,
+                            }))}
+                          required
+                        />
+                      )}
+                    </>
                   )}
                 </div>
               </fieldset>
