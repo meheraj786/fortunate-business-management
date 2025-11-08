@@ -12,13 +12,18 @@ import {
   Package,
   Printer,
   Loader2,
+  Edit,
+  Trash2,
+  XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import axios from "axios";
 import Breadcrumb from "../../components/common/Breadcrumb";
 import { UrlContext } from "../../context/UrlContext";
 import FormDialog from "../../components/common/FormDialog";
 import InputField from "../../components/forms/InputField";
 import SelectField from "../../components/forms/SelectField";
+import AddSales from "./AddSales";
 
 const SaleDetails = () => {
   const { id } = useParams();
@@ -39,16 +44,18 @@ const SaleDetails = () => {
     method: "cash",
   });
 
-  const fetchSaleDetails = async () => {
-    try {
-      const response = await fetch(`${baseUrl}sales/get-sales/${id}`);
-      const result = await response.json();
+  // State for Update Sale Modal
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
-      if (result.success) {
-        setSale(result.data);
+  const fetchSaleDetails = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${baseUrl}sales/get-sales/${id}`);
+      if (response.data.success) {
+        setSale(response.data.data);
       } else {
-        setError(result.message);
-        toast.error(result.message || "Failed to fetch sale details.");
+        setError(response.data.message);
+        toast.error(response.data.message || "Failed to fetch sale details.");
       }
     } catch (err) {
       setError("Failed to fetch sale details.");
@@ -60,13 +67,15 @@ const SaleDetails = () => {
 
   const fetchInvoiceHistory = async () => {
     try {
-      const response = await fetch(`${baseUrl}invoice/sale/${id}`);
-      const result = await response.json();
-      if (result.success) {
-        setInvoiceHistory(result.data || []);
+      const response = await axios.get(`${baseUrl}invoice/sale/${id}`);
+      if (response.data.success) {
+        setInvoiceHistory(response.data.data || []);
+      } else {
+        toast.error(response.data.message || "Failed to fetch invoice history.");
       }
     } catch (error) {
       console.error("Failed to fetch invoice history:", error);
+      toast.error("An unexpected error occurred while fetching invoice history.");
     }
   };
 
@@ -76,6 +85,46 @@ const SaleDetails = () => {
       fetchInvoiceHistory();
     }
   }, [id, baseUrl]);
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this sale? This action is irreversible.")) {
+      const toastId = toast.loading("Deleting sale...");
+      try {
+        const response = await axios.delete(`${baseUrl}sales/delete-sale/${id}`);
+        if (response.data.success) {
+          toast.success(response.data.message || "Sale deleted successfully", { id: toastId });
+          navigate("/sales");
+        } else {
+          toast.error(response.data.message || "Failed to delete sale.", { id: toastId });
+        }
+      } catch (err) {
+        toast.error(err.response?.data?.message || err.message || "An unexpected error occurred while deleting the sale.", { id: toastId });
+      }
+    }
+  };
+
+  const handleCancelSale = async () => {
+    if (window.confirm("Are you sure you want to cancel this sale?")) {
+      const toastId = toast.loading("Cancelling sale...");
+      try {
+        const response = await axios.patch(`${baseUrl}sales/cancel-sale/${id}`);
+        if (response.data.success) {
+          toast.success(response.data.message || "Sale cancelled successfully", { id: toastId });
+          setSale(response.data.data);
+        } else {
+          toast.error(response.data.message || "Failed to cancel sale.", { id: toastId });
+        }
+      } catch (err) {
+        toast.error(err.response?.data?.message || err.message || "An unexpected error occurred while cancelling the sale.", { id: toastId });
+      }
+    }
+  };
+
+  const onSaleUpdated = (updatedSale) => {
+    setSale(updatedSale);
+    setIsUpdateModalOpen(false);
+    fetchInvoiceHistory(); // Refresh invoice history as well
+  };
 
   // Calculations
   const totalOtherCharges =
@@ -92,20 +141,15 @@ const SaleDetails = () => {
   const handleGenerateInvoice = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch(`${baseUrl}invoice/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ saleId: id }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        toast.success("Invoice generated successfully!");
-        navigate(`/sales/${id}/invoice/${result.data._id}`);
+      const response = await axios.post(`${baseUrl}invoice/generate`, { saleId: id });
+      if (response.data.success) {
+        toast.success(response.data.message || "Invoice generated successfully!");
+        navigate(`/sales/${id}/invoice/${response.data.data._id}`);
       } else {
-        toast.error(result.message || "Failed to generate invoice.");
+        toast.error(response.data.message || "Failed to generate invoice.");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred while generating the invoice.");
+      toast.error(error.response?.data?.message || error.message || "An unexpected error occurred while generating the invoice.");
     } finally {
       setIsGenerating(false);
     }
@@ -118,12 +162,6 @@ const SaleDetails = () => {
       [name]: value,
     }));
   };
-
-  // const handlePaymentFormChange = (e) => {
-  //   console.log("Change event:", e.target.name, e.target.value); // Debug line
-  //   const { name, value } = e.target;
-  //   setPaymentData((prev) => ({ ...prev, [name]: value }));
-  // };
 
   const handleAddPayment = async () => {
     const amount = Number(paymentData.amount);
@@ -144,17 +182,12 @@ const SaleDetails = () => {
 
     setIsSubmittingPayment(true);
     try {
-      const response = await fetch(`${baseUrl}sales/${id}/payments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...paymentData,
-          amount: amount,
-        }),
+      const response = await axios.post(`${baseUrl}sales/${id}/payments`, {
+        ...paymentData,
+        amount: amount,
       });
-      const result = await response.json();
-      if (result.success) {
-        toast.success("Payment added successfully!");
+      if (response.data.success) {
+        toast.success(response.data.message || "Payment added successfully!");
         setIsPaymentDialogOpen(false);
         setPaymentData({
           amount: "",
@@ -163,10 +196,10 @@ const SaleDetails = () => {
         });
         await fetchSaleDetails();
       } else {
-        toast.error(result.message || "Failed to add payment.");
+        toast.error(response.data.message || "Failed to add payment.");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred while adding the payment.");
+      toast.error(error.response?.data?.message || error.message || "An unexpected error occurred while adding the payment.");
     } finally {
       setIsSubmittingPayment(false);
     }
@@ -226,6 +259,8 @@ const SaleDetails = () => {
     { label: `Sale #${sale._id.slice(-6)}` },
   ];
 
+  const isCancelled = sale.invoiceStatus === "Cancelled";
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
@@ -257,19 +292,46 @@ const SaleDetails = () => {
             <div className="flex flex-col items-end">
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  sale.paymentStatus === "Paid Payment"
+                  isCancelled
+                    ? "bg-red-100 text-red-800"
+                    : sale.paymentStatus === "Paid Payment"
                     ? "bg-green-100 text-green-800"
                     : sale.paymentStatus === "Due payment"
                     ? "bg-yellow-100 text-yellow-800"
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
-                {sale.paymentStatus}
+                {isCancelled ? "Cancelled" : sale.paymentStatus}
               </span>
               <p className="text-2xl font-bold text-gray-900 mt-2">
                 ${netAmount.toFixed(2)}
               </p>
             </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-200 flex items-center gap-2">
+            <button
+              onClick={() => setIsUpdateModalOpen(true)}
+              disabled={isCancelled}
+              className="flex items-center gap-2 px-3 py-2 text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              <Edit size={16} />
+              Update
+            </button>
+            <button
+              onClick={handleCancelSale}
+              disabled={isCancelled}
+              className="flex items-center gap-2 px-3 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              <XCircle size={16} />
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-2 px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <Trash2 size={16} />
+              Delete
+            </button>
           </div>
         </div>
 
@@ -320,7 +382,7 @@ const SaleDetails = () => {
                   <p className="text-sm text-gray-600 mb-1">Payment Status</p>
                   <p className="font-medium text-gray-900 flex items-center">
                     <DollarSign size={16} className="mr-2 text-gray-400" />
-                    {sale.paymentStatus}
+                    {isCancelled ? "N/A" : sale.paymentStatus}
                   </p>
                 </div>
               </div>
@@ -332,10 +394,10 @@ const SaleDetails = () => {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Financial Summary
                 </h3>
-                {sale.paymentStatus === "Due payment" && balanceDue > 0 && (
+                {sale.paymentStatus === "Due payment" && balanceDue > 0 && !isCancelled && (
                   <button
                     onClick={() => setIsPaymentDialogOpen(true)}
-                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-3 py-1 text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
                   >
                     Add Payment
                   </button>
@@ -519,7 +581,7 @@ const SaleDetails = () => {
         </div>
 
         {/* Invoice Section */}
-        {sale.invoiceStatus === "Invoiced" && (
+        {sale.invoiceStatus === "Invoiced" && !isCancelled && (
           <div className="bg-white rounded-lg shadow-sm mt-6">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800">
@@ -530,7 +592,7 @@ const SaleDetails = () => {
               <button
                 onClick={handleGenerateInvoice}
                 disabled={isGenerating}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-4 disabled:bg-blue-400"
+                className="flex items-center gap-2 px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors mb-4 disabled:bg-blue-400"
               >
                 <Printer size={16} />
                 {isGenerating ? "Generating..." : "Generate New Invoice"}
@@ -586,7 +648,7 @@ const SaleDetails = () => {
           <div className="space-y-4">
             <InputField
               label="Amount"
-              name="amount" // ← This is crucial
+              name="amount"
               type="number"
               value={paymentData.amount}
               onChange={handlePaymentFormChange}
@@ -617,6 +679,16 @@ const SaleDetails = () => {
             />
           </div>
         </FormDialog>
+
+        {/* Update Sale Modal */}
+        {isUpdateModalOpen && (
+          <AddSales
+            isOpen={isUpdateModalOpen}
+            onClose={() => setIsUpdateModalOpen(false)}
+            editData={sale}
+            onSaleAdded={onSaleUpdated}
+          />
+        )}
       </div>
     </div>
   );

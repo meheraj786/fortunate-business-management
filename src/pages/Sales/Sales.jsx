@@ -29,13 +29,17 @@ const Sales = () => {
   const itemsPerPage = 10;
   const { baseUrl } = useContext(UrlContext);
 
-  useEffect(() => {
+  const fetchSales = () => {
     axios
       .get(`${baseUrl}sales/get-all-sales`)
       .then((res) => setSalesData(res.data.data || []))
       .catch((error) => {
         console.error("Error fetching all sales:", error);
       });
+  };
+
+  useEffect(() => {
+    fetchSales();
   }, [baseUrl]);
 
   useEffect(() => {
@@ -73,9 +77,8 @@ const Sales = () => {
     currentPage * itemsPerPage
   );
 
-  const handleSaleAdded = (newSale) => {
-    const newId = Math.max(...salesData.map((s) => s.id)) + 1;
-    setSalesData([{ ...newSale, id: newId }, ...salesData]);
+  const handleSaleAdded = () => {
+    fetchSales(); // Refetch the full list to get populated data
     setShowAddSale(false);
   };
 
