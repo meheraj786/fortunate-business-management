@@ -317,55 +317,61 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                <SelectField
+                                                <SelectField
 
-                  label="Warehouse"
+                                                  label="Warehouse"
 
-                  value={formData.warehouseId}
+                                                  name="warehouseId"
 
-                  onChange={(v) => handleInputChange("warehouseId", v)}
+                                                  value={formData.warehouseId}
 
-                  options={warehouses.map(w => ({ value: w._id, label: w.name }))}
+                                                  onChange={(e) => handleInputChange("warehouseId", e.target.value)}
 
-                  required
+                                                  options={warehouses.map(w => ({ value: w._id, label: w.name }))}
 
-                  icon={Home}
+                                                  required
 
-                />
+                                                  icon={Home}
 
-                <SelectField
+                                                />
 
-                  label="Category"
+                                                <SelectField
 
-                  value={formData.categoryId}
+                                                  label="Category"
 
-                  onChange={(v) => handleInputChange("categoryId", v)}
+                                                  name="categoryId"
 
-                  options={categories.map(c => ({ value: c._id, label: c.name }))}
+                                                  value={formData.categoryId}
 
-                  icon={Tag}
+                                                  onChange={(e) => handleInputChange("categoryId", e.target.value)}
 
-                  disabled={!formData.warehouseId}
+                                                  options={categories.map(c => ({ value: c._id, label: c.name }))}
 
-                />
+                                                  icon={Tag}
 
-                <SelectField
+                                                  disabled={!formData.warehouseId}
 
-                  label="Product Name"
+                                                />
 
-                  value={formData.productId}
+                                                <SelectField
 
-                  onChange={(v) => handleInputChange("productId", v)}
+                                                  label="Product Name"
 
-                  options={availableProducts.map(p => ({ value: p._id, label: p.name }))}
+                                                  name="productId"
 
-                  required
+                                                  value={formData.productId}
 
-                  icon={Package}
+                                                  onChange={(e) => handleInputChange("productId", e.target.value)}
 
-                  disabled={!formData.warehouseId}
+                                                  options={availableProducts.map(p => ({ value: p._id, label: p.name }))}
 
-                />
+                                                  required
+
+                                                  icon={Package}
+
+                                                  disabled={!formData.warehouseId}
+
+                                                />
 
               </div>
 
@@ -375,59 +381,65 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
-                <InputField
+                                                <InputField
 
-                  label="Quantity"
+                                                  label="Quantity"
 
-                  type="number"
+                                                  name="quantity"
 
-                  value={formData.quantity}
+                                                  type="number"
 
-                  onChange={(v) => handleInputChange("quantity", v)}
+                                                  value={formData.quantity}
 
-                  required
+                                                  onChange={(e) => handleInputChange("quantity", e.target.value)}
 
-                  placeholder="0"
+                                                  required
 
-                  icon={Hash}
+                                                  placeholder="0"
 
-                />
+                                                  icon={Hash}
 
-                <SelectField
+                                                />
 
-                  label="Select Unit"
+                                                <SelectField
 
-                  value={formData.unit}
+                                                  label="Select Unit"
 
-                  onChange={(v) => handleInputChange("unit", v)}
+                                                  name="unit"
 
-                  options={unitOptions}
+                                                  value={formData.unit}
 
-                  required
+                                                  onChange={(e) => handleInputChange("unit", e.target.value)}
 
-                  icon={Ruler}
+                                                  options={unitOptions}
 
-                />
+                                                  required
 
-                <InputField
+                                                  icon={Ruler}
 
-                  label="Price Per Unit"
+                                                />
 
-                  type="number"
+                                                <InputField
 
-                  value={formData.pricePerUnit}
+                                                  label="Price Per Unit"
 
-                  onChange={(v) => handleInputChange("pricePerUnit", v)}
+                                                  name="pricePerUnit"
 
-                  required
+                                                  type="number"
 
-                  placeholder="0.00"
+                                                  value={formData.pricePerUnit}
 
-                  icon={DollarSign}
+                                                  onChange={(e) => handleInputChange("pricePerUnit", e.target.value)}
 
-                  step="0.01"
+                                                  required
 
-                />
+                                                  placeholder="0.00"
+
+                                                  icon={DollarSign}
+
+                                                  step="0.01"
+
+                                                />
 
                 <div className="space-y-2">
 
@@ -449,93 +461,103 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <SelectField
+                                                <SelectField
 
-                  label="Customer Type"
+                                                  label="Customer Type"
 
-                  value={formData.customerType}
+                                                  name="customerType"
 
-                  onChange={(v) => handleInputChange("customerType", v)}
+                                                  value={formData.customerType}
 
-                  options={[
+                                                  onChange={(e) => handleInputChange("customerType", e.target.value)}
 
-                    { value: "existing", label: "Existing Customer" },
+                                                  options={[
 
-                    { value: "manual", label: "Manual Input" },
+                                                    { value: "existing", label: "Existing Customer" },
 
-                  ]}
+                                                    { value: "manual", label: "Manual Input" },
 
-                  required
+                                                  ]}
 
-                />
+                                                  required
+
+                                                />
 
                 
 
                 {formData.customerType === "existing" ? (
 
-                  <SelectField
+                                                      <SelectField
 
-                    label="Customer Name"
+                                                        label="Customer Name"
 
-                    value={formData.customerName}
+                                                        name="customerName"
 
-                    onChange={(v) => handleInputChange("customerName", v)}
+                                                        value={formData.customerName}
 
-                    options={customers.map(c => ({ value: c.name, label: `${c.name} - ${c.phone}` }))}
+                                                        onChange={(e) => handleInputChange("customerName", e.target.value)}
 
-                    required
+                                                        options={customers.map(c => ({ value: c.name, label: `${c.name} - ${c.phone}` }))}
 
-                    icon={User}
+                                                        required
 
-                  />
+                                                        icon={User}
+
+                                                      />
 
                 ) : formData.customerType === "manual" && (
 
                   <>
 
-                    <InputField
+                                                            <InputField
 
-                      label="Customer Name"
+                                                              label="Customer Name"
 
-                      value={formData.customerName}
+                                                              name="customerName"
 
-                      onChange={(v) => handleInputChange("customerName", v)}
+                                                              value={formData.customerName}
 
-                      required
+                                                              onChange={(e) => handleInputChange("customerName", e.target.value)}
 
-                      placeholder="Enter customer name"
+                                                              required
 
-                      icon={User}
+                                                              placeholder="Enter customer name"
 
-                    />
+                                                              icon={User}
 
-                    <InputField
+                                                            />
 
-                      label="Phone Number"
+                                                            <InputField
 
-                      value={formData.customerPhone}
+                                                              label="Phone Number"
 
-                      onChange={(v) => handleInputChange("customerPhone", v)}
+                                                              name="customerPhone"
 
-                      placeholder="Enter phone number"
+                                                              value={formData.customerPhone}
 
-                      icon={User}
+                                                              onChange={(e) => handleInputChange("customerPhone", e.target.value)}
 
-                    />
+                                                              placeholder="Enter phone number"
 
-                    <InputField
+                                                              icon={User}
 
-                      label="Address"
+                                                            />
 
-                      value={formData.customerAddress}
+                                                            <InputField
 
-                      onChange={(v) => handleInputChange("customerAddress", v)}
+                                                              label="Address"
 
-                      placeholder="Enter address"
+                                                              name="customerAddress"
 
-                      icon={User}
+                                                              value={formData.customerAddress}
 
-                    />
+                                                              onChange={(e) => handleInputChange("customerAddress", e.target.value)}
+
+                                                              placeholder="Enter address"
+
+                                                              icon={User}
+
+                                                            />
 
                   </>
 
@@ -543,21 +565,39 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
                 
 
-                <InputField
+                                                <InputField
 
-                  label="Sale Date"
+                
 
-                  type="date"
+                                                  label="Sale Date"
 
-                  value={formData.saleDate}
+                
 
-                  onChange={(v) => handleInputChange("saleDate", v)}
+                                                  name="saleDate"
 
-                  required
+                
 
-                  icon={Calendar}
+                                                  type="date"
 
-                />
+                
+
+                                                  value={formData.saleDate}
+
+                
+
+                                                  onChange={(e) => handleInputChange("saleDate", e.target.value)}
+
+                
+
+                                                  required
+
+                
+
+                                                  icon={Calendar}
+
+                
+
+                                                />
 
               </div>
 
@@ -567,45 +607,49 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <SelectField
+                                                <SelectField
 
-                  label="Invoice Status"
+                                                  label="Invoice Status"
 
-                  value={formData.invoiceStatus}
+                                                  name="invoiceStatus"
 
-                  onChange={(v) => handleInputChange("invoiceStatus", v)}
+                                                  value={formData.invoiceStatus}
 
-                  options={[
+                                                  onChange={(e) => handleInputChange("invoiceStatus", e.target.value)}
 
-                    { value: "Invoiced", label: "Invoiced" },
+                                                  options={[
 
-                    { value: "Not-invoiced", label: "Not Invoiced" },
+                                                    { value: "Invoiced", label: "Invoiced" },
 
-                  ]}
+                                                    { value: "Not-invoiced", label: "Not Invoiced" },
 
-                  required
+                                                  ]}
 
-                  icon={FileText}
+                                                  required
 
-                />
+                                                  icon={FileText}
 
-                <InputField
+                                                />
 
-                  label="Delivery Charge"
+                                                <InputField
 
-                  type="number"
+                                                  label="Delivery Charge"
 
-                  value={formData.deliveryCharge}
+                                                  name="deliveryCharge"
 
-                  onChange={(v) => handleInputChange("deliveryCharge", v)}
+                                                  type="number"
 
-                  placeholder="0.00"
+                                                  value={formData.deliveryCharge}
 
-                  icon={Truck}
+                                                  onChange={(e) => handleInputChange("deliveryCharge", e.target.value)}
 
-                  step="0.01"
+                                                  placeholder="0.00"
 
-                />
+                                                  icon={Truck}
+
+                                                  step="0.01"
+
+                                                />
 
               </div>
 
@@ -621,33 +665,37 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
                   <div key={index} className="flex items-center gap-4 mb-2">
 
-                    <InputField
+                                                            <InputField
 
-                      label={`Charge Name ${index + 1}`}
+                                                              label={`Charge Name ${index + 1}`}
 
-                      value={charge.name}
+                                                              name={`otherCharges[${index}].name`}
 
-                      onChange={(v) => handleArrayField("otherCharges", "update", index, { name: v })}
+                                                              value={charge.name}
 
-                      placeholder="e.g., Loading Charge"
+                                                              onChange={(e) => handleArrayField("otherCharges", "update", index, { name: e.target.value })}
 
-                    />
+                                                              placeholder="e.g., Loading Charge"
 
-                    <InputField
+                                                            />
 
-                      label="Amount"
+                                                            <InputField
 
-                      type="number"
+                                                              label="Amount"
 
-                      value={charge.amount}
+                                                              name={`otherCharges[${index}].amount`}
 
-                      onChange={(v) => handleArrayField("otherCharges", "update", index, { amount: v })}
+                                                              type="number"
 
-                      placeholder="0.00"
+                                                              value={charge.amount}
 
-                      step="0.01"
+                                                              onChange={(e) => handleArrayField("otherCharges", "update", index, { amount: e.target.value })}
 
-                    />
+                                                              placeholder="0.00"
+
+                                                              step="0.01"
+
+                                                            />
 
                     <button
 
@@ -695,23 +743,25 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
 
-                <InputField
+                                                <InputField
 
-                  label="Discount"
+                                                  label="Discount"
 
-                  type="number"
+                                                  name="discount"
 
-                  value={formData.discount}
+                                                  type="number"
 
-                  onChange={(v) => handleInputChange("discount", v)}
+                                                  value={formData.discount}
 
-                  placeholder="0.00"
+                                                  onChange={(e) => handleInputChange("discount", e.target.value)}
 
-                  icon={DollarSign}
+                                                  placeholder="0.00"
 
-                  step="0.01"
+                                                  icon={DollarSign}
 
-                />
+                                                  step="0.01"
+
+                                                />
 
                 <div className="space-y-2">
 
@@ -737,27 +787,29 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    <SelectField
+                                                            <SelectField
 
-                      label="Payment Status"
+                                                              label="Payment Status"
 
-                      value={formData.paymentStatus}
+                                                              name="paymentStatus"
 
-                      onChange={(v) => handleInputChange("paymentStatus", v)}
+                                                              value={formData.paymentStatus}
 
-                      options={[
+                                                              onChange={(e) => handleInputChange("paymentStatus", e.target.value)}
 
-                        { value: "Due payment", label: "Due Payment" },
+                                                              options={[
 
-                        { value: "Paid payment", label: "Paid Payment" },
+                                                                { value: "Due payment", label: "Due Payment" },
 
-                      ]}
+                                                                { value: "Paid payment", label: "Paid Payment" },
 
-                      required
+                                                              ]}
 
-                      icon={DollarSign}
+                                                              required
 
-                    />
+                                                              icon={DollarSign}
+
+                                                            />
 
                     
 
@@ -771,45 +823,51 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
                           <div key={index} className="grid grid-cols-1 md:grid-cols-4 items-center gap-4 mb-2">
 
-                            <InputField
+                                                                                    <InputField
 
-                              label={`Payment ${index + 1}`}
+                                                                                      label={`Payment ${index + 1}`}
 
-                              type="number"
+                                                                                      name={`payments[${index}].amount`}
 
-                              value={payment.amount}
+                                                                                      type="number"
 
-                              onChange={(v) => handleArrayField("payments", "update", index, { amount: v })}
+                                                                                      value={payment.amount}
 
-                              placeholder="0.00"
+                                                                                      onChange={(e) => handleArrayField("payments", "update", index, { amount: e.target.value })}
 
-                              step="0.01"
+                                                                                      placeholder="0.00"
 
-                            />
+                                                                                      step="0.01"
 
-                            <InputField
+                                                                                    />
 
-                              label="Date"
+                                                                                    <InputField
 
-                              type="date"
+                                                                                      label="Date"
 
-                              value={payment.date}
+                                                                                      name={`payments[${index}].date`}
 
-                              onChange={(v) => handleArrayField("payments", "update", index, { date: v })}
+                                                                                      type="date"
 
-                            />
+                                                                                      value={payment.date}
 
-                            <SelectField
+                                                                                      onChange={(e) => handleArrayField("payments", "update", index, { date: e.target.value })}
 
-                              label="Payment Method"
+                                                                                    />
 
-                              value={payment.method}
+                                                                                    <SelectField
 
-                              onChange={(v) => handleArrayField("payments", "update", index, { method: v })}
+                                                                                      label="Payment Method"
 
-                              options={paymentMethodOptions}
+                                                                                      name={`payments[${index}].method`}
 
-                            />
+                                                                                      value={payment.method}
+
+                                                                                      onChange={(e) => handleArrayField("payments", "update", index, { method: e.target.value })}
+
+                                                                                      options={paymentMethodOptions}
+
+                                                                                    />
 
                             <button
 
@@ -857,19 +915,21 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
                     {formData.paymentStatus === "Paid payment" && (
 
-                      <SelectField
+                                                                  <SelectField
 
-                        label="Payment Method"
+                                                                    label="Payment Method"
 
-                        value={formData.payments[0]?.method || ""}
+                                                                    name="payments[0].method"
 
-                        onChange={(v) => handleArrayField("payments", "update", 0, { method: v })}
+                                                                    value={formData.payments[0]?.method || ""}
 
-                        options={paymentMethodOptions}
+                                                                    onChange={(e) => handleArrayField("payments", "update", 0, { method: e.target.value })}
 
-                        required
+                                                                    options={paymentMethodOptions}
 
-                      />
+                                                                    required
+
+                                                                  />
 
                     )}
 
@@ -883,19 +943,21 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
               {/* Notes */}
 
-              <TextAreaField
+                                          <TextAreaField
 
-                label="Additional Notes (Optional)"
+                                            label="Additional Notes (Optional)"
 
-                value={formData.notes}
+                                            name="notes"
 
-                onChange={(v) => handleInputChange("notes", v)}
+                                            value={formData.notes}
 
-                placeholder="Any additional information about this sale..."
+                                            onChange={(e) => handleInputChange("notes", e.target.value)}
 
-                rows={2}
+                                            placeholder="Any additional information about this sale..."
 
-              />
+                                            rows={2}
+
+                                          />
 
   
 

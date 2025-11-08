@@ -2,6 +2,7 @@ import React from 'react';
 
 const SelectField = ({
   label,
+  name,
   value,
   onChange,
   options,
@@ -20,8 +21,9 @@ const SelectField = ({
         </div>
       )}
       <select
+        name={name}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
         required={required}
         disabled={disabled}
         className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${

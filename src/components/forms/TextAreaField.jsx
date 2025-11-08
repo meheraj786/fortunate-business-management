@@ -2,6 +2,7 @@ import React from 'react';
 
 const TextAreaField = ({
   label,
+  name,
   value,
   onChange,
   required = false,
@@ -13,8 +14,9 @@ const TextAreaField = ({
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <textarea
+      name={name}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={onChange}
       required={required}
       placeholder={placeholder}
       rows={rows}
