@@ -29,6 +29,7 @@ import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
 import FormDialog from "../../components/common/FormDialog";
 import InputField from "../../components/forms/InputField";
+import SelectField from "../../components/forms/SelectField";
 
 const Banking = () => {
   const { baseUrl } = useContext(UrlContext);
@@ -49,6 +50,7 @@ const Banking = () => {
   // Form states
   const [isBankFormOpen, setIsBankFormOpen] = useState(false);
   const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
+  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const initialBankData = {
@@ -71,6 +73,60 @@ const Banking = () => {
     balance: "",
   };
   const [mobileFormData, setMobileFormData] = useState(initialMobileData);
+  const [transactionStats, setTransactionStats] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+
+  const initialTransactionData = {
+    bankAccount: "",
+    date: new Date().toISOString().split("T")[0],
+    description: "",
+    type: "Credit",
+    amount: "",
+  };
+  const [transactionFormData, setTransactionFormData] = useState(initialTransactionData);
+
+  const openTransactionForm = (type) => {
+    setTransactionFormData({ ...initialTransactionData, type });
+    setIsTransactionFormOpen(true);
+  };
+
+  const handleTransactionFormChange = (e) => {
+    const { name, value } = e.target;
+    setTransactionFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddTransaction = async () => {
+    setIsSubmitting(true);
+    try {
+      const { bankAccount, date, description, type, amount } = transactionFormData;
+      if (!bankAccount || !description || !type || !amount) {
+        toast.error("Please fill all required fields.");
+        return;
+      }
+
+      const payload = {
+        ...transactionFormData,
+        amount: Number(amount),
+      };
+
+      const response = await axios.post(`${baseUrl}transaction/create`, payload);
+
+      if (response.data.success) {
+        toast.success(response.data.message || "Transaction created successfully!");
+        setIsTransactionFormOpen(false);
+        // Refresh all data
+        fetchAccounts();
+        fetchTransactionStats();
+        fetchTransactions();
+      } else {
+        toast.error(response.data.message || "Failed to create transaction.");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "An unexpected error occurred.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const fetchAccounts = async () => {
     setLoading(true);
@@ -91,9 +147,39 @@ const Banking = () => {
     }
   };
 
+  const fetchTransactionStats = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}transaction/get-stats`);
+      if (response.data.success) {
+        setTransactionStats(response.data.data);
+      } else {
+        toast.error(response.data.message || "Failed to fetch transaction stats.");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred while fetching transaction stats.");
+      console.error(error);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}transaction/get-all`);
+      if (response.data.success) {
+        setTransactions(response.data.data);
+      } else {
+        toast.error(response.data.message || "Failed to fetch transactions.");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred while fetching transactions.");
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     if (baseUrl) {
       fetchAccounts();
+      fetchTransactionStats();
+      fetchTransactions();
     }
   }, [baseUrl]);
 
@@ -143,198 +229,26 @@ const Banking = () => {
     }
   };
 
-  const salesDataWithPayment = [
-    {
-      id: 1,
-      productName: "Mild Steel Rod",
-      productId: 1,
-      lcNumber: "LC001",
-      quantity: 25,
-      price: 25.5,
-      invoiceStatus: "yes",
-      date: "2025-01-21",
-      customer: "Rahman Steel Works",
-      category: "Steel Rods",
-      size: "12mm x 12m",
-      unit: "pieces",
-      paymentMethod: "bank",
-      bankInfo: "Dutch Bangla Bank - Dhanmondi Branch"
-    },
-    {
-      id: 2,
-      productName: "Galvanized Steel Sheet",
-      productId: 2,
-      lcNumber: "LC002",
-      quantity: 10,
-      price: 45.0,
-      invoiceStatus: "yes",
-      date: "2025-01-22",
-      customer: "Metro Construction",
-      category: "Steel Sheets",
-      size: "4ft x 8ft x 2mm",
-      unit: "sheets",
-      paymentMethod: "bkash",
-      bankInfo: "bKash Personal"
-    },
-    {
-      id: 3,
-      productName: "Steel Angle Bar",
-      productId: 3,
-      lcNumber: "LC003",
-      quantity: 8,
-      price: 18.75,
-      invoiceStatus: "no",
-      date: "2025-01-20",
-      customer: "Building Solutions Ltd",
-      category: "Structural Steel",
-      size: "50mm x 50mm x 6m",
-      unit: "pieces",
-      paymentMethod: "cash",
-      bankInfo: "Cash Payment"
-    },
-    {
-      id: 4,
-      productName: "Stainless Steel Plate",
-      productId: 4,
-      lcNumber: "LC004",
-      quantity: 2,
-      price: 125.0,
-      invoiceStatus: "pending",
-      date: "2025-01-19",
-      customer: "Industrial Fabricators",
-      category: "Steel Plates",
-      size: "3ft x 6ft x 5mm",
-      unit: "plates",
-      paymentMethod: "nagad",
-      bankInfo: "Nagad Personal"
-    },
-    {
-      id: 5,
-      productName: "Steel Pipe",
-      productId: 5,
-      lcNumber: "LC005",
-      quantity: 5,
-      price: 65.5,
-      invoiceStatus: "yes",
-      date: "2025-01-18",
-      customer: "Pipe & Fittings Co",
-      category: "Steel Pipes",
-      size: "6 inch diameter x 6m",
-      unit: "pieces",
-      paymentMethod: "bank",
-      bankInfo: "BRAC Bank - Gulshan Branch"
-    },
-    {
-      id: 6,
-      productName: "Carbon Steel Bar",
-      productId: 6,
-      lcNumber: "LC006",
-      quantity: 15,
-      price: 32.25,
-      invoiceStatus: "pending",
-      date: "2025-01-10",
-      customer: "Steel Traders",
-      category: "Steel Bars",
-      size: "25mm x 6m",
-      unit: "pieces",
-      paymentMethod: "rocket",
-      bankInfo: "Rocket Personal"
-    },
-    {
-      id: 7,
-      productName: "Steel H-Beam",
-      productId: 7,
-      lcNumber: "LC007",
-      quantity: 3,
-      price: 185.0,
-      invoiceStatus: "yes",
-      date: "2025-01-15",
-      customer: "Heavy Construction",
-      category: "Structural Steel",
-      size: "200mm x 100mm x 12m",
-      unit: "pieces",
-      paymentMethod: "bank",
-      bankInfo: "Islami Bank - Motijheel Branch"
-    },
-    {
-      id: 8,
-      productName: "Coil Steel Strip",
-      productId: 8,
-      lcNumber: "LC008",
-      quantity: 1,
-      price: 450.0,
-      invoiceStatus: "no",
-      date: "2025-01-20",
-      customer: "Manufacturing Corp",
-      category: "Steel Coils",
-      size: "50mm width x 1000m",
-      unit: "coils",
-      paymentMethod: "upay",
-      bankInfo: "Upay Wallet"
-    },
-    {
-      id: 9,
-      productName: "Steel Wire Mesh",
-      productId: 9,
-      lcNumber: "LC009",
-      quantity: 8,
-      price: 75.0,
-      invoiceStatus: "pending",
-      date: "2025-01-16",
-      customer: "Mesh Solutions",
-      category: "Wire Products",
-      size: "4ft x 100ft x 2mm",
-      unit: "rolls",
-      paymentMethod: "bkash",
-      bankInfo: "bKash Personal"
-    },
-    {
-      id: 10,
-      productName: "TMT Steel Bar",
-      productId: 10,
-      lcNumber: "LC010",
-      quantity: 30,
-      price: 28.0,
-      invoiceStatus: "yes",
-      date: "2025-01-17",
-      customer: "Construction Materials Ltd",
-      category: "Steel Bars",
-      size: "16mm x 12m",
-      unit: "pieces",
-      paymentMethod: "bank",
-      bankInfo: "City Bank - Wari Branch"
-    }
-  ];
-
-
-
-
-
   const paymentMethods = [
     { value: "all", label: "All Methods" },
-    { value: "bank", label: "Bank Transfer" },
-    { value: "bkash", label: "bKash" },
-    { value: "nagad", label: "Nagad" },
-    { value: "rocket", label: "Rocket" },
-    { value: "upay", label: "Upay" },
-    { value: "cash", label: "Cash" }
+    { value: "Bank", label: "Bank Transfer" },
+    { value: "Mobile Banking", label: "Mobile Banking" },
+    { value: "Cash", label: "Cash" },
   ];
 
   const filteredData = useMemo(() => {
-    let filtered = salesDataWithPayment;
+    let filtered = transactions;
 
     if (searchTerm) {
       filtered = filtered.filter(
         (item) =>
-          item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.lcNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.bankInfo.toLowerCase().includes(searchTerm.toLowerCase())
+          item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.bankAccount?.accountName.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (paymentMethodFilter !== "all") {
-      filtered = filtered.filter((item) => item.paymentMethod === paymentMethodFilter);
+      filtered = filtered.filter((item) => item.bankAccount?.accountType === paymentMethodFilter);
     }
 
     const currentDate = new Date(selectedDate);
@@ -360,7 +274,7 @@ const Banking = () => {
     }
 
     return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [salesDataWithPayment, searchTerm, paymentMethodFilter, dateFilter, selectedDate]);
+  }, [transactions, searchTerm, paymentMethodFilter, dateFilter, selectedDate]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
@@ -368,10 +282,7 @@ const Banking = () => {
     currentPage * itemsPerPage
   );
 
-  const totalTransactions = filteredData.length;
-  const totalAmount = filteredData.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const bankTransactions = filteredData.filter(item => item.paymentMethod === 'bank').length;
-  const mobileTransactions = filteredData.filter(item => ['bkash', 'nagad', 'rocket', 'upay'].includes(item.paymentMethod)).length;
+
 
   const copyToClipboard = (text, type) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -423,38 +334,47 @@ const Banking = () => {
                 Manage bank accounts, mobile banking details and track payment transactions
               </p>
             </div>
-            <button
-              onClick={() => setShowMobileFilters(!showMobileFilters)}
-              className="sm:hidden flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors justify-center text-sm w-full"
-            >
-              <Menu className="w-4 h-4" />
-              Filters & Options
-            </button>
+            <div className="flex items-center gap-2">
+               <button
+                onClick={() => setIsTransactionFormOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors justify-center text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Add Transaction
+              </button>
+              <button
+                onClick={() => setShowMobileFilters(!showMobileFilters)}
+                className="sm:hidden flex items-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors justify-center text-sm"
+              >
+                <Menu className="w-4 h-4" />
+                Filters
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
           <StatCard
             title="Total Transactions"
-            value={totalTransactions}
+            value={transactionStats?.overall?.totalTransactions || 0}
             icon={Receipt}
             color="blue"
           />
           <StatCard
             title="Total Amount"
-            value={`৳${totalAmount.toLocaleString()}`}
+            value={`৳${(transactionStats?.overall?.totalCredit || 0).toLocaleString()}`}
             icon={DollarSign}
             color="green"
           />
           <StatCard
             title="Bank Transfers"
-            value={bankTransactions}
+            value={transactionStats?.byType?.bank?.count || 0}
             icon={Building}
             color="blue"
           />
           <StatCard
             title="Mobile Banking"
-            value={mobileTransactions}
+            value={transactionStats?.byType?.mobileBanking?.count || 0}
             icon={Smartphone}
             color="purple"
           />
@@ -735,35 +655,32 @@ const Banking = () => {
 
           <div className="lg:hidden space-y-3 p-4">
             {paginatedData.map(transaction => (
-              <div key={transaction.id} className="bg-gray-50 rounded-lg p-4 border">
+              <div key={transaction._id} className="bg-gray-50 rounded-lg p-4 border">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900 text-sm">
-                      {transaction.productName}
+                      {transaction.description}
                     </h4>
                     <p className="text-xs text-gray-500 mt-1">
-                      {transaction.customer} • {transaction.lcNumber}
+                      {transaction.source}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-green-600 text-sm">
-                      ৳{(transaction.price * transaction.quantity).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {transaction.quantity} {transaction.unit}
+                    <p className={`font-bold text-sm ${transaction.type === 'Credit' ? 'text-green-600' : 'text-red-600'}`}>
+                      {transaction.type === 'Credit' ? '+' : '-'} ৳{transaction.amount.toFixed(2)}
                     </p>
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPaymentMethodColor(transaction.paymentMethod)}`}>
-                    {transaction.paymentMethod.charAt(0).toUpperCase() + transaction.paymentMethod.slice(1)}
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPaymentMethodColor(transaction.bankAccount?.accountType)}`}>
+                    {transaction.bankAccount?.accountType || 'N/A'}
                   </span>
                   <div className="text-xs text-gray-500">
                     {new Date(transaction.date).toLocaleDateString()}
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-gray-600">
-                  <span className="font-medium">Via:</span> {transaction.bankInfo}
+                  <span className="font-medium">Via:</span> {transaction.bankAccount?.accountName || 'N/A'}
                 </div>
               </div>
             ))}
@@ -773,10 +690,7 @@ const Banking = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
+                    Description
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Amount
@@ -785,7 +699,7 @@ const Banking = () => {
                     Payment Method
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Bank/Mobile Info
+                    Account
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
@@ -794,46 +708,32 @@ const Banking = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedData.map(transaction => (
-                  <tr key={transaction.id} className="hover:bg-gray-50">
+                  <tr key={transaction._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {transaction.productName}
+                          {transaction.description}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {transaction.lcNumber} • {transaction.size}
+                          Source: {transaction.source}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{transaction.customer}</div>
-                      <div className="text-sm text-gray-500">
-                        {transaction.quantity} {transaction.unit}
+                      <div className={`text-sm font-medium ${transaction.type === 'Credit' ? 'text-green-600' : 'text-red-600'}`}>
+                        {transaction.type === 'Credit' ? '+' : '-'} ৳{transaction.amount.toLocaleString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-green-600">
-                        ৳{(transaction.price * transaction.quantity).toLocaleString()}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        @৳{transaction.price.toFixed(2)} per {transaction.unit}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentMethodColor(transaction.paymentMethod)}`}>
-                        {transaction.paymentMethod === 'bank' && <Building className="w-3 h-3 mr-1" />}
-                        {['bkash', 'nagad', 'rocket', 'upay'].includes(transaction.paymentMethod) && <Smartphone className="w-3 h-3 mr-1" />}
-                        {transaction.paymentMethod === 'cash' && <Banknote className="w-3 h-3 mr-1" />}
-                        {transaction.paymentMethod.charAt(0).toUpperCase() + transaction.paymentMethod.slice(1)}
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentMethodColor(transaction.bankAccount?.accountType)}`}>
+                        {transaction.bankAccount?.accountType === 'Bank' && <Building className="w-3 h-3 mr-1" />}
+                        {transaction.bankAccount?.accountType === 'Mobile Banking' && <Smartphone className="w-3 h-3 mr-1" />}
+                        {transaction.bankAccount?.accountType || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 max-w-48 truncate">
-                        {transaction.bankInfo}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Status: {transaction.invoiceStatus === 'yes' ? 'Completed' : 
-                                transaction.invoiceStatus === 'pending' ? 'Pending' : 'Not Invoiced'}
+                        {transaction.bankAccount?.accountName || 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -863,15 +763,15 @@ const Banking = () => {
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {paymentMethods.slice(1).map(method => {
-              const methodTransactions = filteredData.filter(t => t.paymentMethod === method.value);
-              const methodTotal = methodTransactions.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+              const methodTransactions = transactions.filter(t => t.bankAccount?.accountType === method.value);
+              const methodTotal = methodTransactions.reduce((sum, t) => sum + t.amount, 0);
               
               return (
                 <div key={method.value} className="text-center p-3 bg-gray-50 rounded-lg">
                   <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full mb-2 ${getPaymentMethodColor(method.value)}`}>
-                    {method.value === 'bank' && <Building className="w-4 h-4" />}
-                    {['bkash', 'nagad', 'rocket', 'upay'].includes(method.value) && <Smartphone className="w-4 h-4" />}
-                    {method.value === 'cash' && <Banknote className="w-4 h-4" />}
+                    {method.value === 'Bank' && <Building className="w-4 h-4" />}
+                    {method.value === 'Mobile Banking' && <Smartphone className="w-4 h-4" />}
+                    {method.value === 'Cash' && <Banknote className="w-4 h-4" />}
                   </div>
                   <div className="text-xs sm:text-sm font-medium text-gray-900">
                     {method.label}
@@ -927,6 +827,65 @@ const Banking = () => {
           <InputField label="Account Holder Name" name="accountHolderName" value={mobileFormData.accountHolderName} onChange={handleMobileFormChange} required />
           <InputField label="Account Name" name="accountName" value={mobileFormData.accountName} onChange={handleMobileFormChange} placeholder="e.g., Personal Bkash" required />
           <InputField label="Initial Balance" name="balance" type="number" value={mobileFormData.balance} onChange={handleMobileFormChange} required />
+        </div>
+      </FormDialog>
+
+      {/* Add Transaction Form */}
+      <FormDialog
+        open={isTransactionFormOpen}
+        onClose={() => setIsTransactionFormOpen(false)}
+        title="Add New Transaction"
+        primaryButtonText={isSubmitting ? "Adding..." : "Add Transaction"}
+        secondaryButtonText="Cancel"
+        onSubmit={handleAddTransaction}
+        isPrimaryButtonDisabled={isSubmitting}
+      >
+        <div className="space-y-4">
+          <SelectField
+            label="Account"
+            name="bankAccount"
+            value={transactionFormData.bankAccount}
+            onChange={handleTransactionFormChange}
+            options={[...bankAccounts, ...mobileBankingAccounts].map(acc => ({
+              value: acc._id,
+              label: `${acc.accountName} (${acc.bankName || acc.serviceName})`
+            }))}
+            required
+          />
+          <SelectField
+            label="Transaction Type"
+            name="type"
+            value={transactionFormData.type}
+            onChange={handleTransactionFormChange}
+            options={[
+              { value: "Credit", label: "Incoming (Credit)" },
+              { value: "Debit", label: "Outgoing (Debit)" },
+            ]}
+            required
+          />
+          <InputField
+            label="Amount"
+            name="amount"
+            type="number"
+            value={transactionFormData.amount}
+            onChange={handleTransactionFormChange}
+            required
+          />
+          <InputField
+            label="Description"
+            name="description"
+            value={transactionFormData.description}
+            onChange={handleTransactionFormChange}
+            required
+          />
+          <InputField
+            label="Date"
+            name="date"
+            type="date"
+            value={transactionFormData.date}
+            onChange={handleTransactionFormChange}
+            required
+          />
         </div>
       </FormDialog>
     </div>
