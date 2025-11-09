@@ -1,29 +1,12 @@
 import { MapPin, Phone, ShoppingBag, DollarSign } from "lucide-react";
 import { Link } from "react-router";
-import { salesData } from "../data/data";
 
 const CustomerCard = ({ customer }) => {
-  const customerSales = salesData.filter(
-    (sale) => sale.customerId === customer.id
-  );
-
-  const totalPurchased = customerSales.reduce(
-    (acc, sale) => acc + sale.totalAmount,
-    0
-  );
-
-  const totalDue = customerSales.reduce((acc, sale) => {
-    if (sale.paymentStatus === "Due Payment") {
-      const paidAmount = sale.payments.reduce(
-        (acc, payment) => acc + payment.amount,
-        0
-      );
-      return acc + (sale.totalAmountToBePaid - paidAmount);
-    }
-    return acc;
-  }, 0);
-
-  const lastPurchase = customerSales.sort((a, b) => new Date(b.saleDate) - new Date(a.saleDate))[0];
+  const totalPurchased = customer.totalSpent || 0;
+  const totalDue = customer.totalDue || 0;
+  const lastPurchaseDate = customer.lastPurchaseDate
+    ? new Date(customer.lastPurchaseDate).toLocaleDateString()
+    : "N/A";
 
   return (
     <Link to={`/customer-details/${customer._id}`}>
@@ -68,7 +51,7 @@ const CustomerCard = ({ customer }) => {
             </span>
           </div>
           <div className="text-xs text-gray-500">
-            Last purchase: {lastPurchase ? lastPurchase.saleDate : 'N/A'}
+            Last purchase: {lastPurchaseDate}
           </div>
         </div>
       </div>

@@ -70,7 +70,9 @@ const DataField = ({ label, value, icon, hidden = false, className = "" }) => {
 const CustomerDetails = () => {
   const { id } = useParams();
   const [customerData, setCustomerData] = useState(null);
+  const [recentPurchases, setRecentPurchases] = useState([]);
   const { baseUrl } = useContext(UrlContext);
+
   useEffect(() => {
     axios
       .get(`${baseUrl}customer/get-customer/${id}`)
@@ -79,28 +81,14 @@ const CustomerDetails = () => {
         setCustomerData(res.data.data);
       })
       .catch((err) => console.error(err));
+
+    axios
+      .get(`${baseUrl}sales/customer/${id}`)
+      .then((res) => {
+        setRecentPurchases(res.data.data);
+      })
+      .catch((err) => console.error(err));
   }, [id, baseUrl]);
-
-  const customerSales = salesData.filter((sale) => sale.customerId == id);
-
-  const totalPurchasesCount = customerSales.length;
-  const totalSpentAmount = customerSales.reduce(
-    (acc, sale) => acc + sale.totalAmount,
-    0
-  );
-  const totalNotInvoiced = customerSales.filter(
-    (sale) => sale.invoiceStatus === "Not Invoiced"
-  ).length;
-  const totalOutstandingDues = customerSales.reduce((acc, sale) => {
-    if (sale.paymentStatus === "Due Payment") {
-      const paidAmount = sale.payments.reduce(
-        (acc, payment) => acc + payment.amount,
-        0
-      );
-      return acc + (sale.totalAmountToBePaid - paidAmount);
-    }
-    return acc;
-  }, 0);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const navigate = useNavigate();
@@ -298,25 +286,28 @@ const CustomerDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-blue-700">
-                    {totalPurchasesCount}
+                    {customerData?.stats?.totalPurchases || 0}
                   </div>
                   <div className="text-sm text-[#003b75]">Total Purchases</div>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-green-700">
-                    ${totalSpentAmount.toLocaleString()}
+                    ${(customerData?.stats?.totalSpent || 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-green-600">Total Spent</div>
                 </div>
                 <div className="bg-yellow-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-yellow-700">
-                    {totalNotInvoiced}
+                    {customerData?.stats?.notInvoiced || 0}
                   </div>
                   <div className="text-sm text-yellow-600">Not Invoiced</div>
                 </div>
                 <div className="bg-red-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-red-700">
-                    ${totalOutstandingDues.toLocaleString()}
+                    $
+                    {(
+                      customerData?.stats?.outstandingDues || 0
+                    ).toLocaleString()}
                   </div>
                   <div className="text-sm text-red-600">Outstanding Dues</div>
                 </div>
@@ -393,18 +384,18 @@ const CustomerDetails = () => {
           <CollapsibleCard title="Recent Purchases" icon={<FiDollarSign />}>
             <div className="block sm:hidden">
               <div className="space-y-2">
-                {customerSales.map((sale) => (
+                {recentPurchases.map((sale) => (
                   <div
-                    key={sale.id}
+                    key={sale._id}
                     className="border-t border-gray-200 last:border-b bg-white cursor-pointer hover:bg-gray-50 transition-colors"
                   >
                     <div className="px-4 py-4">
                       <div className="flex justify-between items-center mb-2">
                         <div className="font-medium text-gray-900">
-                          {sale.productName}
+                          {sale.product.name}
                         </div>
                         <span className="text-sm text-gray-500">
-                          {sale.saleDate}
+                          {new Date(sale.saleDate).toLocaleDateString()}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
@@ -443,16 +434,13 @@ const CustomerDetails = () => {
                       <div className="flex justify-between items-center">
                         <span className="font-medium text-gray-700">Total</span>
                         <span className="font-bold text-gray-900">
-                          $
-                          {(
-                            sale.quantity * (parseFloat(sale.pricePerUnit) || 0)
-                          ).toFixed(2)}
+                          ${(sale.totalAmount || 0).toFixed(2)}
                         </span>
                       </div>
                     </div>
                   </div>
                 ))}
-                {customerSales.length === 0 && (
+                {recentPurchases.length === 0 && (
                   <div className="text-center py-8 text-gray-500 border-t">
                     No sales data available for this customer.
                   </div>
@@ -490,16 +478,16 @@ const CustomerDetails = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {customerSales.map((sale) => (
-                    <tr key={sale.id}>
+                  {recentPurchases.map((sale) => (
+                    <tr key={sale._id}>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                        {sale.saleDate}
+                        {new Date(sale.saleDate).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap font-medium text-[#003b75]">
-                        {sale.productName}
+                        {sale.product.name}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                        {sale.lcNumber || "N/A"}
+                        {sale.product.LC?.basic_info?.lc_number || "N/A"}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">
                         {sale.quantity} {sale.unit}

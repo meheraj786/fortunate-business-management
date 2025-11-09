@@ -147,7 +147,7 @@ const CashFlowDetails = ({
                 const Icon = iconComponents[transaction.icon];
                 const isIncome = transaction.type === 'income';
                 return (
-                  <tr key={transaction.id}>
+                  <tr key={transaction._id}>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {Icon && (
@@ -165,7 +165,7 @@ const CashFlowDetails = ({
                       {transaction.time}
                     </td>
                     <td className={`px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium ${isIncome ? 'text-green-600' : 'text-red-600'}`}>
-                      {isIncome ? '+' : '-'} ${transaction.amount.toLocaleString()}
+                      {isIncome ? '+' : '-'} ৳{transaction.amount.toLocaleString()}
                     </td>
                   </tr>
                 );
