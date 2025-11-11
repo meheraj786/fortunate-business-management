@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import FormSection from "../../components/common/FormSection";
 import {
@@ -29,6 +29,7 @@ const InputField = ({
   required = false,
   placeholder = "",
   className = "",
+  disabled = false,
 }) => (
   <div className={`space-y-2 ${className}`}>
     <label className="block text-sm font-medium text-gray-700">
@@ -41,7 +42,8 @@ const InputField = ({
       onChange={(e) => onChange(e.target.value)}
       required={required}
       placeholder={placeholder}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200"
+      disabled={disabled}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 disabled:bg-gray-100"
     />
   </div>
 );
@@ -187,9 +189,11 @@ const getNewExpense = () => ({
   amount: "",
 });
 
-const LCForm = ({ onSave, editData = null }) => {
+const LCForm = ({ onSave }) => {
   const { baseUrl } = useContext(UrlContext);
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
 
   const initialFormData = {
     basic_info: {
@@ -230,12 +234,76 @@ const LCForm = ({ onSave, editData = null }) => {
     },
   };
 
-  const [formData, setFormData] = useState(editData || initialFormData);
+  const [formData, setFormData] = useState(initialFormData);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [expandedSections, setExpandedSections] = useState({
     basic_info: true,
   });
   const sectionRefs = useRef({});
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0];
+  };
+
+  useEffect(() => {
+    if (isEditMode) {
+      axios
+        .get(`${baseUrl}lc/get-lc/${id}`)
+        .then((res) => {
+          const lcData = res.data.data;
+          const processedData = {
+            ...lcData,
+            basic_info: {
+              ...lcData.basic_info,
+              lc_opening_date: formatDateForInput(
+                lcData.basic_info.lc_opening_date
+              ),
+            },
+            product_info: (lcData.product_info || []).map((p) => ({
+              ...p,
+              id: productIdCounter++,
+            })),
+            financial_info: {
+              ...lcData.financial_info,
+              other_expenses: (lcData.financial_info?.other_expenses || []).map(
+                (e) => ({
+                  ...e,
+                  id: expenseIdCounter++,
+                })
+              ),
+            },
+            shipping_customs_info: {
+              ...lcData.shipping_customs_info,
+              expected_arrival_date: formatDateForInput(
+                lcData.shipping_customs_info?.expected_arrival_date
+              ),
+              other_expenses: (
+                lcData.shipping_customs_info?.other_expenses || []
+              ).map((e) => ({
+                ...e,
+                id: expenseIdCounter++,
+              })),
+            },
+            agent_transport_info: {
+              ...lcData.agent_transport_info,
+              other_expenses: (
+                lcData.agent_transport_info?.other_expenses || []
+              ).map((e) => ({
+                ...e,
+                id: expenseIdCounter++,
+              })),
+            },
+          };
+          setFormData(processedData);
+        })
+        .catch((err) => {
+          console.error(err);
+          toast.error("Failed to fetch LC data for editing.");
+        });
+    }
+  }, [id, isEditMode, baseUrl]);
 
   useEffect(() => {
     const { lc_amount_usd, exchange_rate } = formData.financial_info;
@@ -269,18 +337,6 @@ const LCForm = ({ onSave, editData = null }) => {
       setFormData((prev) => ({ ...prev, product_info: updatedProducts }));
     }
   }, [JSON.stringify(formData.product_info)]);
-
-  useEffect(() => {
-    if (editData) {
-      const productsArray = Array.isArray(editData.product_info)
-        ? editData.product_info.map((p) =>
-            p.id ? p : { ...p, id: productIdCounter++ }
-          )
-        : [{ ...editData.product_info, id: productIdCounter++ }];
-
-      setFormData({ ...editData, product_info: productsArray });
-    }
-  }, [editData]);
 
   const sections = [
     { id: "basic_info", title: "Basic Information", icon: FileText },
@@ -434,17 +490,27 @@ const LCForm = ({ onSave, editData = null }) => {
         payload.append("documents", file);
       });
 
-      await axios.post(`${baseUrl}lc/create-lc`, payload, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      if (isEditMode) {
+        await axios.patch(`${baseUrl}lc/update-lc/${id}`, payload, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        toast.success("LC Updated");
+        navigate(`/lc-details/${id}`);
+      } else {
+        await axios.post(`${baseUrl}lc/create-lc`, payload, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        toast.success("LC Created");
+        navigate("/lc-management");
+      }
 
-      toast.success("LC Created");
-      navigate("/lc-management");
       if (onSave) onSave(formData);
     } catch (error) {
-      toast.error("Failed to create LC");
+      toast.error(`Failed to ${isEditMode ? "update" : "create"} LC`);
       console.error(error);
     }
   };
@@ -519,13 +585,13 @@ const LCForm = ({ onSave, editData = null }) => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {editData
+                {isEditMode
                   ? "Edit Letter of Credit"
                   : "Create New Letter of Credit"}
               </h1>
               <p className="text-gray-600">
-                Fill in the details below to {editData ? "update" : "create"} a
-                new LC
+                Fill in the details below to {isEditMode ? "update" : "create"}{" "}
+                a new LC
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -543,7 +609,7 @@ const LCForm = ({ onSave, editData = null }) => {
                 className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 flex items-center space-x-2"
               >
                 <Save className="w-4 h-4" />
-                <span>{editData ? "Update LC" : "Save LC"}</span>
+                <span>{isEditMode ? "Update LC" : "Save LC"}</span>
               </button>
             </div>
           </div>
@@ -851,7 +917,9 @@ const LCForm = ({ onSave, editData = null }) => {
                   <InputField
                     label="Expected Arrival Date"
                     type="date"
-                    value={formData.shipping_customs_info.expected_arrival_date}
+                    value={
+                      formData.shipping_customs_info.expected_arrival_date
+                    }
                     onChange={(v) =>
                       handleInputChange(
                         "shipping_customs_info",
@@ -965,8 +1033,6 @@ const LCForm = ({ onSave, editData = null }) => {
                   />
                 </div>
               )}
-
-          
             </FormSection>
           ))}
 
@@ -983,7 +1049,7 @@ const LCForm = ({ onSave, editData = null }) => {
               type="submit"
               className="px-6 py-3 bg-[#003b75] text-white font-semibold rounded-lg hover:bg-[#002a54] transition-colors"
             >
-              {editData ? "Update LC" : "Save LC"}
+              {isEditMode ? "Update LC" : "Save LC"}
             </button>
           </div>
         </form>

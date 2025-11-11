@@ -132,6 +132,10 @@ const router = createBrowserRouter([
         element: <LCform />,
       },
       {
+        path: "lc-form/:id",
+        element: <LCform />,
+      },
+      {
         path: "customer-form",
         element: <CustomerForm />,
       },

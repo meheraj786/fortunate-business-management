@@ -13,12 +13,15 @@ import {
   FiPieChart,
   FiDownload,
   FiEdit,
+  FiTrash,
 } from "react-icons/fi";
 import { motion } from "motion/react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
 import { UrlContext } from "../../context/UrlContext";
 import axios from "axios";
+import FormDialog from "../../components/common/FormDialog";
+import toast from "react-hot-toast";
 
 const StatusBadge = ({ status }) => {
   if (!status) return null;
@@ -82,14 +85,32 @@ const DataField = ({ label, value, icon, hidden = false }) => {
 
 const LCdetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [lcData, setLcData] = useState(null);
   const { baseUrl } = useContext(UrlContext);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await axios.delete(`${baseUrl}lc/delete-lc/${id}`);
+      toast.success("LC deleted successfully");
+      navigate("/lc-management");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete LC");
+      console.error(error);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
     axios
       .get(`${baseUrl}lc/get-lc/${id}`)
-      .then((res) => setLcData(res.data.data)) 
+      .then((res) => setLcData(res.data.data))
       .catch((err) => console.error(err));
   }, [id, baseUrl]);
   if (!lcData) {
@@ -124,10 +145,15 @@ const LCdetails = () => {
 
   const sumOtherExpenses = (expenses) => {
     if (!expenses || !Array.isArray(expenses)) return 0;
-    return expenses.reduce((total, expense) => total + (expense.amount || 0), 0);
+    return expenses.reduce(
+      (total, expense) => total + (expense.amount || 0),
+      0
+    );
   };
 
-  const other_financial_expenses = sumOtherExpenses(financial_info.other_expenses);
+  const other_financial_expenses = sumOtherExpenses(
+    financial_info.other_expenses
+  );
   const other_shipping_expenses = sumOtherExpenses(
     shipping_customs_info.other_expenses
   );
@@ -197,9 +223,19 @@ const LCdetails = () => {
               <FiDownload className="mr-2" />
               Export
             </button>
-            <button className="flex items-center px-4 py-2 bg-[#003b75] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700">
+            <button
+              onClick={() => navigate(`/lc-form/${id}`)}
+              className="flex items-center px-4 py-2 bg-[#003b75] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-[#002855]"
+            >
               <FiEdit className="mr-2" />
               Edit
+            </button>
+            <button
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700"
+            >
+              <FiTrash className="mr-2" />
+              Delete
             </button>
           </div>
         </motion.div>
@@ -317,7 +353,7 @@ const LCdetails = () => {
                     value={p.quantity_unit || "-"}
                   />
                   <DataField
-                    label={`Quantity (${p.quantity_unit || 'N/A'})`}
+                    label={`Quantity (${p.quantity_unit || "N/A"})`}
                     value={p.quantity_ton || "-"}
                   />
                   <DataField
@@ -339,7 +375,9 @@ const LCdetails = () => {
                 />
                 <DataField
                   label="Expected Arrival Date"
-                  value={formatDate(shipping_customs_info.expected_arrival_date)}
+                  value={formatDate(
+                    shipping_customs_info.expected_arrival_date
+                  )}
                 />
                 <DataField
                   label="Customs Duty (BDT)"
@@ -503,6 +541,20 @@ const LCdetails = () => {
           </div>
         </div>
       </div>
+      <FormDialog
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Confirm Deletion"
+        primaryButtonText={isDeleting ? "Deleting..." : "Delete"}
+        secondaryButtonText="Cancel"
+        onSubmit={handleDelete}
+        isPrimaryButtonDisabled={isDeleting}
+      >
+        <p className="text-gray-600">
+          Are you sure you want to delete this Letter of Credit (
+          {lcData?.basic_info?.lc_number})? This action cannot be undone.
+        </p>
+      </FormDialog>
     </div>
   );
 };

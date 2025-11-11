@@ -60,14 +60,14 @@ export default function FormDialog({
                 type="button"
                 onClick={onSubmit}
                 disabled={isPrimaryButtonDisabled}
-                className="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto"
+                className="cursor-pointer inline-flex w-full justify-center rounded-md bg-[#003b75] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#002855] disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto"
               >
                 {primaryButtonText}
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto "
+                className="cursor-pointer mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto "
               >
                 {secondaryButtonText}
               </button>

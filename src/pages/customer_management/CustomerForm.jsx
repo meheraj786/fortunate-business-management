@@ -152,7 +152,7 @@ const CustomerForm = () => {
 
   const statusOptions = [
     { value: "Active", label: "Active" },
-    { value: "Suspense", label: "Suspense" },
+    { value: "Suspended", label: "Suspended" },
   ];
 
   useEffect(() => {
