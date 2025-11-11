@@ -121,7 +121,7 @@ const CashFlowDetails = ({
         </div>
         <div className="md:hidden">
           {transactions.map((transaction) => (
-            <TransactionCard key={transaction.id} transaction={transaction} iconComponents={iconComponents} />
+            <TransactionCard key={transaction._id} transaction={transaction} iconComponents={iconComponents} />
           ))}
         </div>
         <div className="hidden md:block overflow-x-auto">

@@ -391,12 +391,20 @@ const AddSales = ({
         }
 
         salesData.payments = formData.payments
-          .filter(p => p.amount && p.date && p.method)
-          .map(p => ({
-            ...p,
-            amount: parseFloat(p.amount) || 0,
-            date: new Date(p.date),
-          }));
+          .filter((p) => p.amount && p.date && p.method)
+          .map((p) => {
+            const paymentPayload = {
+              amount: parseFloat(p.amount) || 0,
+              date: new Date(p.date),
+              method: p.method,
+            };
+
+            if (p.method === "bank" || p.method === "mobile-banking") {
+              paymentPayload.bankAccount = p.bankAccount;
+            }
+
+            return paymentPayload;
+          });
       }
 
       const response = await axios({ method, url, data: salesData });

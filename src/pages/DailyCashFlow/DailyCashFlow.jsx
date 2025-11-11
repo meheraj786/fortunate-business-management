@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext, useEffect, useCallback } from "react";
 import {
   Calendar,
   Plus,
@@ -23,14 +23,22 @@ import {
   CreditCard,
   Receipt,
   PiggyBank,
+  Loader2,
 } from "lucide-react";
-import { dailyCashFlowData } from "../../data/data";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { UrlContext } from "../../context/UrlContext";
 import CashFlowDetails from "./CashFlowDetails";
 
 const DailyCashFlow = () => {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  const [dailyData, setDailyData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { baseUrl } = useContext(UrlContext);
+
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [transactionType, setTransactionType] = useState("income");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -39,24 +47,56 @@ const DailyCashFlow = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const [cashFlowData, setCashFlowData] = useState(dailyCashFlowData);
+  const fetchDailyCash = useCallback(async () => {
+    if (!baseUrl || !selectedDate) return;
 
-  const todayData = useMemo(() => {
-    return cashFlowData[selectedDate] || {
-      openingBalance: 0,
-      closingBalance: null,
-      isClosed: false,
-      transactions: [],
-    };
-  }, [cashFlowData, selectedDate]);
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`${baseUrl}cash/get-cash`, {
+        params: { date: selectedDate },
+      });
+      if (response.data.data) {
+        setDailyData(response.data.data);
+      } else {
+        setDailyData(null);
+        setError(response.data.message || "Cash for this day is not open.");
+      }
+    } catch (err) {
+      setDailyData(null);
+      if (err.response && err.response.status === 404) {
+        setError("Cash for this day has not been opened yet.");
+      } else {
+        setError(err.response?.data?.message || "An error occurred while fetching data.");
+      }
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate, baseUrl]);
+
+  useEffect(() => {
+    fetchDailyCash();
+  }, [fetchDailyCash]);
 
   const {
     openingBalance,
+    totalIncome,
+    totalExpense,
+    runningBalance,
     isClosed,
     transactions,
-  } = todayData;
+  } = dailyData || {
+    openingBalance: 0,
+    totalIncome: 0,
+    totalExpense: 0,
+    runningBalance: 0,
+    isClosed: false,
+    transactions: [],
+  };
 
   const filteredTransactions = useMemo(() => {
+    if (!transactions) return [];
     let filtered = transactions;
 
     if (searchTerm) {
@@ -75,26 +115,11 @@ const DailyCashFlow = () => {
       );
     }
 
-    return filtered.sort(
-      (a, b) => new Date(b.time) - new Date(a.time)
-    );
+    return filtered;
   }, [transactions, searchTerm, categoryFilter]);
 
-  const totalIncome = useMemo(() => {
-    return filteredTransactions
-      .filter((t) => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
-  }, [filteredTransactions]);
-
-  const totalExpenses = useMemo(() => {
-    return filteredTransactions
-      .filter((t) => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
-  }, [filteredTransactions]);
-
-  const runningBalance = openingBalance + totalIncome - totalExpenses;
-
   const categories = useMemo(() => {
+    if (!transactions) return [];
     const allCategories = transactions.map((t) => t.category);
     return [...new Set(allCategories)];
   }, [transactions]);
@@ -110,86 +135,121 @@ const DailyCashFlow = () => {
     amount: "",
     category: "",
     description: "",
-    paymentMethod: "Cash",
+    paymentMethod: "cash", // Default to cash
   });
 
-  const handleAddTransactionSubmit = (e) => {
+  const handleAddTransactionSubmit = async (e) => {
     e.preventDefault();
-    const newId = Math.max(...transactions.map((t) => t.id), 0) + 1;
-    const newTransactionData = {
-      id: newId,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: "2-digit" }),
-      type: transactionType,
-      ...newTransaction,
-      amount: parseFloat(newTransaction.amount),
-    };
-
-    const updatedData = { ...cashFlowData };
-    if (!updatedData[selectedDate]) {
-      const yesterday = new Date(selectedDate);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayDateString = yesterday.toISOString().split("T")[0];
-      const yesterdayClosingBalance = cashFlowData[yesterdayDateString]?.closingBalance || 0;
-
-      updatedData[selectedDate] = {
-        openingBalance: yesterdayClosingBalance,
-        closingBalance: null,
-        isClosed: false,
-        transactions: [newTransactionData],
-      };
-    } else {
-      updatedData[selectedDate].transactions.push(newTransactionData);
+    const endpoint = transactionType === "income" ? "income" : "expense";
+    const toastId = toast.loading(`Adding ${transactionType}...`);
+    try {
+      await axios.post(`${baseUrl}api/cash/${endpoint}`, {
+        date: selectedDate,
+        amount: parseFloat(newTransaction.amount),
+        category: newTransaction.category,
+        description: newTransaction.description,
+        paymentMethod: newTransaction.paymentMethod,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: "2-digit", second: "2-digit" }), // Auto-generate time
+      });
+      toast.success(`${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} added successfully!`, { id: toastId });
+      setShowAddTransaction(false);
+      setNewTransaction({ amount: "", category: "", description: "" });
+      fetchDailyCash();
+    } catch (err) {
+      toast.error(err.response?.data?.message || `Failed to add ${transactionType}.`, { id: toastId });
     }
-
-    setCashFlowData(updatedData);
-    setShowAddTransaction(false);
-    setNewTransaction({
-      amount: "",
-      category: "",
-      description: "",
-      paymentMethod: "Cash",
-    });
   };
+
   const handleAddTransaction = (type) => {
     setTransactionType(type);
     setShowAddTransaction(true);
   };
 
-  const handleCloseDay = () => {
-    const updatedData = { ...cashFlowData };
-    updatedData[selectedDate].isClosed = true;
-    updatedData[selectedDate].closingBalance = runningBalance;
-
-    // Create next day's opening balance
-    const tomorrow = new Date(selectedDate);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowDateString = tomorrow.toISOString().split("T")[0];
-    if (!updatedData[tomorrowDateString]) {
-      updatedData[tomorrowDateString] = {
-        openingBalance: runningBalance,
-        closingBalance: null,
-        isClosed: false,
-        transactions: [],
-      };
-    } else {
-      updatedData[tomorrowDateString].openingBalance = runningBalance;
+  const handleOpenDay = async () => {
+    const toastId = toast.loading("Opening cash for the day...");
+    try {
+        await axios.post(`${baseUrl}cash/open`, { date: selectedDate });
+        toast.success("Cash opened successfully!", { id: toastId });
+        fetchDailyCash();
+    } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to open cash.", { id: toastId });
     }
+  };
 
-    setCashFlowData(updatedData);
+  const handleCloseDay = async () => {
+    if (window.confirm("Are you sure you want to close the cash for the day? This cannot be undone.")) {
+        const toastId = toast.loading("Closing cash for the day...");
+        try {
+            await axios.post(`${baseUrl}cash/close`, { date: selectedDate });
+            toast.success("Cash closed successfully!", { id: toastId });
+            fetchDailyCash();
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to close cash.", { id: toastId });
+        }
+    }
   };
 
   const iconComponents = {
-    Fuel,
-    Users,
-    Wrench,
-    Coffee,
-    Building,
-    Truck,
-    Car,
-    CreditCard,
-    Receipt,
-    PiggyBank,
-    User: Users,
+    Fuel, Users, Wrench, Coffee, Building, Truck, Car, CreditCard, Receipt, PiggyBank, User: Users,
+    "Sale": DollarSign,
+    "Office Expense": Building,
+    "Transportation": Truck,
+  };
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="animate-spin h-12 w-12 text-blue-500" />
+        </div>
+      );
+    }
+
+    if (error && !dailyData) {
+      return (
+        <div className="text-center p-8 bg-yellow-50 rounded-lg">
+          <p className="text-lg font-semibold text-yellow-800 mb-4">{error}</p>
+          <button
+            onClick={handleOpenDay}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Open Cash for Today
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div
+          className={`p-4 rounded-lg text-center mb-4 ${
+            isClosed
+              ? "bg-gray-200 text-gray-800"
+              : "bg-blue-100 text-blue-800"
+          }`}
+        >
+          <p className="font-semibold">
+            {isClosed
+              ? `This day's account is closed.`
+              : `This day's account is active.`}
+          </p>
+        </div>
+
+        <CashFlowDetails
+          openingBalance={openingBalance}
+          totalIncome={totalIncome}
+          totalExpenses={totalExpense}
+          runningBalance={runningBalance}
+          transactions={paginatedTransactions}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          setCurrentPage={setCurrentPage}
+          iconComponents={iconComponents}
+          categories={categories}
+          filteredTransactions={filteredTransactions}
+        />
+      </>
+    );
   };
 
   return (
@@ -215,14 +275,16 @@ const DailyCashFlow = () => {
               </button>
               <button
                 onClick={() => handleAddTransaction("income")}
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors justify-center text-sm sm:text-base"
+                disabled={isClosed}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors justify-center text-sm sm:text-base disabled:bg-gray-400"
               >
                 <Plus className="w-4 h-4" />
                 Add Income
               </button>
               <button
                 onClick={() => handleAddTransaction("expense")}
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors justify-center text-sm sm:text-base"
+                disabled={isClosed}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors justify-center text-sm sm:text-base disabled:bg-gray-400"
               >
                 <Plus className="w-4 h-4" />
                 Add Expense
@@ -237,7 +299,7 @@ const DailyCashFlow = () => {
                 }`}
               >
                 <Target className="w-4 h-4" />
-                {isClosed ? "Closed" : "Close Today"}
+                {isClosed ? "Day Closed" : "Close Day"}
               </button>
             </div>
           </div>
@@ -309,9 +371,7 @@ const DailyCashFlow = () => {
               </div>
               <form onSubmit={handleAddTransactionSubmit} className="p-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Amount
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
                   <input
                     type="number"
                     value={newTransaction.amount}
@@ -333,7 +393,7 @@ const DailyCashFlow = () => {
                     onChange={(e) =>
                       setNewTransaction({ ...newTransaction, category: e.target.value })
                     }
-                    placeholder="Enter category"
+                    placeholder="e.g., Office Supplies, Transport"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     required
                   />
@@ -363,9 +423,9 @@ const DailyCashFlow = () => {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   >
-                    <option>Cash</option>
-                    <option>Bank</option>
-                    <option>Card</option>
+                    <option value="cash">Cash</option>
+                    <option value="bank">Bank</option>
+                    <option value="mobile-bank">Mobile Banking</option>
                   </select>
                 </div>
                 <div className="flex justify-end gap-2">
@@ -417,33 +477,7 @@ const DailyCashFlow = () => {
             </div>
           </div>
 
-          <div
-            className={`p-4 rounded-lg text-center mb-4 ${
-              isClosed
-                ? "bg-gray-200 text-gray-800"
-                : "bg-blue-100 text-blue-800"
-            }`}
-          >
-            <p className="font-semibold">
-              {isClosed
-                ? `This day's account is closed.`
-                : `This day's account is active.`}
-            </p>
-          </div>
-
-          <CashFlowDetails
-            openingBalance={openingBalance}
-            totalIncome={totalIncome}
-            totalExpenses={totalExpenses}
-            runningBalance={runningBalance}
-            transactions={paginatedTransactions}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            setCurrentPage={setCurrentPage}
-            iconComponents={iconComponents}
-            categories={categories}
-            filteredTransactions={filteredTransactions}
-          />
+          {renderContent()}
         </div>
       </div>
     </div>
