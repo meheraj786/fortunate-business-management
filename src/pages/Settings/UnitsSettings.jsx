@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const UnitsSettings = () => {
-  return (
-    <div>UnitsSettings</div>
-  )
-}
+  return <div>UnitsSettings</div>;
+};
 
-export default UnitsSettings
+export default UnitsSettings;

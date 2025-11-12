@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown } from 'lucide-react';
+import React from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { ChevronDown } from "lucide-react";
 
 const FormSection = ({
   title,
@@ -9,11 +9,11 @@ const FormSection = ({
   isExpanded,
   onToggle,
   sectionRef,
-  className = '',
+  className = "",
 }) => {
   const sectionAnimation = {
     initial: { height: 0, opacity: 0 },
-    animate: { height: 'auto', opacity: 1, transition: { duration: 0.3 } },
+    animate: { height: "auto", opacity: 1, transition: { duration: 0.3 } },
     exit: { height: 0, opacity: 0, transition: { duration: 0.3 } },
   };
 

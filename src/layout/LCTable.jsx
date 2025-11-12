@@ -44,10 +44,11 @@ const LCTable = ({ lcData }) => {
       (sum, expense) => sum + (expense.amount || 0),
       0
     );
-    const agentTransportOtherExpenses = agent_transport_info.other_expenses?.reduce(
-      (sum, expense) => sum + (expense.amount || 0),
-      0
-    );
+    const agentTransportOtherExpenses =
+      agent_transport_info.other_expenses?.reduce(
+        (sum, expense) => sum + (expense.amount || 0),
+        0
+      );
 
     const customs_total_bdt =
       (shipping_customs_info.customs_duty_bdt || 0) +
@@ -154,8 +155,8 @@ const LCTable = ({ lcData }) => {
                       <div className="text-gray-900 text-right max-w-40 truncate">
                         {lc?.product_info.map((p, idx) => (
                           <span key={idx} title={p?.item_name}>
-                            {p?.item_name} ({p?.quantity_ton} {p?.quantity_unit})
-                            {idx < lc.product_info.length - 1 ? ", " : ""}
+                            {p?.item_name} ({p?.quantity_ton} {p?.quantity_unit}
+                            ){idx < lc.product_info.length - 1 ? ", " : ""}
                           </span>
                         ))}
                       </div>
@@ -238,7 +239,9 @@ const LCTable = ({ lcData }) => {
                       </span>
                     </td>
                     <td className="py-4 px-6 text-gray-900">
-                      {new Date(lc.basic_info?.lc_opening_date).toLocaleDateString()}
+                      {new Date(
+                        lc.basic_info?.lc_opening_date
+                      ).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-6 text-gray-900">
                       {new Date(

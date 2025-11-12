@@ -260,7 +260,9 @@ const AddProductForm = ({
       parseFloat(formData.quantity) < 0 ||
       parseFloat(formData.unitPrice) <= 0
     ) {
-      toast.error("Quantity must be non-negative and price must be greater than 0");
+      toast.error(
+        "Quantity must be non-negative and price must be greater than 0"
+      );
       return;
     }
 
@@ -380,7 +382,9 @@ const AddProductForm = ({
                       label="Thickness (mm)"
                       type="number"
                       value={formData.thickness}
-                      onChange={(value) => handleInputChange("thickness", value)}
+                      onChange={(value) =>
+                        handleInputChange("thickness", value)
+                      }
                       placeholder="e.g., 12"
                       icon={Ruler}
                     />
@@ -447,7 +451,9 @@ const AddProductForm = ({
                       label="Unit Price ($)"
                       type="text"
                       value={formData.unitPrice}
-                      onChange={(value) => handleInputChange("unitPrice", value)}
+                      onChange={(value) =>
+                        handleInputChange("unitPrice", value)
+                      }
                       required
                       placeholder="25.50"
                       icon={DollarSign}
@@ -490,7 +496,9 @@ const AddProductForm = ({
                     <InputField
                       label="Supplier/Manufacturer"
                       value={formData.supplierName || ""}
-                      onChange={(value) => handleInputChange("supplierName", value)}
+                      onChange={(value) =>
+                        handleInputChange("supplierName", value)
+                      }
                       placeholder="Manufacturer name or supplier information"
                     />
                   </div>

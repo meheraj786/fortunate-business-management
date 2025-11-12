@@ -23,6 +23,7 @@ import { UrlContext } from "../../context/UrlContext";
 import FormDialog from "../../components/common/FormDialog";
 import InputField from "../../components/forms/InputField";
 import SelectField from "../../components/forms/SelectField";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
 import AddSales from "./AddSales";
 
 const SaleDetails = () => {
@@ -48,6 +49,11 @@ const SaleDetails = () => {
 
   // State for Update Sale Modal
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+
+  // State for Confirmation Modal
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState({ type: null }); // type can be 'delete' or 'cancel'
+  const [isSubmittingConfirm, setIsSubmittingConfirm] = useState(false);
 
   const fetchSaleDetails = async () => {
     setLoading(true);
@@ -107,37 +113,65 @@ const SaleDetails = () => {
     }
   }, [id, baseUrl]);
 
-  const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete this sale? This action is irreversible.")) {
-      const toastId = toast.loading("Deleting sale...");
-      try {
-        const response = await axios.delete(`${baseUrl}sales/delete-sale/${id}`);
-        if (response.data.success) {
-          toast.success(response.data.message || "Sale deleted successfully", { id: toastId });
-          navigate("/sales");
-        } else {
-          toast.error(response.data.message || "Failed to delete sale.", { id: toastId });
-        }
-      } catch (err) {
-        toast.error(err.response?.data?.message || err.message || "An unexpected error occurred while deleting the sale.", { id: toastId });
-      }
-    }
+  const handleDeleteClick = () => {
+    setConfirmAction({ type: "delete" });
+    setIsConfirmModalOpen(true);
   };
 
-  const handleCancelSale = async () => {
-    if (window.confirm("Are you sure you want to cancel this sale?")) {
-      const toastId = toast.loading("Cancelling sale...");
-      try {
+  const handleCancelClick = () => {
+    setConfirmAction({ type: "cancel" });
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmAction = async () => {
+    const { type } = confirmAction;
+    if (!type) return;
+
+    setIsSubmittingConfirm(true);
+    const toastId = toast.loading(
+      `${type === "delete" ? "Deleting" : "Cancelling"} sale...`
+    );
+
+    try {
+      if (type === "delete") {
+        const response = await axios.delete(
+          `${baseUrl}sales/delete-sale/${id}`
+        );
+        if (response.data.success) {
+          toast.success(response.data.message || "Sale deleted successfully", {
+            id: toastId,
+          });
+          navigate("/sales");
+        } else {
+          toast.error(response.data.message || "Failed to delete sale.", {
+            id: toastId,
+          });
+        }
+      } else if (type === "cancel") {
         const response = await axios.patch(`${baseUrl}sales/cancel-sale/${id}`);
         if (response.data.success) {
-          toast.success(response.data.message || "Sale cancelled successfully", { id: toastId });
+          toast.success(
+            response.data.message || "Sale cancelled successfully",
+            { id: toastId }
+          );
           setSale(response.data.data);
         } else {
-          toast.error(response.data.message || "Failed to cancel sale.", { id: toastId });
+          toast.error(response.data.message || "Failed to cancel sale.", {
+            id: toastId,
+          });
         }
-      } catch (err) {
-        toast.error(err.response?.data?.message || err.message || "An unexpected error occurred while cancelling the sale.", { id: toastId });
       }
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          "An unexpected error occurred.",
+        { id: toastId }
+      );
+    } finally {
+      setIsSubmittingConfirm(false);
+      setIsConfirmModalOpen(false);
+      setConfirmAction({ type: null });
     }
   };
 
@@ -162,15 +196,23 @@ const SaleDetails = () => {
   const handleGenerateInvoice = async () => {
     setIsGenerating(true);
     try {
-      const response = await axios.post(`${baseUrl}invoice/generate`, { saleId: id });
+      const response = await axios.post(`${baseUrl}invoice/generate`, {
+        saleId: id,
+      });
       if (response.data.success) {
-        toast.success(response.data.message || "Invoice generated successfully!");
+        toast.success(
+          response.data.message || "Invoice generated successfully!"
+        );
         navigate(`/sales/${id}/invoice/${response.data.data._id}`);
       } else {
         toast.error(response.data.message || "Failed to generate invoice.");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || "An unexpected error occurred while generating the invoice.");
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "An unexpected error occurred while generating the invoice."
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -222,7 +264,10 @@ const SaleDetails = () => {
 
     setIsSubmittingPayment(true);
     try {
-      const response = await axios.post(`${baseUrl}sales/${id}/payments`, payload);
+      const response = await axios.post(
+        `${baseUrl}sales/${id}/payments`,
+        payload
+      );
       if (response.data.success) {
         toast.success(response.data.message || "Payment added successfully!");
         setIsPaymentDialogOpen(false);
@@ -360,7 +405,7 @@ const SaleDetails = () => {
               Update
             </button>
             <button
-              onClick={handleCancelSale}
+              onClick={handleCancelClick}
               disabled={isCancelled}
               className="flex items-center gap-2 px-3 py-2 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
@@ -368,7 +413,7 @@ const SaleDetails = () => {
               Cancel
             </button>
             <button
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className="flex items-center gap-2 px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               <Trash2 size={16} />
@@ -436,14 +481,16 @@ const SaleDetails = () => {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Financial Summary
                 </h3>
-                {sale.paymentStatus === "Due payment" && balanceDue > 0 && !isCancelled && (
-                  <button
-                    onClick={() => setIsPaymentDialogOpen(true)}
-                    className="px-3 py-1 text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
-                  >
-                    Add Payment
-                  </button>
-                )}
+                {sale.paymentStatus === "Due payment" &&
+                  balanceDue > 0 &&
+                  !isCancelled && (
+                    <button
+                      onClick={() => setIsPaymentDialogOpen(true)}
+                      className="px-3 py-1 text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
+                    >
+                      Add Payment
+                    </button>
+                  )}
               </div>
 
               <div className="space-y-3">
@@ -752,6 +799,39 @@ const SaleDetails = () => {
             onSaleAdded={onSaleUpdated}
           />
         )}
+
+        {/* Confirmation Modal for Delete and Cancel */}
+        <ConfirmationModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          onConfirm={handleConfirmAction}
+          title={
+            confirmAction.type === "delete" ? "Delete Sale" : "Cancel Sale"
+          }
+          description={`Are you sure you want to ${confirmAction.type} this sale? This action cannot be undone.`}
+          confirmText={
+            confirmAction.type === "delete" ? "Delete" : "Confirm Cancel"
+          }
+          isConfirming={isSubmittingConfirm}
+          confirmingText={
+            confirmAction.type === "delete" ? "Deleting..." : "Cancelling..."
+          }
+          icon={confirmAction.type === "delete" ? Trash2 : XCircle}
+          iconBgColor={
+            confirmAction.type === "delete" ? "bg-red-100" : "bg-yellow-100"
+          }
+          iconTextColor={
+            confirmAction.type === "delete" ? "text-red-600" : "text-yellow-600"
+          }
+          confirmButtonBgColor={
+            confirmAction.type === "delete" ? "bg-red-600" : "bg-yellow-500"
+          }
+          confirmButtonHoverBgColor={
+            confirmAction.type === "delete"
+              ? "hover:bg-red-700"
+              : "hover:bg-yellow-600"
+          }
+        />
       </div>
     </div>
   );

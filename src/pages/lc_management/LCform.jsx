@@ -917,9 +917,7 @@ const LCForm = ({ onSave }) => {
                   <InputField
                     label="Expected Arrival Date"
                     type="date"
-                    value={
-                      formData.shipping_customs_info.expected_arrival_date
-                    }
+                    value={formData.shipping_customs_info.expected_arrival_date}
                     onChange={(v) =>
                       handleInputChange(
                         "shipping_customs_info",

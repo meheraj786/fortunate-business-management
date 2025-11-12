@@ -197,21 +197,33 @@ const AddSales = ({
 
   // Handle payment status changes
   useEffect(() => {
-    if ((isEditMode && editData?.invoiceStatus === 'Invoiced') || formData.invoiceStatus !== "Invoiced") return;
+    if (
+      (isEditMode && editData?.invoiceStatus === "Invoiced") ||
+      formData.invoiceStatus !== "Invoiced"
+    )
+      return;
 
     if (formData.paymentStatus === "Paid payment") {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        payments: [{
-          amount: totalAmountToBePaid.toFixed(2),
-          date: new Date().toISOString().split("T")[0],
-          method: prev.payments[0]?.method || ""
-        }]
+        payments: [
+          {
+            amount: totalAmountToBePaid.toFixed(2),
+            date: new Date().toISOString().split("T")[0],
+            method: prev.payments[0]?.method || "",
+          },
+        ],
       }));
     } else if (formData.paymentStatus === "Due payment") {
-      setFormData(prev => ({ ...prev, payments: [] }));
+      setFormData((prev) => ({ ...prev, payments: [] }));
     }
-  }, [formData.paymentStatus, formData.invoiceStatus, totalAmountToBePaid, isEditMode, editData]);
+  }, [
+    formData.paymentStatus,
+    formData.invoiceStatus,
+    totalAmountToBePaid,
+    isEditMode,
+    editData,
+  ]);
 
   // Handle form input changes
   const handleInputChange = (field, value) => {
@@ -322,7 +334,9 @@ const AddSales = ({
             (p.method === "bank" || p.method === "mobile-banking") &&
             !p.bankAccount
           ) {
-            toast.error(`Please select an account for the ${p.method} payment.`);
+            toast.error(
+              `Please select an account for the ${p.method} payment.`
+            );
             if (loadingToast) toast.dismiss(loadingToast);
             return;
           }
@@ -366,11 +380,16 @@ const AddSales = ({
         isEditMode ? "Error updating sale:" : "Error creating sale:",
         error
       );
-      let errorMessage = isEditMode ? "Failed to update sale" : "Failed to create sale";
+      let errorMessage = isEditMode
+        ? "Failed to update sale"
+        : "Failed to create sale";
       if (error.response?.data) {
-        if (typeof error.response.data === 'object' && error.response.data.message) {
+        if (
+          typeof error.response.data === "object" &&
+          error.response.data.message
+        ) {
           errorMessage = error.response.data.message;
-        } else if (typeof error.response.data === 'string') {
+        } else if (typeof error.response.data === "string") {
           const match = error.response.data.match(/<pre>Error: (.*?)<br>/);
           if (match && match[1]) {
             errorMessage = match[1];
@@ -694,7 +713,16 @@ const AddSales = ({
               </div>
             </div>
             {formData.invoiceStatus === "Invoiced" && (
-              <fieldset disabled={isEditMode && !(editData.invoiceStatus === 'Not-invoiced' && formData.invoiceStatus === 'Invoiced')} className="p-4 border-t border-gray-200">
+              <fieldset
+                disabled={
+                  isEditMode &&
+                  !(
+                    editData.invoiceStatus === "Not-invoiced" &&
+                    formData.invoiceStatus === "Invoiced"
+                  )
+                }
+                className="p-4 border-t border-gray-200"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <SelectField
                     label="Payment Status"

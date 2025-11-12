@@ -21,6 +21,8 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
 import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
+import toast from "react-hot-toast";
 
 const StatusBadge = ({ status }) => {
   let bgColor, icon;
@@ -73,6 +75,11 @@ const CustomerDetails = () => {
   const [recentPurchases, setRecentPurchases] = useState([]);
   const { baseUrl } = useContext(UrlContext);
 
+  const navigate = useNavigate();
+
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+
   useEffect(() => {
     axios
       .get(`${baseUrl}customer/get-customer/${id}`)
@@ -90,18 +97,22 @@ const CustomerDetails = () => {
       .catch((err) => console.error(err));
   }, [id, baseUrl]);
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const navigate = useNavigate();
-
-  const handleDelete = () => {
-    axios
-      .delete(`${baseUrl}customer/delete-customer/${id}`)
-      .then((res) => {
-        console.log("Delete Response:", res.data);
-        setShowDeleteConfirm(false);
-        navigate("/customers");
-      })
-      .catch((err) => console.error(err));
+  const handleDelete = async () => {
+    setIsConfirming(true);
+    try {
+      const res = await axios.delete(
+        `${baseUrl}customer/delete-customer/${id}`
+      );
+      console.log("Delete Response:", res.data);
+      toast.success("Customer deleted successfully!");
+      navigate("/customers");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to delete customer.");
+    } finally {
+      setIsConfirming(false);
+      setIsConfirmModalOpen(false);
+    }
   };
 
   if (!customerData) {
@@ -137,7 +148,7 @@ const CustomerDetails = () => {
               Edit Customer
             </button>
             <button
-              onClick={() => setShowDeleteConfirm(true)}
+              onClick={() => setIsConfirmModalOpen(true)}
               className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
             >
               <FiTrash2 size={20} />
@@ -145,29 +156,6 @@ const CustomerDetails = () => {
             </button>
           </div>
         </div>
-
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center">
-            <div className="m-4 bg-white p-8 rounded-lg shadow-lg">
-              <h2 className="text-xl font-bold mb-4">Confirm Deletion</h2>
-              <p>Are you sure you want to delete this customer?</p>
-              <div className="flex justify-end mt-4">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg mr-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Column 1 */}
@@ -512,6 +500,21 @@ const CustomerDetails = () => {
           </CollapsibleCard>
         </div>
       </div>
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Customer"
+        description={`Are you sure you want to delete customer "${customerData?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        isConfirming={isConfirming}
+        confirmingText="Deleting..."
+        icon={FiTrash2}
+        iconBgColor="bg-red-100"
+        iconTextColor="text-red-600"
+        confirmButtonBgColor="bg-red-600"
+        confirmButtonHoverBgColor="hover:bg-red-700"
+      />
     </div>
   );
 };

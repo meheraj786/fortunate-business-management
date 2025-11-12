@@ -48,7 +48,7 @@ const Team = () => {
 
   return (
     <div className="min-h-screen p-4 sm:p-6">
-      <Toaster position="top-right"/>
+      <Toaster position="top-right" />
       <div className=" mx-auto">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">

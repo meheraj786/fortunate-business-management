@@ -1,39 +1,45 @@
-import React, { useState, useMemo, useEffect, useContext } from 'react';
-import axios from 'axios';
-import { UrlContext } from '../../context/UrlContext';
-import SalesTable from '../../components/common/SalesTable';
-import SearchBar from '../../components/common/SearchBar';
-import Breadcrumb from '../../components/common/Breadcrumb';
+import React, { useState, useMemo, useEffect, useContext } from "react";
+import axios from "axios";
+import { UrlContext } from "../../context/UrlContext";
+import SalesTable from "../../components/common/SalesTable";
+import SearchBar from "../../components/common/SearchBar";
+import Breadcrumb from "../../components/common/Breadcrumb";
 
 const PaidInvoices = () => {
   const [sales, setSales] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const { baseUrl } = useContext(UrlContext);
 
   useEffect(() => {
-    axios.get(`${baseUrl}sales/get-all-paid-invoices`)
-      .then(res => {
+    axios
+      .get(`${baseUrl}sales/get-all-paid-invoices`)
+      .then((res) => {
         if (res.data && res.data.data) {
           setSales(res.data.data);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching paid invoices:", error);
       });
   }, [baseUrl]);
 
   const filteredSales = useMemo(() => {
     if (!sales) return [];
-    return sales.filter(sale =>
-      (sale.product?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (sale.customer?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (sale._id?.toString() || '').includes(searchTerm)
+    return sales.filter(
+      (sale) =>
+        (sale.product?.name?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase()
+        ) ||
+        (sale.customer?.name?.toLowerCase() || "").includes(
+          searchTerm.toLowerCase()
+        ) ||
+        (sale._id?.toString() || "").includes(searchTerm)
     );
   }, [sales, searchTerm]);
 
   const breadcrumbItems = [
-    { label: 'Sales', path: '/sales' },
-    { label: 'Paid Invoices' },
+    { label: "Sales", path: "/sales" },
+    { label: "Paid Invoices" },
   ];
 
   return (
@@ -50,7 +56,10 @@ const PaidInvoices = () => {
         </div>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-gray-200">
-            <SearchBar onSearch={setSearchTerm} placeholder="Search by product, customer, or sale ID..." />
+            <SearchBar
+              onSearch={setSearchTerm}
+              placeholder="Search by product, customer, or sale ID..."
+            />
           </div>
           <SalesTable sales={filteredSales} />
         </div>

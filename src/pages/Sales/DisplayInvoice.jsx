@@ -1,7 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import { Printer, ArrowLeft, Download, Mail, Share2, Loader2 } from 'lucide-react';
-import { UrlContext } from '../../context/UrlContext';
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate, useParams } from "react-router";
+import {
+  Printer,
+  ArrowLeft,
+  Download,
+  Mail,
+  Share2,
+  Loader2,
+} from "lucide-react";
+import { UrlContext } from "../../context/UrlContext";
 
 const DisplayInvoice = () => {
   const navigate = useNavigate();
@@ -24,10 +31,10 @@ const DisplayInvoice = () => {
         if (result.success) {
           setInvoice(result.data);
         } else {
-          setError(result.message || 'Failed to fetch invoice data.');
+          setError(result.message || "Failed to fetch invoice data.");
         }
       } catch (err) {
-        setError('An unexpected error occurred.');
+        setError("An unexpected error occurred.");
       } finally {
         setLoading(false);
       }
@@ -57,8 +64,8 @@ const DisplayInvoice = () => {
         <div className="text-center">
           <p className="text-2xl font-bold text-red-600 mb-4">Error</p>
           <p className="text-gray-700 mb-4">{error}</p>
-          <button 
-            onClick={() => navigate(-1)} 
+          <button
+            onClick={() => navigate(-1)}
             className="inline-flex items-center text-blue-500 hover:text-blue-700 hover:underline transition-colors"
           >
             <ArrowLeft size={16} className="mr-1" />
@@ -74,8 +81,8 @@ const DisplayInvoice = () => {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <p className="text-2xl font-bold mb-4">Invoice Data Not Found</p>
-          <button 
-            onClick={() => navigate('/sales')} 
+          <button
+            onClick={() => navigate("/sales")}
             className="inline-flex items-center text-blue-500 hover:text-blue-700 hover:underline transition-colors"
           >
             <ArrowLeft size={16} className="mr-1" />
@@ -97,7 +104,10 @@ const DisplayInvoice = () => {
     _id: fetchedInvoiceId,
   } = invoice;
 
-  const totalPayments = paymentAndAmountInfo.payments.reduce((sum, p) => sum + p.amount, 0);
+  const totalPayments = paymentAndAmountInfo.payments.reduce(
+    (sum, p) => sum + p.amount,
+    0
+  );
   const balanceDue = paymentAndAmountInfo.totalAmountToBePaid - totalPayments;
 
   return (
@@ -113,7 +123,9 @@ const DisplayInvoice = () => {
                 <p className="text-gray-500">#{fetchedInvoiceId.slice(-6)}</p>
               </div>
               <div className="text-right">
-                <h2 className="text-2xl font-semibold text-gray-800">Your Company</h2>
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  Your Company
+                </h2>
                 <p className="text-gray-600">123 Business Rd, Dhaka</p>
               </div>
             </div>
@@ -122,14 +134,25 @@ const DisplayInvoice = () => {
             <div className="grid grid-cols-2 gap-8 py-8">
               <div>
                 <h3 className="font-semibold text-gray-700 mb-2">Bill To:</h3>
-                <p className="font-medium text-gray-900">{customerDetails.name}</p>
+                <p className="font-medium text-gray-900">
+                  {customerDetails.name}
+                </p>
                 <p className="text-gray-600">{customerDetails.phone}</p>
                 <p className="text-gray-600">{customerDetails.address}</p>
               </div>
               <div className="text-right">
-                <p><span className="font-semibold">Sale ID:</span> #{salesId.slice(-6)}</p>
-                <p><span className="font-semibold">Sale Date:</span> {new Date(salesDate).toLocaleDateString()}</p>
-                <p><span className="font-semibold">Generated:</span> {new Date(invoiceGeneratedDate).toLocaleDateString()}</p>
+                <p>
+                  <span className="font-semibold">Sale ID:</span> #
+                  {salesId.slice(-6)}
+                </p>
+                <p>
+                  <span className="font-semibold">Sale Date:</span>{" "}
+                  {new Date(salesDate).toLocaleDateString()}
+                </p>
+                <p>
+                  <span className="font-semibold">Generated:</span>{" "}
+                  {new Date(invoiceGeneratedDate).toLocaleDateString()}
+                </p>
               </div>
             </div>
 
@@ -137,18 +160,35 @@ const DisplayInvoice = () => {
             <table className="w-full mb-8">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="text-left p-3 font-medium text-gray-600">Product</th>
-                  <th className="text-center p-3 font-medium text-gray-600">Quantity</th>
-                  <th className="text-right p-3 font-medium text-gray-600">Unit Price</th>
-                  <th className="text-right p-3 font-medium text-gray-600">Total</th>
+                  <th className="text-left p-3 font-medium text-gray-600">
+                    Product
+                  </th>
+                  <th className="text-center p-3 font-medium text-gray-600">
+                    Quantity
+                  </th>
+                  <th className="text-right p-3 font-medium text-gray-600">
+                    Unit Price
+                  </th>
+                  <th className="text-right p-3 font-medium text-gray-600">
+                    Total
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b">
                   <td className="p-3">{productDetails.name}</td>
-                  <td className="text-center p-3">{productDetails.quantity} {productDetails.unit}</td>
-                  <td className="text-right p-3">${productDetails.pricePerUnit.toFixed(2)}</td>
-                  <td className="text-right p-3">${(productDetails.pricePerUnit * productDetails.quantity).toFixed(2)}</td>
+                  <td className="text-center p-3">
+                    {productDetails.quantity} {productDetails.unit}
+                  </td>
+                  <td className="text-right p-3">
+                    ${productDetails.pricePerUnit.toFixed(2)}
+                  </td>
+                  <td className="text-right p-3">
+                    $
+                    {(
+                      productDetails.pricePerUnit * productDetails.quantity
+                    ).toFixed(2)}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -172,18 +212,28 @@ const DisplayInvoice = () => {
                 ))}
                 <div className="flex justify-between">
                   <span className="text-gray-600">Discount:</span>
-                  <span className="text-green-600">-${paymentAndAmountInfo.discount.toFixed(2)}</span>
+                  <span className="text-green-600">
+                    -${paymentAndAmountInfo.discount.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between font-bold border-t pt-2">
                   <span className="text-gray-900">Net Amount:</span>
-                  <span className="text-gray-900">${paymentAndAmountInfo.totalAmountToBePaid.toFixed(2)}</span>
+                  <span className="text-gray-900">
+                    ${paymentAndAmountInfo.totalAmountToBePaid.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Payments Made:</span>
                   <span>${totalPayments.toFixed(2)}</span>
                 </div>
-                <div className={`flex justify-between font-bold text-lg pt-2 border-t ${balanceDue > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  <span>{balanceDue > 0 ? 'Balance Due:' : 'Overpayment:'}</span>
+                <div
+                  className={`flex justify-between font-bold text-lg pt-2 border-t ${
+                    balanceDue > 0 ? "text-red-600" : "text-green-600"
+                  }`}
+                >
+                  <span>
+                    {balanceDue > 0 ? "Balance Due:" : "Overpayment:"}
+                  </span>
                   <span>${Math.abs(balanceDue).toFixed(2)}</span>
                 </div>
               </div>
@@ -203,15 +253,15 @@ const DisplayInvoice = () => {
         <div className="w-full lg:w-80 bg-white lg:h-screen p-6 no-print">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Actions</h3>
-            <button 
-              onClick={() => navigate(`/sales/${salesId}`)} 
+            <button
+              onClick={() => navigate(`/sales/${salesId}`)}
               className="w-full inline-flex items-center justify-center bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
             >
               <ArrowLeft size={16} className="mr-2" />
               Back to Sale Details
             </button>
-            <button 
-              onClick={handlePrint} 
+            <button
+              onClick={handlePrint}
               className="w-full inline-flex items-center justify-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Printer size={16} className="mr-2" />

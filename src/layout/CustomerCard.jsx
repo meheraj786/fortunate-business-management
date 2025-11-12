@@ -22,7 +22,9 @@ const CustomerCard = ({ customer }) => {
         <div className="space-y-2 mb-3">
           <div className="flex items-center gap-2 text-gray-600">
             <Phone size={14} className="flex-shrink-0" />
-            <span className="text-xs sm:text-sm truncate">{customer.phone}</span>
+            <span className="text-xs sm:text-sm truncate">
+              {customer.phone}
+            </span>
           </div>
           <div className="flex items-center gap-2 text-gray-600">
             <MapPin size={14} className="flex-shrink-0" />

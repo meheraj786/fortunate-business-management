@@ -1,5 +1,20 @@
-import React, { useState } from 'react';
-import { BarChart3, CreditCard, Package, Users, Building2, TrendingUp, DollarSign, AlertTriangle, CheckCircle, Clock, XCircle, Eye, Menu, X } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  BarChart3,
+  CreditCard,
+  Package,
+  Users,
+  Building2,
+  TrendingUp,
+  DollarSign,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Eye,
+  Menu,
+  X,
+} from "lucide-react";
 
 // Data imports (using the provided data structure) - All amounts converted to BDT
 const usdToBdtRate = 110; // Current USD to BDT conversion rate
@@ -23,7 +38,7 @@ const lcData = [
       lcValue: 4977500,
       currency: "BDT",
       status: "Active",
-    }
+    },
   },
   {
     id: 2,
@@ -43,7 +58,7 @@ const lcData = [
       lcValue: 13838000,
       currency: "BDT",
       status: "Expired",
-    }
+    },
   },
   {
     id: 3,
@@ -63,7 +78,7 @@ const lcData = [
       lcValue: 9856000,
       currency: "BDT",
       status: "Pending",
-    }
+    },
   },
   {
     id: 4,
@@ -83,7 +98,7 @@ const lcData = [
       lcValue: 3564000,
       currency: "BDT",
       status: "Active",
-    }
+    },
   },
   {
     id: 5,
@@ -103,7 +118,7 @@ const lcData = [
       lcValue: 2062500,
       currency: "BDT",
       status: "Completed",
-    }
+    },
   },
   {
     id: 6,
@@ -123,8 +138,8 @@ const lcData = [
       lcValue: 7467900,
       currency: "BDT",
       status: "Under Review",
-    }
-  }
+    },
+  },
 ];
 
 const customers = [
@@ -135,7 +150,7 @@ const customers = [
     location: "Dhaka, Bangladesh",
     totalPurchased: "৳3,57,500",
     lastPurchase: "20 Sep 2023",
-    status: "Active"
+    status: "Active",
   },
   {
     id: 2,
@@ -144,7 +159,7 @@ const customers = [
     location: "Chittagong, Bangladesh",
     totalPurchased: "৳2,07,955",
     lastPurchase: "18 Sep 2023",
-    status: "Active"
+    status: "Active",
   },
   {
     id: 3,
@@ -153,7 +168,7 @@ const customers = [
     location: "Sylhet, Bangladesh",
     totalPurchased: "৳4,53,283",
     lastPurchase: "12 Sep 2023",
-    status: "Inactive"
+    status: "Inactive",
   },
   {
     id: 4,
@@ -162,7 +177,7 @@ const customers = [
     location: "Rajshahi, Bangladesh",
     totalPurchased: "৳2,94,278",
     lastPurchase: "25 Aug 2023",
-    status: "Pending"
+    status: "Pending",
   },
   {
     id: 5,
@@ -171,7 +186,7 @@ const customers = [
     location: "Khulna, Bangladesh",
     totalPurchased: "৳5,99,500",
     lastPurchase: "22 Sep 2023",
-    status: "Active"
+    status: "Active",
   },
   {
     id: 6,
@@ -180,56 +195,208 @@ const customers = [
     location: "Barishal, Bangladesh",
     totalPurchased: "৳1,35,383",
     lastPurchase: "10 Sep 2023",
-    status: "Pending"
-  }
+    status: "Pending",
+  },
 ];
 
 const products = [
-  { id: 1, name: "Mild Steel Rod", category: "Steel Rods", quantity: 150, unitPrice: "৳2,805", location: "Warehouse A" },
-  { id: 2, name: "Galvanized Steel Sheet", category: "Steel Sheets", quantity: 75, unitPrice: "৳4,950", location: "Warehouse B" },
-  { id: 3, name: "Steel Angle Bar", category: "Structural Steel", quantity: 35, unitPrice: "৳2,063", location: "Warehouse A" },
-  { id: 4, name: "Stainless Steel Plate", category: "Steel Plates", quantity: 8, unitPrice: "৳13,750", location: "Warehouse C" },
-  { id: 5, name: "Steel Pipe", category: "Steel Pipes", quantity: 25, unitPrice: "৳7,205", location: "Warehouse B" },
-  { id: 6, name: "Carbon Steel Bar", category: "Steel Bars", quantity: 120, unitPrice: "৳3,548", location: "Warehouse A" }
+  {
+    id: 1,
+    name: "Mild Steel Rod",
+    category: "Steel Rods",
+    quantity: 150,
+    unitPrice: "৳2,805",
+    location: "Warehouse A",
+  },
+  {
+    id: 2,
+    name: "Galvanized Steel Sheet",
+    category: "Steel Sheets",
+    quantity: 75,
+    unitPrice: "৳4,950",
+    location: "Warehouse B",
+  },
+  {
+    id: 3,
+    name: "Steel Angle Bar",
+    category: "Structural Steel",
+    quantity: 35,
+    unitPrice: "৳2,063",
+    location: "Warehouse A",
+  },
+  {
+    id: 4,
+    name: "Stainless Steel Plate",
+    category: "Steel Plates",
+    quantity: 8,
+    unitPrice: "৳13,750",
+    location: "Warehouse C",
+  },
+  {
+    id: 5,
+    name: "Steel Pipe",
+    category: "Steel Pipes",
+    quantity: 25,
+    unitPrice: "৳7,205",
+    location: "Warehouse B",
+  },
+  {
+    id: 6,
+    name: "Carbon Steel Bar",
+    category: "Steel Bars",
+    quantity: 120,
+    unitPrice: "৳3,548",
+    location: "Warehouse A",
+  },
 ];
 
 const salesData = [
-  { id: 1, productName: "Mild Steel Rod", quantity: 25, price: 2805, date: "2024-09-21", customer: "Rahman Steel Works" },
-  { id: 2, productName: "Galvanized Steel Sheet", quantity: 10, price: 4950, date: "2024-09-22", customer: "Metro Construction" },
-  { id: 3, productName: "Steel Angle Bar", quantity: 8, price: 2063, date: "2024-09-20", customer: "Building Solutions Ltd" },
-  { id: 4, productName: "Stainless Steel Plate", quantity: 2, price: 13750, date: "2024-09-19", customer: "Industrial Fabricators" },
-  { id: 5, productName: "Steel Pipe", quantity: 5, price: 7205, date: "2024-09-18", customer: "Pipe & Fittings Co" }
+  {
+    id: 1,
+    productName: "Mild Steel Rod",
+    quantity: 25,
+    price: 2805,
+    date: "2024-09-21",
+    customer: "Rahman Steel Works",
+  },
+  {
+    id: 2,
+    productName: "Galvanized Steel Sheet",
+    quantity: 10,
+    price: 4950,
+    date: "2024-09-22",
+    customer: "Metro Construction",
+  },
+  {
+    id: 3,
+    productName: "Steel Angle Bar",
+    quantity: 8,
+    price: 2063,
+    date: "2024-09-20",
+    customer: "Building Solutions Ltd",
+  },
+  {
+    id: 4,
+    productName: "Stainless Steel Plate",
+    quantity: 2,
+    price: 13750,
+    date: "2024-09-19",
+    customer: "Industrial Fabricators",
+  },
+  {
+    id: 5,
+    productName: "Steel Pipe",
+    quantity: 5,
+    price: 7205,
+    date: "2024-09-18",
+    customer: "Pipe & Fittings Co",
+  },
 ];
 
 const expensesData = [
-  { id: 1, date: "2025-09-23", category: "Transport", description: "Fuel for delivery truck", amount: 2500, paymentMethod: "Cash" },
-  { id: 2, date: "2025-09-23", category: "Transport", description: "Driver salary advance", amount: 3000, paymentMethod: "Cash" },
-  { id: 3, date: "2025-09-23", category: "Maintenance", description: "Truck repair and service", amount: 4500, paymentMethod: "Bank" },
-  { id: 4, date: "2025-09-23", category: "Office", description: "Tea and snacks for workers", amount: 800, paymentMethod: "Cash" },
-  { id: 5, date: "2025-09-22", category: "Rent", description: "Office rent payment", amount: 15000, paymentMethod: "Bank" }
+  {
+    id: 1,
+    date: "2025-09-23",
+    category: "Transport",
+    description: "Fuel for delivery truck",
+    amount: 2500,
+    paymentMethod: "Cash",
+  },
+  {
+    id: 2,
+    date: "2025-09-23",
+    category: "Transport",
+    description: "Driver salary advance",
+    amount: 3000,
+    paymentMethod: "Cash",
+  },
+  {
+    id: 3,
+    date: "2025-09-23",
+    category: "Maintenance",
+    description: "Truck repair and service",
+    amount: 4500,
+    paymentMethod: "Bank",
+  },
+  {
+    id: 4,
+    date: "2025-09-23",
+    category: "Office",
+    description: "Tea and snacks for workers",
+    amount: 800,
+    paymentMethod: "Cash",
+  },
+  {
+    id: 5,
+    date: "2025-09-22",
+    category: "Rent",
+    description: "Office rent payment",
+    amount: 15000,
+    paymentMethod: "Bank",
+  },
 ];
 
 const teamMembers = [
-  { id: 1, name: "Rashid Khan", phone: "+880 1712-123456", role: "Manager", location: "Dhaka, Bangladesh" },
-  { id: 2, name: "Fatima Ahmed", phone: "+880 1523-234567", role: "Warehouse Keeper", location: "Chittagong, Bangladesh" },
-  { id: 3, name: "Nasir Rahman", phone: "+880 1634-345678", role: "Accountant", location: "Dhaka, Bangladesh" },
-  { id: 4, name: "Ayesha Islam", phone: "+880 1845-456789", role: "Sales Executive", location: "Rajshahi, Bangladesh" }
+  {
+    id: 1,
+    name: "Rashid Khan",
+    phone: "+880 1712-123456",
+    role: "Manager",
+    location: "Dhaka, Bangladesh",
+  },
+  {
+    id: 2,
+    name: "Fatima Ahmed",
+    phone: "+880 1523-234567",
+    role: "Warehouse Keeper",
+    location: "Chittagong, Bangladesh",
+  },
+  {
+    id: 3,
+    name: "Nasir Rahman",
+    phone: "+880 1634-345678",
+    role: "Accountant",
+    location: "Dhaka, Bangladesh",
+  },
+  {
+    id: 4,
+    name: "Ayesha Islam",
+    phone: "+880 1845-456789",
+    role: "Sales Executive",
+    location: "Rajshahi, Bangladesh",
+  },
 ];
 
 const Dashboard = () => {
   // Calculate statistics
-  const totalLCValue = lcData.reduce((sum, lc) => sum + lc.basicInfo.lcValue, 0);
-  const activeLCs = lcData.filter(lc => lc.status === 'Active').length;
-  const completedLCs = lcData.filter(lc => lc.status === 'Completed').length;
-  const totalProducts = products.reduce((sum, product) => sum + product.quantity, 0);
-  const totalSales = salesData.reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
-  const totalExpenses = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
-  
+  const totalLCValue = lcData.reduce(
+    (sum, lc) => sum + lc.basicInfo.lcValue,
+    0
+  );
+  const activeLCs = lcData.filter((lc) => lc.status === "Active").length;
+  const completedLCs = lcData.filter((lc) => lc.status === "Completed").length;
+  const totalProducts = products.reduce(
+    (sum, product) => sum + product.quantity,
+    0
+  );
+  const totalSales = salesData.reduce(
+    (sum, sale) => sum + sale.quantity * sale.price,
+    0
+  );
+  const totalExpenses = expensesData.reduce(
+    (sum, expense) => sum + expense.amount,
+    0
+  );
+
   // Additional financial calculations in BDT
-  const totalRevenue = lcData.filter(lc => lc.status === 'Completed').reduce((sum, lc) => sum + lc.basicInfo.lcValue, 0);
-  const pendingPayments = lcData.filter(lc => ['Active', 'Pending'].includes(lc.status)).reduce((sum, lc) => sum + lc.basicInfo.lcValue, 0);
+  const totalRevenue = lcData
+    .filter((lc) => lc.status === "Completed")
+    .reduce((sum, lc) => sum + lc.basicInfo.lcValue, 0);
+  const pendingPayments = lcData
+    .filter((lc) => ["Active", "Pending"].includes(lc.status))
+    .reduce((sum, lc) => sum + lc.basicInfo.lcValue, 0);
   const monthlyProfit = totalSales - totalExpenses;
-  
+
   // Format large numbers in standard format with BDT symbol
   const formatBDTAmount = (amount) => {
     return `৳${amount.toLocaleString()}`;
@@ -237,23 +404,35 @@ const Dashboard = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active': return 'bg-green-100 text-green-800';
-      case 'Completed': return 'bg-blue-100 text-blue-800';
-      case 'Pending': return 'bg-yellow-100 text-yellow-800';
-      case 'Expired': return 'bg-red-100 text-red-800';
-      case 'Under Review': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "Active":
+        return "bg-green-100 text-green-800";
+      case "Completed":
+        return "bg-blue-100 text-blue-800";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "Expired":
+        return "bg-red-100 text-red-800";
+      case "Under Review":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Active': return <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
-      case 'Completed': return <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
-      case 'Pending': return <Clock className="w-3 h-3 sm:w-4 sm:h-4" />;
-      case 'Expired': return <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
-      case 'Under Review': return <Eye className="w-3 h-3 sm:w-4 sm:h-4" />;
-      default: return <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case "Active":
+        return <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case "Completed":
+        return <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case "Pending":
+        return <Clock className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case "Expired":
+        return <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case "Under Review":
+        return <Eye className="w-3 h-3 sm:w-4 sm:h-4" />;
+      default:
+        return <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />;
     }
   };
 
@@ -261,8 +440,12 @@ const Dashboard = () => {
     <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border border-gray-100 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{title}</p>
-          <p className="text-sm sm:text-lg lg:text-2xl font-bold text-gray-900 mt-1 truncate">{value}</p>
+          <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">
+            {title}
+          </p>
+          <p className="text-sm sm:text-lg lg:text-2xl font-bold text-gray-900 mt-1 truncate">
+            {value}
+          </p>
           {change && (
             <p className="text-xs sm:text-sm text-green-600 mt-1">
               +{change}% from last month
@@ -277,18 +460,22 @@ const Dashboard = () => {
   );
 
   const SectionCard = ({ title, children, className = "" }) => (
-    <div className={`bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-100 ${className}`}>
+    <div
+      className={`bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-100 ${className}`}
+    >
       <div className="p-3 sm:p-4 lg:p-6 border-b border-gray-100">
-        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">
+          {title}
+        </h3>
       </div>
-      <div className="p-3 sm:p-4 lg:p-6">
-        {children}
-      </div>
+      <div className="p-3 sm:p-4 lg:p-6">{children}</div>
     </div>
   );
 
   const MobileCard = ({ children, className = "" }) => (
-    <div className={`border border-gray-200 rounded-lg p-3 sm:p-4 ${className}`}>
+    <div
+      className={`border border-gray-200 rounded-lg p-3 sm:p-4 ${className}`}
+    >
       {children}
     </div>
   );
@@ -311,10 +498,11 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 lg:space-y-8">
-        
         {/* Statistics Cards */}
         <section>
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Overview</h2>
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
+            Overview
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             <StatCard
               title="Total LC Value"
@@ -356,10 +544,18 @@ const Dashboard = () => {
                 <MobileCard key={lc.id}>
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="font-semibold text-gray-900 text-sm">{lc.lcNumber}</p>
-                      <p className="text-xs text-gray-500">{lc.basicInfo.lcType}</p>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {lc.lcNumber}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {lc.basicInfo.lcType}
+                      </p>
                     </div>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lc.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        lc.status
+                      )}`}
+                    >
                       {getStatusIcon(lc.status)}
                       <span className="ml-1">{lc.status}</span>
                     </span>
@@ -367,11 +563,15 @@ const Dashboard = () => {
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Beneficiary:</span>
-                      <span className="font-medium text-gray-900 truncate ml-2">{lc.beneficiary}</span>
+                      <span className="font-medium text-gray-900 truncate ml-2">
+                        {lc.beneficiary}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Amount:</span>
-                      <span className="font-medium text-gray-900">{lc.totalAmount}</span>
+                      <span className="font-medium text-gray-900">
+                        {lc.totalAmount}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Due Date:</span>
@@ -379,7 +579,9 @@ const Dashboard = () => {
                     </div>
                     <div className="pt-1">
                       <span className="text-gray-600">Products:</span>
-                      <p className="text-gray-900 mt-1 text-xs">{lc.products}</p>
+                      <p className="text-gray-900 mt-1 text-xs">
+                        {lc.products}
+                      </p>
                     </div>
                   </div>
                 </MobileCard>
@@ -391,33 +593,61 @@ const Dashboard = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LC Number</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Beneficiary</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Products</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Due Date</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      LC Number
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Beneficiary
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                      Products
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Due Date
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {lcData.map((lc) => (
                     <tr key={lc.id} className="hover:bg-gray-50">
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{lc.lcNumber}</div>
-                        <div className="text-xs text-gray-500">{lc.basicInfo.lcType}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {lc.lcNumber}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {lc.basicInfo.lcType}
+                        </div>
                       </td>
                       <td className="px-3 lg:px-6 py-4 text-sm text-gray-900">
-                        <div className="truncate max-w-32 sm:max-w-40">{lc.beneficiary}</div>
+                        <div className="truncate max-w-32 sm:max-w-40">
+                          {lc.beneficiary}
+                        </div>
                       </td>
                       <td className="px-3 lg:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">
                         <div className="truncate max-w-48">{lc.products}</div>
                       </td>
-                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{lc.totalAmount}</td>
-                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">{lc.dueDate}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {lc.totalAmount}
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                        {lc.dueDate}
+                      </td>
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lc.status)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            lc.status
+                          )}`}
+                        >
                           {getStatusIcon(lc.status)}
-                          <span className="ml-1 hidden sm:inline">{lc.status}</span>
+                          <span className="ml-1 hidden sm:inline">
+                            {lc.status}
+                          </span>
                         </span>
                       </td>
                     </tr>
@@ -437,25 +667,37 @@ const Dashboard = () => {
                 <MobileCard key={customer.id}>
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="font-semibold text-gray-900 text-sm">{customer.name}</p>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {customer.name}
+                      </p>
                       <p className="text-xs text-gray-600">{customer.phone}</p>
                     </div>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(customer.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        customer.status
+                      )}`}
+                    >
                       {customer.status}
                     </span>
                   </div>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Location:</span>
-                      <span className="text-gray-900 truncate ml-2">{customer.location}</span>
+                      <span className="text-gray-900 truncate ml-2">
+                        {customer.location}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Total Purchased:</span>
-                      <span className="font-medium text-gray-900">{customer.totalPurchased}</span>
+                      <span className="font-medium text-gray-900">
+                        {customer.totalPurchased}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Last Purchase:</span>
-                      <span className="text-gray-900">{customer.lastPurchase}</span>
+                      <span className="text-gray-900">
+                        {customer.lastPurchase}
+                      </span>
                     </div>
                   </div>
                 </MobileCard>
@@ -467,29 +709,57 @@ const Dashboard = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Contact</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Location</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Purchased</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Last Purchase</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Contact
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                      Location
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Purchased
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Last Purchase
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {customers.map((customer) => (
                     <tr key={customer.id} className="hover:bg-gray-50">
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                        <div className="text-xs text-gray-500 sm:hidden">{customer.phone}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {customer.name}
+                        </div>
+                        <div className="text-xs text-gray-500 sm:hidden">
+                          {customer.phone}
+                        </div>
                       </td>
-                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">{customer.phone}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                        {customer.phone}
+                      </td>
                       <td className="px-3 lg:px-6 py-4 text-sm text-gray-900 hidden lg:table-cell">
-                        <div className="truncate max-w-32">{customer.location}</div>
+                        <div className="truncate max-w-32">
+                          {customer.location}
+                        </div>
                       </td>
-                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{customer.totalPurchased}</td>
-                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">{customer.lastPurchase}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {customer.totalPurchased}
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden md:table-cell">
+                        {customer.lastPurchase}
+                      </td>
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(customer.status)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            customer.status
+                          )}`}
+                        >
                           {customer.status}
                         </span>
                       </td>
@@ -510,24 +780,41 @@ const Dashboard = () => {
                 <MobileCard key={product.id}>
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="font-semibold text-gray-900 text-sm">{product.name}</p>
-                      <p className="text-xs text-gray-600">{product.category}</p>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {product.name}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {product.category}
+                      </p>
                     </div>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      product.quantity < 50 ? 'bg-red-100 text-red-800' : 
-                      product.quantity < 100 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
-                    }`}>
-                      {product.quantity < 50 ? 'Low Stock' : product.quantity < 100 ? 'Medium Stock' : 'In Stock'}
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        product.quantity < 50
+                          ? "bg-red-100 text-red-800"
+                          : product.quantity < 100
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
+                    >
+                      {product.quantity < 50
+                        ? "Low Stock"
+                        : product.quantity < 100
+                        ? "Medium Stock"
+                        : "In Stock"}
                     </span>
                   </div>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Quantity:</span>
-                      <span className="font-medium text-gray-900">{product.quantity} units</span>
+                      <span className="font-medium text-gray-900">
+                        {product.quantity} units
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Unit Price:</span>
-                      <span className="font-medium text-gray-900">{product.unitPrice}</span>
+                      <span className="font-medium text-gray-900">
+                        {product.unitPrice}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Location:</span>
@@ -543,31 +830,64 @@ const Dashboard = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Category</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Unit Price</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Location</th>
-                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Product
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                      Category
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Quantity
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Unit Price
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                      Location
+                    </th>
+                    <th className="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {products.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50">
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                        <div className="text-xs text-gray-500 sm:hidden">{product.category}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {product.name}
+                        </div>
+                        <div className="text-xs text-gray-500 sm:hidden">
+                          {product.category}
+                        </div>
                       </td>
-                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">{product.category}</td>
-                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.quantity}</td>
-                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 hidden md:table-cell">{product.unitPrice}</td>
-                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">{product.location}</td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                        {product.category}
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {product.quantity}
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 hidden md:table-cell">
+                        {product.unitPrice}
+                      </td>
+                      <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                        {product.location}
+                      </td>
                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          product.quantity < 50 ? 'bg-red-100 text-red-800' : 
-                          product.quantity < 100 ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
-                        }`}>
-                          {product.quantity < 50 ? 'Low Stock' : product.quantity < 100 ? 'Medium Stock' : 'In Stock'}
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            product.quantity < 50
+                              ? "bg-red-100 text-red-800"
+                              : product.quantity < 100
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {product.quantity < 50
+                            ? "Low Stock"
+                            : product.quantity < 100
+                            ? "Medium Stock"
+                            : "In Stock"}
                         </span>
                       </td>
                     </tr>
@@ -585,13 +905,22 @@ const Dashboard = () => {
             <SectionCard title="Recent Sales">
               <div className="space-y-3 sm:space-y-4">
                 {salesData.map((sale) => (
-                  <div key={sale.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
+                  <div
+                    key={sale.id}
+                    className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg"
+                  >
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{sale.productName}</p>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">{sale.customer}</p>
+                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">
+                        {sale.productName}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">
+                        {sale.customer}
+                      </p>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
-                      <p className="font-semibold text-gray-900 text-xs sm:text-sm">৳{(sale.quantity * sale.price).toLocaleString()}</p>
+                      <p className="font-semibold text-gray-900 text-xs sm:text-sm">
+                        ৳{(sale.quantity * sale.price).toLocaleString()}
+                      </p>
                       <p className="text-xs text-gray-600">{sale.date}</p>
                     </div>
                   </div>
@@ -603,14 +932,25 @@ const Dashboard = () => {
             <SectionCard title="Recent Expenses">
               <div className="space-y-3 sm:space-y-4">
                 {expensesData.map((expense) => (
-                  <div key={expense.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
+                  <div
+                    key={expense.id}
+                    className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg"
+                  >
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{expense.description}</p>
-                      <p className="text-xs sm:text-sm text-gray-600">{expense.category} • {expense.date}</p>
+                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">
+                        {expense.description}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        {expense.category} • {expense.date}
+                      </p>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
-                      <p className="font-semibold text-gray-900 text-xs sm:text-sm">৳{expense.amount.toLocaleString()}</p>
-                      <p className="text-xs text-gray-600">{expense.paymentMethod}</p>
+                      <p className="font-semibold text-gray-900 text-xs sm:text-sm">
+                        ৳{expense.amount.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {expense.paymentMethod}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -621,23 +961,39 @@ const Dashboard = () => {
 
         {/* Low Stock Alert */}
         <section>
-          <SectionCard title="Low Stock Alert" className="border-l-4 border-l-red-500">
+          <SectionCard
+            title="Low Stock Alert"
+            className="border-l-4 border-l-red-500"
+          >
             <div className="space-y-3 sm:space-y-4">
-              {products.filter(product => product.quantity < 50).map((product) => (
-                <div key={product.id} className="flex items-center justify-between p-3 sm:p-4 bg-red-50 rounded-lg border border-red-100">
-                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                    <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{product.name}</p>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">{product.category}</p>
+              {products
+                .filter((product) => product.quantity < 50)
+                .map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between p-3 sm:p-4 bg-red-50 rounded-lg border border-red-100"
+                  >
+                    <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                      <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-900 text-sm sm:text-base truncate">
+                          {product.name}
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-600 truncate">
+                          {product.category}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className="font-semibold text-red-600 text-xs sm:text-sm">
+                        {product.quantity} units
+                      </p>
+                      <p className="text-xs text-gray-600 truncate">
+                        {product.location}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0 ml-2">
-                    <p className="font-semibold text-red-600 text-xs sm:text-sm">{product.quantity} units</p>
-                    <p className="text-xs text-gray-600 truncate">{product.location}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </SectionCard>
         </section>
@@ -647,22 +1003,30 @@ const Dashboard = () => {
           <SectionCard title="Team Members">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {teamMembers.map((member) => (
-                <div key={member.id} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <div
+                  key={member.id}
+                  className="bg-gray-50 rounded-lg p-3 sm:p-4"
+                >
                   <div className="text-center">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
-                    <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{member.name}</h4>
-                    <p className="text-xs sm:text-sm text-primary font-medium">{member.role}</p>
+                    <h4 className="font-semibold text-gray-900 text-sm sm:text-base">
+                      {member.name}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-primary font-medium">
+                      {member.role}
+                    </p>
                     <p className="text-xs text-gray-600 mt-1">{member.phone}</p>
-                    <p className="text-xs text-gray-600 truncate">{member.location}</p>
+                    <p className="text-xs text-gray-600 truncate">
+                      {member.location}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           </SectionCard>
         </section>
-
       </main>
 
       {/* Footer */}

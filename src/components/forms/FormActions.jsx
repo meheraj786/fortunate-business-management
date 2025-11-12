@@ -1,7 +1,13 @@
-import React from 'react';
-import { X, Save } from 'lucide-react';
+import React from "react";
+import { X, Save } from "lucide-react";
 
-const FormActions = ({ onCancel, onSave, isSaving = false, saveText = 'Save', cancelText = 'Cancel' }) => (
+const FormActions = ({
+  onCancel,
+  onSave,
+  isSaving = false,
+  saveText = "Save",
+  cancelText = "Cancel",
+}) => (
   <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200 shrink-0">
     <button
       type="button"
@@ -17,7 +23,7 @@ const FormActions = ({ onCancel, onSave, isSaving = false, saveText = 'Save', ca
       disabled={isSaving}
     >
       <Save size={16} />
-      <span>{isSaving ? 'Saving...' : saveText}</span>
+      <span>{isSaving ? "Saving..." : saveText}</span>
     </button>
   </div>
 );

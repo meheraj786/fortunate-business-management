@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const InputField = ({
   label,
@@ -30,7 +30,7 @@ const InputField = ({
         <input
           name={name}
           type={type}
-          value={value || ''}
+          value={value || ""}
           onChange={onChange}
           required={required}
           placeholder={placeholder}

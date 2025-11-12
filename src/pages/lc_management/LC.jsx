@@ -22,7 +22,9 @@ const LC = () => {
 
   const activeLC = lcData.filter((i) => i.basic_info?.status === "Active");
   const processingLC = lcData.filter((i) => i.basic_info?.status === "Draft");
-  const completedLC = lcData.filter((i) => i.basic_info?.status === "Completed");
+  const completedLC = lcData.filter(
+    (i) => i.basic_info?.status === "Completed"
+  );
   const canceledLC = lcData.filter((i) => i.basic_info?.status === "Canceled");
 
   return (

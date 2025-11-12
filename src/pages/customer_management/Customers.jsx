@@ -24,7 +24,7 @@ const Customers = () => {
   return (
     <div className="pt-8 p-6 h-full w-full">
       <Toaster position="top-right" />
-      <div class=" items-center flex-wrap flex justify-between">
+      <div className=" items-center flex-wrap flex justify-between">
         <h2 className="text-3xl font-semibold mb-4">Your Customers</h2>
         <Link to="/customer-form">
           <button className="flex rounded-xl gap-x-2 px-4 py-3 cursor-pointer hover:bg-primary-hover transition-colors duration-300 bg-primary text-white text-[16px] items-center  xl:ms-auto mx-auto xl:mx-0">

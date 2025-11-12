@@ -20,7 +20,7 @@ import { useParams, useNavigate } from "react-router";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
 import { UrlContext } from "../../context/UrlContext";
 import axios from "axios";
-import FormDialog from "../../components/common/FormDialog";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
 import toast from "react-hot-toast";
 
 const StatusBadge = ({ status }) => {
@@ -88,23 +88,52 @@ const LCdetails = () => {
   const navigate = useNavigate();
   const [lcData, setLcData] = useState(null);
   const { baseUrl } = useContext(UrlContext);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // 'delete' or 'export'
+  const [isConfirming, setIsConfirming] = useState(false);
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await axios.delete(`${baseUrl}lc/delete-lc/${id}`);
-      toast.success("LC deleted successfully");
-      navigate("/lc-management");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete LC");
-      console.error(error);
-    } finally {
-      setIsDeleting(false);
-      setIsDeleteModalOpen(false);
+  const openConfirmationModal = (action) => {
+    setConfirmAction(action);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    setIsConfirming(true);
+
+    if (confirmAction === "delete") {
+      try {
+        await axios.delete(`${baseUrl}lc/delete-lc/${id}`);
+        toast.success("LC deleted successfully");
+        navigate("/lc-management");
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to delete LC");
+        console.error(error);
+      }
+    } else if (confirmAction === "export") {
+      try {
+        const lcNumber = lcData?.basic_info?.lc_number || "LC";
+        const response = await axios.get(`${baseUrl}lc/export-lc/${id}`, {
+          responseType: "blob",
+        });
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `LC-Details-${lcNumber}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        toast.success("PDF exported successfully!");
+      } catch (error) {
+        console.error("PDF export error:", error);
+        toast.error(error.response?.data?.message || "Failed to export PDF.");
+      }
     }
+
+    setIsConfirming(false);
+    setIsConfirmModalOpen(false);
+    setConfirmAction(null);
   };
 
   useEffect(() => {
@@ -128,36 +157,6 @@ const LCdetails = () => {
       day: "numeric",
     });
   };
-
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-        const lcNumber = lcData?.basic_info?.lc_number || 'LC';
-        const response = await axios.get(`${baseUrl}lc/export-lc/${id}`, {
-            responseType: 'blob', // Important for downloading files
-        });
-
-        // Create a blob from the response data
-        const blob = new Blob([response.data], { type: 'application/pdf' });
-
-        // Create a link element
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `LC-Details-${lcNumber}.pdf`); // Set the download filename
-        document.body.appendChild(link); // Append to body to make it clickable
-        link.click(); // Programmatically click the link
-        link.remove(); // Clean up the link element
-        window.URL.revokeObjectURL(url); // Release the object URL
-
-        toast.success("PDF exported successfully!");
-    } catch (error) {
-        console.error("PDF export error:", error);
-        toast.error(error.response?.data?.message || "Failed to export PDF.");
-    } finally {
-        setIsExporting(false);
-    }
-};
 
   if (!lcData) {
     return (
@@ -252,51 +251,22 @@ const LCdetails = () => {
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-2">
             <button
-              onClick={handleExport}
-              disabled={isExporting}
-              className="flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              onClick={() => openConfirmationModal("export")}
+              className="cursor-pointer flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              {isExporting ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Exporting...
-                </>
-              ) : (
-                <>
-                  <FiDownload className="mr-2" />
-                  Export
-                </>
-              )}
+              <FiDownload className="mr-2" />
+              Export
             </button>
             <button
               onClick={() => navigate(`/lc-form/${id}`)}
-              className="flex items-center px-4 py-2 bg-[#003b75] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-[#002855]"
+              className="cursor-pointer flex items-center px-4 py-2 bg-[#003b75] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-[#002855]"
             >
               <FiEdit className="mr-2" />
               Edit
             </button>
             <button
-              onClick={() => setIsDeleteModalOpen(true)}
-              className="flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700"
+              onClick={() => openConfirmationModal("delete")}
+              className="cursor-pointer flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700"
             >
               <FiTrash className="mr-2" />
               Delete
@@ -605,20 +575,35 @@ const LCdetails = () => {
           </div>
         </div>
       </div>
-      <FormDialog
-        open={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        title="Confirm Deletion"
-        primaryButtonText={isDeleting ? "Deleting..." : "Delete"}
-        secondaryButtonText="Cancel"
-        onSubmit={handleDelete}
-        isPrimaryButtonDisabled={isDeleting}
-      >
-        <p className="text-gray-600">
-          Are you sure you want to delete this Letter of Credit (
-          {lcData?.basic_info?.lc_number})? This action cannot be undone.
-        </p>
-      </FormDialog>
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirm}
+        title={
+          confirmAction === "delete" ? "Confirm Deletion" : "Confirm Export"
+        }
+        description={
+          confirmAction === "delete"
+            ? `Are you sure you want to delete this Letter of Credit (${lcData?.basic_info?.lc_number})? This action cannot be undone.`
+            : "Do you want to download the LC details as a PDF file?"
+        }
+        confirmText={confirmAction === "delete" ? "Delete" : "Export"}
+        isConfirming={isConfirming}
+        confirmingText={
+          confirmAction === "delete" ? "Deleting..." : "Exporting..."
+        }
+        icon={confirmAction === "delete" ? FiTrash : FiDownload}
+        iconBgColor={confirmAction === "delete" ? "bg-red-100" : "bg-blue-100"}
+        iconTextColor={
+          confirmAction === "delete" ? "text-red-600" : "text-blue-600"
+        }
+        confirmButtonBgColor={
+          confirmAction === "delete" ? "bg-red-600" : "bg-blue-600"
+        }
+        confirmButtonHoverBgColor={
+          confirmAction === "delete" ? "hover:bg-red-700" : "hover:bg-blue-700"
+        }
+      />
     </div>
   );
 };

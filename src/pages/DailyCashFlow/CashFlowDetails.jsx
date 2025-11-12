@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Wallet,
   TrendingDown,
@@ -7,16 +7,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Receipt,
-} from 'lucide-react';
+} from "lucide-react";
 
-const StatCard = ({
-  title,
-  amount,
-  icon: Icon,
-  color = "blue",
-  subtitle,
-}) => (
-  <div className={`bg-white rounded-lg shadow-sm p-4 border-l-4 border-l-${color}-500`}>
+const StatCard = ({ title, amount, icon: Icon, color = "blue", subtitle }) => (
+  <div
+    className={`bg-white rounded-lg shadow-sm p-4 border-l-4 border-l-${color}-500`}
+  >
     <div className="flex items-center justify-between">
       <div className="flex-1">
         <p className="text-xs sm:text-sm font-medium text-gray-600 uppercase tracking-wide">
@@ -36,11 +32,13 @@ const StatCard = ({
 
 const TransactionCard = ({ transaction, iconComponents }) => {
   const IconComponent = iconComponents[transaction.icon] || Receipt;
-  const isIncome = transaction.type === 'income';
-  const color = isIncome ? 'green' : 'red';
+  const isIncome = transaction.type === "income";
+  const color = isIncome ? "green" : "red";
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm p-4 border-l-4 border-l-${color}-500 mb-4`}>
+    <div
+      className={`bg-white rounded-lg shadow-sm p-4 border-l-4 border-l-${color}-500 mb-4`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3 flex-1">
           <div className={`p-2 bg-${color}-100 rounded-full`}>
@@ -60,7 +58,7 @@ const TransactionCard = ({ transaction, iconComponents }) => {
         </div>
         <div className="text-right">
           <p className={`text-lg font-bold text-${color}-600`}>
-            {isIncome ? '+' : '-'}৳{transaction.amount.toLocaleString()}
+            {isIncome ? "+" : "-"}৳{transaction.amount.toLocaleString()}
           </p>
         </div>
       </div>
@@ -95,14 +93,18 @@ const CashFlowDetails = ({
           amount={totalIncome}
           icon={TrendingUp}
           color="green"
-          subtitle={`${filteredTransactions.filter(t => t.type === 'income').length} transactions`}
+          subtitle={`${
+            filteredTransactions.filter((t) => t.type === "income").length
+          } transactions`}
         />
         <StatCard
           title="Total Expenses"
           amount={totalExpenses}
           icon={TrendingDown}
           color="red"
-          subtitle={`${filteredTransactions.filter(t => t.type === 'expense').length} transactions`}
+          subtitle={`${
+            filteredTransactions.filter((t) => t.type === "expense").length
+          } transactions`}
         />
         <StatCard
           title="Running Balance"
@@ -121,7 +123,11 @@ const CashFlowDetails = ({
         </div>
         <div className="md:hidden">
           {transactions.map((transaction) => (
-            <TransactionCard key={transaction._id} transaction={transaction} iconComponents={iconComponents} />
+            <TransactionCard
+              key={transaction._id}
+              transaction={transaction}
+              iconComponents={iconComponents}
+            />
           ))}
         </div>
         <div className="hidden md:block overflow-x-auto">
@@ -145,7 +151,7 @@ const CashFlowDetails = ({
             <tbody className="bg-white divide-y divide-gray-200">
               {transactions.map((transaction) => {
                 const Icon = iconComponents[transaction.icon];
-                const isIncome = transaction.type === 'income';
+                const isIncome = transaction.type === "income";
                 return (
                   <tr key={transaction._id}>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
@@ -164,8 +170,13 @@ const CashFlowDetails = ({
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {transaction.time}
                     </td>
-                    <td className={`px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium ${isIncome ? 'text-green-600' : 'text-red-600'}`}>
-                      {isIncome ? '+' : '-'} ৳{transaction.amount.toLocaleString()}
+                    <td
+                      className={`px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium ${
+                        isIncome ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {isIncome ? "+" : "-"} ৳
+                      {transaction.amount.toLocaleString()}
                     </td>
                   </tr>
                 );
@@ -175,15 +186,13 @@ const CashFlowDetails = ({
         </div>
         <div className="p-4 sm:p-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center">
           <div className="text-sm text-gray-600 mb-2 sm:mb-0">
-            Showing{' '}
-            <span className="font-medium">
-              {(currentPage - 1) * 10 + 1}
-            </span>{' '}
-            to{' '}
+            Showing{" "}
+            <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> to{" "}
             <span className="font-medium">
               {Math.min(currentPage * 10, filteredTransactions.length)}
-            </span>{' '}
-            of <span className="font-medium">{filteredTransactions.length}</span>{' '}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium">{filteredTransactions.length}</span>{" "}
             results
           </div>
           <div className="flex items-center">

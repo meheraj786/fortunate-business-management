@@ -1,12 +1,12 @@
 @import url(https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900,100italic,200italic,300italic,italic,500italic,600italic,700italic,800italic,900italic);
 @import "tailwindcss";
 
-@theme{
-    --font-inter: 'Inter', sans-serif;
-    --color-primary: #003366;
-    --color-primary-hover: #003b75;
+@theme {
+  --font-inter: "Inter", sans-serif;
+  --color-primary: #003366;
+  --color-primary-hover: #003b75;
 }
 
-body{
-    font-family: var(--font-inter);
+body {
+  font-family: var(--font-inter);
 }

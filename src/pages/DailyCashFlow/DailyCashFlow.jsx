@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useContext, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  useContext,
+  useEffect,
+  useCallback,
+} from "react";
 import {
   Calendar,
   Plus,
@@ -67,7 +73,10 @@ const DailyCashFlow = () => {
       if (err.response && err.response.status === 404) {
         setError("Cash for this day has not been opened yet.");
       } else {
-        setError(err.response?.data?.message || "An error occurred while fetching data.");
+        setError(
+          err.response?.data?.message ||
+            "An error occurred while fetching data."
+        );
       }
       console.error(err);
     } finally {
@@ -149,14 +158,26 @@ const DailyCashFlow = () => {
         category: newTransaction.category,
         description: newTransaction.description,
         paymentMethod: newTransaction.paymentMethod,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: "2-digit", second: "2-digit" }), // Auto-generate time
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }), // Auto-generate time
       });
-      toast.success(`${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} added successfully!`, { id: toastId });
+      toast.success(
+        `${
+          transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
+        } added successfully!`,
+        { id: toastId }
+      );
       setShowAddTransaction(false);
       setNewTransaction({ amount: "", category: "", description: "" });
       fetchDailyCash();
     } catch (err) {
-      toast.error(err.response?.data?.message || `Failed to add ${transactionType}.`, { id: toastId });
+      toast.error(
+        err.response?.data?.message || `Failed to add ${transactionType}.`,
+        { id: toastId }
+      );
     }
   };
 
@@ -168,32 +189,50 @@ const DailyCashFlow = () => {
   const handleOpenDay = async () => {
     const toastId = toast.loading("Opening cash for the day...");
     try {
-        await axios.post(`${baseUrl}cash/open`, { date: selectedDate });
-        toast.success("Cash opened successfully!", { id: toastId });
-        fetchDailyCash();
+      await axios.post(`${baseUrl}cash/open`, { date: selectedDate });
+      toast.success("Cash opened successfully!", { id: toastId });
+      fetchDailyCash();
     } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to open cash.", { id: toastId });
+      toast.error(err.response?.data?.message || "Failed to open cash.", {
+        id: toastId,
+      });
     }
   };
 
   const handleCloseDay = async () => {
-    if (window.confirm("Are you sure you want to close the cash for the day? This cannot be undone.")) {
-        const toastId = toast.loading("Closing cash for the day...");
-        try {
-            await axios.post(`${baseUrl}cash/close`, { date: selectedDate });
-            toast.success("Cash closed successfully!", { id: toastId });
-            fetchDailyCash();
-        } catch (err) {
-            toast.error(err.response?.data?.message || "Failed to close cash.", { id: toastId });
-        }
+    if (
+      window.confirm(
+        "Are you sure you want to close the cash for the day? This cannot be undone."
+      )
+    ) {
+      const toastId = toast.loading("Closing cash for the day...");
+      try {
+        await axios.post(`${baseUrl}cash/close`, { date: selectedDate });
+        toast.success("Cash closed successfully!", { id: toastId });
+        fetchDailyCash();
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to close cash.", {
+          id: toastId,
+        });
+      }
     }
   };
 
   const iconComponents = {
-    Fuel, Users, Wrench, Coffee, Building, Truck, Car, CreditCard, Receipt, PiggyBank, User: Users,
-    "Sale": DollarSign,
+    Fuel,
+    Users,
+    Wrench,
+    Coffee,
+    Building,
+    Truck,
+    Car,
+    CreditCard,
+    Receipt,
+    PiggyBank,
+    User: Users,
+    Sale: DollarSign,
     "Office Expense": Building,
-    "Transportation": Truck,
+    Transportation: Truck,
   };
 
   const renderContent = () => {
@@ -223,9 +262,7 @@ const DailyCashFlow = () => {
       <>
         <div
           className={`p-4 rounded-lg text-center mb-4 ${
-            isClosed
-              ? "bg-gray-200 text-gray-800"
-              : "bg-blue-100 text-blue-800"
+            isClosed ? "bg-gray-200 text-gray-800" : "bg-blue-100 text-blue-800"
           }`}
         >
           <p className="font-semibold">
@@ -369,14 +406,22 @@ const DailyCashFlow = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <form onSubmit={handleAddTransactionSubmit} className="p-4 space-y-4">
+              <form
+                onSubmit={handleAddTransactionSubmit}
+                className="p-4 space-y-4"
+              >
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Amount
+                  </label>
                   <input
                     type="number"
                     value={newTransaction.amount}
                     onChange={(e) =>
-                      setNewTransaction({ ...newTransaction, amount: e.target.value })
+                      setNewTransaction({
+                        ...newTransaction,
+                        amount: e.target.value,
+                      })
                     }
                     placeholder="Enter amount"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -391,7 +436,10 @@ const DailyCashFlow = () => {
                     type="text"
                     value={newTransaction.category}
                     onChange={(e) =>
-                      setNewTransaction({ ...newTransaction, category: e.target.value })
+                      setNewTransaction({
+                        ...newTransaction,
+                        category: e.target.value,
+                      })
                     }
                     placeholder="e.g., Office Supplies, Transport"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -405,7 +453,10 @@ const DailyCashFlow = () => {
                   <textarea
                     value={newTransaction.description}
                     onChange={(e) =>
-                      setNewTransaction({ ...newTransaction, description: e.target.value })
+                      setNewTransaction({
+                        ...newTransaction,
+                        description: e.target.value,
+                      })
                     }
                     placeholder="Enter description"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -419,7 +470,10 @@ const DailyCashFlow = () => {
                   <select
                     value={newTransaction.paymentMethod}
                     onChange={(e) =>
-                      setNewTransaction({ ...newTransaction, paymentMethod: e.target.value })
+                      setNewTransaction({
+                        ...newTransaction,
+                        paymentMethod: e.target.value,
+                      })
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   >
