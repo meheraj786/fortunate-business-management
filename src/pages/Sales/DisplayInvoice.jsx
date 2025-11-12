@@ -178,7 +178,8 @@ const DisplayInvoice = () => {
                 <tr className="border-b">
                   <td className="p-3">{productDetails.name}</td>
                   <td className="text-center p-3">
-                    {productDetails.quantity} {productDetails.unit}
+                    {productDetails.quantity}{" "}
+                    {productDetails.unit?.name || productDetails.unit}
                   </td>
                   <td className="text-right p-3">
                     ${productDetails.pricePerUnit.toFixed(2)}

@@ -20,12 +20,12 @@ const LC = () => {
     });
   }, [baseUrl]);
 
-  const activeLC = lcData.filter((i) => i.basic_info?.status === "Active");
-  const processingLC = lcData.filter((i) => i.basic_info?.status === "Draft");
+  const activeLC = lcData.filter((i) => i.basicInfo?.status === "Active");
+  const processingLC = lcData.filter((i) => i.basicInfo?.status === "Draft");
   const completedLC = lcData.filter(
-    (i) => i.basic_info?.status === "Completed"
+    (i) => i.basicInfo?.status === "Completed"
   );
-  const canceledLC = lcData.filter((i) => i.basic_info?.status === "Canceled");
+  const canceledLC = lcData.filter((i) => i.basicInfo?.status === "Canceled");
 
   return (
     <div className="pt-8 p-6 h-full w-full">

@@ -31,7 +31,7 @@ const Sales = () => {
 
   const fetchSales = () => {
     axios
-      .get(`${baseUrl}sales/get-all-sales`)
+      .get(`${baseUrl}sales/summary-for-table`)
       .then((res) => setSalesData(res.data.data || []))
       .catch((error) => {
         console.error("Error fetching all sales:", error);

@@ -15,7 +15,7 @@ import {
   FiEdit,
   FiTrash,
 } from "react-icons/fi";
-import { motion } from "motion/react";
+import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
 import { UrlContext } from "../../context/UrlContext";
@@ -111,7 +111,7 @@ const LCdetails = () => {
       }
     } else if (confirmAction === "export") {
       try {
-        const lcNumber = lcData?.basic_info?.lc_number || "LC";
+        const lcNumber = lcData?.basicInfo?.lcNumber || "LC";
         const response = await axios.get(`${baseUrl}lc/export-lc/${id}`, {
           responseType: "blob",
         });
@@ -140,7 +140,9 @@ const LCdetails = () => {
     if (!id) return;
     axios
       .get(`${baseUrl}lc/get-lc/${id}`)
-      .then((res) => setLcData(res.data.data))
+      .then((res) => {
+        setLcData(res.data.data);
+      })
       .catch((err) => console.error(err));
   }, [id, baseUrl]);
 
@@ -167,12 +169,12 @@ const LCdetails = () => {
   }
 
   // Safely extract data with fallbacks
-  const financial_info = lcData?.financial_info || {};
-  const shipping_customs_info = lcData?.shipping_customs_info || {};
-  const agent_transport_info = lcData?.agent_transport_info || {};
-  const product_info = lcData?.product_info || [];
-  const basic_info = lcData?.basic_info || {};
-  const documents_notes = lcData?.documents_notes || {};
+  const financialInfo = lcData?.financialInfo || {};
+  const shippingCustomsInfo = lcData?.shippingCustomsInfo || {};
+  const agentTransportInfo = lcData?.agentTransportInfo || {};
+  const productInfo = lcData?.productInfo || [];
+  const basicInfo = lcData?.basicInfo || {};
+  const documentsNotes = lcData?.documentsNotes || {};
 
   const sumOtherExpenses = (expenses) => {
     if (!expenses || !Array.isArray(expenses)) return 0;
@@ -182,54 +184,50 @@ const LCdetails = () => {
     );
   };
 
-  const other_financial_expenses = sumOtherExpenses(
-    financial_info.other_expenses
+  const otherFinancialExpenses = sumOtherExpenses(financialInfo.otherExpenses);
+  const otherShippingExpenses = sumOtherExpenses(
+    shippingCustomsInfo.otherExpenses
   );
-  const other_shipping_expenses = sumOtherExpenses(
-    shipping_customs_info.other_expenses
-  );
-  const other_agent_expenses = sumOtherExpenses(
-    agent_transport_info.other_expenses
-  );
-  const customs_total_bdt =
-    (shipping_customs_info.customs_duty_bdt || 0) +
-    (shipping_customs_info.vat_bdt || 0) +
-    (shipping_customs_info.ait_bdt || 0) +
-    other_shipping_expenses;
+  const otherAgentExpenses = sumOtherExpenses(agentTransportInfo.otherExpenses);
+  const customsTotalBdt =
+    (shippingCustomsInfo.customsDutyBdt || 0) +
+    (shippingCustomsInfo.vatBdt || 0) +
+    (shippingCustomsInfo.aitBdt || 0) +
+    otherShippingExpenses;
 
-  const transport_other_bdt =
-    (agent_transport_info.transport_cost_bdt || 0) + other_agent_expenses;
+  const transportOtherBdt =
+    (agentTransportInfo.transportCostBdt || 0) + otherAgentExpenses;
 
-  const total_lc_cost_bdt =
-    (financial_info.lc_amount_bdt || 0) +
-    (financial_info.bank_charges_bdt || 0) +
-    (financial_info.insurance_cost_bdt || 0) +
-    customs_total_bdt +
-    (agent_transport_info.cnf_agent_commission_bdt || 0) +
-    (agent_transport_info.indenting_agent_commission_bdt || 0) +
-    transport_other_bdt +
-    other_financial_expenses;
+  const totalLcCostBdt =
+    (financialInfo.lcAmountBdt || 0) +
+    (financialInfo.bankChargesBdt || 0) +
+    (financialInfo.insuranceCostBdt || 0) +
+    customsTotalBdt +
+    (agentTransportInfo.cnfAgentCommissionBdt || 0) +
+    (agentTransportInfo.indentingAgentCommissionBdt || 0) +
+    transportOtherBdt +
+    otherFinancialExpenses;
 
-  const total_quantity_ton = product_info.reduce(
-    (total, p) => total + (p.quantity_ton || 0),
+  const totalQuantityValue = productInfo.reduce(
+    (total, p) => total + (p.quantityValue || 0),
     0
   );
 
-  const per_unit_landing_cost_bdt = total_quantity_ton
-    ? total_lc_cost_bdt / total_quantity_ton
+  const perUnitLandingCostBdt = totalQuantityValue
+    ? totalLcCostBdt / totalQuantityValue
     : 0;
-  const cost_summary = {
-    lc_amount_bdt: financial_info.lc_amount_bdt || 0,
-    bank_charges_bdt: financial_info.bank_charges_bdt || 0,
-    insurance_cost_bdt: financial_info.insurance_cost_bdt || 0,
-    customs_total_bdt,
-    agent_commission_bdt:
-      (agent_transport_info.cnf_agent_commission_bdt || 0) +
-      (agent_transport_info.indenting_agent_commission_bdt || 0),
-    transport_other_bdt,
-    total_lc_cost_bdt,
-    per_unit_landing_cost_bdt,
-    other_financial_expenses,
+  const costSummary = {
+    lcAmountBdt: financialInfo.lcAmountBdt || 0,
+    bankChargesBdt: financialInfo.bankChargesBdt || 0,
+    insuranceCostBdt: financialInfo.insuranceCostBdt || 0,
+    customsTotalBdt,
+    agentCommissionBdt:
+      (agentTransportInfo.cnfAgentCommissionBdt || 0) +
+      (agentTransportInfo.indentingAgentCommissionBdt || 0),
+    transportOtherBdt,
+    totalLcCostBdt,
+    perUnitLandingCostBdt,
+    otherFinancialExpenses,
   };
 
   return (
@@ -279,23 +277,23 @@ const LCdetails = () => {
           <div className="lg:col-span-2 space-y-4">
             <CollapsibleCard title="Basic LC Information" icon={<FiFile />}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DataField label="LC Number" value={basic_info.lc_number} />
+                <DataField label="LC Number" value={basicInfo.lcNumber} />
                 <DataField
                   label="LC Opening Date"
-                  value={formatDate(basic_info.lc_opening_date)}
+                  value={formatDate(basicInfo.lcOpeningDate)}
                 />
-                <DataField label="Bank Name" value={basic_info.bank_name} />
+                <DataField label="Bank Name" value={basicInfo.bankName} />
                 <DataField
                   label="Status"
-                  value={<StatusBadge status={basic_info.status} />}
+                  value={<StatusBadge status={basicInfo.status} />}
                 />
                 <DataField
                   label="Supplier Name"
-                  value={basic_info.supplier_name}
+                  value={basicInfo.supplierName}
                 />
                 <DataField
                   label="Supplier Country"
-                  value={basic_info.supplier_country}
+                  value={basicInfo.supplierCountry}
                 />
               </div>
             </CollapsibleCard>
@@ -307,34 +305,34 @@ const LCdetails = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <DataField
                   label="LC Amount (USD)"
-                  value={formatNumber(financial_info.lc_amount_usd)}
+                  value={formatNumber(financialInfo.lcAmountUsd)}
                 />
                 <DataField
                   label="Exchange Rate"
-                  value={financial_info.exchange_rate || "-"}
+                  value={financialInfo.exchangeRate || "-"}
                 />
                 <DataField
                   label="LC Amount (BDT)"
-                  value={formatNumber(financial_info.lc_amount_bdt)}
+                  value={formatNumber(financialInfo.lcAmountBdt)}
                 />
                 <DataField
                   label="LC Margin Paid (BDT)"
-                  value={formatNumber(financial_info.lc_margin_paid_bdt)}
+                  value={formatNumber(financialInfo.lcMarginPaidBdt)}
                 />
                 <DataField
                   label="Bank Charges (BDT)"
-                  value={formatNumber(financial_info.bank_charges_bdt)}
+                  value={formatNumber(financialInfo.bankChargesBdt)}
                 />
                 <DataField
                   label="Insurance Cost (BDT)"
-                  value={formatNumber(financial_info.insurance_cost_bdt)}
+                  value={formatNumber(financialInfo.insuranceCostBdt)}
                 />
               </div>
-              {financial_info.other_expenses?.length > 0 && (
+              {financialInfo.otherExpenses?.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-300">
                   <h3 className="text-md font-semibold mb-2">Other Expenses</h3>
                   <div className="space-y-2">
-                    {financial_info.other_expenses.map((expense) => (
+                    {financialInfo.otherExpenses.map((expense) => (
                       <div
                         key={expense._id}
                         className="flex justify-between items-center"
@@ -351,15 +349,15 @@ const LCdetails = () => {
             </CollapsibleCard>
 
             <CollapsibleCard title="Product Information" icon={<FiBox />}>
-              {product_info.map((p, index) => (
+              {productInfo.map((p, index) => (
                 <div
                   key={p._id || index}
                   className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b  border-gray-300 pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0"
                 >
-                  <DataField label="Item Name" value={p.item_name} />
+                  <DataField label="Item Name" value={p.itemName} />
                   <DataField
                     label="Unit Price (USD)"
-                    value={formatNumber(p.unit_price_usd)}
+                    value={formatNumber(p.unitPriceUsd)}
                   />
                   {p.specification && (
                     <DataField
@@ -380,19 +378,15 @@ const LCdetails = () => {
                   )}
                   <DataField
                     label="Total Value (USD)"
-                    value={formatNumber(p.total_value_usd)}
+                    value={formatNumber(p.totalValueUsd)}
                   />
                   <DataField
                     label="Quantity Unit"
-                    value={p.quantity_unit || "-"}
+                    value={p.quantityUnit?.name || "-"}
                   />
                   <DataField
-                    label={`Quantity (${p.quantity_unit || "N/A"})`}
-                    value={p.quantity_ton || "-"}
-                  />
-                  <DataField
-                    label="Total Value (BDT)"
-                    value={formatNumber(p.total_value_bdt)}
+                    label={`Quantity (${p.quantityUnit?.name || "N/A"})`}
+                    value={p.quantityValue || "-"}
                   />
                 </div>
               ))}
@@ -405,32 +399,30 @@ const LCdetails = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <DataField
                   label="Port of Shipment"
-                  value={shipping_customs_info.port_of_shipment}
+                  value={shippingCustomsInfo.portOfShipment}
                 />
                 <DataField
                   label="Expected Arrival Date"
-                  value={formatDate(
-                    shipping_customs_info.expected_arrival_date
-                  )}
+                  value={formatDate(shippingCustomsInfo.expectedArrivalDate)}
                 />
                 <DataField
                   label="Customs Duty (BDT)"
-                  value={formatNumber(shipping_customs_info.customs_duty_bdt)}
+                  value={formatNumber(shippingCustomsInfo.customsDutyBdt)}
                 />
                 <DataField
                   label="VAT (BDT)"
-                  value={formatNumber(shipping_customs_info.vat_bdt)}
+                  value={formatNumber(shippingCustomsInfo.vatBdt)}
                 />
                 <DataField
                   label="AIT (BDT)"
-                  value={formatNumber(shipping_customs_info.ait_bdt)}
+                  value={formatNumber(shippingCustomsInfo.aitBdt)}
                 />
               </div>
-              {shipping_customs_info.other_expenses?.length > 0 && (
+              {shippingCustomsInfo.otherExpenses?.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-300">
                   <h3 className="text-md font-semibold mb-2">Other Expenses</h3>
                   <div className="space-y-2">
-                    {shipping_customs_info.other_expenses.map((expense) => (
+                    {shippingCustomsInfo.otherExpenses.map((expense) => (
                       <div
                         key={expense._id}
                         className="flex justify-between items-center"
@@ -453,30 +445,28 @@ const LCdetails = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <DataField
                   label="C&F Agent Name"
-                  value={agent_transport_info.cnf_agent_name}
+                  value={agentTransportInfo.cnfAgentName}
                 />
                 <DataField
                   label="C&F Agent Commission (BDT)"
-                  value={formatNumber(
-                    agent_transport_info.cnf_agent_commission_bdt
-                  )}
+                  value={formatNumber(agentTransportInfo.cnfAgentCommissionBdt)}
                 />
                 <DataField
                   label="Indenting Agent Commission (BDT)"
                   value={formatNumber(
-                    agent_transport_info.indenting_agent_commission_bdt
+                    agentTransportInfo.indentingAgentCommissionBdt
                   )}
                 />
                 <DataField
                   label="Transport Cost (BDT)"
-                  value={formatNumber(agent_transport_info.transport_cost_bdt)}
+                  value={formatNumber(agentTransportInfo.transportCostBdt)}
                 />
               </div>
-              {agent_transport_info.other_expenses?.length > 0 && (
+              {agentTransportInfo.otherExpenses?.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-300">
                   <h3 className="text-md font-semibold mb-2">Other Expenses</h3>
                   <div className="space-y-2">
-                    {agent_transport_info.other_expenses.map((expense) => (
+                    {agentTransportInfo.otherExpenses.map((expense) => (
                       <div
                         key={expense._id}
                         className="flex justify-between items-center"
@@ -499,37 +489,37 @@ const LCdetails = () => {
               <div className="space-y-3">
                 <DataField
                   label="LC Amount (BDT)"
-                  value={formatNumber(cost_summary.lc_amount_bdt)}
+                  value={formatNumber(costSummary.lcAmountBdt)}
                 />
                 <DataField
                   label="Bank Charges (BDT)"
-                  value={formatNumber(cost_summary.bank_charges_bdt)}
+                  value={formatNumber(costSummary.bankChargesBdt)}
                 />
                 <DataField
                   label="Insurance Cost (BDT)"
-                  value={formatNumber(cost_summary.insurance_cost_bdt)}
+                  value={formatNumber(costSummary.insuranceCostBdt)}
                 />
                 <DataField
                   label="Other Financial Expenses"
-                  value={formatNumber(cost_summary.other_financial_expenses)}
+                  value={formatNumber(costSummary.otherFinancialExpenses)}
                 />
                 <DataField
                   label="Customs Total (BDT)"
-                  value={formatNumber(cost_summary.customs_total_bdt)}
+                  value={formatNumber(costSummary.customsTotalBdt)}
                 />
                 <DataField
                   label="Agent Commission (BDT)"
-                  value={formatNumber(cost_summary.agent_commission_bdt)}
+                  value={formatNumber(costSummary.agentCommissionBdt)}
                 />
                 <DataField
                   label="Transport & Other (BDT)"
-                  value={formatNumber(cost_summary.transport_other_bdt)}
+                  value={formatNumber(costSummary.transportOtherBdt)}
                 />
                 <hr className="my-4 border-gray-200" />
                 <div className="flex justify-between items-center">
                   <p className="font-semibold">Total Cost (BDT)</p>
                   <p className="font-bold text-lg">
-                    {formatNumber(cost_summary.total_lc_cost_bdt)}
+                    {formatNumber(costSummary.totalLcCostBdt)}
                   </p>
                 </div>
               </div>
@@ -537,14 +527,14 @@ const LCdetails = () => {
 
             <CollapsibleCard title="Documents & Notes" icon={<FiClipboard />}>
               <div className="space-y-4">
-                {documents_notes.uploaded_documents &&
-                  documents_notes.uploaded_documents.length > 0 && (
+                {documentsNotes.uploadedDocuments &&
+                  documentsNotes.uploadedDocuments.length > 0 && (
                     <div>
                       <div className="text-sm text-gray-500 mb-2">
                         Uploaded Documents
                       </div>
                       <div className="space-y-2">
-                        {documents_notes.uploaded_documents.map((doc) => (
+                        {documentsNotes.uploadedDocuments.map((doc) => (
                           <div
                             key={doc._id}
                             className="flex items-center p-2 bg-gray-50 rounded-md"
@@ -552,11 +542,11 @@ const LCdetails = () => {
                             <FiFile className="text-gray-400 mr-2 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <div className="text-sm font-medium text-gray-700 truncate">
-                                {doc.original_name}
+                                {doc.originalName}
                               </div>
                             </div>
                             <a
-                              href={`${baseUrl}lc/${lcData._id}/documents/${doc.stored_name}`}
+                              href={`${baseUrl}lc/${lcData._id}/documents/${doc.storedName}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               download
@@ -569,7 +559,7 @@ const LCdetails = () => {
                       </div>
                     </div>
                   )}
-                <DataField label="Remarks" value={documents_notes.remarks} />
+                <DataField label="Remarks" value={documentsNotes.remarks} />
               </div>
             </CollapsibleCard>
           </div>
@@ -584,7 +574,7 @@ const LCdetails = () => {
         }
         description={
           confirmAction === "delete"
-            ? `Are you sure you want to delete this Letter of Credit (${lcData?.basic_info?.lc_number})? This action cannot be undone.`
+            ? `Are you sure you want to delete this Letter of Credit (${lcData?.basicInfo?.lcNumber})? This action cannot be undone.`
             : "Do you want to download the LC details as a PDF file?"
         }
         confirmText={confirmAction === "delete" ? "Delete" : "Export"}

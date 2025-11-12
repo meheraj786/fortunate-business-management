@@ -67,9 +67,12 @@ const SelectField = ({
       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200"
     >
       {placeholder && <option value="">{placeholder}</option>}
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
+      {options.map((option, index) => (
+        <option
+          key={option.value || option._id || index}
+          value={option.value || option._id}
+        >
+          {option.label || option.name}
         </option>
       ))}
     </select>
@@ -170,17 +173,17 @@ let expenseIdCounter = 0;
 
 const getNewProduct = () => ({
   id: productIdCounter++,
-  item_name: "",
+  itemName: "",
   specification: {
     thickness_mm: "",
     width_mm: "",
     length_mm: "",
     grade: "",
   },
-  quantity_unit: "",
-  quantity_ton: "",
-  unit_price_usd: "",
-  total_value_usd: "",
+  quantityUnit: "",
+  quantityValue: "",
+  unitPriceUsd: "",
+  totalValueUsd: "",
 });
 
 const getNewExpense = () => ({
@@ -196,46 +199,47 @@ const LCForm = ({ onSave }) => {
   const isEditMode = !!id;
 
   const initialFormData = {
-    basic_info: {
-      lc_number: "",
-      lc_opening_date: "",
+    basicInfo: {
+      lcNumber: "",
+      lcOpeningDate: "",
       status: "Active",
-      bank_name: "",
-      supplier_name: "",
-      supplier_country: "China",
+      bankName: "",
+      supplierName: "",
+      supplierCountry: "China",
     },
-    financial_info: {
-      lc_amount_usd: "",
-      exchange_rate: "",
-      lc_amount_bdt: "",
-      lc_margin_paid_bdt: "",
-      bank_charges_bdt: "",
-      insurance_cost_bdt: "",
-      other_expenses: [],
+    financialInfo: {
+      lcAmountUsd: "",
+      exchangeRate: "",
+      lcAmountBdt: "",
+      lcMarginPaidBdt: "",
+      bankChargesBdt: "",
+      insuranceCostBdt: "",
+      otherExpenses: [],
     },
-    product_info: [getNewProduct()],
-    shipping_customs_info: {
-      port_of_shipment: "Chittagong",
-      expected_arrival_date: "",
-      customs_duty_bdt: "",
-      vat_bdt: "",
-      ait_bdt: "",
-      other_expenses: [],
+    productInfo: [getNewProduct()],
+    shippingCustomsInfo: {
+      portOfShipment: "Chittagong",
+      expectedArrivalDate: "",
+      customsDutyBdt: "",
+      vatBdt: "",
+      aitBdt: "",
+      otherExpenses: [],
     },
-    agent_transport_info: {
-      cnf_agent_name: "",
-      cnf_agent_commission_bdt: "",
-      indenting_agent_commission_bdt: "",
-      transport_cost_bdt: "",
-      other_expenses: [],
+    agentTransportInfo: {
+      cnfAgentName: "",
+      cnfAgentCommissionBdt: "",
+      indentingAgentCommissionBdt: "",
+      transportCostBdt: "",
+      otherExpenses: [],
     },
-    documents_notes: {
+    documentsNotes: {
       remarks: "",
     },
   };
 
   const [formData, setFormData] = useState(initialFormData);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [units, setUnits] = useState([]);
   const [expandedSections, setExpandedSections] = useState({
     basic_info: true,
   });
@@ -248,53 +252,85 @@ const LCForm = ({ onSave }) => {
   };
 
   useEffect(() => {
+    axios
+      .get(`${baseUrl}unit/get`)
+      .then((res) => setUnits(res.data.data))
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to load units");
+      });
+  }, [baseUrl]);
+
+  useEffect(() => {
     if (isEditMode) {
       axios
         .get(`${baseUrl}lc/get-lc/${id}`)
         .then((res) => {
           const lcData = res.data.data;
           const processedData = {
-            ...lcData,
-            basic_info: {
-              ...lcData.basic_info,
-              lc_opening_date: formatDateForInput(
-                lcData.basic_info.lc_opening_date
-              ),
+            basicInfo: {
+              lcNumber: lcData.basicInfo.lcNumber,
+              lcOpeningDate: formatDateForInput(lcData.basicInfo.lcOpeningDate),
+              status: lcData.basicInfo.status,
+              bankName: lcData.basicInfo.bankName,
+              supplierName: lcData.basicInfo.supplierName,
+              supplierCountry: lcData.basicInfo.supplierCountry,
             },
-            product_info: (lcData.product_info || []).map((p) => ({
-              ...p,
-              id: productIdCounter++,
-            })),
-            financial_info: {
-              ...lcData.financial_info,
-              other_expenses: (lcData.financial_info?.other_expenses || []).map(
+            financialInfo: {
+              lcAmountUsd: lcData.financialInfo.lcAmountUsd,
+              exchangeRate: lcData.financialInfo.exchangeRate,
+              lcAmountBdt: lcData.financialInfo.lcAmountBdt,
+              lcMarginPaidBdt: lcData.financialInfo.lcMarginPaidBdt,
+              bankChargesBdt: lcData.financialInfo.bankChargesBdt,
+              insuranceCostBdt: lcData.financialInfo.insuranceCostBdt,
+              otherExpenses: (lcData.financialInfo?.otherExpenses || []).map(
                 (e) => ({
                   ...e,
                   id: expenseIdCounter++,
                 })
               ),
             },
-            shipping_customs_info: {
-              ...lcData.shipping_customs_info,
-              expected_arrival_date: formatDateForInput(
-                lcData.shipping_customs_info?.expected_arrival_date
+            productInfo: (lcData.productInfo || []).map((p) => ({
+              ...p,
+              quantityUnit: p.quantityUnit?._id || "",
+              id: productIdCounter++,
+            })),
+            shippingCustomsInfo: {
+              portOfShipment: lcData.shippingCustomsInfo.portOfShipment,
+              expectedArrivalDate: formatDateForInput(
+                lcData.shippingCustomsInfo?.expectedArrivalDate
               ),
-              other_expenses: (
-                lcData.shipping_customs_info?.other_expenses || []
+              customsDutyBdt: lcData.shippingCustomsInfo.customsDutyBdt,
+              vatBdt: lcData.shippingCustomsInfo.vatBdt,
+              aitBdt: lcData.shippingCustomsInfo.aitBdt,
+              otherExpenses: (
+                lcData.shippingCustomsInfo?.otherExpenses || []
               ).map((e) => ({
                 ...e,
                 id: expenseIdCounter++,
               })),
             },
-            agent_transport_info: {
-              ...lcData.agent_transport_info,
-              other_expenses: (
-                lcData.agent_transport_info?.other_expenses || []
+            agentTransportInfo: {
+              cnfAgentName: lcData.agentTransportInfo.cnfAgentName,
+              cnfAgentCommissionBdt:
+                lcData.agentTransportInfo.cnfAgentCommissionBdt,
+              indentingAgentCommissionBdt:
+                lcData.agentTransportInfo.indentingAgentCommissionBdt,
+              transportCostBdt: lcData.agentTransportInfo.transportCostBdt,
+              otherExpenses: (
+                lcData.agentTransportInfo?.otherExpenses || []
               ).map((e) => ({
                 ...e,
                 id: expenseIdCounter++,
               })),
             },
+            documentsNotes: {
+              remarks: lcData.documentsNotes.remarks,
+            },
+            _id: lcData._id,
+            createdAt: lcData.createdAt,
+            updatedAt: lcData.updatedAt,
+            __v: lcData.__v,
           };
           setFormData(processedData);
         })
@@ -306,49 +342,41 @@ const LCForm = ({ onSave }) => {
   }, [id, isEditMode, baseUrl]);
 
   useEffect(() => {
-    const { lc_amount_usd, exchange_rate } = formData.financial_info;
-    if (lc_amount_usd && exchange_rate) {
-      const bdtAmount = parseFloat(lc_amount_usd) * parseFloat(exchange_rate);
-      handleInputChange(
-        "financial_info",
-        "lc_amount_bdt",
-        bdtAmount.toFixed(2)
-      );
+    const { lcAmountUsd, exchangeRate } = formData.financialInfo;
+    if (lcAmountUsd && exchangeRate) {
+      const bdtAmount = parseFloat(lcAmountUsd) * parseFloat(exchangeRate);
+      handleInputChange("financialInfo", "lcAmountBdt", bdtAmount.toFixed(2));
     }
-  }, [
-    formData.financial_info.lc_amount_usd,
-    formData.financial_info.exchange_rate,
-  ]);
+  }, [formData.financialInfo.lcAmountUsd, formData.financialInfo.exchangeRate]);
 
   useEffect(() => {
-    const updatedProducts = formData.product_info.map((product) => {
-      const { quantity_ton, unit_price_usd } = product;
-      if (quantity_ton && unit_price_usd) {
-        const totalValue =
-          parseFloat(quantity_ton) * parseFloat(unit_price_usd);
-        return { ...product, total_value_usd: totalValue.toFixed(2) };
+    const updatedProducts = formData.productInfo.map((product) => {
+      const { quantityValue, unitPriceUsd } = product;
+      if (quantityValue && unitPriceUsd) {
+        const totalValue = parseFloat(quantityValue) * parseFloat(unitPriceUsd);
+        return { ...product, totalValueUsd: totalValue.toFixed(2) };
       }
       return product;
     });
 
     if (
-      JSON.stringify(updatedProducts) !== JSON.stringify(formData.product_info)
+      JSON.stringify(updatedProducts) !== JSON.stringify(formData.productInfo)
     ) {
-      setFormData((prev) => ({ ...prev, product_info: updatedProducts }));
+      setFormData((prev) => ({ ...prev, productInfo: updatedProducts }));
     }
-  }, [JSON.stringify(formData.product_info)]);
+  }, [JSON.stringify(formData.productInfo)]);
 
   const sections = [
-    { id: "basic_info", title: "Basic Information", icon: FileText },
+    { id: "basicInfo", title: "Basic Information", icon: FileText },
     {
-      id: "financial_info",
+      id: "financialInfo",
       title: "Financial Information",
       icon: DollarSign,
     },
-    { id: "product_info", title: "Product Information", icon: Package },
-    { id: "shipping_customs_info", title: "Shipping & Customs", icon: Truck },
-    { id: "agent_transport_info", title: "Agent & Transport", icon: User },
-    { id: "documents_notes", title: "Documents & Notes", icon: Clipboard },
+    { id: "productInfo", title: "Product Information", icon: Package },
+    { id: "shippingCustomsInfo", title: "Shipping & Customs", icon: Truck },
+    { id: "agentTransportInfo", title: "Agent & Transport", icon: User },
+    { id: "documentsNotes", title: "Documents & Notes", icon: Clipboard },
   ];
 
   const toggleSection = (sectionId) => {
@@ -379,45 +407,45 @@ const LCForm = ({ onSave }) => {
   };
 
   const handleProductChange = (id, field, value) => {
-    const updatedProducts = formData.product_info.map((p) =>
+    const updatedProducts = formData.productInfo.map((p) =>
       p.id === id ? { ...p, [field]: value } : p
     );
-    setFormData((prev) => ({ ...prev, product_info: updatedProducts }));
+    setFormData((prev) => ({ ...prev, productInfo: updatedProducts }));
   };
 
   const handleProductSpecChange = (id, field, value) => {
-    const updatedProducts = formData.product_info.map((p) =>
+    const updatedProducts = formData.productInfo.map((p) =>
       p.id === id
         ? { ...p, specification: { ...p.specification, [field]: value } }
         : p
     );
-    setFormData((prev) => ({ ...prev, product_info: updatedProducts }));
+    setFormData((prev) => ({ ...prev, productInfo: updatedProducts }));
   };
 
   const addProduct = () => {
     setFormData((prev) => ({
       ...prev,
-      product_info: [...prev.product_info, getNewProduct()],
+      productInfo: [...prev.productInfo, getNewProduct()],
     }));
   };
 
   const removeProduct = (id) => {
-    if (formData.product_info.length > 1) {
-      const updatedProducts = formData.product_info.filter((p) => p.id !== id);
-      setFormData((prev) => ({ ...prev, product_info: updatedProducts }));
+    if (formData.productInfo.length > 1) {
+      const updatedProducts = formData.productInfo.filter((p) => p.id !== id);
+      setFormData((prev) => ({ ...prev, productInfo: updatedProducts }));
     }
   };
 
   const handleOtherExpenseChange = (section, id, field, value) => {
     setFormData((prev) => {
-      const updatedExpenses = prev[section].other_expenses.map((expense) =>
+      const updatedExpenses = prev[section].otherExpenses.map((expense) =>
         expense.id === id ? { ...expense, [field]: value } : expense
       );
       return {
         ...prev,
         [section]: {
           ...prev[section],
-          other_expenses: updatedExpenses,
+          otherExpenses: updatedExpenses,
         },
       };
     });
@@ -428,21 +456,21 @@ const LCForm = ({ onSave }) => {
       ...prev,
       [section]: {
         ...prev[section],
-        other_expenses: [...prev[section].other_expenses, getNewExpense()],
+        otherExpenses: [...prev[section].otherExpenses, getNewExpense()],
       },
     }));
   };
 
   const removeOtherExpense = (section, id) => {
     setFormData((prev) => {
-      const updatedExpenses = prev[section].other_expenses.filter(
+      const updatedExpenses = prev[section].otherExpenses.filter(
         (expense) => expense.id !== id
       );
       return {
         ...prev,
         [section]: {
           ...prev[section],
-          other_expenses: updatedExpenses,
+          otherExpenses: updatedExpenses,
         },
       };
     });
@@ -461,24 +489,22 @@ const LCForm = ({ onSave }) => {
     try {
       const dataToSend = {
         ...formData,
-        product_info: formData.product_info.map(
-          ({ id, ...product }) => product
-        ),
-        financial_info: {
-          ...formData.financial_info,
-          other_expenses: formData.financial_info.other_expenses.map(
+        productInfo: formData.productInfo.map(({ id, ...product }) => product),
+        financialInfo: {
+          ...formData.financialInfo,
+          otherExpenses: formData.financialInfo.otherExpenses.map(
             ({ id, ...expense }) => expense
           ),
         },
-        shipping_customs_info: {
-          ...formData.shipping_customs_info,
-          other_expenses: formData.shipping_customs_info.other_expenses.map(
+        shippingCustomsInfo: {
+          ...formData.shippingCustomsInfo,
+          otherExpenses: formData.shippingCustomsInfo.otherExpenses.map(
             ({ id, ...expense }) => expense
           ),
         },
-        agent_transport_info: {
-          ...formData.agent_transport_info,
-          other_expenses: formData.agent_transport_info.other_expenses.map(
+        agentTransportInfo: {
+          ...formData.agentTransportInfo,
+          otherExpenses: formData.agentTransportInfo.otherExpenses.map(
             ({ id, ...expense }) => expense
           ),
         },
@@ -525,7 +551,7 @@ const LCForm = ({ onSave }) => {
     <div className="space-y-4 col-span-1 md:col-span-2">
       <h4 className="font-semibold text-gray-800">Other Expenses</h4>
       <AnimatePresence>
-        {formData[section].other_expenses.map((expense, index) => (
+        {formData[section].otherExpenses.map((expense, index) => (
           <motion.div
             key={expense.id}
             {...sectionAnimation}
@@ -625,30 +651,30 @@ const LCForm = ({ onSave }) => {
               onToggle={() => toggleSection(section.id)}
               sectionRef={(el) => (sectionRefs.current[section.id] = el)}
             >
-              {section.id === "basic_info" && (
+              {section.id === "basicInfo" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <InputField
                     label="LC Number"
-                    value={formData.basic_info.lc_number}
+                    value={formData.basicInfo.lcNumber}
                     onChange={(v) =>
-                      handleInputChange("basic_info", "lc_number", v)
+                      handleInputChange("basicInfo", "lcNumber", v)
                     }
                     required
                   />
                   <InputField
                     label="LC Opening Date"
                     type="date"
-                    value={formData.basic_info.lc_opening_date}
+                    value={formData.basicInfo.lcOpeningDate}
                     onChange={(v) =>
-                      handleInputChange("basic_info", "lc_opening_date", v)
+                      handleInputChange("basicInfo", "lcOpeningDate", v)
                     }
                     required
                   />
                   <SelectField
                     label="Status"
-                    value={formData.basic_info.status}
+                    value={formData.basicInfo.status}
                     onChange={(v) =>
-                      handleInputChange("basic_info", "status", v)
+                      handleInputChange("basicInfo", "status", v)
                     }
                     options={[
                       { value: "Active", label: "Active" },
@@ -660,25 +686,25 @@ const LCForm = ({ onSave }) => {
                   />
                   <InputField
                     label="Bank Name"
-                    value={formData.basic_info.bank_name}
+                    value={formData.basicInfo.bankName}
                     onChange={(v) =>
-                      handleInputChange("basic_info", "bank_name", v)
+                      handleInputChange("basicInfo", "bankName", v)
                     }
                     required
                   />
                   <InputField
                     label="Supplier Name"
-                    value={formData.basic_info.supplier_name}
+                    value={formData.basicInfo.supplierName}
                     onChange={(v) =>
-                      handleInputChange("basic_info", "supplier_name", v)
+                      handleInputChange("basicInfo", "supplierName", v)
                     }
                     required
                   />
                   <SelectField
                     label="Supplier Country"
-                    value={formData.basic_info.supplier_country}
+                    value={formData.basicInfo.supplierCountry}
                     onChange={(v) =>
-                      handleInputChange("basic_info", "supplier_country", v)
+                      handleInputChange("basicInfo", "supplierCountry", v)
                     }
                     options={[
                       { value: "China", label: "China" },
@@ -690,84 +716,76 @@ const LCForm = ({ onSave }) => {
                 </div>
               )}
 
-              {section.id === "financial_info" && (
+              {section.id === "financialInfo" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <InputField
                     label="LC Amount (USD)"
                     type="number"
-                    value={formData.financial_info.lc_amount_usd}
+                    value={formData.financialInfo.lcAmountUsd}
                     onChange={(v) =>
-                      handleInputChange("financial_info", "lc_amount_usd", v)
+                      handleInputChange("financialInfo", "lcAmountUsd", v)
                     }
                     required
                   />
                   <InputField
                     label="Exchange Rate"
                     type="number"
-                    value={formData.financial_info.exchange_rate}
+                    value={formData.financialInfo.exchangeRate}
                     onChange={(v) =>
-                      handleInputChange("financial_info", "exchange_rate", v)
+                      handleInputChange("financialInfo", "exchangeRate", v)
                     }
                     required
                   />
                   <InputField
                     label="LC Amount (BDT)"
                     type="number"
-                    value={formData.financial_info.lc_amount_bdt}
+                    value={formData.financialInfo.lcAmountBdt}
                     onChange={(v) =>
-                      handleInputChange("financial_info", "lc_amount_bdt", v)
+                      handleInputChange("financialInfo", "lcAmountBdt", v)
                     }
                     disabled
                   />
                   <InputField
                     label="LC Margin Paid (BDT)"
                     type="number"
-                    value={formData.financial_info.lc_margin_paid_bdt}
+                    value={formData.financialInfo.lcMarginPaidBdt}
                     onChange={(v) =>
-                      handleInputChange(
-                        "financial_info",
-                        "lc_margin_paid_bdt",
-                        v
-                      )
+                      handleInputChange("financialInfo", "lcMarginPaidBdt", v)
                     }
                     required
                   />
                   <InputField
                     label="Bank Charges (BDT)"
                     type="number"
-                    value={formData.financial_info.bank_charges_bdt}
+                    value={formData.financialInfo.bankChargesBdt}
                     onChange={(v) =>
-                      handleInputChange("financial_info", "bank_charges_bdt", v)
+                      handleInputChange("financialInfo", "bankChargesBdt", v)
                     }
                     required
                   />
                   <InputField
                     label="Insurance Cost (BDT)"
                     type="number"
-                    value={formData.financial_info.insurance_cost_bdt}
+                    value={formData.financialInfo.insuranceCostBdt}
                     onChange={(v) =>
-                      handleInputChange(
-                        "financial_info",
-                        "insurance_cost_bdt",
-                        v
-                      )
+                      handleInputChange("financialInfo", "insuranceCostBdt", v)
                     }
                     required
                   />
-                  {renderOtherExpenses("financial_info")}
+                  {renderOtherExpenses("financialInfo")}
                 </div>
               )}
 
-              {section.id === "product_info" && (
+              {section.id === "productInfo" && (
                 <div className="space-y-6">
                   <AnimatePresence>
-                    {formData.product_info.map((product, index) => (
+                    {formData.productInfo.map((product, index) => (
                       <motion.div
                         key={product.id}
                         {...sectionAnimation}
                         className="p-4 border border-gray-200 rounded-lg relative bg-gray-50"
                       >
-                        {formData.product_info.length > 1 && (
+                        {formData.productInfo.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeProduct(product.id)}
@@ -782,9 +800,9 @@ const LCForm = ({ onSave }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                           <InputField
                             label="Product Name"
-                            value={product.item_name}
+                            value={product.itemName}
                             onChange={(v) =>
-                              handleProductChange(product.id, "item_name", v)
+                              handleProductChange(product.id, "itemName", v)
                             }
                             required
                           />
@@ -829,52 +847,44 @@ const LCForm = ({ onSave }) => {
                           />
                           <SelectField
                             label="Quantity Unit"
-                            value={product.quantity_unit}
+                            value={product.quantityUnit}
                             onChange={(v) =>
-                              handleProductChange(
-                                product.id,
-                                "quantity_unit",
-                                v
-                              )
+                              handleProductChange(product.id, "quantityUnit", v)
                             }
-                            options={[
-                              { value: "Ton", label: "Ton" },
-                              { value: "KG", label: "KG" },
-                              { value: "PCS", label: "PCS" },
-                            ]}
+                            options={units}
                             placeholder="Select Unit"
                             required
                           />
                           <InputField
                             label="Product Quantity"
                             type="number"
-                            value={product.quantity_ton}
-                            onChange={(v) =>
-                              handleProductChange(product.id, "quantity_ton", v)
-                            }
-                            required
-                          />
-                          <InputField
-                            label="Unit Price (USD)"
-                            type="number"
-                            value={product.unit_price_usd}
+                            value={product.quantityValue}
                             onChange={(v) =>
                               handleProductChange(
                                 product.id,
-                                "unit_price_usd",
+                                "quantityValue",
                                 v
                               )
                             }
                             required
                           />
                           <InputField
+                            label="Unit Price (USD)"
+                            type="number"
+                            value={product.unitPriceUsd}
+                            onChange={(v) =>
+                              handleProductChange(product.id, "unitPriceUsd", v)
+                            }
+                            required
+                          />
+                          <InputField
                             label="Total Value (USD)"
                             type="number"
-                            value={product.total_value_usd}
+                            value={product.totalValueUsd}
                             onChange={(v) =>
                               handleProductChange(
                                 product.id,
-                                "total_value_usd",
+                                "totalValueUsd",
                                 v
                               )
                             }
@@ -895,15 +905,15 @@ const LCForm = ({ onSave }) => {
                 </div>
               )}
 
-              {section.id === "shipping_customs_info" && (
+              {section.id === "shippingCustomsInfo" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <SelectField
                     label="Port of Shipment"
-                    value={formData.shipping_customs_info.port_of_shipment}
+                    value={formData.shippingCustomsInfo.portOfShipment}
                     onChange={(v) =>
                       handleInputChange(
-                        "shipping_customs_info",
-                        "port_of_shipment",
+                        "shippingCustomsInfo",
+                        "portOfShipment",
                         v
                       )
                     }
@@ -917,11 +927,11 @@ const LCForm = ({ onSave }) => {
                   <InputField
                     label="Expected Arrival Date"
                     type="date"
-                    value={formData.shipping_customs_info.expected_arrival_date}
+                    value={formData.shippingCustomsInfo.expectedArrivalDate}
                     onChange={(v) =>
                       handleInputChange(
-                        "shipping_customs_info",
-                        "expected_arrival_date",
+                        "shippingCustomsInfo",
+                        "expectedArrivalDate",
                         v
                       )
                     }
@@ -929,11 +939,11 @@ const LCForm = ({ onSave }) => {
                   <InputField
                     label="Customs Duty (BDT)"
                     type="number"
-                    value={formData.shipping_customs_info.customs_duty_bdt}
+                    value={formData.shippingCustomsInfo.customsDutyBdt}
                     onChange={(v) =>
                       handleInputChange(
-                        "shipping_customs_info",
-                        "customs_duty_bdt",
+                        "shippingCustomsInfo",
+                        "customsDutyBdt",
                         v
                       )
                     }
@@ -941,46 +951,40 @@ const LCForm = ({ onSave }) => {
                   <InputField
                     label="VAT (BDT)"
                     type="number"
-                    value={formData.shipping_customs_info.vat_bdt}
+                    value={formData.shippingCustomsInfo.vatBdt}
                     onChange={(v) =>
-                      handleInputChange("shipping_customs_info", "vat_bdt", v)
+                      handleInputChange("shippingCustomsInfo", "vatBdt", v)
                     }
                   />
                   <InputField
                     label="AIT (BDT)"
                     type="number"
-                    value={formData.shipping_customs_info.ait_bdt}
+                    value={formData.shippingCustomsInfo.aitBdt}
                     onChange={(v) =>
-                      handleInputChange("shipping_customs_info", "ait_bdt", v)
+                      handleInputChange("shippingCustomsInfo", "aitBdt", v)
                     }
                   />
-                  {renderOtherExpenses("shipping_customs_info")}
+                  {renderOtherExpenses("shippingCustomsInfo")}
                 </div>
               )}
 
-              {section.id === "agent_transport_info" && (
+              {section.id === "agentTransportInfo" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InputField
                     label="C&F Agent Name"
-                    value={formData.agent_transport_info.cnf_agent_name}
+                    value={formData.agentTransportInfo.cnfAgentName}
                     onChange={(v) =>
-                      handleInputChange(
-                        "agent_transport_info",
-                        "cnf_agent_name",
-                        v
-                      )
+                      handleInputChange("agentTransportInfo", "cnfAgentName", v)
                     }
                   />
                   <InputField
                     label="C&F Agent Commission (BDT)"
                     type="number"
-                    value={
-                      formData.agent_transport_info.cnf_agent_commission_bdt
-                    }
+                    value={formData.agentTransportInfo.cnfAgentCommissionBdt}
                     onChange={(v) =>
                       handleInputChange(
-                        "agent_transport_info",
-                        "cnf_agent_commission_bdt",
+                        "agentTransportInfo",
+                        "cnfAgentCommissionBdt",
                         v
                       )
                     }
@@ -989,13 +993,12 @@ const LCForm = ({ onSave }) => {
                     label="Indenting Agent Commission (BDT)"
                     type="number"
                     value={
-                      formData.agent_transport_info
-                        .indenting_agent_commission_bdt
+                      formData.agentTransportInfo.indentingAgentCommissionBdt
                     }
                     onChange={(v) =>
                       handleInputChange(
-                        "agent_transport_info",
-                        "indenting_agent_commission_bdt",
+                        "agentTransportInfo",
+                        "indentingAgentCommissionBdt",
                         v
                       )
                     }
@@ -1003,25 +1006,25 @@ const LCForm = ({ onSave }) => {
                   <InputField
                     label="Transport Cost (BDT)"
                     type="number"
-                    value={formData.agent_transport_info.transport_cost_bdt}
+                    value={formData.agentTransportInfo.transportCostBdt}
                     onChange={(v) =>
                       handleInputChange(
-                        "agent_transport_info",
-                        "transport_cost_bdt",
+                        "agentTransportInfo",
+                        "transportCostBdt",
                         v
                       )
                     }
                   />
-                  {renderOtherExpenses("agent_transport_info")}
+                  {renderOtherExpenses("agentTransportInfo")}
                 </div>
               )}
-              {section.id === "documents_notes" && (
+              {section.id === "documentsNotes" && (
                 <div className="space-y-4">
                   <TextAreaField
                     label="Remarks"
-                    value={formData.documents_notes.remarks}
+                    value={formData.documentsNotes.remarks}
                     onChange={(v) =>
-                      handleInputChange("documents_notes", "remarks", v)
+                      handleInputChange("documentsNotes", "remarks", v)
                     }
                   />
                   <FileInput

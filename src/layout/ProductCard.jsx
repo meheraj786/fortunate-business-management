@@ -63,7 +63,7 @@ const ProductCard = ({ product, warehouseId }) => {
             <Layers size={12} className="sm:hidden flex-shrink-0" />
             <Layers size={14} className="hidden sm:block flex-shrink-0" />
             <span className="text-xs sm:text-sm">
-              Qty: {product.quantity} {product.unit}
+              Qty: {product.quantity} {product.unit?.name}
             </span>
           </div>
         </div>

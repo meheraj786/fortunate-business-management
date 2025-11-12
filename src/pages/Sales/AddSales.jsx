@@ -61,6 +61,7 @@ const AddSales = ({
   const [products, setProducts] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [units, setUnits] = useState([]);
 
   // Fetch initial data (warehouses, customers, categories, accounts)
   useEffect(() => {
@@ -68,18 +69,25 @@ const AddSales = ({
 
     const fetchData = async () => {
       try {
-        const [customersRes, warehousesRes, categoriesRes, accountsRes] =
-          await Promise.all([
-            axios.get(`${baseUrl}customer/get-customers`),
-            axios.get(`${baseUrl}warehouse/`),
-            axios.get(`${baseUrl}category/get`),
-            axios.get(`${baseUrl}bank/get-all-accounts`),
-          ]);
+        const [
+          customersRes,
+          warehousesRes,
+          categoriesRes,
+          accountsRes,
+          unitsRes,
+        ] = await Promise.all([
+          axios.get(`${baseUrl}customer/get-customers`),
+          axios.get(`${baseUrl}warehouse/`),
+          axios.get(`${baseUrl}category/get`),
+          axios.get(`${baseUrl}bank/get-all-accounts`),
+          axios.get(`${baseUrl}unit/get`),
+        ]);
 
         setCustomers(customersRes.data.data || []);
         setWarehouses(warehousesRes.data.data || []);
         setCategories(categoriesRes.data.data || []);
         setAccounts(accountsRes.data.data || []);
+        setUnits(unitsRes.data.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Failed to load initial data");
@@ -118,7 +126,7 @@ const AddSales = ({
         productId: editData.product?._id || "",
         categoryId: editData.category?._id || "",
         quantity: editData.quantity || "",
-        unit: editData.unit || "",
+        unit: editData.unit?._id || editData.unit || "",
         pricePerUnit: editData.pricePerUnit || "",
         customerType: editData.customer?.customerId ? "existing" : "manual",
         customerName: editData.customer?.name || "",
@@ -234,7 +242,7 @@ const AddSales = ({
       if (product) {
         setFormData((prev) => ({
           ...prev,
-          unit: product.unit,
+          unit: product.unit?._id,
           pricePerUnit: product.unitPrice,
           categoryId: product.category?._id,
         }));
@@ -402,15 +410,7 @@ const AddSales = ({
     }
   };
 
-  const unitOptions = [
-    { value: "pieces", label: "Pieces" },
-    { value: "sheets", label: "Sheets" },
-    { value: "plates", label: "Plates" },
-    { value: "rolls", label: "Rolls" },
-    { value: "coils", label: "Coils" },
-    { value: "kg", label: "KG" },
-    { value: "ton", label: "TON" },
-  ];
+
 
   const paymentMethodOptions = [
     { value: "cash", label: "Cash" },
@@ -504,7 +504,7 @@ const AddSales = ({
                 name="unit"
                 value={formData.unit}
                 onChange={(e) => handleInputChange("unit", e.target.value)}
-                options={unitOptions}
+                options={units.map((u) => ({ value: u._id, label: u.name }))}
                 required
                 icon={Ruler}
               />

@@ -372,7 +372,7 @@ const ProductDetails = () => {
                 <div>
                   <p className="text-sm text-gray-600">LC Number</p>
                   <p className="font-medium text-gray-900">
-                    {product.LC?.basic_info?.lc_number || "N/A"}
+                    {product.LC?.basicInfo?.lcNumber || "N/A"}
                   </p>
                 </div>
                 <div>
@@ -396,7 +396,7 @@ const ProductDetails = () => {
                 <div>
                   <p className="text-sm text-gray-600">Quantity in Stock</p>
                   <p className="font-medium text-gray-900">
-                    {product.quantity} {product.unit}
+                    {product.quantity} {product.unit?.name}
                   </p>
                 </div>
                 <div>

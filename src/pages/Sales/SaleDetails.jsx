@@ -443,7 +443,7 @@ const SaleDetails = () => {
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Quantity</p>
                   <p className="font-medium text-gray-900">
-                    {sale.quantity} {sale.unit}
+                    {sale.quantity} {sale.unit?.name}
                   </p>
                 </div>
                 <div>

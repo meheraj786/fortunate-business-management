@@ -1,15 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Plus, Search, Filter } from "lucide-react";
 
-import Input from "./Input";
 import { Link } from "react-router";
-import { useEffect } from "react";
-import axios from "axios";
-import { useContext } from "react";
-import { UrlContext } from "../context/UrlContext";
 
-const LCTable = ({ lcData }) => {
-  const { baseUrl } = useContext(UrlContext);
+const LCTable = ({ lcData = [] }) => {
   const getStatusColor = (status) => {
     if (!status) return "bg-gray-100 text-gray-800";
     switch (status.toLowerCase()) {
@@ -26,48 +20,6 @@ const LCTable = ({ lcData }) => {
       default:
         return "bg-gray-100 text-gray-800";
     }
-  };
-
-  console.log(lcData?.map((p) => p.product_info.map((pr) => pr.item_name)));
-
-  const calculateTotalCost = (lc) => {
-    const { financial_info, shipping_customs_info, agent_transport_info } = lc;
-    if (!financial_info || !shipping_customs_info || !agent_transport_info) {
-      return 0;
-    }
-
-    const financialOtherExpenses = financial_info.other_expenses?.reduce(
-      (sum, expense) => sum + (expense.amount || 0),
-      0
-    );
-    const shippingOtherExpenses = shipping_customs_info.other_expenses?.reduce(
-      (sum, expense) => sum + (expense.amount || 0),
-      0
-    );
-    const agentTransportOtherExpenses =
-      agent_transport_info.other_expenses?.reduce(
-        (sum, expense) => sum + (expense.amount || 0),
-        0
-      );
-
-    const customs_total_bdt =
-      (shipping_customs_info.customs_duty_bdt || 0) +
-      (shipping_customs_info.vat_bdt || 0) +
-      (shipping_customs_info.ait_bdt || 0) +
-      shippingOtherExpenses;
-
-    const total_lc_cost_bdt =
-      (financial_info.lc_amount_bdt || 0) +
-      (financial_info.bank_charges_bdt || 0) +
-      (financial_info.insurance_cost_bdt || 0) +
-      financialOtherExpenses +
-      customs_total_bdt +
-      (agent_transport_info.cnf_agent_commission_bdt || 0) +
-      (agent_transport_info.indenting_agent_commission_bdt || 0) +
-      (agent_transport_info.transport_cost_bdt || 0) +
-      agentTransportOtherExpenses;
-
-    return total_lc_cost_bdt;
   };
 
   return (
@@ -117,28 +69,28 @@ const LCTable = ({ lcData }) => {
                 <div className="border-b border-gray-200 p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex justify-between items-start mb-3">
                     <div className="font-medium text-gray-900">
-                      {lc.basic_info?.lc_number}
+                      {lc.basicInfo.lcNumber}
                     </div>
                     <span
                       className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                        lc.basic_info?.status
+                        lc.basicInfo.status
                       )}`}
                     >
-                      {lc.basic_info?.status}
+                      {lc.basicInfo.status}
                     </span>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Beneficiary:</span>
                       <span className="text-gray-900 text-right">
-                        {lc.basic_info?.supplier_name}
+                        {lc.basicInfo.supplierName}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Open Date:</span>
                       <span className="text-gray-900">
                         {new Date(
-                          lc.basic_info?.lc_opening_date
+                          lc.basicInfo.lcOpeningDate
                         ).toLocaleDateString()}
                       </span>
                     </div>
@@ -146,17 +98,16 @@ const LCTable = ({ lcData }) => {
                       <span className="text-gray-500">Due Date:</span>
                       <span className="text-gray-900">
                         {new Date(
-                          lc.shipping_customs_info?.expected_arrival_date
+                          lc.shippingCustomsInfo.expectedArrivalDate
                         ).toLocaleDateString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Products:</span>
                       <div className="text-gray-900 text-right max-w-40 truncate">
-                        {lc?.product_info.map((p, idx) => (
-                          <span key={idx} title={p?.item_name}>
-                            {p?.item_name} ({p?.quantity_ton} {p?.quantity_unit}
-                            ){idx < lc.product_info.length - 1 ? ", " : ""}
+                        {lc?.productInfo.map((p, idx) => (
+                          <span key={idx} title={p?.itemName}>
+                            {p?.itemName} {idx < lc.productInfo.length - 1 ? ", " : ""}
                           </span>
                         ))}
                       </div>
@@ -164,15 +115,15 @@ const LCTable = ({ lcData }) => {
                     <div className="flex justify-between">
                       <span className="text-gray-500">Quantity:</span>
                       <span className="text-gray-900">
-                        {lc.product_info
-                          ?.reduce((acc, item) => acc + item.quantity_ton, 0)
+                        {lc.productInfo
+                          ?.reduce((acc, item) => acc + item.quantityValue, 0)
                           .toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Total Cost (BDT):</span>
                       <span className="font-semibold text-gray-900">
-                        {calculateTotalCost(lc).toLocaleString()}
+                        {lc.financialInfo.lcAmountBdt.toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -220,53 +171,53 @@ const LCTable = ({ lcData }) => {
                     <td className="py-4 px-6">
                       <Link to={`/lc-details/${lc._id}`}>
                         <div className="font-medium text-gray-900">
-                          {lc.basic_info?.lc_number}
+                          {lc.basicInfo.lcNumber}
                         </div>
                       </Link>
                     </td>
                     <td className="py-4 px-6">
                       <div className="text-gray-900">
-                        {lc.basic_info?.supplier_name}
+                        {lc.basicInfo.supplierName}
                       </div>
                     </td>
                     <td className="py-4 px-6">
                       <span
                         className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(
-                          lc.basic_info?.status
+                          lc.basicInfo.status
                         )}`}
                       >
-                        {lc.basic_info?.status}
+                        {lc.basicInfo.status}
                       </span>
                     </td>
                     <td className="py-4 px-6 text-gray-900">
                       {new Date(
-                        lc.basic_info?.lc_opening_date
+                        lc.basicInfo.lcOpeningDate
                       ).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-6 text-gray-900">
                       {new Date(
-                        lc.shipping_customs_info?.expected_arrival_date
+                        lc.shippingCustomsInfo.expectedArrivalDate
                       ).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-6">
-                      {lc?.product_info.map((p, idx) => (
+                      {lc?.productInfo.map((p, idx) => (
                         <div
                           key={idx}
                           className="text-gray-900 max-w-xs truncate"
-                          title={p?.item_name}
+                          title={p?.itemName}
                         >
-                          {p?.item_name} ({p?.quantity_ton} {p?.quantity_unit})
+                          {p?.itemName} ({p?.quantityValue} {p?.quantityUnit.name})
                         </div>
                       ))}
                     </td>
                     <td className="py-4 px-6 text-gray-900">
-                      {lc.product_info
-                        ?.reduce((acc, item) => acc + item.quantity_ton, 0)
+                      {lc.productInfo
+                        ?.reduce((acc, item) => acc + item.quantityValue, 0)
                         .toLocaleString()}
                     </td>
                     <td className="py-4 px-6">
                       <div className="font-semibold text-gray-900">
-                        {calculateTotalCost(lc).toLocaleString()}
+                        {lc.financialInfo.lcAmountBdt.toLocaleString()}
                       </div>
                     </td>
                   </tr>
@@ -275,30 +226,6 @@ const LCTable = ({ lcData }) => {
             </table>
           </div>
         </div>
-
-        {/* <div className="mt-8 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-            <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2">
-              Total LCs
-            </h3>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {lcData.length}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 col-span-2 lg:col-span-1">
-            <h3 className="text-xs sm:text-sm font-medium text-gray-500 mb-2">
-              Total Value
-            </h3>
-            <p className="text-2xl sm:text-3xl font-bold text-blue-600">
-              $
-              {lcData
-                .reduce((sum, lc) => {
-                  return sum + calculateTotalCost(lc);
-                }, 0)
-                .toLocaleString()}
-            </p>
-          </div>
-        </div> */}
       </div>
     </div>
   );

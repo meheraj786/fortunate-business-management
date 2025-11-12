@@ -135,7 +135,7 @@ const AddProductForm = ({
     grade: "",
     color: "",
     quantity: "",
-    unit: "pieces",
+    unit: "",
     unitPrice: "",
     warehouse: warehouse?._id || "",
     productDescription: "",
@@ -147,6 +147,7 @@ const AddProductForm = ({
 
   const [productCategories, setProductCategories] = useState([]);
   const [completedLc, setCompletedLc] = useState([]);
+  const [units, setUnits] = useState([]);
 
   useEffect(() => {
     axios
@@ -158,6 +159,16 @@ const AddProductForm = ({
       .get(`${baseUrl}lc/completed-lc`)
       .then((res) => setCompletedLc(res.data.data));
   }, []);
+
+  useEffect(() => {
+    axios
+      .get(`${baseUrl}unit/get`)
+      .then((res) => setUnits(res.data.data))
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to load units");
+      });
+  }, [baseUrl]);
 
   useEffect(() => {
     if (isOpen) {
@@ -172,7 +183,7 @@ const AddProductForm = ({
           grade: editingProduct.grade,
           color: editingProduct.color,
           quantity: editingProduct.quantity,
-          unit: editingProduct.unit,
+          unit: editingProduct.unit?._id || "",
           unitPrice: editingProduct.unitPrice,
           warehouse: editingProduct.warehouse?._id || warehouse?._id || "",
           productDescription: editingProduct.productDescription,
@@ -189,7 +200,7 @@ const AddProductForm = ({
           grade: "",
           color: "",
           quantity: "",
-          unit: "pieces",
+          unit: "",
           unitPrice: "",
           warehouse: warehouse?._id || "",
           productDescription: "",
@@ -199,19 +210,6 @@ const AddProductForm = ({
     }
   }, [editingProduct, isOpen, warehouse]);
 
-  const unitOptions = [
-    { value: "pieces", label: "Pieces" },
-    { value: "sheets", label: "Sheets" },
-    { value: "plates", label: "Plates" },
-    { value: "rolls", label: "Rolls" },
-    { value: "coils", label: "Coils" },
-    { value: "kg", label: "Kilograms" },
-    { value: "tons", label: "Tons" },
-    { value: "meters", label: "Meters" },
-    { value: "feet", label: "Feet" },
-    { value: "bundles", label: "Bundles" },
-    { value: "packs", label: "Packs" },
-  ];
 
   const colorOptions = [
     "Silver",
@@ -372,7 +370,7 @@ const AddProductForm = ({
                       onChange={(value) => handleInputChange("LC", value)}
                       options={completedLc.map((lc) => ({
                         value: lc?._id,
-                        label: lc?.basic_info?.lc_number || "Untitled LC",
+                        label: lc?.basicInfo?.lcNumber || "Untitled LC",
                       }))}
                       required
                       icon={Tag}
@@ -442,7 +440,7 @@ const AddProductForm = ({
                       label="Unit of Measure"
                       value={formData.unit}
                       onChange={(value) => handleInputChange("unit", value)}
-                      options={unitOptions}
+                      options={units}
                       required
                       icon={Package}
                     />
