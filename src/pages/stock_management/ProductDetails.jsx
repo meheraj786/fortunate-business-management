@@ -1,30 +1,64 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-
 import {
   Package,
   DollarSign,
   ShoppingCart,
   FileWarning,
   FileClock,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import StatBox from "../../components/common/StatBox";
 import Breadcrumb from "../../components/common/Breadcrumb";
 import { UrlContext } from "../../context/UrlContext";
 import axios from "axios";
+import AddProductForm from "./AddProductForm";
+import toast from "react-hot-toast";
 
 const ProductDetails = () => {
-  const { productId } = useParams();
+  const { warehouseId, productId } = useParams();
   const { baseUrl } = useContext(UrlContext);
   const navigate = useNavigate();
-  
+
   const [product, setProduct] = useState(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+
+  const fetchProductDetails = () => {
+    axios
+      .get(`${baseUrl}warehouse/${warehouseId}/products/${productId}`)
+      .then((res) => setProduct(res.data.data));
+  };
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}product/get-product/${productId}`)
-      .then((res) => setProduct(res.data.data));
-  }, [productId, baseUrl]);
+    fetchProductDetails();
+  }, [warehouseId, productId, baseUrl]);
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await axios.delete(`${baseUrl}warehouse/${warehouseId}/products/${productId}`);
+        toast.success("Product deleted successfully");
+        navigate(`/stock/${warehouseId}`);
+      } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to delete product");
+        console.error("Delete error:", error);
+      }
+    }
+  };
+
+  const handleEditClick = () => {
+    setShowEditForm(true);
+  };
+
+  const handleFormClose = () => {
+    setShowEditForm(false);
+  };
+
+  const handleProductUpdated = () => {
+    fetchProductDetails();
+    handleFormClose();
+  };
 
   if (!product) {
     return (
@@ -52,17 +86,19 @@ const ProductDetails = () => {
     const styles = {
       invoice: {
         Invoiced: "bg-green-100 text-green-800",
-        "Not Invoiced": "bg-yellow-100 text-yellow-800"
+        "Not Invoiced": "bg-yellow-100 text-yellow-800",
       },
       payment: {
         "Paid Payment": "bg-green-100 text-green-800",
         "Due Payment": "bg-yellow-100 text-yellow-800",
-        "N/A": "bg-gray-100 text-gray-800"
-      }
+        "N/A": "bg-gray-100 text-gray-800",
+      },
     };
 
     const styleMap = type === "invoice" ? styles.invoice : styles.payment;
-    return `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styleMap[status] || styleMap["N/A"]}`;
+    return `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+      styleMap[status] || styleMap["N/A"]
+    }`;
   };
 
   const renderMobileSales = () => (
@@ -76,7 +112,9 @@ const ProductDetails = () => {
           <div className="px-4 py-4">
             <div className="flex justify-between items-center mb-2">
               <div className="font-medium text-gray-900">{sale.customer.name}</div>
-              <span className="text-sm text-gray-500">{new Date(sale.saleDate).toLocaleDateString()}</span>
+              <span className="text-sm text-gray-500">
+                {new Date(sale.saleDate).toLocaleDateString()}
+              </span>
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">Qty: {sale.quantity}</span>
@@ -112,8 +150,19 @@ const ProductDetails = () => {
       <table className="w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            {["Date", "Customer", "Qty", "Price", "Total", "Invoice Status", "Payment Status"].map((header) => (
-              <th key={header} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+            {[
+              "Date",
+              "Customer",
+              "Qty",
+              "Price",
+              "Total",
+              "Invoice Status",
+              "Payment Status",
+            ].map((header) => (
+              <th
+                key={header}
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+              >
                 {header}
               </th>
             ))}
@@ -126,9 +175,15 @@ const ProductDetails = () => {
               className="hover:bg-gray-50 transition-colors cursor-pointer"
               onClick={() => navigate(`/sales/${sale._id}`)}
             >
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(sale.saleDate).toLocaleDateString()}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{sale.customer.name}</td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{sale.quantity}</td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                {new Date(sale.saleDate).toLocaleDateString()}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {sale.customer.name}
+              </td>
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                {sale.quantity}
+              </td>
               <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                 ${parseFloat(sale.pricePerUnit || 0).toFixed(2)}
               </td>
@@ -166,7 +221,7 @@ const ProductDetails = () => {
       { label: "Length", value: product.length, unit: "mm" },
       { label: "Grade", value: product.grade },
       { label: "Color", value: product.color },
-    ].filter(spec => spec.value);
+    ].filter((spec) => spec.value);
 
     if (specs.length === 0) return null;
 
@@ -174,7 +229,9 @@ const ProductDetails = () => {
       <>
         <div className="border-t border-gray-200 my-6"></div>
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-700 mb-3">Specifications</h3>
+          <h3 className="text-lg font-medium text-gray-700 mb-3">
+            Specifications
+          </h3>
           <div className="grid grid-cols-2 gap-4">
             {specs.map((spec) => (
               <div key={spec.label}>
@@ -197,11 +254,31 @@ const ProductDetails = () => {
 
         {/* Product Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center gap-4">
-            <Package className="h-8 w-8 text-gray-600" />
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{product.name}</h1>
-              <p className="text-gray-600 mt-1">{product?.category?.name}</p>
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-4">
+              <Package className="h-8 w-8 text-gray-600" />
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {product.name}
+                </h1>
+                <p className="text-gray-600 mt-1">{product?.category?.name}</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleEditClick}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                <Edit size={16} />
+                <span>Edit</span>
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+              >
+                <Trash2 size={16} />
+                <span>Delete</span>
+              </button>
             </div>
           </div>
         </div>
@@ -209,7 +286,9 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Product Details */}
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Product Details</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Product Details
+            </h2>
 
             <div className="mb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -221,7 +300,9 @@ const ProductDetails = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Category</p>
-                  <p className="font-medium text-gray-900">{product?.category?.name}</p>
+                  <p className="font-medium text-gray-900">
+                    {product?.category?.name}
+                  </p>
                 </div>
               </div>
             </div>
@@ -231,7 +312,9 @@ const ProductDetails = () => {
             <div className="border-t border-gray-200 my-6"></div>
 
             <div>
-              <h3 className="text-lg font-medium text-gray-700 mb-3">Inventory</h3>
+              <h3 className="text-lg font-medium text-gray-700 mb-3">
+                Inventory
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Quantity in Stock</p>
@@ -241,12 +324,16 @@ const ProductDetails = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Location</p>
-                  <p className="font-medium text-gray-900">{product?.warehouse?.name}</p>
+                  <p className="font-medium text-gray-900">
+                    {product?.warehouse?.name}
+                  </p>
                 </div>
                 {product.unitPrice && (
                   <div>
                     <p className="text-sm text-gray-600">Unit Price</p>
-                    <p className="font-bold text-lg text-gray-900">{product.unitPrice}</p>
+                    <p className="font-bold text-lg text-gray-900">
+                      {product.unitPrice}
+                    </p>
                   </div>
                 )}
               </div>
@@ -255,7 +342,9 @@ const ProductDetails = () => {
 
           {/* Sales Overview */}
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Sales Overview</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Sales Overview
+            </h2>
             <div className="space-y-4">
               <StatBox
                 title="Total Units Sold"
@@ -286,11 +375,22 @@ const ProductDetails = () => {
 
         {/* Recent Sales */}
         <div className="bg-white rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 px-6 pt-6">Recent Sales</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 px-6 pt-6">
+            Recent Sales
+          </h2>
           {renderMobileSales()}
           {renderDesktopSales()}
         </div>
       </div>
+      {showEditForm && (
+        <AddProductForm
+          isOpen={showEditForm}
+          onClose={handleFormClose}
+          onProductUpdated={handleProductUpdated}
+          editingProduct={product}
+          warehouse={product.warehouse}
+        />
+      )}
     </div>
   );
 };

@@ -1,77 +1,99 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import {
   Search,
   Plus,
   Package,
   Layers,
+  Edit,
   ChevronsDown,
   ChartColumnStacked,
+  Trash2,
+  Archive,
 } from "lucide-react";
-import { products, warehouses, categories } from "../../data/data";
 import ProductCard from "../../layout/ProductCard";
 import StatBox from "../../components/common/StatBox";
 import AddProductForm from "./AddProductForm";
 import Breadcrumb from "../../components/common/Breadcrumb";
 import { UrlContext } from "../../context/UrlContext";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const WarehouseStock = () => {
   const { warehouseId } = useParams();
   const [warehouse, setWarehouse] = useState(null);
-  // const warehouse = warehouses.find((w) => w.id === parseInt(warehouseId));
+  const [productsInWarehouse, setProductsInWarehouse] = useState([]);
+  const [stats, setStats] = useState(null);
   const { baseUrl } = useContext(UrlContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    fetchWarehouseDetails();
+    fetchProductsInWarehouse();
+    fetchWarehouseStats();
+  }, [warehouseId, baseUrl]);
+
+  const fetchWarehouseDetails = () => {
     axios
-      .get(`${baseUrl}warehouse/get-warehouse/${warehouseId}`)
+      .get(`${baseUrl}warehouse/${warehouseId}`)
       .then((res) => setWarehouse(res.data.data));
-  }, []);
-  console.log(warehouse);
+  };
+
+  const fetchProductsInWarehouse = () => {
+    axios
+      .get(`${baseUrl}warehouse/${warehouseId}/products`)
+      .then((res) => setProductsInWarehouse(res.data.data));
+  };
+
+  const fetchWarehouseStats = () => {
+    axios
+      .get(`${baseUrl}warehouse/${warehouseId}/stats`)
+      .then((res) => setStats(res.data.data));
+  };
 
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [showAddProductForm, setShowAddProductForm] = useState(false);
-  const [productList, setProductList] = useState(
-    products.filter((p) => p.productLocation === parseInt(warehouseId))
-  );
 
-  const handleProductAdded = (newProduct) => {
-    setProductList([newProduct, ...productList]);
+  const handleAddProductClick = () => {
+    setShowAddProductForm(true);
+  };
+
+  const handleProductFormClose = () => {
     setShowAddProductForm(false);
   };
 
-  const uniqueCategories = [
-    "All",
-    ...new Set(productList.map((product) => product.category)),
-  ];
+  const handleProductAddedOrUpdated = () => {
+    fetchProductsInWarehouse();
+    fetchWarehouseStats();
+    handleProductFormClose();
+  };
+
+  const uniqueCategories = ["All", ...new Set(productsInWarehouse.map((product) => product.category?.name).filter(Boolean))];
 
   const formatSize = (product) => {
     const parts = [];
-    if (product.thickness_mm) parts.push(`${product.thickness_mm}mm`);
-    if (product.width_mm) parts.push(`${product.width_mm}mm`);
-    if (product.length_m) parts.push(`${product.length_m}m`);
-    if (product.width_ft) parts.push(`${product.width_ft}ft`);
-    if (product.length_ft) parts.push(`${product.length_ft}ft`);
-    if (product.width_inch) parts.push(`${product.width_inch}"`);
+    if (product.thickness) parts.push(`${product.thickness}mm`);
+    if (product.width) parts.push(`${product.width}mm`);
+    if (product.length) parts.push(`${product.length}mm`);
     return parts.join(" x ");
   };
 
-  // const filteredProducts = warehouse?.product.filter((product) => {
-  //   const sizeString = formatSize(product);
-  //   const matchesSearch =
-  //     product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     (sizeString &&
-  //       sizeString.toLowerCase().includes(searchTerm.toLowerCase())) ||
-  //     (product.color &&
-  //       product.color.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredProducts = productsInWarehouse.filter((product) => {
+    const sizeString = formatSize(product);
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.category?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (sizeString &&
+        sizeString.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (product.color &&
+        product.color.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  //   const matchesCategory =
-  //     categoryFilter === "All" || product.category === categoryFilter;
+    const matchesCategory =
+      categoryFilter === "All" || product.category?.name === categoryFilter;
 
-  //   return matchesSearch && matchesCategory;
-  // });
+    return matchesSearch && matchesCategory;
+  });
 
   const breadcrumbItems = [
     { label: "Stock", path: "/stock-management" },
@@ -93,7 +115,7 @@ const WarehouseStock = () => {
               </p>
             </div>
             <button
-              onClick={() => setShowAddProductForm(true)}
+              onClick={handleAddProductClick}
               className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start"
             >
               <Plus size={20} />
@@ -103,29 +125,26 @@ const WarehouseStock = () => {
           <div className="my-6 sm:mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatBox
               title={"Total Products"}
-              number={productList.length}
+              number={stats?.totalproductdocuments || 0}
               Icon={Package}
             />
             <StatBox
+              title={"Total In-stock"}
+              number={stats?.totalinstockproductcount || 0}
+              Icon={Layers}
+              textColor="green"
+            />
+            <StatBox
               title={"Low Stock"}
-              number={
-                productList.filter((product) => product.quantity <= 10).length
-              }
+              number={stats?.totallowstockproductscount || 0}
               Icon={ChevronsDown}
               textColor="red"
             />
             <StatBox
-              title={"Categories"}
-              number={uniqueCategories.length - 1}
-              Icon={ChartColumnStacked}
-            />
-            <StatBox
-              title={"In Stock"}
-              number={
-                productList.filter((product) => product.quantity > 50).length
-              }
-              Icon={Layers}
-              textColor="green"
+              title={"Stock Out"}
+              number={stats?.totalstockoutproductscount || 0}
+              Icon={Archive}
+              textColor="orange"
             />
           </div>
 
@@ -162,12 +181,12 @@ const WarehouseStock = () => {
         </div>
 
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          {warehouse?.product.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {filteredProducts.map((product) => (
+            <ProductCard key={product._id} product={product} warehouseId={warehouseId} />
           ))}
         </div>
 
-        {warehouse?.product.length === 0 && (
+        {filteredProducts.length === 0 && (
           <div className="text-center py-8 sm:py-12">
             <div className="text-gray-400 mb-2">
               <Package size={32} className="sm:hidden mx-auto" />
@@ -184,8 +203,10 @@ const WarehouseStock = () => {
       </div>
       {showAddProductForm && (
         <AddProductForm
-          onClose={() => setShowAddProductForm(false)}
-          onProductAdded={handleProductAdded}
+          isOpen={showAddProductForm}
+          onClose={handleProductFormClose}
+          onProductAdded={handleProductAddedOrUpdated}
+          onProductUpdated={handleProductAddedOrUpdated}
           warehouse={warehouse}
         />
       )}

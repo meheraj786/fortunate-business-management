@@ -38,12 +38,35 @@ const InputField = ({
   </div>
 );
 
-const AddWarehouseForm = ({ onClose, onWarehouseAdded, isOpen = false }) => {
+const AddWarehouseForm = ({
+  onClose,
+  onWarehouseAdded,
+  isOpen = false,
+  editingWarehouse,
+  onWarehouseUpdated,
+}) => {
   const [formData, setFormData] = useState({
     name: "",
     address: "",
   });
   const { baseUrl } = useContext(UrlContext);
+  const isEditMode = !!editingWarehouse;
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditMode) {
+        setFormData({
+          name: editingWarehouse.name,
+          address: editingWarehouse.location,
+        });
+      } else {
+        setFormData({
+          name: "",
+          address: "",
+        });
+      }
+    }
+  }, [editingWarehouse, isOpen]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -56,15 +79,32 @@ const AddWarehouseForm = ({ onClose, onWarehouseAdded, isOpen = false }) => {
     e.preventDefault();
 
     if (!formData.name || !formData.address) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
-    await axios.post(`${baseUrl}warehouse/create-warehouse`, {
+
+    const payload = {
       name: formData.name,
       location: formData.address,
-    });
-    toast.success("Warehouse Created");
-    onWarehouseAdded(formData);
+    };
+
+    try {
+      if (isEditMode) {
+        await axios.patch(
+          `${baseUrl}warehouse/${editingWarehouse._id}`,
+          payload
+        );
+        toast.success("Warehouse Updated");
+        onWarehouseUpdated();
+      } else {
+        await axios.post(`${baseUrl}warehouse/`, payload);
+        toast.success("Warehouse Created");
+        onWarehouseAdded();
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "An error occurred");
+      console.error("Form submission error:", error);
+    }
   };
 
   return (
@@ -90,9 +130,13 @@ const AddWarehouseForm = ({ onClose, onWarehouseAdded, isOpen = false }) => {
                 <div className="flex items-center space-x-3">
                   <Warehouse className="w-6 h-6" />
                   <div>
-                    <h2 className="text-xl font-bold">Add New Warehouse</h2>
+                    <h2 className="text-xl font-bold">
+                      {isEditMode ? "Edit Warehouse" : "Add New Warehouse"}
+                    </h2>
                     <p className="text-blue-100 text-sm">
-                      Enter details of the new warehouse
+                      {isEditMode
+                        ? "Update the details of the warehouse"
+                        : "Enter details of the new warehouse"}
                     </p>
                   </div>
                 </div>
@@ -138,7 +182,9 @@ const AddWarehouseForm = ({ onClose, onWarehouseAdded, isOpen = false }) => {
                     className="px-6 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 font-medium flex items-center justify-center space-x-2"
                   >
                     <Save className="w-4 h-4" />
-                    <span>Save Warehouse</span>
+                    <span>
+                      {isEditMode ? "Update Warehouse" : "Save Warehouse"}
+                    </span>
                   </button>
                 </div>
               </form>
