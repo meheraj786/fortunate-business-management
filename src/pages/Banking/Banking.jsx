@@ -23,6 +23,8 @@ import {
   Banknote,
   Plus,
   Loader2,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -30,6 +32,7 @@ import { UrlContext } from "../../context/UrlContext";
 import FormDialog from "../../components/common/FormDialog";
 import InputField from "../../components/forms/InputField";
 import SelectField from "../../components/forms/SelectField";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
 
 const Banking = () => {
   const { baseUrl } = useContext(UrlContext);
@@ -54,6 +57,12 @@ const Banking = () => {
   const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // New states for delete and update
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState(null);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [editingAccount, setEditingAccount] = useState(null);
 
   const initialBankData = {
     bankName: "",
@@ -213,9 +222,88 @@ const Banking = () => {
     setMobileFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddAccount = async (formData, accountType) => {
+  const handleDeleteClick = (account) => {
+    setAccountToDelete(account);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!accountToDelete) return;
+    setIsConfirmingDelete(true);
+    try {
+      const response = await axios.delete(
+        `${baseUrl}bank/delete-account/${accountToDelete._id}`
+      );
+      if (response.data.success) {
+        toast.success("Account deleted successfully!");
+        fetchAccounts(); // Refresh data
+        setIsDeleteModalOpen(false);
+        setAccountToDelete(null);
+      } else {
+        toast.error(response.data.message || "Failed to delete account.");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "An unexpected error occurred."
+      );
+    } finally {
+      setIsConfirmingDelete(false);
+    }
+  };
+
+  const handleEditClick = async (account) => {
+    try {
+      const response = await axios.get(
+        `${baseUrl}bank/get-account/${account._id}`
+      );
+      if (!response.data.success) {
+        toast.error(
+          response.data.message || "Failed to fetch account details."
+        );
+        return;
+      }
+
+      const fetchedAccount = response.data.data;
+      setEditingAccount(fetchedAccount);
+
+      if (fetchedAccount.accountType === "Bank") {
+        setBankFormData({
+          bankName: fetchedAccount.bankName || "",
+          branchName: fetchedAccount.branchName || "",
+          accountHolderName: fetchedAccount.accountHolderName || "",
+          accountName: fetchedAccount.accountName || "",
+          accountNumber: fetchedAccount.accountNumber || "",
+          swiftCode: fetchedAccount.swiftCode || "",
+          routingNumber: fetchedAccount.routingNumber || "",
+          balance: fetchedAccount.balance || "",
+        });
+        setIsBankFormOpen(true);
+      } else if (fetchedAccount.accountType === "Mobile Banking") {
+        setMobileFormData({
+          serviceName: fetchedAccount.serviceName || "",
+          accountNumber: fetchedAccount.mobileNumber || "",
+          accountHolderName: fetchedAccount.accountHolderName || "",
+          accountName: fetchedAccount.accountName || "",
+          balance: fetchedAccount.balance || "",
+        });
+        setIsMobileFormOpen(true);
+      }
+    } catch (error) {
+      toast.error(
+        "An unexpected error occurred while fetching account details."
+      );
+    }
+  };
+
+  const handleSaveAccount = async (formData, accountType) => {
     setIsSubmitting(true);
     try {
+      const isEditing = !!editingAccount;
+      const url = isEditing
+        ? `${baseUrl}bank/update-account/${editingAccount._id}`
+        : `${baseUrl}bank/create-account`;
+      const method = isEditing ? "patch" : "post";
+
       const payload = {
         ...formData,
         accountType,
@@ -227,13 +315,13 @@ const Banking = () => {
         delete payload.accountNumber;
       }
 
-      const response = await axios.post(
-        `${baseUrl}bank/create-account`,
-        payload
-      );
+      const response = await axios[method](url, payload);
 
       if (response.data.success) {
-        toast.success(response.data.message || "Account created successfully!");
+        toast.success(
+          response.data.message ||
+            `Account ${isEditing ? "updated" : "created"} successfully!`
+        );
         if (accountType === "Bank") {
           setIsBankFormOpen(false);
           setBankFormData(initialBankData);
@@ -242,8 +330,12 @@ const Banking = () => {
           setMobileFormData(initialMobileData);
         }
         fetchAccounts(); // Refresh data
+        setEditingAccount(null); // Reset editing state
       } else {
-        toast.error(response.data.message || "Failed to create account.");
+        toast.error(
+          response.data.message ||
+            `Failed to ${isEditing ? "update" : "create"} account.`
+        );
       }
     } catch (error) {
       toast.error(
@@ -418,7 +510,10 @@ const Banking = () => {
                 Bank Accounts
               </h2>
               <button
-                onClick={() => setIsBankFormOpen(true)}
+                onClick={() => {
+                  setEditingAccount(null);
+                  setIsBankFormOpen(true);
+                }}
                 className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
               >
                 <Plus size={16} />
@@ -440,9 +535,23 @@ const Banking = () => {
                       <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
                         {account.bankName}
                       </h3>
-                      <span className="font-bold text-lg text-green-600">
-                        ৳{account.balance.toLocaleString()}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-lg text-green-600">
+                          ৳{account.balance.toLocaleString()}
+                        </span>
+                        <button
+                          onClick={() => handleEditClick(account)}
+                          className="text-gray-400 hover:text-blue-600 p-1"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(account)}
+                          className="text-gray-400 hover:text-red-600 p-1"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                     <div className="space-y-2 text-xs sm:text-sm text-gray-600">
                       <div className="flex items-center gap-2">
@@ -496,7 +605,10 @@ const Banking = () => {
                 Mobile Banking
               </h2>
               <button
-                onClick={() => setIsMobileFormOpen(true)}
+                onClick={() => {
+                  setEditingAccount(null);
+                  setIsMobileFormOpen(true);
+                }}
                 className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
               >
                 <Plus size={16} />
@@ -531,9 +643,23 @@ const Banking = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-lg text-green-600">
-                          ৳{account.balance.toLocaleString()}
-                        </p>
+                        <div className="flex items-center gap-3 justify-end">
+                          <p className="font-bold text-lg text-green-600">
+                            ৳{account.balance.toLocaleString()}
+                          </p>
+                          <button
+                            onClick={() => handleEditClick(account)}
+                            className="text-gray-400 hover:text-blue-600 p-1"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(account)}
+                            className="text-gray-400 hover:text-red-600 p-1"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                         <div className="flex items-center gap-2 mt-1">
                           <Phone className="w-3 h-3 text-gray-500" />
                           <span className="font-mono text-sm">
@@ -907,11 +1033,23 @@ const Banking = () => {
       {/* Add Bank Account Form */}
       <FormDialog
         open={isBankFormOpen}
-        onClose={() => setIsBankFormOpen(false)}
-        title="Add New Bank Account"
-        primaryButtonText={isSubmitting ? "Adding..." : "Add Account"}
+        onClose={() => {
+          setIsBankFormOpen(false);
+          setEditingAccount(null);
+          setBankFormData(initialBankData);
+        }}
+        title={editingAccount ? "Update Bank Account" : "Add New Bank Account"}
+        primaryButtonText={
+          isSubmitting
+            ? editingAccount
+              ? "Updating..."
+              : "Adding..."
+            : editingAccount
+            ? "Update Account"
+            : "Add Account"
+        }
         secondaryButtonText="Cancel"
-        onSubmit={() => handleAddAccount(bankFormData, "Bank")}
+        onSubmit={() => handleSaveAccount(bankFormData, "Bank")}
         isPrimaryButtonDisabled={isSubmitting}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -977,11 +1115,27 @@ const Banking = () => {
       {/* Add Mobile Banking Account Form */}
       <FormDialog
         open={isMobileFormOpen}
-        onClose={() => setIsMobileFormOpen(false)}
-        title="Add New Mobile Banking Account"
-        primaryButtonText={isSubmitting ? "Adding..." : "Add Account"}
+        onClose={() => {
+          setIsMobileFormOpen(false);
+          setEditingAccount(null);
+          setMobileFormData(initialMobileData);
+        }}
+        title={
+          editingAccount
+            ? "Update Mobile Banking Account"
+            : "Add New Mobile Banking Account"
+        }
+        primaryButtonText={
+          isSubmitting
+            ? editingAccount
+              ? "Updating..."
+              : "Adding..."
+            : editingAccount
+            ? "Update Account"
+            : "Add Account"
+        }
         secondaryButtonText="Cancel"
-        onSubmit={() => handleAddAccount(mobileFormData, "Mobile Banking")}
+        onSubmit={() => handleSaveAccount(mobileFormData, "Mobile Banking")}
         isPrimaryButtonDisabled={isSubmitting}
       >
         <div className="space-y-4">
@@ -1084,6 +1238,15 @@ const Banking = () => {
           />
         </div>
       </FormDialog>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Account"
+        description="Are you sure you want to delete this account? This action cannot be undone."
+        isConfirming={isConfirmingDelete}
+      />
     </div>
   );
 };

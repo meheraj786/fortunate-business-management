@@ -235,19 +235,60 @@ const AddSales = ({
 
   // Handle form input changes
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-
-    if (field === "productId" && value && !isEditMode) {
+    // If product is changed, reset related fields and set new product info
+    if (field === "productId" && !isEditMode) {
       const product = products.find((p) => p._id === value);
       if (product) {
         setFormData((prev) => ({
           ...prev,
+          productId: value,
           unit: product.unit?._id,
           pricePerUnit: product.unitPrice,
           categoryId: product.category?._id,
         }));
+      } else {
+        // Product not found or deselected
+        setFormData((prev) => ({
+          ...prev,
+          productId: value,
+          unit: "",
+          pricePerUnit: "",
+        }));
       }
+      return; // Exit early
     }
+
+    // If unit is changed, recalculate price
+    if (field === "unit" && !isEditMode) {
+      const selectedUnitId = value;
+      const product = products.find((p) => p._id === formData.productId);
+      const selectedUnit = units.find((u) => u._id === selectedUnitId);
+
+      if (
+        product &&
+        selectedUnit &&
+        product.unit?.conversionFactor &&
+        selectedUnit.conversionFactor
+      ) {
+        const pricePerBaseUnit =
+          product.unitPrice / product.unit.conversionFactor;
+        const newPriceForSale =
+          pricePerBaseUnit * selectedUnit.conversionFactor;
+
+        setFormData((prev) => ({
+          ...prev,
+          unit: selectedUnitId,
+          pricePerUnit: newPriceForSale.toFixed(2),
+        }));
+      } else {
+        // Fallback if something is missing, just update the unit
+        setFormData((prev) => ({ ...prev, unit: selectedUnitId }));
+      }
+      return; // Exit early
+    }
+
+    // For all other fields, just update the value
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleWarehouseChange = (value) => {
