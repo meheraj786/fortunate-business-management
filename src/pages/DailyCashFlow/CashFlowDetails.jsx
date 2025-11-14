@@ -115,7 +115,7 @@ const CashFlowDetails = ({
         />
       </div>
 
-      <div className="bg-white mt-4 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white mt-4  rounded-lg shadow-sm overflow-hidden">
         <div className="p-4 sm:p-6 border-b border-gray-200">
           <h2 className="text-lg sm:text-xl font-bold text-gray-800">
             Today's Transactions

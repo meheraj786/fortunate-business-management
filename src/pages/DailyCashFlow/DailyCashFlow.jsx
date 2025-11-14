@@ -144,7 +144,7 @@ const DailyCashFlow = () => {
     amount: "",
     category: "",
     description: "",
-    paymentMethod: "cash", // Default to cash
+    paymentMethod: "cash",
   });
 
   const handleAddTransactionSubmit = async (e) => {
@@ -162,7 +162,7 @@ const DailyCashFlow = () => {
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
-        }), // Auto-generate time
+        }), 
       });
       toast.success(
         `${
@@ -502,7 +502,7 @@ const DailyCashFlow = () => {
           </div>
         )}
 
-        <div className="mb-4 sm:mb-6">
+        <div className="mb-4  sm:mb-6">
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-2">
