@@ -1,7 +1,9 @@
 import React from "react";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, Grid2x2Check } from "lucide-react";
 
 import { Link } from "react-router";
+import { exportToExcel } from "../components/exportXlsx/ExportXlxs";
+import toast from "react-hot-toast";
 
 const LCTable = ({ lcData = [] }) => {
   const getStatusColor = (status) => {
@@ -20,6 +22,29 @@ const LCTable = ({ lcData = [] }) => {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const handleExport = () => {
+    const formattedData = lcData.map((lc) => ({
+      LC_Number: lc.basicInfo?.lcNumber,
+      Status: lc.basicInfo?.status,
+      Supplier: lc.basicInfo?.supplierName,
+      Opening_Date: new Date(lc.basicInfo?.lcOpeningDate).toLocaleDateString(),
+      Arrival_Date: new Date(
+        lc.shippingCustomsInfo?.expectedArrivalDate
+      ).toLocaleDateString(),
+      Products: lc.productInfo?.map((p) => p.itemName).join(", "),
+      Total_Quantity: lc.productInfo?.reduce(
+        (acc, item) => acc + item.quantityValue,
+        0
+      ),
+      Total_Cost_BDT: lc.financialInfo?.lcAmountBdt,
+    }));
+
+    const today = new Date().toISOString().split("T")[0];
+
+    exportToExcel(formattedData, `LC_Report_${today}.xlsx`, `LC Data ${today}`);
+    toast.success("LC Table Exported As XLSX")
   };
 
   return (
@@ -63,6 +88,19 @@ const LCTable = ({ lcData = [] }) => {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="my-6 flex justify-between items-center px-6 ">
+            <h2 className="text-xl font-semibold">LC Table</h2>
+            <button
+              onClick={handleExport}
+              className="px-4 py-2 flex justify-center items-center bg-green-600 gap-x-2 cursor-pointer text-white rounded-lg hover:bg-green-700"
+            >
+              <span>
+                <Grid2x2Check size={20} />{" "}
+              </span>
+              <span>Export XLSX</span>
+            </button>
+
+          </div>
           <div className="block sm:hidden">
             {lcData?.map((lc) => (
               <Link to={`/lc-details/${lc._id}`} key={lc._id}>
@@ -107,7 +145,8 @@ const LCTable = ({ lcData = [] }) => {
                       <div className="text-gray-900 text-right max-w-40 truncate">
                         {lc?.productInfo.map((p, idx) => (
                           <span key={idx} title={p?.itemName}>
-                            {p?.itemName} {idx < lc.productInfo.length - 1 ? ", " : ""}
+                            {p?.itemName}{" "}
+                            {idx < lc.productInfo.length - 1 ? ", " : ""}
                           </span>
                         ))}
                       </div>
@@ -206,7 +245,8 @@ const LCTable = ({ lcData = [] }) => {
                           className="text-gray-900 max-w-xs truncate"
                           title={p?.itemName}
                         >
-                          {p?.itemName} ({p?.quantityValue} {p?.quantityUnit.name})
+                          {p?.itemName} ({p?.quantityValue}{" "}
+                          {p?.quantityUnit.name})
                         </div>
                       ))}
                     </td>

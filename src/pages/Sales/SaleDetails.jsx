@@ -67,7 +67,8 @@ const SaleDetails = () => {
       }
     } catch (err) {
       setError("Failed to fetch sale details.");
-      toast.error("An unexpected error occurred while fetching sale details.");
+      toast.error("An unexpected error occurred while fetching sale details.", err.message);
+
     } finally {
       setLoading(false);
     }

@@ -7,6 +7,7 @@ import {
   FileClock,
   FileCheck,
   FileX,
+  Grid2x2Check,
 } from "lucide-react";
 import { Link } from "react-router";
 import { salesData as initialSalesData } from "../../data/data";
@@ -146,7 +147,7 @@ const Sales = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-gray-200">
+          <div className="p-4 sm:p-6 border-b border-gray-200 flex justify-between items-center">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
                 <h3 className="text-base sm:text-lg font-semibold">
@@ -180,6 +181,15 @@ const Sales = () => {
                 </div>
               )}
             </div>
+            <button
+              onClick={""}
+              className="px-4 py-2 flex justify-center items-center bg-green-600 gap-x-2 cursor-pointer text-white rounded-lg hover:bg-green-700"
+            >
+              <span>
+                <Grid2x2Check size={20} />{" "}
+              </span>
+              <span>Export XLSX</span>
+            </button>
           </div>
 
           <SalesTable sales={salesData} />
