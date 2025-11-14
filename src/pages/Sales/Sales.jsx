@@ -16,6 +16,8 @@ import SalesTable from "../../components/common/SalesTable";
 import SalesStatCard from "../../components/common/SalesStatCard";
 import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
+import { exportToExcel } from "../../components/exportXlsx/ExportXlxs";
+import toast from "react-hot-toast";
 
 const Sales = () => {
   const [salesData, setSalesData] = useState([]); // Initialize with empty array
@@ -79,9 +81,31 @@ const Sales = () => {
   );
 
   const handleSaleAdded = () => {
-    fetchSales(); // Refetch the full list to get populated data
     setShowAddSale(false);
   };
+  const handleExport = () => {
+  const formattedSales = salesData.map((sale) => ({
+    Product: sale?.product?.name,
+    LC_Number: sale?.product?.lcNumber,
+    Quantity: `${sale.quantity} ${sale.unit?.name || sale.unit}`,
+    Unit_Price: sale?.pricePerUnit,
+    Total_Amount: sale?.totalAmount,
+    Customer: sale?.customer?.name,
+    Invoice_Status: sale?.invoiceStatus,
+    Payment_Status: sale?.paymentStatus,
+    Sale_Date: new Date(sale.saleDate).toLocaleDateString("en-GB"),
+  }));
+
+  const today = new Date().toISOString().split("T")[0];
+
+  exportToExcel(
+    formattedSales,
+    `Sales_Report_${today}.xlsx`,
+    `Sales Data ${today}`
+  );
+  toast.success("Sales Data Exported as XLSX")
+};
+
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 ">
@@ -182,7 +206,7 @@ const Sales = () => {
               )}
             </div>
             <button
-              onClick={""}
+              onClick={handleExport}
               className="px-4 py-2 flex justify-center items-center bg-green-600 gap-x-2 cursor-pointer text-white rounded-lg hover:bg-green-700"
             >
               <span>
