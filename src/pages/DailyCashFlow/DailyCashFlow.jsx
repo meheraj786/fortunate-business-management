@@ -35,6 +35,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { UrlContext } from "../../context/UrlContext";
 import CashFlowDetails from "./CashFlowDetails";
+import { Label, Select } from "@headlessui/react";
 
 const DailyCashFlow = () => {
   const [selectedDate, setSelectedDate] = useState(
@@ -456,46 +457,24 @@ const DailyCashFlow = () => {
                     required
                   /> */}
 
-                  <button
-                    id="dropdownDefaultButton"
-                    data-dropdown-toggle="dropdown"
-                    className="inline-flex items-center justify-center text-black bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
-                    type="button"
-                  >
-                    Dropdown button
-                    <svg
-                      className="w-4 h-4 ms-1.5 -me-0.5"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      fill="none"
-                      viewBox="0 0 24 24"
+                  <div className="max-w-md">
+                    <div className="mb-2 block">
+                      {/* <Label htmlFor="countries">Select your country</Label> */}
+                    </div>
+                    <Select
+                      onChange={(e) =>
+                        setNewTransaction({
+                          ...newTransaction,
+                          category: e.target.value,
+                        })
+                      }
+                      id="countries"
+                      required
                     >
-                      <path
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="m19 9-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
-
-                  <div
-                    id="dropdown"
-                    className="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44"
-                  >
-                    <ul
-                      className="p-2 text-sm text-body font-medium"
-                      aria-labelledby="dropdownDefaultButton"
-                    >
-{
-  dropdownMenu.map((c)=>(
-<li>{c}</li>
-  ))
-}
-                    </ul>
+                      {dropdownMenu.map((d) => (
+                        <option>{d}</option>
+                      ))}
+                    </Select>
                   </div>
                 </div>
                 <div>
