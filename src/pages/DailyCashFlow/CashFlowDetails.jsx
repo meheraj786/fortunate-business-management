@@ -9,7 +9,7 @@ import {
   Receipt,
 } from "lucide-react";
 
-const StatCard = ({ title, amount, icon: Icon, color = "blue", subtitle }) => (
+const StatCard = ({ title, amount, color = "blue", subtitle }) => (
   <div
     className={`bg-white rounded-lg shadow-sm p-4 border-l-4 border-l-${color}-500`}
   >

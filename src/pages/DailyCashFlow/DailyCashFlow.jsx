@@ -53,6 +53,16 @@ const DailyCashFlow = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const dropdownMenu = [
+    "sales",
+    "transport",
+    "commission",
+    "utilities",
+    "office",
+    "lc",
+    "others",
+  ];
+
   const fetchDailyCash = useCallback(async () => {
     if (!baseUrl || !selectedDate) return;
 
@@ -162,7 +172,7 @@ const DailyCashFlow = () => {
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
-        }), 
+        }),
       });
       toast.success(
         `${
@@ -429,7 +439,7 @@ const DailyCashFlow = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {/* <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category
                   </label>
                   <input
@@ -444,7 +454,49 @@ const DailyCashFlow = () => {
                     placeholder="e.g., Office Supplies, Transport"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     required
-                  />
+                  /> */}
+
+                  <button
+                    id="dropdownDefaultButton"
+                    data-dropdown-toggle="dropdown"
+                    className="inline-flex items-center justify-center text-black bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+                    type="button"
+                  >
+                    Dropdown button
+                    <svg
+                      className="w-4 h-4 ms-1.5 -me-0.5"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m19 9-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  <div
+                    id="dropdown"
+                    className="z-10 hidden bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44"
+                  >
+                    <ul
+                      className="p-2 text-sm text-body font-medium"
+                      aria-labelledby="dropdownDefaultButton"
+                    >
+{
+  dropdownMenu.map((c)=>(
+<li>{c}</li>
+  ))
+}
+                    </ul>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

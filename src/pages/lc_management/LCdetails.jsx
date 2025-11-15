@@ -159,6 +159,7 @@ const LCdetails = () => {
       day: "numeric",
     });
   };
+console.log(lcData, "LC data");
 
   if (!lcData) {
     return (
