@@ -63,6 +63,10 @@ const DailyCashFlow = () => {
     "lc",
     "others",
   ];
+  const lcDropdown=[
+"financial",
+"shipping"
+  ]
 
   const fetchDailyCash = useCallback(async () => {
     if (!baseUrl || !selectedDate) return;
@@ -156,6 +160,7 @@ const DailyCashFlow = () => {
     category: "",
     description: "",
     paymentMethod: "cash",
+    lcExpenseCategory:""
   });
 
   const handleAddTransactionSubmit = async (e) => {
@@ -299,6 +304,9 @@ const DailyCashFlow = () => {
       </>
     );
   };
+
+  console.log(newTransaction.category);
+  
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 ">
@@ -477,6 +485,28 @@ const DailyCashFlow = () => {
                     </Select>
                   </div>
                 </div>
+                {
+                  newTransaction.category=="lc" && (
+
+                  <div className="max-w-md">
+                    <div className="mb-2 block">
+                      {/* <Label htmlFor="countries">Select your country</Label> */}
+                    </div>
+                    <Select
+                      onChange={(e) =>
+                        setNewTransaction({
+                          ...newTransaction,
+                          lcExpenseCategory: e.target.value,
+                        })
+                      }
+                    >
+                      {lcDropdown.map((d) => (
+                        <option>{d}</option>
+                      ))}
+                    </Select>
+                  </div>
+                  )
+                }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Description
