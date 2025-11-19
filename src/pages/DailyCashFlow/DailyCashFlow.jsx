@@ -46,6 +46,7 @@ const DailyCashFlow = () => {
   const [error, setError] = useState(null);
   const { baseUrl } = useContext(UrlContext);
 
+
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [transactionType, setTransactionType] = useState("income");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -53,6 +54,20 @@ const DailyCashFlow = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+    const [activeLc, setActiveLc] = useState([]);
+      const activeLcFunc=()=>{
+    axios.get(`${baseUrl}lc/get-all-lc`).then((res) => {
+      if (Array.isArray(res.data.data)) {
+        setActiveLc(res.data.data);
+      } else {
+        setActiveLc([]);
+      }
+    });
+  }
+
+  useEffect(() => {
+    activeLcFunc();
+  }, []);
 
   const dropdownMenu = [
     "sales",
@@ -67,6 +82,8 @@ const DailyCashFlow = () => {
 "financial",
 "shipping"
   ]
+
+
 
   const fetchDailyCash = useCallback(async () => {
     if (!baseUrl || !selectedDate) return;
@@ -100,8 +117,8 @@ const DailyCashFlow = () => {
   }, [selectedDate, baseUrl]);
 
   useEffect(() => {
-    fetchDailyCash();
-  }, [fetchDailyCash]);
+    newTransaction.category=="lc" && activeLcFunc();
+  }, [newTransaction.category, activeLcFunc]);
 
   const {
     openingBalance,
@@ -160,7 +177,7 @@ const DailyCashFlow = () => {
     category: "",
     description: "",
     paymentMethod: "cash",
-    lcExpenseCategory:""
+    lcExpenseCategory:"",
   });
 
   const handleAddTransactionSubmit = async (e) => {
@@ -305,7 +322,7 @@ const DailyCashFlow = () => {
     );
   };
 
-  console.log(newTransaction.category);
+  console.log(activeLc);
   
 
   return (
@@ -502,6 +519,28 @@ const DailyCashFlow = () => {
                     >
                       {lcDropdown.map((d) => (
                         <option>{d}</option>
+                      ))}
+                    </Select>
+                  </div>
+                  )
+                }
+                {
+                  newTransaction.category=="lc" && (
+
+                  <div className="max-w-md">
+                    <div className="mb-2 block">
+                      {/* <Label htmlFor="countries">Select your country</Label> */}
+                    </div>
+                    <Select
+                      onChange={(e) =>
+                        setNewTransaction({
+                          ...newTransaction,
+                          lcNumber: e.target.value,
+                        })
+                      }
+                    >
+                      {activeLc.map((d) => (
+                        <option>{d.basicInfo?.lcNumber}</option>
                       ))}
                     </Select>
                   </div>
