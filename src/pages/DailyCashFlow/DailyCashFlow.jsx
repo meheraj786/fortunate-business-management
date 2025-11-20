@@ -55,15 +55,23 @@ const DailyCashFlow = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
     const [activeLc, setActiveLc] = useState([]);
-      const activeLcFunc=()=>{
-    axios.get(`${baseUrl}lc/get-all-lc`).then((res) => {
-      if (Array.isArray(res.data.data)) {
-        setActiveLc(res.data.data);
-      } else {
-        setActiveLc([]);
-      }
-    });
-  }
+      const [newTransaction, setNewTransaction] = useState({
+    amount: "",
+    category: "",
+    description: "",
+    paymentMethod: "cash",
+    lcExpenseCategory:"",
+  });
+const activeLcFunc = useCallback(() => {
+  axios.get(`${baseUrl}lc/get-all-lc`).then((res) => {
+    if (Array.isArray(res.data.data)) {
+      setActiveLc(res.data.data);
+    } else {
+      setActiveLc([]);
+    }
+  });
+}, [baseUrl]);
+
 
   useEffect(() => {
     activeLcFunc();
@@ -172,13 +180,7 @@ const DailyCashFlow = () => {
     currentPage * itemsPerPage
   );
 
-  const [newTransaction, setNewTransaction] = useState({
-    amount: "",
-    category: "",
-    description: "",
-    paymentMethod: "cash",
-    lcExpenseCategory:"",
-  });
+
 
   const handleAddTransactionSubmit = async (e) => {
     e.preventDefault();
