@@ -9,26 +9,23 @@ import {
   Receipt,
 } from "lucide-react";
 
-const StatCard = ({ title, amount, color = "blue", subtitle }) => (
-  <div
-    className={`bg-white rounded-lg shadow-sm p-4 border-l-4 border-l-${color}-500`}
-  >
+const StatCard = ({ title, amount, color = "blue", subtitle, icon: Icon }) => (
+  <div className={`bg-white rounded-lg shadow-sm p-4 border-l-4 border-l-${color}-500`}>
     <div className="flex items-center justify-between">
       <div className="flex-1">
-        <p className="text-xs sm:text-sm font-medium text-gray-600 uppercase tracking-wide">
-          {title}
-        </p>
+        <p className="text-xs sm:text-sm font-medium text-gray-600 uppercase tracking-wide">{title}</p>
         <p className={`text-lg sm:text-2xl font-bold mt-1 text-${color}-600`}>
           ৳{amount?.toLocaleString()}
         </p>
         {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
       </div>
       <div className={`p-2 sm:p-3 bg-${color}-100 rounded-full`}>
-        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 text-${color}-600`} />
+        {Icon && <Icon className={`w-5 h-5 sm:w-6 sm:h-6 text-${color}-600`} />}
       </div>
     </div>
   </div>
 );
+
 
 const TransactionCard = ({ transaction, iconComponents }) => {
   const IconComponent = iconComponents[transaction.icon] || Receipt;

@@ -46,7 +46,6 @@ const DailyCashFlow = () => {
   const [error, setError] = useState(null);
   const { baseUrl } = useContext(UrlContext);
 
-
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [transactionType, setTransactionType] = useState("income");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -54,28 +53,25 @@ const DailyCashFlow = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-    const [activeLc, setActiveLc] = useState([]);
-      const [newTransaction, setNewTransaction] = useState({
+  const [activeLc, setActiveLc] = useState([]);
+  const [newTransaction, setNewTransaction] = useState({
     amount: "",
     category: "",
     description: "",
     paymentMethod: "cash",
-    lcExpenseCategory:"",
+    lcExpenseCategory: "",
+    lcId: "",
   });
-const activeLcFunc = useCallback(() => {
-  axios.get(`${baseUrl}lc/get-all-lc`).then((res) => {
-    if (Array.isArray(res.data.data)) {
-      setActiveLc(res.data.data);
-    } else {
-      setActiveLc([]);
-    }
-  });
-}, [baseUrl]);
-
 
   useEffect(() => {
-    activeLcFunc();
-  }, []);
+    axios.get(`${baseUrl}lc/get-all-lc`).then((res) => {
+      if (Array.isArray(res.data.data)) {
+        setActiveLc(res.data.data);
+      } else {
+        setActiveLc([]);
+      }
+    });
+  }, [baseUrl]);
 
   const dropdownMenu = [
     "sales",
@@ -86,12 +82,7 @@ const activeLcFunc = useCallback(() => {
     "lc",
     "others",
   ];
-  const lcDropdown=[
-"financial",
-"shipping"
-  ]
-
-
+  const lcDropdown = ["financial", "shipping"];
 
   const fetchDailyCash = useCallback(async () => {
     if (!baseUrl || !selectedDate) return;
@@ -123,10 +114,6 @@ const activeLcFunc = useCallback(() => {
       setLoading(false);
     }
   }, [selectedDate, baseUrl]);
-
-  useEffect(() => {
-    newTransaction.category=="lc" && activeLcFunc();
-  }, [newTransaction.category, activeLcFunc]);
 
   const {
     openingBalance,
@@ -180,14 +167,12 @@ const activeLcFunc = useCallback(() => {
     currentPage * itemsPerPage
   );
 
-
-
   const handleAddTransactionSubmit = async (e) => {
     e.preventDefault();
     const endpoint = transactionType === "income" ? "income" : "expense";
     const toastId = toast.loading(`Adding ${transactionType}...`);
     try {
-      await axios.post(`${baseUrl}api/cash/${endpoint}`, {
+      await axios.post(`${baseUrl}cash/${endpoint}`, {
         date: selectedDate,
         amount: parseFloat(newTransaction.amount),
         category: newTransaction.category,
@@ -198,7 +183,24 @@ const activeLcFunc = useCallback(() => {
           minute: "2-digit",
           second: "2-digit",
         }),
+        lcExpenseCategory: newTransaction.lcExpenseCategory,
+        lcId: newTransaction.lcId,
       });
+
+      console.log( {
+        date: selectedDate,
+        amount: parseFloat(newTransaction.amount),
+        category: newTransaction.category,
+        description: newTransaction.description,
+        paymentMethod: newTransaction.paymentMethod,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+        lcExpenseCategory: newTransaction.lcExpenseCategory,
+        lcId: newTransaction.lcId,
+      })
       toast.success(
         `${
           transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
@@ -323,9 +325,11 @@ const activeLcFunc = useCallback(() => {
       </>
     );
   };
+  useEffect(() => {
+    fetchDailyCash();
+  }, [fetchDailyCash]);
 
-  console.log(activeLc);
-  
+  console.log(activeLc)
 
   return (
     <div className="min-h-screen p-3 sm:p-4 md:p-6 ">
@@ -489,65 +493,69 @@ const activeLcFunc = useCallback(() => {
                       {/* <Label htmlFor="countries">Select your country</Label> */}
                     </div>
                     <Select
+                      value={newTransaction.category}
                       onChange={(e) =>
                         setNewTransaction({
                           ...newTransaction,
                           category: e.target.value,
                         })
                       }
-                      id="countries"
-                      required
                     >
                       {dropdownMenu.map((d) => (
-                        <option>{d}</option>
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
                       ))}
                     </Select>
                   </div>
                 </div>
-                {
-                  newTransaction.category=="lc" && (
+{newTransaction.category === "lc" && (
+  <div className="max-w-md">
+    <div className="mb-2 block"></div>
 
-                  <div className="max-w-md">
-                    <div className="mb-2 block">
-                      {/* <Label htmlFor="countries">Select your country</Label> */}
-                    </div>
-                    <Select
-                      onChange={(e) =>
-                        setNewTransaction({
-                          ...newTransaction,
-                          lcExpenseCategory: e.target.value,
-                        })
-                      }
-                    >
-                      {lcDropdown.map((d) => (
-                        <option>{d}</option>
-                      ))}
-                    </Select>
-                  </div>
-                  )
-                }
-                {
-                  newTransaction.category=="lc" && (
+    <Select
+      value={newTransaction.lcId || ""}
+      onChange={(e) => {
+        const value = e.target.value;
+        setNewTransaction({
+          ...newTransaction,
+          lcId: value === "" ? null : value,
+        });
+      }}
+    >
+      <option value="">Select LC</option>
 
-                  <div className="max-w-md">
-                    <div className="mb-2 block">
-                      {/* <Label htmlFor="countries">Select your country</Label> */}
-                    </div>
-                    <Select
-                      onChange={(e) =>
-                        setNewTransaction({
-                          ...newTransaction,
-                          lcNumber: e.target.value,
-                        })
-                      }
-                    >
-                      {activeLc.map((d) => (
-                        <option>{d.basicInfo?.lcNumber}</option>
-                      ))}
-                    </Select>
-                  </div>
-                  )
-                }
+      {activeLc?.map((lc) => (
+        <option key={lc?._id} value={lc?._id}>
+          {lc.basicInfo?.lcNumber}
+        </option>
+      ))}
+    </Select>
+  </div>
+)}
+
+{newTransaction.category === "lc" && (
+  <div className="max-w-md">
+    <Select
+      value={newTransaction.lcExpenseCategory || ""}
+      onChange={(e) =>
+        setNewTransaction({
+          ...newTransaction,
+          lcExpenseCategory: e.target.value,
+        })
+      }
+    >
+      <option value="">Select LC Expense Category</option>
+
+      {lcDropdown.map((item) => (
+        <option key={item} value={item}>
+          {item}
+        </option>
+      ))}
+    </Select>
+  </div>
+)}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Description
