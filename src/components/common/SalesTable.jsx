@@ -1,12 +1,12 @@
-import React, { useContext, useEffect } from "react";
+import React from "react";
 import { Link } from "react-router";
 import { Check, X, Calendar, Package } from "lucide-react";
-import { products } from "../../data/data";
-import { UrlContext } from "../../context/UrlContext";
 
-
-
-const SalesTable = ({ sales }) => {
+const SalesTable = ({
+  sales,
+  title = "Sales",
+  description = "A list of all sales records including customer, product, and payment details.",
+}) => {
   if (!sales || sales.length === 0) {
     return (
       <div className="text-center py-8 sm:py-12">
@@ -19,104 +19,139 @@ const SalesTable = ({ sales }) => {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Product
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              LC Number
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Quantity
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Unit Price
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Total
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Customer
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Invoice Status
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Payment Status
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Date
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {sales.map((sale) => (
-            <tr key={sale._id} className="hover:bg-gray-50 cursor-pointer">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <Link to={`/sales/${sale._id}`}>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {sale?.product?.name}
-                    </div>
-                  </div>
-                </Link>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sale?.product?.lcNumber}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sale.quantity} {sale.unit?.name || sale.unit}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                ${sale?.pricePerUnit}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                ${sale?.totalAmount}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {sale?.customer?.name}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {sale.invoiceStatus === "Invoiced" ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <Check className="w-3 h-3 mr-1" />
-                    Invoiced
-                  </span>
-                ) : sale.invoiceStatus === "Not-invoiced" ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    <X className="w-3 h-3 mr-1" />
-                    Not Invoiced
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {sale.invoiceStatus}
-                  </span>
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    sale.paymentStatus === "Paid Payment"
-                      ? "bg-green-100 text-green-800"
-                      : sale.paymentStatus === "Due Payment"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {sale.paymentStatus}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {new Date(sale.saleDate).toLocaleDateString("en-GB")}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="px-4 sm:px-6 lg:px-8">
+      <div className="flow-root">
+        <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="inline-block min-w-full py-2 align-middle">
+            <table className="relative min-w-full divide-y divide-gray-300">
+              <thead>
+                <tr>
+                  <th
+                    scope="col"
+                    className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6 lg:pl-8"
+                  >
+                    Customer
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    Product
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    LC Number
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    Quantity
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    Unit Price
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    Total
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    Invoice Status
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    Payment Status
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  >
+                    Date
+                  </th>
+                  <th scope="col" className="py-3.5 pr-4 pl-3 sm:pr-6 lg:pr-8">
+                    <span className="sr-only">View</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {sales.map((sale) => (
+                  <tr key={sale._id} className="hover:bg-gray-50">
+                    <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6 lg:pl-8">
+                      {sale?.customer?.name}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                      <Link
+                        to={`/sales/${sale._id}`}
+                        className="text-indigo-600 hover:text-indigo-900"
+                      >
+                        {sale?.product?.name}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                      {sale?.product?.LC?.basicInfo?.lcNumber}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                      {sale.quantity} {sale?.product?.unit?.name}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                      ${sale?.pricePerUnit}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap font-medium text-gray-900">
+                      {Math.floor(sale?.totalAmount || 0).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                      {sale.invoiceStatus === "Invoiced" ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <Check className="w-3 h-3 mr-1" />
+                          Invoiced
+                        </span>
+                      ) : sale.invoiceStatus === "Not-invoiced" ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <X className="w-3 h-3 mr-1" />
+                          Not Invoiced
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {sale.invoiceStatus}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          sale.paymentStatus === "Paid payment"
+                            ? "bg-green-100 text-green-800"
+                            : sale.paymentStatus === "Due payment"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {sale.paymentStatus}
+                      </span>
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                      {new Date(sale.saleDate).toLocaleDateString("en-GB")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
