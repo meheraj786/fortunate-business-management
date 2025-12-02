@@ -47,7 +47,7 @@ const Team = () => {
   );
 
   return (
-    <div className="min-h-screen p-4 sm:p-6">
+    <div>
       <Toaster position="top-right" />
       <div className=" mx-auto">
         <div className="mb-8">

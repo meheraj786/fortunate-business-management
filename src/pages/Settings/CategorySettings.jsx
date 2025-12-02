@@ -124,7 +124,7 @@ export default function Category() {
 
   if (loading) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8">
+      <div className="">
         <div className="flex justify-between items-center">
           <div className="sm:flex-auto">
             <h1 className="text-2xl font-semibold text-gray-900 dark:text-black">
@@ -154,7 +154,7 @@ export default function Category() {
 
   if (error) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8">
+      <div className="">
         <div className="flex justify-between items-center">
           <div className="sm:flex-auto">
             <h1 className="text-2xl font-semibold text-gray-900 dark:text-black">
@@ -183,7 +183,7 @@ export default function Category() {
   }
 
   return (
-    <div className="px-4 mt-8 sm:px-6 lg:px-8">
+    <div className="px-2">
       <div className="flex justify-between items-center">
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-black">

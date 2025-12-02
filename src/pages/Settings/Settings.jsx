@@ -7,9 +7,9 @@ const Settings = () => {
       <div className="flex flex-1 overflow-x-hidden">
         <div className="flex flex-col flex-1">
           <main>
-            <div className="py-6">
-              <div className="px-4 mx-auto sm:px-6 md:px-8">
-                <div className="max-w-md">
+            <div>
+              <div>
+                <div className="max-w-md mb-8">
                   <h1 className="text-lg font-bold text-gray-900">Settings</h1>
                   <p className="mt-2 text-sm font-medium leading-6 text-gray-500">
                     Manage your account settings and preferences.
@@ -17,7 +17,7 @@ const Settings = () => {
                 </div>
               </div>
 
-              <div className="px-4 mx-auto mt-8 sm:px-6 md:px-8">
+              <div>
                 <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg">
                   <nav className="flex flex-wrap gap-4">
                     <NavLink

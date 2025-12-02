@@ -232,7 +232,7 @@ console.log(lcData, "LC data");
   };
 
   return (
-    <div className="min-h-screen py-4 px-4 sm:px-6 lg:px-8">
+    <div>
       <div className="mx-auto">
         <motion.div
           className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between"

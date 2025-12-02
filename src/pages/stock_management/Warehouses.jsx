@@ -102,7 +102,7 @@ const Warehouses = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className=" flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader className="animate-spin text-primary" size={32} />
           <p className="text-gray-600">Loading warehouses...</p>
@@ -114,7 +114,7 @@ const Warehouses = () => {
   // Error state
   if (error && warehouses.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className=" flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="bg-red-50 rounded-full p-3 w-12 h-12 flex items-center justify-center mx-auto mb-4">
             <Warehouse className="text-red-500" size={24} />
@@ -132,7 +132,7 @@ const Warehouses = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-8 bg-gray-50/60">
+    <div className="">
       <div className="">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">

@@ -280,7 +280,7 @@ export default function UnitsSettings() {
   };
 
   return (
-    <div className="px-4 mt-8 sm:px-6 lg:px-8">
+    <div className="">
       <div className="flex justify-between items-center">
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-black">
@@ -301,7 +301,7 @@ export default function UnitsSettings() {
         </div>
       </div>
 
-      <div className="mt-8 flow-root">
+      <div className=" flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
             <div className="-mx-4 mt-8 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg dark:ring-black/15">

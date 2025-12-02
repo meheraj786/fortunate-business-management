@@ -441,7 +441,7 @@ const Banking = () => {
   );
 
   return (
-    <div className="min-h-screen p-3 sm:p-4 md:p-6 ">
+    <div>
       <div className="mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">

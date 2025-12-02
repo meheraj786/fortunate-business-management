@@ -22,7 +22,7 @@ const Customers = () => {
       .then((res) => setCustomers(res?.data?.data));
   }, []);
   return (
-    <div className="pt-8 p-6 h-full w-full">
+    <div className="">
       <Toaster position="top-right" />
       <div className=" items-center flex-wrap flex justify-between">
         <h2 className="text-3xl font-semibold mb-4">Your Customers</h2>

@@ -215,7 +215,7 @@ const WarehouseStock = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 sm:p-6">
+    <div >
       <Breadcrumb items={breadcrumbItems} />
 
       <div className="mx-auto">
