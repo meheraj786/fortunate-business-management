@@ -3,7 +3,14 @@ import React, { useState, useEffect, useContext } from "react";
 import Flex from "../../layout/Flex";
 import StatBox from "../../components/common/StatBox";
 import LCTable from "../../layout/LCTable";
-import { BookmarkCheck, BookmarkX, Gpu, MonitorDot, Plus, Grid2x2Check } from "lucide-react";
+import {
+  BookmarkCheck,
+  BookmarkX,
+  Gpu,
+  MonitorDot,
+  Plus,
+  Grid2x2Check,
+} from "lucide-react";
 import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
 import { Link } from "react-router";
@@ -61,16 +68,29 @@ const LC = () => {
       ).toLocaleDateString(),
       Products:
         lc.products
-          ?.map((p) => `${p.itemName || "Unnamed"} (${p.quantity || 0} ${p.unit || "units"})`)
+          ?.map(
+            (p) =>
+              `${p.itemName || "Unnamed"} (${p.quantity || 0} ${
+                p.unit || "units"
+              })`
+          )
           .join(", ") ||
         lc.productInfo
           ?.map(
-            (p) => `${p.itemName || "Unnamed"} (${p.quantityValue || 0} ${p.quantityUnit?.name || "units"})`
+            (p) =>
+              `${p.itemName || "Unnamed"} (${p.quantityValue || 0} ${
+                p.quantityUnit?.name || "units"
+              })`
           )
-          .join(", ") || "No products",
+          .join(", ") ||
+        "No products",
       Total_Quantity:
         lc.products?.reduce((acc, item) => acc + (item.quantity || 0), 0) ||
-        lc.productInfo?.reduce((acc, item) => acc + (item.quantityValue || 0), 0) || 0,
+        lc.productInfo?.reduce(
+          (acc, item) => acc + (item.quantityValue || 0),
+          0
+        ) ||
+        0,
       Total_Cost_BDT: lc.totalCost || lc.financialInfo?.lcAmountBdt || 0,
     }));
 
@@ -85,12 +105,14 @@ const LC = () => {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Letters of Credit</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Letters of Credit
+            </h1>
             <p className="text-gray-600 mt-2 text-sm sm:text-base">
               Overview of all registered LCs within your organization.
             </p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleExport}
@@ -108,8 +130,8 @@ const LC = () => {
           </div>
         </div>
 
-        {/* Stats Cards - keeping exactly as before */}
-        <Flex className="flex-wrap justify-between gap-4 xl:flex-nowrap">
+        {/* Stats Cards*/}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatBox
             title="Active LC"
             Icon={MonitorDot}
@@ -134,7 +156,7 @@ const LC = () => {
             number={lcCounts.Cancelled}
             textColor="red"
           />
-        </Flex>
+        </div>
       </div>
 
       {/* LC Table */}

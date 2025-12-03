@@ -360,7 +360,7 @@ const ProductDetails = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Product Details */}
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -418,11 +418,11 @@ const ProductDetails = () => {
           </div>
 
           {/* Sales Overview */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white rounded-lg shadow-sm p-6  min-w-[320px]">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Sales Overview
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
               <StatBox
                 title="Total Units Sold"
                 number={stats.totalUnitsSold.toLocaleString()}
