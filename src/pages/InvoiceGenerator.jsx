@@ -89,7 +89,7 @@ const InvoiceGenerator = () => {
 
   if (!showInvoice) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">
             Generate Invoice
@@ -159,7 +159,7 @@ const InvoiceGenerator = () => {
   const totals = calculateTotals(selectedSale);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="">
       {/* Print Controls - Hidden when printing */}
       <div className="print:hidden bg-gray-50 p-4 border-b border-gray-200">
         <div className="max-w-4xl mx-auto flex items-center justify-between">

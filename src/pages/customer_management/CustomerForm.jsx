@@ -251,7 +251,7 @@ const CustomerForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="">
       <Toaster position="top-right" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}

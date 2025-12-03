@@ -120,7 +120,7 @@ const CustomerDetails = () => {
   }
 
   return (
-    <div className="min-h-screen py-4 px-4 sm:px-6 lg:px-8">
+    <div className="">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center">

@@ -4,28 +4,58 @@ import { UrlContext } from "../../context/UrlContext";
 import SalesTable from "../../components/common/SalesTable";
 import SearchBar from "../../components/common/SearchBar";
 import Breadcrumb from "../../components/common/Breadcrumb";
+import toast from "react-hot-toast";
 
 const PaidInvoices = () => {
   const [sales, setSales] = useState([]);
+  const [units, setUnits] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const { baseUrl } = useContext(UrlContext);
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}sales/get-all-paid-invoices`)
-      .then((res) => {
-        if (res.data && res.data.data) {
-          setSales(res.data.data);
+    const fetchSales = () => {
+      axios
+        .get(`${baseUrl}sales/get-all-paid-invoices`)
+        .then((res) => {
+          if (res.data && res.data.data) {
+            setSales(res.data.data);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching paid invoices:", error);
+        });
+    };
+
+    const fetchUnits = async () => {
+      try {
+        const response = await axios.get(`${baseUrl}unit/get`);
+        if (response.data.success) {
+          setUnits(response.data.data || []);
+        } else {
+          toast.error(response.data.message || "Failed to fetch units.");
         }
-      })
-      .catch((error) => {
-        console.error("Error fetching paid invoices:", error);
-      });
+      } catch (error) {
+        console.error("Error fetching units:", error);
+        toast.error("An unexpected error occurred while fetching units.");
+      }
+    };
+
+    fetchSales();
+    fetchUnits();
   }, [baseUrl]);
 
+  const augmentedSales = useMemo(() => {
+    if (!units.length) return sales;
+    const unitsMap = new Map(units.map((unit) => [unit._id, unit]));
+    return sales.map((sale) => ({
+      ...sale,
+      unit: unitsMap.get(sale.unit) || sale.unit,
+    }));
+  }, [sales, units]);
+
   const filteredSales = useMemo(() => {
-    if (!sales) return [];
-    return sales.filter(
+    if (!augmentedSales) return [];
+    return augmentedSales.filter(
       (sale) =>
         (sale.product?.name?.toLowerCase() || "").includes(
           searchTerm.toLowerCase()
@@ -35,7 +65,7 @@ const PaidInvoices = () => {
         ) ||
         (sale._id?.toString() || "").includes(searchTerm)
     );
-  }, [sales, searchTerm]);
+  }, [augmentedSales, searchTerm]);
 
   const breadcrumbItems = [
     { label: "Sales", path: "/sales" },
@@ -43,7 +73,7 @@ const PaidInvoices = () => {
   ];
 
   return (
-    <div className="min-h-screen p-3 sm:p-4 md:p-6">
+    <div className="">
       <div className="mx-auto">
         <Breadcrumb items={breadcrumbItems} />
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
@@ -61,7 +91,7 @@ const PaidInvoices = () => {
               placeholder="Search by product, customer, or sale ID..."
             />
           </div>
-          <SalesTable sales={filteredSales} />
+          <div className="px-3 pb-3"><SalesTable sales={filteredSales} /></div>
         </div>
       </div>
     </div>

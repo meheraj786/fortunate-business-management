@@ -111,7 +111,7 @@ const DisplayInvoice = () => {
   const balanceDue = paymentAndAmountInfo.totalAmountToBePaid - totalPayments;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="">
       <div className="flex flex-col lg:flex-row">
         {/* Invoice Preview */}
         <div className="flex-grow p-4 sm:p-8 print-area">

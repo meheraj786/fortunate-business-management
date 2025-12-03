@@ -86,7 +86,7 @@ const ProductDetails = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
+      <div className=" flex items-center justify-center">
         <div className="flex items-center gap-3">
           <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
           <span className="text-gray-600">Loading Product Details...</span>
@@ -98,7 +98,7 @@ const ProductDetails = () => {
   // Error state
   if (error && !product) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
+      <div className="flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 mb-4">Error loading product details</div>
           <button
@@ -115,7 +115,7 @@ const ProductDetails = () => {
   // Safety check
   if (!product) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
+      <div className="flex items-center justify-center">
         <div className="text-center">
           <div className="text-gray-600 mb-4">Product not found</div>
           <button
@@ -323,7 +323,7 @@ const ProductDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <div className="">
       <div className="max-w-7xl mx-auto">
         <Breadcrumb items={breadcrumbItems} />
 

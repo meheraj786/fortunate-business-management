@@ -21,6 +21,7 @@ import toast from "react-hot-toast";
 
 const Sales = () => {
   const [salesData, setSalesData] = useState([]);
+  const [units, setUnits] = useState([]);
   const [salesStats, setSalesStats] = useState({
     notInvoiced: 0,
     due: 0,
@@ -32,17 +33,32 @@ const Sales = () => {
   const itemsPerPage = 10;
   const { baseUrl } = useContext(UrlContext);
 
-  const fetchSales = () => {
-    axios
-      .get(`${baseUrl}sales/get-all-sales`)
-      .then((res) => setSalesData(res.data.data || []))
-      .catch((error) => {
-        console.error("Error fetching all sales:", error);
-      });
-  };
-
   useEffect(() => {
+    const fetchSales = () => {
+      axios
+        .get(`${baseUrl}sales/get-all-sales`)
+        .then((res) => setSalesData(res.data.data || []))
+        .catch((error) => {
+          console.error("Error fetching all sales:", error);
+        });
+    };
+
+    const fetchUnits = async () => {
+      try {
+        const response = await axios.get(`${baseUrl}unit/get`);
+        if (response.data.success) {
+          setUnits(response.data.data || []);
+        } else {
+          toast.error(response.data.message || "Failed to fetch units.");
+        }
+      } catch (error) {
+        console.error("Error fetching units:", error);
+        toast.error("An unexpected error occurred while fetching units.");
+      }
+    };
+
     fetchSales();
+    fetchUnits();
   }, [baseUrl]);
 
   useEffect(() => {
@@ -63,12 +79,21 @@ const Sales = () => {
       });
   }, [baseUrl]);
 
+  const augmentedSales = useMemo(() => {
+    if (!units.length) return salesData;
+    const unitsMap = new Map(units.map((unit) => [unit._id, unit]));
+    return salesData.map((sale) => ({
+      ...sale,
+      unit: unitsMap.get(sale.unit) || sale.unit,
+    }));
+  }, [salesData, units]);
+
   const sortedData = useMemo(
     () =>
-      [...salesData].sort(
+      [...augmentedSales].sort(
         (a, b) => new Date(b.saleDate) - new Date(a.saleDate)
       ),
-    [salesData]
+    [augmentedSales]
   );
 
   // Pagination
@@ -83,10 +108,10 @@ const Sales = () => {
   };
 
   const handleExport = () => {
-    const formattedSales = salesData.map((sale) => ({
+    const formattedSales = augmentedSales.map((sale) => ({
       Product: sale?.product?.name,
       LC_Number: sale?.product?.LC?.basicInfo?.lcNumber,
-      Quantity: `${sale.quantity} ${sale.product?.unit?.name}`,
+      Quantity: `${sale.quantity} ${sale?.unit?.name || "N/A"}`,
       Unit_Price: sale?.pricePerUnit,
       Total_Amount: sale?.totalAmount,
       Customer: sale?.customer?.name,
