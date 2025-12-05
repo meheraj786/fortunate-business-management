@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import {  AnimatePresence } from "framer-motion";
 import {
   FiX,
   FiUser,
@@ -11,22 +11,27 @@ import {
   FiLock,
 } from "react-icons/fi";
 import Dropdown from "../../components/layout/Dropdown";
-import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
 import toast from "react-hot-toast";
+import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
+import {motion} from "framer-motion";
 
-const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
+const AddTeamMemForm = ({ isOpen, onClose, editData = null }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    role: "",
+    roleName: "",
     location: "",
     avatar: "",
     password: "",
   });
+  
+
 
   const [errors, setErrors] = useState({});
+  
 
   const roles = [
     "Manager",
@@ -42,7 +47,6 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
   const nameInputRef = useRef(null);
   const phoneInputRef = useRef(null);
   const locationInputRef = useRef(null);
-  const { baseUrl } = useContext(UrlContext);
 
   // ✅ When editing, pre-fill data
   useEffect(() => {
@@ -51,7 +55,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
         name: editData.name || "",
         email: editData.email || "",
         phone: editData.phone || "",
-        role: editData.role || "",
+        roleName: editData.roleName || "",
         location: editData.location || "",
         avatar: editData.avatar || "",
         password: "",
@@ -61,7 +65,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
         name: "",
         email: "",
         phone: "",
-        role: "",
+        roleName: "",
         location: "",
         avatar: "",
         password: "",
@@ -90,7 +94,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.email.trim()) newErrors.email = "Email is required";
     if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
-    if (!formData.role) newErrors.role = "Role is required";
+    if (!formData.roleName) newErrors.roleName = "Role is required";
     if (!formData.location.trim()) newErrors.location = "Location is required";
     if (!formData.password.trim()) newErrors.password = "Password is required";
 
@@ -108,15 +112,17 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
       avatar: formData.avatar || `https://i.pravatar.cc/150?u=${formData.name}`,
     };
 
-    try {
-      await axios.post(`${baseUrl}auth/create-user`, payload);
-      toast.success("User Created Successfully!");
-      onSubmit(payload);
-      handleClose();
-    } catch (error) {
-      console.error("Error creating user:", error);
-      toast.error(error.response?.data?.message || "Failed to create user");
-    }
+  try {
+    const res = await api.post("/auth/create-user", payload);
+    toast.success("User Created Successfully!");
+    return res.data;
+  } catch (error) {
+    console.error("Create User Error:", error);
+    toast.error(
+      error.response?.data?.message || "User create failed"
+    );
+    throw error;
+  }
   };
 
   // ✅ Close & Reset Form
@@ -125,7 +131,7 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
       name: "",
       email: "",
       phone: "",
-      role: "",
+      roleName: "",
       location: "",
       avatar: "",
       password: "",
@@ -137,8 +143,12 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) handleClose();
   };
+    const { user } = useAuth();
 
-  // ✅ UI
+if (!user || user.roleName !== "SUPER_ADMIN") {
+  return null;
+}
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -225,14 +235,14 @@ const AddTeamMemForm = ({ isOpen, onClose, onSubmit, editData = null }) => {
                 {/* Role Dropdown */}
                 <Dropdown
                   options={roles}
-                  selected={formData.role}
-                  onSelect={(role) =>
-                    handleChange({ target: { name: "role", value: role } })
+                  selected={formData.roleName}
+                  onSelect={(roleName) =>
+                    handleChange({ target: { name: "roleName", value: roleName } })
                   }
-                  placeholder="Select role"
+                  placeholder="Select roleName"
                   label="Role"
                   icon={FiBriefcase}
-                  error={errors.role}
+                  error={errors.roleName}
                 />
 
                 {/* Location */}

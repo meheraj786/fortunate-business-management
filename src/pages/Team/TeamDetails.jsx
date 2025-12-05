@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router";
-import { teamMembers } from "../../data/data";
 import {
   CheckSquare,
   Square,
@@ -13,82 +12,136 @@ import {
 } from "lucide-react";
 import Breadcrumb from "../../components/common/Breadcrumb";
 import toast from "react-hot-toast";
-
-import { ROLES } from "../../data/data";
 import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
+import { useAuth } from "../../context/AuthContext";
 
-// Simulate API call for saving roles
-const saveUserRoles = async (userId, roles) => {
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+// Module and permission definitions
+const MODULES = [
+  { name: "LC", label: "LC Management" },
+  { name: "SALE", label: "Sales" },
+  { name: "CASH", label: "Cash Management" },
+  { name: "STOCK", label: "Stock Management" },
+  { name: "BANKING", label: "Banking" },
+  { name: "CUSTOMER", label: "Customer Management" },
+];
 
-  // Simulate random success/failure for demo (remove in production)
-  if (Math.random() < 0.9) {
-    // 90% success rate for demo
-    return { success: true, message: "Roles updated successfully" };
-  } else {
-    throw new Error("Network error: Failed to save roles");
-  }
-};
+const PERMISSIONS = ["CREATE", "GET", "UPDATE", "DELETE"];
 
 const TeamDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
-  const [userRoles, setUserRoles] = useState(new Set());
+  const [accessPermissions, setAccessPermissions] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
+  const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
 
   const { baseUrl } = useContext(UrlContext);
 
   useEffect(() => {
     axios
       .get(`${baseUrl}auth/get-user/${id}`)
-      .then((res) => setMember(res.data.data));
-    setIsLoading(false);
-  }, [id]);
-  console.log(member);
+      .then((res) => {
+        setMember(res.data.data);
+        // Initialize access permissions from user data
+        setAccessPermissions(res.data.data.access || []);
+      })
+      .catch((err) => {
+        toast.error("Failed to load user data");
+        console.error(err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [id, baseUrl]);
 
-  const handleRoleToggle = (role) => {
-    const newRoles = new Set(userRoles);
-    if (newRoles.has(role)) {
-      newRoles.delete(role);
-    } else {
-      newRoles.add(role);
-    }
-    setUserRoles(newRoles);
+  const handlePermissionToggle = (moduleName, permission) => {
+    setAccessPermissions((prev) => {
+      const moduleIndex = prev.findIndex((m) => m.module === moduleName);
+
+      if (moduleIndex === -1) {
+        // Module doesn't exist, create new one
+        return [
+          ...prev,
+          {
+            module: moduleName,
+            permissions: [permission],
+          },
+        ];
+      } else {
+        // Module exists
+        const updatedAccess = [...prev];
+        const module = updatedAccess[moduleIndex];
+        const permissionIndex = module.permissions.indexOf(permission);
+
+        if (permissionIndex === -1) {
+          // Add permission
+          module.permissions = [...module.permissions, permission];
+        } else {
+          // Remove permission
+          module.permissions = module.permissions.filter(
+            (p) => p !== permission
+          );
+        }
+
+        // Remove module if no permissions left
+        if (module.permissions.length === 0) {
+          return updatedAccess.filter((m) => m.module !== moduleName);
+        }
+
+        return updatedAccess;
+      }
+    });
+  };
+
+  const hasPermission = (moduleName, permission) => {
+    const module = accessPermissions.find((m) => m.module === moduleName);
+    return module ? module.permissions.includes(permission) : false;
   };
 
   const handleSaveRoles = async () => {
     if (!member) return;
 
-    // Use toast.promise for the save operation
-    toast.promise(saveUserRoles(member?.id, Array.from(userRoles)), {
-      loading: "Saving roles...",
-      success: (data) => {
-        // Update local state on success
-        const updatedMember = {
-          ...member,
-          roles: Array.from(userRoles),
-        };
-        setMember(updatedMember);
-        setIsEditing(false);
-        return <b>Roles updated successfully!</b>;
-      },
-      error: (err) => <b>{err.message || "Failed to update roles"}</b>,
+    setIsSaving(true);
+    toast.promise(
+      axios.patch(`${baseUrl}auth/update-user/${id}`, {
+        access: accessPermissions,
+        withCredentials: true,
+      }),
+      {
+        loading: "Saving permissions...",
+        success: (response) => {
+          setMember(response.data.data);
+          setIsEditing(false);
+          return <b>Permissions updated successfully!</b>;
+        },
+        error: (err) => {
+          console.error(err);
+          return (
+            <b>
+              {err.response?.data?.message || "Failed to update permissions"}
+            </b>
+          );
+        },
+      }
+    ).finally(() => {
+      setIsSaving(false);
     });
   };
 
   const handleCancelEdit = () => {
-    // Reset to original roles
-    setUserRoles(new Set(member?.roles || []));
+    // Reset to original permissions
+    setAccessPermissions(member?.access || []);
     setIsEditing(false);
     toast.success("Changes discarded");
   };
 
   const handleEditStart = () => {
     setIsEditing(true);
-    toast("You are now in edit mode. Toggle roles to make changes.", {
+    toast("You are now in edit mode. Toggle permissions to make changes.", {
       icon: "✏️",
       duration: 4000,
     });
@@ -139,6 +192,13 @@ const TeamDetails = () => {
     { label: member?.name },
   ];
 
+  // Calculate total permissions granted
+  const totalPermissions = accessPermissions.reduce(
+    (sum, module) => sum + module.permissions.length,
+    0
+  );
+  const maxPermissions = MODULES.length * PERMISSIONS.length;
+
   return (
     <div className="min-h-screen p-4 sm:p-6 bg-gray-50">
       <div className="max-w-6xl mx-auto">
@@ -153,11 +213,11 @@ const TeamDetails = () => {
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
-            {isEditing ? (
+            {isSuperAdmin && isEditing ? (
               <>
                 <button
                   onClick={handleSaveRoles}
-                  disabled={isLoading}
+                  disabled={isSaving}
                   className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
                 >
                   <Save size={18} className="mr-2" />
@@ -165,14 +225,14 @@ const TeamDetails = () => {
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  disabled={isLoading}
+                  disabled={isSaving}
                   className="flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 transition-colors"
                 >
                   <X size={18} className="mr-2" />
                   Cancel
                 </button>
               </>
-            ) : (
+            ) : isSuperAdmin ? (
               <button
                 onClick={handleEditStart}
                 className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
@@ -180,7 +240,7 @@ const TeamDetails = () => {
                 <Edit3 size={18} className="mr-2" />
                 Edit Permissions
               </button>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -215,7 +275,7 @@ const TeamDetails = () => {
                 <h2 className="text-2xl font-bold text-gray-900 text-center">
                   {member?.name}
                 </h2>
-                <p className="text-gray-600">{member?.role}</p>
+                <p className="text-gray-600">{member?.roleName}</p>
                 <span
                   className={`mt-2 px-3 py-1 rounded-full text-xs font-medium ${
                     member?.status === "Active"
@@ -223,7 +283,7 @@ const TeamDetails = () => {
                       : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
-                  {member?.status}
+                  {member?.status || "Active"}
                 </span>
               </div>
 
@@ -273,11 +333,11 @@ const TeamDetails = () => {
             <div className="bg-white shadow-md rounded-lg p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Roles & Permissions
+                  Module Permissions
                 </h2>
                 <div className="text-right">
                   <span className="text-sm text-gray-500 block">
-                    {userRoles.size} of {ROLES.length} permissions granted
+                    {totalPermissions} of {maxPermissions} permissions granted
                   </span>
                   {isEditing && (
                     <span className="text-xs text-orange-600 block mt-1">
@@ -287,50 +347,66 @@ const TeamDetails = () => {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {ROLES.map((role) => (
+              <div className="space-y-6">
+                {MODULES.map((module) => (
                   <div
-                    key={role}
-                    className={`flex items-center justify-between p-4 border border-gray-200 rounded-lg transition-all ${
-                      isEditing
-                        ? "cursor-pointer hover:bg-blue-50 hover:border-blue-200"
-                        : "hover:bg-gray-50"
-                    } ${
-                      userRoles.has(role) ? "border-green-200 bg-green-50" : ""
-                    }`}
-                    onClick={() => isEditing && handleRoleToggle(role)}
+                    key={module.name}
+                    className="border border-gray-200 rounded-lg p-4"
                   >
-                    <div className="flex items-center">
-                      <span className="text-gray-800 font-medium">{role}</span>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                      {module.label}
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {PERMISSIONS.map((permission) => (
+                        <div
+                          key={`${module.name}-${permission}`}
+                          className={`flex items-center justify-between p-3 border rounded-lg transition-all ${
+                            isEditing
+                              ? "cursor-pointer hover:bg-blue-50 hover:border-blue-200"
+                              : "hover:bg-gray-50"
+                          } ${
+                            hasPermission(module.name, permission)
+                              ? "border-green-200 bg-green-50"
+                              : "border-gray-200"
+                          }`}
+                          onClick={() =>
+                            isEditing &&
+                            handlePermissionToggle(module.name, permission)
+                          }
+                        >
+                          <span className="text-sm font-medium text-gray-700">
+                            {permission}
+                          </span>
+                          <button
+                            className={`focus:outline-none transition-colors ${
+                              isEditing
+                                ? "cursor-pointer hover:scale-110"
+                                : "cursor-not-allowed opacity-50"
+                            }`}
+                            disabled={!isEditing}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePermissionToggle(module.name, permission);
+                            }}
+                          >
+                            {hasPermission(module.name, permission) ? (
+                              <CheckSquare size={20} className="text-green-600" />
+                            ) : (
+                              <Square size={20} className="text-gray-400" />
+                            )}
+                          </button>
+                        </div>
+                      ))}
                     </div>
-
-                    <button
-                      className={`focus:outline-none transition-colors ${
-                        isEditing
-                          ? "cursor-pointer hover:scale-110"
-                          : "cursor-not-allowed opacity-50"
-                      }`}
-                      disabled={!isEditing}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRoleToggle(role);
-                      }}
-                    >
-                      {userRoles.has(role) ? (
-                        <CheckSquare size={24} className="text-green-600" />
-                      ) : (
-                        <Square size={24} className="text-gray-400" />
-                      )}
-                    </button>
                   </div>
                 ))}
               </div>
 
-              {!isEditing && userRoles.size === 0 && (
+              {!isEditing && totalPermissions === 0 && (
                 <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-yellow-800 text-center">
                     No permissions granted yet. Click "Edit Permissions" to add
-                    roles.
+                    module access.
                   </p>
                 </div>
               )}
@@ -338,8 +414,8 @@ const TeamDetails = () => {
               {isEditing && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-blue-800 text-center text-sm">
-                    💡 Click on roles or checkboxes to toggle permissions. Don't
-                    forget to save your changes!
+                    💡 Click on permission boxes to toggle access. Don't forget
+                    to save your changes!
                   </p>
                 </div>
               )}

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import "../../styles/Login.css";
 import { useAuth } from "../../context/AuthContext";
+import {useNavigate} from 'react-router'
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const { login } = useAuth();
+  const navigate=useNavigate()
 
   // Validate form
   const validateForm = () => {
@@ -60,6 +62,7 @@ const Login = () => {
 
     if (validateForm()) {
       await login(email, password);
+      navigate('/')
     }
   };
 

@@ -6,6 +6,7 @@ import AddTeamMemForm from "./AddTeamMemForm";
 import axios from "axios";
 import { UrlContext } from "../../context/UrlContext";
 import { Toaster } from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext";
 
 const Team = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,6 +14,10 @@ const Team = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editMember, setEditMember] = useState(null);
   const { baseUrl } = useContext(UrlContext);
+  const { user, loading } = useAuth();
+  const isSuperAdmin= user?.roleName === "SUPER_ADMIN";
+console.log(user)
+
 
   useEffect(() => {
     axios
@@ -40,10 +45,10 @@ const Team = () => {
 
   const filteredMembers = teamMembers?.filter(
     (member) =>
-      member?.name.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      member?.role.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      member?.location.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      member?.phone.includes(searchTerm)
+      member?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      member?.role?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      member?.location?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      member?.phone?.includes(searchTerm)
   );
 
   return (
@@ -60,13 +65,16 @@ const Team = () => {
                 Manage your team members and their information.
               </p>
             </div>
-            <button
+            {
+              isSuperAdmin && <button
               onClick={() => setIsFormOpen(true)}
               className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start"
             >
               <Plus size={20} />
               Add Member
             </button>
+            }
+            
           </div>
 
           <div className="relative w-full sm:max-w-md">

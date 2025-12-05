@@ -8,33 +8,28 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const storedUser = localStorage.getItem("userData");
+    try {
+      const storedUser = localStorage.getItem("userData");
 
-        if (!storedUser) {
-          setUser(null);
-          return;
-        }
-
-        const res = await api.get("/auth/profile");
-        setUser(res.data.data);
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        localStorage.removeItem("userData");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      } else {
         setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
-
-    checkUser();
+    } catch (error) {
+      console.error("User parse error:", error);
+      localStorage.removeItem("userData");
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const login = async (email, password) => {
     const res = await api.post("/auth/login", { email, password });
 
     const userData = res.data.data.user;
+
     setUser(userData);
     localStorage.setItem("userData", JSON.stringify(userData));
 
@@ -67,5 +62,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-
 export default AuthProvider;

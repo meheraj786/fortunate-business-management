@@ -1,8 +1,11 @@
 import { MapPin, Phone, User, Edit } from "lucide-react";
 import React from "react";
 import { Link } from "react-router";
+import { useAuth } from "../context/AuthContext";
 
 const TeamMemberCard = ({ member, onEdit }) => {
+  const {user}=useAuth();
+  const isSuperAdmin= user?.roleName === "SUPER_ADMIN";
   const getRoleColor = (role) => {
     if (!role) return "bg-gray-100 text-gray-800";
     switch (role.toLowerCase()) {
@@ -31,12 +34,15 @@ const TeamMemberCard = ({ member, onEdit }) => {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 relative">
-      <button
+      {
+        isSuperAdmin &&       <button
         onClick={() => onEdit(member)}
         className="absolute top-2 right-2 p-1 bg-gray-100 rounded-full hover:bg-gray-200"
       >
         <Edit size={16} />
       </button>
+      }
+
       <Link to={`/team/${member._id}`}>
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
