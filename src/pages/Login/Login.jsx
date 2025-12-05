@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import "../../styles/Login.css";
+import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -9,6 +10,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const { login } = useAuth();
 
   // Validate form
   const validateForm = () => {
@@ -52,14 +54,12 @@ const Login = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched({ email: true, password: true });
 
     if (validateForm()) {
-      // Form is valid, proceed with login
-      console.log("Login successful");
-      // Add your login logic here
+      await login(email, password);
     }
   };
 

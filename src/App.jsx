@@ -1,6 +1,6 @@
 import React from "react";
 import { createBrowserRouter } from "react-router";
-import { RouterProvider } from "react-router/dom";
+import { RouterProvider } from "react-router";
 import Login from "./pages/Login/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Layout from "./components/layout/Layout";
@@ -30,12 +30,18 @@ import CancelledSales from "./pages/Sales/CancelledSales";
 import DisplayInvoice from "./pages/Sales/DisplayInvoice";
 import CategorySettings from "./pages/Settings/CategorySettings";
 import UnitsSettings from "./pages/Settings/UnitsSettings";
+import PrivateRoute from "./routes/PrivateRoutes";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
+
   {
     path: "/",
-    element: <Layout />,
+    element: (
+      <PrivateRoute>
+        <Layout />
+      </PrivateRoute>
+    ),
     children: [
       {
         index: true,
