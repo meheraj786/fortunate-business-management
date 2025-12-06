@@ -1,19 +1,18 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
-  CheckSquare,
-  Square,
   Edit3,
   Save,
   X,
   Mail,
   Phone,
   MapPin,
+  CheckCheck,
+  XSquare,
 } from "lucide-react";
 import Breadcrumb from "../../components/common/Breadcrumb";
 import toast from "react-hot-toast";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 
 // Module and permission definitions
@@ -39,14 +38,11 @@ const TeamDetails = () => {
   const { user } = useAuth();
   const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
 
-  const { baseUrl } = useContext(UrlContext);
-
   useEffect(() => {
-    axios
-      .get(`${baseUrl}auth/get-user/${id}`)
+    api
+      .get(`/auth/get-user/${id}`)
       .then((res) => {
         setMember(res.data.data);
-        // Initialize access permissions from user data
         setAccessPermissions(res.data.data.access || []);
       })
       .catch((err) => {
@@ -56,14 +52,13 @@ const TeamDetails = () => {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [id, baseUrl]);
+  }, [id]);
 
   const handlePermissionToggle = (moduleName, permission) => {
     setAccessPermissions((prev) => {
       const moduleIndex = prev.findIndex((m) => m.module === moduleName);
 
       if (moduleIndex === -1) {
-        // Module doesn't exist, create new one
         return [
           ...prev,
           {
@@ -72,22 +67,18 @@ const TeamDetails = () => {
           },
         ];
       } else {
-        // Module exists
         const updatedAccess = [...prev];
         const module = updatedAccess[moduleIndex];
         const permissionIndex = module.permissions.indexOf(permission);
 
         if (permissionIndex === -1) {
-          // Add permission
           module.permissions = [...module.permissions, permission];
         } else {
-          // Remove permission
           module.permissions = module.permissions.filter(
             (p) => p !== permission
           );
         }
 
-        // Remove module if no permissions left
         if (module.permissions.length === 0) {
           return updatedAccess.filter((m) => m.module !== moduleName);
         }
@@ -97,19 +88,63 @@ const TeamDetails = () => {
     });
   };
 
+  const handleToggleAllPermissions = (moduleName) => {
+    setAccessPermissions((prev) => {
+      const moduleIndex = prev.findIndex((m) => m.module === moduleName);
+      
+      const allPermissionsSet =
+        moduleIndex !== -1 &&
+        PERMISSIONS.every(perm => prev[moduleIndex].permissions.includes(perm));
+
+      if (allPermissionsSet) {
+        return prev.filter((m) => m.module !== moduleName);
+      } else {
+        if (moduleIndex === -1) {
+          return [
+            ...prev,
+            {
+              module: moduleName,
+              permissions: [...PERMISSIONS],
+            },
+          ];
+        } else {
+          const updatedAccess = [...prev];
+          updatedAccess[moduleIndex] = {
+            ...updatedAccess[moduleIndex],
+            permissions: [...PERMISSIONS],
+          };
+          return updatedAccess;
+        }
+      }
+    });
+  };
+
   const hasPermission = (moduleName, permission) => {
     const module = accessPermissions.find((m) => m.module === moduleName);
     return module ? module.permissions.includes(permission) : false;
   };
 
+  const hasAllPermissions = (moduleName) => {
+    const module = accessPermissions.find((m) => m.module === moduleName);
+    return module 
+      ? PERMISSIONS.every(perm => module.permissions.includes(perm))
+      : false;
+  };
+
+  const getModulePermissionCount = (moduleName) => {
+    const module = accessPermissions.find((m) => m.module === moduleName);
+    return module ? module.permissions.length : 0;
+  };
+
   const handleSaveRoles = async () => {
     if (!member) return;
 
+    console.log("Saving permissions:", JSON.stringify(accessPermissions, null, 2));
+
     setIsSaving(true);
     toast.promise(
-      axios.patch(`${baseUrl}auth/update-user/${id}`, {
+      api.patch(`/auth/update-user/${id}`, {
         access: accessPermissions,
-        withCredentials: true,
       }),
       {
         loading: "Saving permissions...",
@@ -133,7 +168,6 @@ const TeamDetails = () => {
   };
 
   const handleCancelEdit = () => {
-    // Reset to original permissions
     setAccessPermissions(member?.access || []);
     setIsEditing(false);
     toast.success("Changes discarded");
@@ -141,7 +175,7 @@ const TeamDetails = () => {
 
   const handleEditStart = () => {
     setIsEditing(true);
-    toast("You are now in edit mode. Toggle permissions to make changes.", {
+    toast("You are now in edit mode. Check boxes to grant permissions.", {
       icon: "✏️",
       duration: 4000,
     });
@@ -192,7 +226,6 @@ const TeamDetails = () => {
     { label: member?.name },
   ];
 
-  // Calculate total permissions granted
   const totalPermissions = accessPermissions.reduce(
     (sum, module) => sum + module.permissions.length,
     0
@@ -348,58 +381,84 @@ const TeamDetails = () => {
               </div>
 
               <div className="space-y-6">
-                {MODULES.map((module) => (
-                  <div
-                    key={module.name}
-                    className="border border-gray-200 rounded-lg p-4"
-                  >
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                      {module.label}
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {PERMISSIONS.map((permission) => (
-                        <div
-                          key={`${module.name}-${permission}`}
-                          className={`flex items-center justify-between p-3 border rounded-lg transition-all ${
-                            isEditing
-                              ? "cursor-pointer hover:bg-blue-50 hover:border-blue-200"
-                              : "hover:bg-gray-50"
-                          } ${
-                            hasPermission(module.name, permission)
-                              ? "border-green-200 bg-green-50"
-                              : "border-gray-200"
-                          }`}
-                          onClick={() =>
-                            isEditing &&
-                            handlePermissionToggle(module.name, permission)
-                          }
-                        >
-                          <span className="text-sm font-medium text-gray-700">
-                            {permission}
-                          </span>
-                          <button
-                            className={`focus:outline-none transition-colors ${
-                              isEditing
-                                ? "cursor-pointer hover:scale-110"
-                                : "cursor-not-allowed opacity-50"
-                            }`}
-                            disabled={!isEditing}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePermissionToggle(module.name, permission);
-                            }}
-                          >
-                            {hasPermission(module.name, permission) ? (
-                              <CheckSquare size={20} className="text-green-600" />
-                            ) : (
-                              <Square size={20} className="text-gray-400" />
-                            )}
-                          </button>
-                        </div>
-                      ))}
+                {MODULES.map((module) => {
+                  const permissionCount = getModulePermissionCount(module.name);
+                  const allChecked = hasAllPermissions(module.name);
+
+                  return (
+                    <div
+                      key={module.name}
+                      className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {module.label}
+                        </h3>
+                        {isEditing && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500">
+                              {permissionCount}/{PERMISSIONS.length}
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleToggleAllPermissions(module.name)
+                              }
+                              className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-medium transition-colors ${
+                                allChecked
+                                  ? "bg-red-100 text-red-700 hover:bg-red-200"
+                                  : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                              }`}
+                            >
+                              {allChecked ? (
+                                <>
+                                  <XSquare size={14} />
+                                  Clear All
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCheck size={14} />
+                                  Select All
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {PERMISSIONS.map((permission) => {
+                          const isChecked = hasPermission(module.name, permission);
+                          return (
+                            <label
+                              key={`${module.name}-${permission}`}
+                              className={`flex items-center gap-2 p-3 border rounded-lg transition-all ${
+                                isEditing
+                                  ? "cursor-pointer hover:bg-blue-50 hover:border-blue-200"
+                                  : "cursor-not-allowed opacity-60"
+                              } ${
+                                isChecked
+                                  ? "border-green-300 bg-green-50"
+                                  : "border-gray-200 bg-white"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() =>
+                                  handlePermissionToggle(module.name, permission)
+                                }
+                                disabled={!isEditing}
+                                className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                              />
+                              <span className="text-sm font-medium text-gray-700 select-none">
+                                {permission}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {!isEditing && totalPermissions === 0 && (
@@ -414,8 +473,7 @@ const TeamDetails = () => {
               {isEditing && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-blue-800 text-center text-sm">
-                    💡 Click on permission boxes to toggle access. Don't forget
-                    to save your changes!
+                    💡 Check boxes to grant permissions. Use "Select All" / "Clear All" for quick setup.
                   </p>
                 </div>
               )}
