@@ -92,12 +92,12 @@ const AddWarehouseForm = ({
       if (isEditMode) {
         await axios.patch(
           `${baseUrl}warehouse/${editingWarehouse._id}`,
-          payload
+          payload, { withCredentials: true }
         );
         toast.success("Warehouse Updated");
         onWarehouseUpdated();
       } else {
-        await axios.post(`${baseUrl}warehouse/`, payload);
+        await axios.post(`${baseUrl}warehouse/`, payload, { withCredentials: true });
         toast.success("Warehouse Created");
         onWarehouseAdded();
       }

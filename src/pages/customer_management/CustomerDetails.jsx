@@ -82,7 +82,7 @@ const CustomerDetails = () => {
 
   useEffect(() => {
     axios
-      .get(`${baseUrl}customer/get-customer/${id}`)
+      .get(`${baseUrl}customer/get-customer/${id}`, { withCredentials: true })
       .then((res) => {
         console.log("Response:", res.data.data);
         setCustomerData(res.data.data);
@@ -101,7 +101,7 @@ const CustomerDetails = () => {
     setIsConfirming(true);
     try {
       const res = await axios.delete(
-        `${baseUrl}customer/delete-customer/${id}`
+        `${baseUrl}customer/delete-customer/${id}`, { withCredentials: true }
       );
       console.log("Delete Response:", res.data);
       toast.success("Customer deleted successfully!");
