@@ -3,9 +3,9 @@ import { useForm } from "react-hook-form";
 import FormDialog from "../../components/common/FormDialog";
 import FormDialogInput from "../../components/common/FormDialogInput";
 import FormDialogTextarea from "../../components/common/FormDialogTextarea";
-import axios from "axios";
+import api from "../../api/axios";
 import { useContext } from "react";
-import { UrlContext } from "../../context/UrlContext";
+
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -17,7 +17,7 @@ export default function Category() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
-  const { baseUrl } = useContext(UrlContext);
+
 
   const {
     register,
@@ -52,10 +52,7 @@ export default function Category() {
       if (data.description) {
         categoryData.description = data.description;
       }
-      const response = await axios.post(
-        `${baseUrl}category/create`,
-        categoryData
-      );
+      const response = await api.post(`/category/create`, categoryData);
       setCategories([...categories, response.data.data]);
       setRefetch((prev) => !prev);
       closeModal();
@@ -71,8 +68,8 @@ export default function Category() {
 
     const previousCategories = categories;
     try {
-      const response = await axios.put(
-        `${baseUrl}category/update/${editingCategory._id}`,
+      const response = await api.put(
+        `/category/update/${editingCategory._id}`,
         data
       );
       setCategories(
@@ -92,7 +89,7 @@ export default function Category() {
   const handleDeleteCategory = async (id) => {
     const previousCategories = categories;
     try {
-      await axios.delete(`${baseUrl}category/delete/${id}`);
+      await api.delete(`/category/delete/${id}`);
       setCategories(categories.filter((category) => category._id !== id));
       setRefetch((prev) => !prev);
     } catch (error) {
@@ -108,9 +105,7 @@ export default function Category() {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${baseUrl}category/get`, {
-          withCredentials: true,
-        });
+        const response = await api.get(`/category/get`);
         setCategories(response.data.data);
         setError(null);
       } catch (error) {
@@ -122,7 +117,7 @@ export default function Category() {
     };
 
     fetchCategories();
-  }, [refetch, baseUrl]);
+  }, [refetch]);
 
   if (loading) {
     return (

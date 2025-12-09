@@ -18,8 +18,8 @@ import {
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
-import { UrlContext } from "../../context/UrlContext";
-import axios from "axios";
+
+import api from "../../api/axios";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import toast from "react-hot-toast";
 
@@ -87,7 +87,7 @@ const LCdetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [lcData, setLcData] = useState(null);
-  const { baseUrl } = useContext(UrlContext);
+
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null); // 'delete' or 'export'
   const [isConfirming, setIsConfirming] = useState(false);
@@ -102,7 +102,7 @@ const LCdetails = () => {
 
     if (confirmAction === "delete") {
       try {
-        await axios.delete(`${baseUrl}lc/delete-lc/${id}`);
+        await api.delete(`/lc/delete-lc/${id}`);
         toast.success("LC deleted successfully");
         navigate("/lc-management");
       } catch (error) {
@@ -112,7 +112,7 @@ const LCdetails = () => {
     } else if (confirmAction === "export") {
       try {
         const lcNumber = lcData?.basicInfo?.lcNumber || "LC";
-        const response = await axios.get(`${baseUrl}lc/export-lc/${id}`, {
+        const response = await api.get(`/lc/export-lc/${id}`, {
           responseType: "blob",
         });
         const blob = new Blob([response.data], { type: "application/pdf" });
@@ -138,13 +138,13 @@ const LCdetails = () => {
 
   useEffect(() => {
     if (!id) return;
-    axios
-      .get(`${baseUrl}lc/get-lc/${id}`)
+    api
+      .get(`/lc/get-lc/${id}`)
       .then((res) => {
         setLcData(res.data.data);
       })
       .catch((err) => console.error(err));
-  }, [id, baseUrl]);
+  }, [id]);
 
   // Helper function to safely format numbers
   const formatNumber = (value) => {

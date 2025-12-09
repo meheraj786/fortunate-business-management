@@ -27,15 +27,15 @@ import {
   Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import FormDialog from "../../components/common/FormDialog";
 import InputField from "../../components/forms/InputField";
 import SelectField from "../../components/forms/SelectField";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 
 const Banking = () => {
-  const { baseUrl } = useContext(UrlContext);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
@@ -123,8 +123,8 @@ const Banking = () => {
         amount: Number(amount),
       };
 
-      const response = await axios.post(
-        `${baseUrl}transaction/create`,
+      const response = await api.post(
+        `/transaction/create`,
         payload
       );
 
@@ -152,7 +152,7 @@ const Banking = () => {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${baseUrl}bank/get-all-accounts`);
+      const response = await api.get(`/bank/get-all-accounts`);
       if (response.data.success) {
         const allAccounts = response.data.data;
         setBankAccounts(
@@ -174,7 +174,7 @@ const Banking = () => {
 
   const fetchTransactionStats = async () => {
     try {
-      const response = await axios.get(`${baseUrl}transaction/get-stats`);
+      const response = await api.get(`/transaction/get-stats`);
       if (response.data.success) {
         setTransactionStats(response.data.data);
       } else {
@@ -192,7 +192,7 @@ const Banking = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await axios.get(`${baseUrl}transaction/get-all`);
+      const response = await api.get(`/transaction/get-all`);
       if (response.data.success) {
         setTransactions(response.data.data);
       } else {
@@ -205,12 +205,10 @@ const Banking = () => {
   };
 
   useEffect(() => {
-    if (baseUrl) {
-      fetchAccounts();
-      fetchTransactionStats();
-      fetchTransactions();
-    }
-  }, [baseUrl]);
+    fetchAccounts();
+    fetchTransactionStats();
+    fetchTransactions();
+  }, []);
 
   const handleBankFormChange = (e) => {
     const { name, value } = e.target;
@@ -231,8 +229,8 @@ const Banking = () => {
     if (!accountToDelete) return;
     setIsConfirmingDelete(true);
     try {
-      const response = await axios.delete(
-        `${baseUrl}bank/delete-account/${accountToDelete._id}`
+      const response = await api.delete(
+        `/bank/delete-account/${accountToDelete._id}`
       );
       if (response.data.success) {
         toast.success("Account deleted successfully!");
@@ -253,8 +251,8 @@ const Banking = () => {
 
   const handleEditClick = async (account) => {
     try {
-      const response = await axios.get(
-        `${baseUrl}bank/get-account/${account._id}`
+      const response = await api.get(
+        `/bank/get-account/${account._id}`
       );
       if (!response.data.success) {
         toast.error(
@@ -300,8 +298,8 @@ const Banking = () => {
     try {
       const isEditing = !!editingAccount;
       const url = isEditing
-        ? `${baseUrl}bank/update-account/${editingAccount._id}`
-        : `${baseUrl}bank/create-account`;
+        ? `/bank/update-account/${editingAccount._id}`
+        : `/bank/create-account`;
       const method = isEditing ? "patch" : "post";
 
       const payload = {
@@ -315,7 +313,7 @@ const Banking = () => {
         delete payload.accountNumber;
       }
 
-      const response = await axios[method](url, payload);
+      const response = await api[method](url, payload);
 
       if (response.data.success) {
         toast.success(

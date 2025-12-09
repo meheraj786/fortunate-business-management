@@ -3,8 +3,8 @@ import { Search, Plus, User } from "lucide-react";
 import { teamMembers as initialTeamMembers } from "../../data/data";
 import TeamMemberCard from "../../layout/TeamMemberCard";
 import AddTeamMemForm from "./AddTeamMemForm";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 
@@ -13,15 +13,15 @@ const Team = () => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editMember, setEditMember] = useState(null);
-  const { baseUrl } = useContext(UrlContext);
+
   const { user, loading } = useAuth();
   const isSuperAdmin= user?.roleName === "SUPER_ADMIN";
 console.log(user)
 
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}auth/get-users`)
+    api
+      .get(`/auth/get-users`)
       .then((res) => setTeamMembers(res.data.data));
   }, []);
   console.log(teamMembers);
@@ -99,7 +99,7 @@ console.log(user)
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {filteredMembers.map((member) => (
             <TeamMemberCard
-              key={member.id}
+              key={member._id}
               member={member}
               onEdit={handleEdit}
             />

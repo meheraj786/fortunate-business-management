@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback, useContext } from "react";
 import { useForm } from "react-hook-form";
 import FormDialog from "../../components/common/FormDialog";
 import FormDialogInput from "../../components/common/FormDialogInput";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -16,7 +16,7 @@ export default function UnitsSettings() {
   const [error, setError] = useState(null);
   const [editingUnit, setEditingUnit] = useState(null);
   const [refetch, setRefetch] = useState(false);
-  const { baseUrl } = useContext(UrlContext);
+
 
   const {
     register,
@@ -68,7 +68,7 @@ export default function UnitsSettings() {
           data.type === "Countable" ? 1 : parseFloat(data.conversionFactor),
       };
 
-      const response = await axios.post(`${baseUrl}unit/create`, unitData);
+      const response = await api.post(`/unit/create`, unitData);
       setUnits((prev) => [...prev, response.data.data]);
       closeModal();
     } catch (error) {
@@ -88,8 +88,8 @@ export default function UnitsSettings() {
           data.type === "Countable" ? 1 : parseFloat(data.conversionFactor),
       };
 
-      const response = await axios.put(
-        `${baseUrl}unit/update/${editingUnit._id}`,
+      const response = await api.put(
+        `/unit/update/${editingUnit._id}`,
         unitData
       );
       setUnits((prev) =>
@@ -110,7 +110,7 @@ export default function UnitsSettings() {
     }
 
     try {
-      await axios.delete(`${baseUrl}unit/delete/${id}`);
+      await api.delete(`/unit/delete/${id}`);
       setUnits((prev) => prev.filter((unit) => unit._id !== id));
     } catch (error) {
       console.error("Error deleting unit:", error);
@@ -122,7 +122,7 @@ export default function UnitsSettings() {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${baseUrl}unit/get`);
+      const response = await api.get(`/unit/get`);
       setUnits(response.data.data);
     } catch (error) {
       console.error("Error fetching units:", error);
@@ -130,7 +130,7 @@ export default function UnitsSettings() {
     } finally {
       setLoading(false);
     }
-  }, [baseUrl]);
+  }, []);
 
   useEffect(() => {
     fetchUnits();

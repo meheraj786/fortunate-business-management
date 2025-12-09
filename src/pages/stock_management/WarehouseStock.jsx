@@ -18,8 +18,8 @@ import ProductCard from "../../layout/ProductCard";
 import StatBox from "../../components/common/StatBox";
 import AddProductForm from "./AddProductForm";
 import Breadcrumb from "../../components/common/Breadcrumb";
-import { UrlContext } from "../../context/UrlContext";
-import axios from "axios";
+
+import api from "../../api/axios";
 import toast from "react-hot-toast";
 
 const WarehouseStock = () => {
@@ -33,7 +33,7 @@ const WarehouseStock = () => {
     stats: true,
   });
   const [error, setError] = useState(null);
-  const { baseUrl } = useContext(UrlContext);
+
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,7 +44,7 @@ const WarehouseStock = () => {
   const fetchWarehouseDetails = useCallback(async () => {
     try {
       setLoading((prev) => ({ ...prev, warehouse: true }));
-      const response = await axios.get(`${baseUrl}warehouse/${warehouseId}`, { withCredentials: true });
+      const response = await api.get(`/warehouse/${warehouseId}`);
       setWarehouse(response.data.data);
     } catch (err) {
       console.error("Error fetching warehouse details:", err);
@@ -53,13 +53,13 @@ const WarehouseStock = () => {
     } finally {
       setLoading((prev) => ({ ...prev, warehouse: false }));
     }
-  }, [warehouseId, baseUrl]);
+  }, [warehouseId]);
 
   const fetchProductsInWarehouse = useCallback(async () => {
     try {
       setLoading((prev) => ({ ...prev, products: true }));
-      const response = await axios.get(
-        `${baseUrl}warehouse/${warehouseId}/products`, { withCredentials: true }
+      const response = await api.get(
+        `/warehouse/${warehouseId}/products`
       );
       setProductsInWarehouse(response.data.data);
     } catch (err) {
@@ -69,13 +69,13 @@ const WarehouseStock = () => {
     } finally {
       setLoading((prev) => ({ ...prev, products: false }));
     }
-  }, [warehouseId, baseUrl]);
+  }, [warehouseId]);
 
   const fetchWarehouseStats = useCallback(async () => {
     try {
       setLoading((prev) => ({ ...prev, stats: true }));
-      const response = await axios.get(
-        `${baseUrl}warehouse/${warehouseId}/stats`, { withCredentials: true }
+      const response = await api.get(
+        `/warehouse/${warehouseId}/stats`
       );
       setStats(response.data.data);
     } catch (err) {
@@ -85,7 +85,7 @@ const WarehouseStock = () => {
     } finally {
       setLoading((prev) => ({ ...prev, stats: false }));
     }
-  }, [warehouseId, baseUrl]);
+  }, [warehouseId]);
 
   // Fetch all data
   useEffect(() => {
@@ -111,7 +111,6 @@ const WarehouseStock = () => {
     fetchData();
   }, [
     warehouseId,
-    baseUrl,
     navigate,
     fetchWarehouseDetails,
     fetchProductsInWarehouse,

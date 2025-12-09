@@ -11,8 +11,8 @@ import {
   Plus,
   Grid2x2Check,
 } from "lucide-react";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import { Link } from "react-router";
 import { exportToExcel } from "../../components/exportXlsx/ExportXlxs";
 import toast from "react-hot-toast";
@@ -25,21 +25,21 @@ const LC = () => {
     Draft: 0,
     Cancelled: 0,
   });
-  const { baseUrl } = useContext(UrlContext);
+
 
   useEffect(() => {
-    axios.get(`${baseUrl}lc/summary`).then((res) => {
+    api.get(`/lc/summary`).then((res) => {
       if (Array.isArray(res.data.data)) {
         setLcData(res.data.data);
       } else {
         setLcData([]);
       }
     });
-  }, [baseUrl]);
+  }, []);
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}lc/counts/status`)
+    api
+      .get(`/lc/counts/status`)
       .then((res) => {
         if (res.data && res.data.data) {
           setLcCounts({
@@ -53,7 +53,7 @@ const LC = () => {
       .catch((error) => {
         console.error("Error fetching LC counts:", error);
       });
-  }, [baseUrl]);
+  }, []);
 
   const handleExport = () => {
     const formattedData = lcData.map((lc) => ({

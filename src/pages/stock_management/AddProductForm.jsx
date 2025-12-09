@@ -13,8 +13,8 @@ import {
   Layers,
   Trash2,
 } from "lucide-react";
-import { UrlContext } from "../../context/UrlContext";
-import axios from "axios";
+
+import api from "../../api/axios";
 import toast from "react-hot-toast";
 
 // Helper components moved outside the main component to prevent re-creation on re-renders
@@ -142,33 +142,31 @@ const AddProductForm = ({
     supplierName: "",
   });
   const isEditMode = !!editingProduct;
-
-  const { baseUrl } = useContext(UrlContext);
-
+  
   const [productCategories, setProductCategories] = useState([]);
   const [completedLc, setCompletedLc] = useState([]);
   const [units, setUnits] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}category/get` ,{withCredentials: true})
+    api
+      .get(`/category/get`)
       .then((res) => setProductCategories(res.data.data));
   }, []);
   useEffect(() => {
-    axios
-      .get(`${baseUrl}lc/completed-lc` ,{withCredentials: true})
+    api
+      .get(`/lc/completed-lc`)
       .then((res) => setCompletedLc(res.data.data));
   }, []);
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}unit/get` ,{withCredentials: true})
+    api
+      .get(`/unit/get`)
       .then((res) => setUnits(res.data.data))
       .catch((err) => {
         console.error(err);
         toast.error("Failed to load units");
       });
-  }, [baseUrl]);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -276,15 +274,15 @@ const AddProductForm = ({
 
     try {
       if (isEditMode) {
-        await axios.patch(
-          `${baseUrl}warehouse/${formData.warehouse}/products/${editingProduct._id}`,
+        await api.patch(
+          `/warehouse/${formData.warehouse}/products/${editingProduct._id}`,
           dataToSave
         );
         toast.success("Product Updated");
         onProductUpdated();
       } else {
-        await axios.post(
-          `${baseUrl}warehouse/${formData.warehouse}/products`,
+        await api.post(
+          `/warehouse/${formData.warehouse}/products`,
           dataToSave
         );
         toast.success("Product Created");

@@ -18,9 +18,9 @@ import {
   ExternalLink,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import axios from "axios";
+import api from "../../api/axios";
 import Breadcrumb from "../../components/common/Breadcrumb";
-import { UrlContext } from "../../context/UrlContext";
+
 import FormDialog from "../../components/common/FormDialog";
 import InputField from "../../components/forms/InputField";
 import SelectField from "../../components/forms/SelectField";
@@ -30,7 +30,7 @@ import AddSales from "./AddSales";
 const SaleDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { baseUrl } = useContext(UrlContext);
+
 
   // Main states
   const [sale, setSale] = useState(null);
@@ -85,15 +85,15 @@ const SaleDetails = () => {
   const fetchSaleDetails = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${baseUrl}sales/get-sales/${id}`);
+      const response = await api.get(`/sales/get-sales/${id}`);
       if (response.data.success) {
         let saleData = response.data.data;
 
         // If saleData.unit is an ID string, fetch the unit details
         if (saleData.unit && typeof saleData.unit === "string") {
           try {
-            const unitResponse = await axios.get(
-              `${baseUrl}unit/get/${saleData.unit}`
+            const unitResponse = await api.get(
+              `/unit/get/${saleData.unit}`
             );
             if (unitResponse.data.success) {
               saleData = { ...saleData, unit: unitResponse.data.data };
@@ -131,7 +131,7 @@ const SaleDetails = () => {
 
   const fetchAccounts = async () => {
     try {
-      const response = await axios.get(`${baseUrl}bank/get-all-accounts`);
+      const response = await api.get(`/bank/get-all-accounts`);
       if (response.data.success) {
         setAccounts(response.data.data || []);
       } else {
@@ -145,7 +145,7 @@ const SaleDetails = () => {
 
   const fetchInvoiceHistory = async () => {
     try {
-      const response = await axios.get(`${baseUrl}invoice/sale/${id}`);
+      const response = await api.get(`/invoice/sale/${id}`);
       if (response.data.success) {
         setInvoiceHistory(response.data.data || []);
       } else {
@@ -163,12 +163,12 @@ const SaleDetails = () => {
 
   // Effect hook
   useEffect(() => {
-    if (baseUrl && id) {
+    if (id) {
       fetchSaleDetails();
       fetchInvoiceHistory();
       fetchAccounts();
     }
-  }, [id, baseUrl]);
+  }, [id]);
 
   // Action handlers
   const handleDeleteClick = () => {
@@ -192,8 +192,8 @@ const SaleDetails = () => {
 
     try {
       if (type === "delete") {
-        const response = await axios.delete(
-          `${baseUrl}sales/delete-sale/${id}`
+        const response = await api.delete(
+          `/sales/delete-sale/${id}`
         );
         if (response.data.success) {
           toast.success(response.data.message || "Sale deleted successfully", {
@@ -206,7 +206,7 @@ const SaleDetails = () => {
           });
         }
       } else if (type === "cancel") {
-        const response = await axios.patch(`${baseUrl}sales/cancel-sale/${id}`);
+        const response = await api.patch(`/sales/cancel-sale/${id}`);
         if (response.data.success) {
           toast.success(
             response.data.message || "Sale cancelled successfully",
@@ -244,7 +244,7 @@ const SaleDetails = () => {
   const handleGenerateInvoice = async () => {
     setIsGenerating(true);
     try {
-      const response = await axios.post(`${baseUrl}invoice/generate`, {
+      const response = await api.post(`/invoice/generate`, {
         saleId: id,
       });
       if (response.data.success) {
@@ -324,8 +324,8 @@ const SaleDetails = () => {
 
     setIsSubmittingPayment(true);
     try {
-      const response = await axios.post(
-        `${baseUrl}sales/${id}/payments`,
+      const response = await api.post(
+        `/sales/${id}/payments`,
         payload
       );
       if (response.data.success) {

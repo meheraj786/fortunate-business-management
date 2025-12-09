@@ -19,8 +19,8 @@ import {
   Upload,
   Trash2,
 } from "lucide-react";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import toast, { Toaster } from "react-hot-toast";
 
 const InputField = ({
@@ -135,7 +135,7 @@ const CustomerForm = () => {
   } = useForm();
   const [expandedSections, setExpandedSections] = useState({});
   const [documents, setDocuments] = useState([]);
-  const { baseUrl } = useContext(UrlContext);
+
   const sectionRefs = useRef({});
   const navigate = useNavigate();
 
@@ -157,8 +157,8 @@ const CustomerForm = () => {
 
   useEffect(() => {
     if (id) {
-      axios
-        .get(`${baseUrl}customer/get-customer/${id}`, { withCredentials: true })
+      api
+        .get(`/customer/get-customer/${id}`)
         .then((res) => {
           const customer = res.data.data;
           setValue("name", customer.name);
@@ -182,7 +182,7 @@ const CustomerForm = () => {
       setValue("customerType", "Retail Customer");
       setValue("customerStatus", "Active");
     }
-  }, [id, setValue, baseUrl]);
+  }, [id, setValue]);
 
   useEffect(() => {
     setExpandedSections((prev) => ({ ...prev, [sections[0].id]: true }));
@@ -235,10 +235,10 @@ const CustomerForm = () => {
 
     try {
       if (id) {
-        await axios.patch(`${baseUrl}customer/update-customer/${id}`, payload, { withCredentials: true });
+        await api.patch(`/customer/update-customer/${id}`, payload);
         toast.success("Customer Updated Successfully!");
       } else {
-        await axios.post(`${baseUrl}customer/create-customer`, payload, { withCredentials: true });
+        await api.post(`/customer/create-customer`, payload);
         toast.success("Customer Created Successfully!");
       }
       navigate("/customers");

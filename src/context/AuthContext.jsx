@@ -29,9 +29,12 @@ export const AuthProvider = ({ children }) => {
     const res = await api.post("/auth/login", { email, password });
 
     const userData = res.data.data.user;
+    const accessToken = res.data.data.token;
 
     setUser(userData);
     localStorage.setItem("userData", JSON.stringify(userData));
+    const cookieString = `accessToken=${accessToken}; path=/; SameSite=Lax`;
+    document.cookie = cookieString;
 
     return userData;
   };
@@ -44,6 +47,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       localStorage.removeItem("userData");
+      document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     }
   };
 

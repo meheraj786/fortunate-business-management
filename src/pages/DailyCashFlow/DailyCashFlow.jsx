@@ -31,9 +31,9 @@ import {
   PiggyBank,
   Loader2,
 } from "lucide-react";
-import axios from "axios";
+import api from "../../api/axios";
 import toast from "react-hot-toast";
-import { UrlContext } from "../../context/UrlContext";
+
 import CashFlowDetails from "./CashFlowDetails";
 import FormDialog from "../../components/common/FormDialog";
 import InputField from "../../components/forms/InputField";
@@ -88,7 +88,7 @@ const DailyCashFlow = () => {
   const [dailyData, setDailyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { baseUrl } = useContext(UrlContext);
+
 
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,7 +116,7 @@ const DailyCashFlow = () => {
   useEffect(() => {
     const fetchActiveLc = async () => {
       try {
-        const response = await axios.get(`${baseUrl}lc/get-all-lc`, { withCredentials: true });
+        const response = await api.get(`/lc/get-all-lc`);
         if (Array.isArray(response.data.data)) {
           setActiveLc(response.data.data);
         } else {
@@ -128,21 +128,21 @@ const DailyCashFlow = () => {
       }
     };
 
-    if (baseUrl) {
+    if (true) {
       fetchActiveLc();
     }
-  }, [baseUrl]);
+  }, []);
 
   // Fetch daily cash data
   const fetchDailyCash = useCallback(async () => {
-    if (!baseUrl || !selectedDate) return;
+    if (!selectedDate) return;
 
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${baseUrl}cash/get-cash`, {
+      const response = await api.get(`/cash/get-cash`, {
         params: { date: selectedDate },
-      }, { withCredentials: true });
+      });
       if (response.data.data) {
         setDailyData(response.data.data);
       } else {
@@ -165,7 +165,7 @@ const DailyCashFlow = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, baseUrl]);
+  }, [selectedDate]);
 
   // Fetch data when selectedDate changes
   useEffect(() => {
@@ -257,14 +257,12 @@ const DailyCashFlow = () => {
         newTransaction.category === "lc" &&
         newTransaction.lcId
       ) {
-        response = await axios.post(
-          `${baseUrl}lc/add-lc-expense/${newTransaction.lcId}`,
-          payload, { withCredentials: true }
+        response = await api.post(
+          `/lc/add-lc-expense/${newTransaction.lcId}`,
+          payload
         );
       } else {
-        response = await axios.post(`${baseUrl}cash/${endpoint}`, payload, { withCredentials: true });
-        console.log(response);
-        
+        response = await api.post(`/cash/${endpoint}`, payload);
       }
 
       toast.success(
@@ -291,7 +289,7 @@ const DailyCashFlow = () => {
   const handleOpenDay = async () => {
     const toastId = toast.loading("Opening cash for the day...");
     try {
-      await axios.post(`${baseUrl}cash/open`, { date: selectedDate }, { withCredentials: true });
+      await api.post(`/cash/open`, { date: selectedDate });
       toast.success("Cash opened successfully!", { id: toastId, duration: 3000 });
       fetchDailyCash();
     } catch (err) {
@@ -308,7 +306,7 @@ const DailyCashFlow = () => {
     ) {
       const toastId = toast.loading("Closing cash for the day...");
       try {
-        await axios.post(`${baseUrl}cash/close`, { date: selectedDate }, { withCredentials: true });
+        await api.post(`/cash/close`, { date: selectedDate });
         toast.success("Cash closed successfully!", { id: toastId, duration: 3000 });
         fetchDailyCash();
       } catch (err) {

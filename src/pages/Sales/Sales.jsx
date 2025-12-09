@@ -14,8 +14,8 @@ import { Link } from "react-router";
 import AddSales from "./AddSales";
 import SalesTable from "../../components/common/SalesTable";
 import SalesStatCard from "../../components/common/SalesStatCard";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import { exportToExcel } from "../../components/exportXlsx/ExportXlxs";
 import toast from "react-hot-toast";
 
@@ -31,12 +31,12 @@ const Sales = () => {
   const [showAddSale, setShowAddSale] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const { baseUrl } = useContext(UrlContext);
+
 
   useEffect(() => {
     const fetchSales = () => {
-      axios
-        .get(`${baseUrl}sales/get-all-sales`)
+      api
+        .get(`/sales/get-all-sales`)
         .then((res) => setSalesData(res.data.data || []))
         .catch((error) => {
           console.error("Error fetching all sales:", error);
@@ -45,7 +45,7 @@ const Sales = () => {
 
     const fetchUnits = async () => {
       try {
-        const response = await axios.get(`${baseUrl}unit/get`);
+        const response = await api.get(`/unit/get`);
         if (response.data.success) {
           setUnits(response.data.data || []);
         } else {
@@ -59,11 +59,11 @@ const Sales = () => {
 
     fetchSales();
     fetchUnits();
-  }, [baseUrl]);
+  }, []);
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}sales/get-all-invoices-status-count`)
+    api
+      .get(`/sales/get-all-invoices-status-count`)
       .then((res) => {
         if (res.data && res.data.data) {
           setSalesStats({
@@ -77,7 +77,7 @@ const Sales = () => {
       .catch((error) => {
         console.error("Error fetching sales stats:", error);
       });
-  }, [baseUrl]);
+  }, []);
 
   const augmentedSales = useMemo(() => {
     if (!units.length) return salesData;

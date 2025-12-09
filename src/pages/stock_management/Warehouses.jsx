@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import AddWarehouseForm from "./AddWarehouseForm";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import toast from "react-hot-toast";
 
 const Warehouses = () => {
@@ -24,13 +24,13 @@ const Warehouses = () => {
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [warehouseToDelete, setWarehouseToDelete] = useState(null);
-  const { baseUrl } = useContext(UrlContext);
+
 
   const fetchWarehouses = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${baseUrl}warehouse/`, { withCredentials: true });
+      const response = await api.get(`/warehouse/`);
       setWarehouses(response.data.data);
     } catch (err) {
       const errorMessage =
@@ -41,7 +41,7 @@ const Warehouses = () => {
     } finally {
       setLoading(false);
     }
-  }, [baseUrl]);
+  }, []);
 
   useEffect(() => {
     fetchWarehouses();
@@ -85,7 +85,7 @@ const Warehouses = () => {
     try {
       setDeletingId(warehouseToDelete._id);
       setShowDeleteConfirmation(false);
-      await axios.delete(`${baseUrl}warehouse/${warehouseToDelete._id}`);
+      await api.delete(`/warehouse/${warehouseToDelete._id}`);
       toast.success("Warehouse deleted successfully");
       fetchWarehouses();
     } catch (error) {

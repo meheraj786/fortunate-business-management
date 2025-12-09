@@ -19,8 +19,8 @@ import {
 } from "react-icons/fi";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import toast from "react-hot-toast";
 
@@ -73,7 +73,7 @@ const CustomerDetails = () => {
   const { id } = useParams();
   const [customerData, setCustomerData] = useState(null);
   const [recentPurchases, setRecentPurchases] = useState([]);
-  const { baseUrl } = useContext(UrlContext);
+
 
   const navigate = useNavigate();
 
@@ -81,27 +81,27 @@ const CustomerDetails = () => {
   const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}customer/get-customer/${id}`, { withCredentials: true })
+    api
+      .get(`/customer/get-customer/${id}`)
       .then((res) => {
         console.log("Response:", res.data.data);
         setCustomerData(res.data.data);
       })
       .catch((err) => console.error(err));
 
-    axios
-      .get(`${baseUrl}sales/customer/${id}`)
+    api
+      .get(`/sales/customer/${id}`)
       .then((res) => {
         setRecentPurchases(res.data.data);
       })
       .catch((err) => console.error(err));
-  }, [id, baseUrl]);
+  }, [id]);
 
   const handleDelete = async () => {
     setIsConfirming(true);
     try {
-      const res = await axios.delete(
-        `${baseUrl}customer/delete-customer/${id}`, { withCredentials: true }
+      const res = await api.delete(
+        `/customer/delete-customer/${id}`
       );
       console.log("Delete Response:", res.data);
       toast.success("Customer deleted successfully!");

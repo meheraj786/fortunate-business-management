@@ -12,15 +12,15 @@ import {
 } from "lucide-react";
 import StatBox from "../../components/common/StatBox";
 import Breadcrumb from "../../components/common/Breadcrumb";
-import { UrlContext } from "../../context/UrlContext";
-import axios from "axios";
+
+import api from "../../api/axios";
 import AddProductForm from "./AddProductForm";
 import toast from "react-hot-toast";
 import DeleteConfirmationModal from "../../components/common/ConfirmationModal";
 
 const ProductDetails = () => {
   const { warehouseId, productId } = useParams();
-  const { baseUrl } = useContext(UrlContext);
+
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
@@ -34,8 +34,8 @@ const ProductDetails = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(
-        `${baseUrl}warehouse/${warehouseId}/products/${productId}`
+      const response = await api.get(
+        `/warehouse/${warehouseId}/products/${productId}`
       );
       setProduct(response.data.data);
     } catch (err) {
@@ -47,7 +47,7 @@ const ProductDetails = () => {
     } finally {
       setLoading(false);
     }
-  }, [warehouseId, productId, baseUrl]);
+  }, [warehouseId, productId]);
 
   useEffect(() => {
     fetchProductDetails();
@@ -56,8 +56,8 @@ const ProductDetails = () => {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await axios.delete(
-        `${baseUrl}warehouse/${warehouseId}/products/${productId}`, { withCredentials: true }
+      await api.delete(
+        `/warehouse/${warehouseId}/products/${productId}`
       );
       toast.success("Product deleted successfully");
       navigate(`/stock/${warehouseId}`);

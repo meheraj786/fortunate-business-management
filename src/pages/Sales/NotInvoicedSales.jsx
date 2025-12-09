@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import SalesTable from "../../components/common/SalesTable";
 import SearchBar from "../../components/common/SearchBar";
 import Breadcrumb from "../../components/common/Breadcrumb";
@@ -10,12 +10,12 @@ const NotInvoicedSales = () => {
   const [sales, setSales] = useState([]);
   const [units, setUnits] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const { baseUrl } = useContext(UrlContext);
+
 
   useEffect(() => {
     const fetchSales = () => {
-      axios
-        .get(`${baseUrl}sales/get-all-not-invoices`)
+      api
+        .get(`/sales/get-all-not-invoices`)
         .then((res) => {
           if (res.data && res.data.data) {
             setSales(res.data.data);
@@ -28,7 +28,7 @@ const NotInvoicedSales = () => {
 
     const fetchUnits = async () => {
       try {
-        const response = await axios.get(`${baseUrl}unit/get`);
+        const response = await api.get(`/unit/get`);
         if (response.data.success) {
           setUnits(response.data.data || []);
         } else {
@@ -42,7 +42,7 @@ const NotInvoicedSales = () => {
 
     fetchSales();
     fetchUnits();
-  }, [baseUrl]);
+  }, []);
 
   const augmentedSales = useMemo(() => {
     if (!units.length) return sales;

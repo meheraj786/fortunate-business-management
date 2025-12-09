@@ -16,8 +16,8 @@ import {
   UploadCloud,
   Paperclip,
 } from "lucide-react";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import toast from "react-hot-toast";
 
 const InputField = ({
@@ -193,7 +193,7 @@ const getNewExpense = () => ({
 });
 
 const LCForm = ({ onSave }) => {
-  const { baseUrl } = useContext(UrlContext);
+
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
@@ -252,19 +252,19 @@ const LCForm = ({ onSave }) => {
   };
 
   useEffect(() => {
-    axios
-      .get(`${baseUrl}unit/get`)
+    api
+      .get(`/unit/get`)
       .then((res) => setUnits(res.data.data))
       .catch((err) => {
         console.error(err);
         toast.error("Failed to load units");
       });
-  }, [baseUrl]);
+  }, []);
 
   useEffect(() => {
     if (isEditMode) {
-      axios
-        .get(`${baseUrl}lc/get-lc/${id}`)
+      api
+        .get(`/lc/get-lc/${id}`)
         .then((res) => {
           const lcData = res.data.data;
           const processedData = {
@@ -339,7 +339,7 @@ const LCForm = ({ onSave }) => {
           toast.error("Failed to fetch LC data for editing.");
         });
     }
-  }, [id, isEditMode, baseUrl]);
+  }, [id, isEditMode]);
 
   useEffect(() => {
     const { lcAmountUsd, exchangeRate } = formData.financialInfo;
@@ -517,7 +517,7 @@ const LCForm = ({ onSave }) => {
       });
 
       if (isEditMode) {
-        await axios.patch(`${baseUrl}lc/update-lc/${id}`, payload, {
+        await api.patch(`/lc/update-lc/${id}`, payload, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -525,7 +525,7 @@ const LCForm = ({ onSave }) => {
         toast.success("LC Updated");
         navigate(`/lc-details/${id}`);
       } else {
-        await axios.post(`${baseUrl}lc/create-lc`, payload, {
+        await api.post(`/lc/create-lc`, payload, {
           headers: {
             "Content-Type": "multipart/form-data",
           },

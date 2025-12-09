@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Save, Warehouse, MapPin } from "lucide-react";
-import { UrlContext } from "../../context/UrlContext";
-import axios from "axios";
+
+import api from "../../api/axios";
 import toast from "react-hot-toast";
 
 const InputField = ({
@@ -49,7 +49,7 @@ const AddWarehouseForm = ({
     name: "",
     address: "",
   });
-  const { baseUrl } = useContext(UrlContext);
+
   const isEditMode = !!editingWarehouse;
 
   useEffect(() => {
@@ -90,14 +90,11 @@ const AddWarehouseForm = ({
 
     try {
       if (isEditMode) {
-        await axios.patch(
-          `${baseUrl}warehouse/${editingWarehouse._id}`,
-          payload, { withCredentials: true }
-        );
+        await api.patch(`/warehouse/${editingWarehouse._id}`, payload);
         toast.success("Warehouse Updated");
         onWarehouseUpdated();
       } else {
-        await axios.post(`${baseUrl}warehouse/`, payload, { withCredentials: true });
+        await api.post(`/warehouse/`, payload);
         toast.success("Warehouse Created");
         onWarehouseAdded();
       }

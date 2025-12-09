@@ -14,8 +14,8 @@ import {
   MinusCircle,
   Ruler,
 } from "lucide-react";
-import axios from "axios";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+
 import toast from "react-hot-toast";
 
 import FormHeader from "../../components/forms/FormHeader";
@@ -30,7 +30,7 @@ const AddSales = ({
   editData = null,
   isOpen = false,
 }) => {
-  const { baseUrl } = useContext(UrlContext);
+
 
   const isEditMode = !!editData;
 
@@ -76,11 +76,11 @@ const AddSales = ({
           accountsRes,
           unitsRes,
         ] = await Promise.all([
-          axios.get(`${baseUrl}customer/get-customers`),
-          axios.get(`${baseUrl}warehouse/`),
-          axios.get(`${baseUrl}category/get`),
-          axios.get(`${baseUrl}bank/get-all-accounts`),
-          axios.get(`${baseUrl}unit/get`),
+          api.get(`/customer/get-customers`),
+          api.get(`/warehouse/`),
+          api.get(`/category/get`),
+          api.get(`/bank/get-all-accounts`),
+          api.get(`/unit/get`),
         ]);
 
         setCustomers(customersRes.data.data || []);
@@ -95,15 +95,15 @@ const AddSales = ({
     };
 
     fetchData();
-  }, [baseUrl, isOpen]);
+  }, [isOpen]);
 
   // Fetch products when warehouse changes
   useEffect(() => {
     if (formData.warehouseId) {
       const fetchProducts = async () => {
         try {
-          const res = await axios.get(
-            `${baseUrl}warehouse/${formData.warehouseId}/products`
+          const res = await api.get(
+            `/warehouse/${formData.warehouseId}/products`
           );
           setProducts(res.data.data || []);
         } catch (error) {
@@ -116,7 +116,7 @@ const AddSales = ({
     } else {
       setProducts([]);
     }
-  }, [formData.warehouseId, baseUrl]);
+  }, [formData.warehouseId]);
 
   // Populate form with editData
   useEffect(() => {
@@ -326,8 +326,8 @@ const AddSales = ({
     e.preventDefault();
 
     const url = isEditMode
-      ? `${baseUrl}sales/update-sale/${editData._id}`
-      : `${baseUrl}sales/create-sales`;
+      ? `/sales/update-sale/${editData._id}`
+      : `/sales/create-sales`;
     const method = isEditMode ? "patch" : "post";
     let loadingToast;
     try {
@@ -405,7 +405,7 @@ const AddSales = ({
           });
       }
 
-      const response = await axios({ method, url, data: salesData });
+      const response = await api({ method, url, data: salesData });
       toast.dismiss(loadingToast);
 
       if (response.data.success) {

@@ -9,16 +9,16 @@ import Flex from "../../layout/Flex";
 import { Toaster } from "react-hot-toast";
 import { useState } from "react";
 import { useEffect } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { useContext } from "react";
-import { UrlContext } from "../../context/UrlContext";
+
 
 const Customers = () => {
-  const { baseUrl } = useContext(UrlContext);
+
   const [customers, setCustomers] = useState([]);
   useEffect(() => {
-    axios
-      .get(`${baseUrl}customer/summary`, { withCredentials: true })
+    api
+      .get(`/customer/summary`)
       .then((res) => setCustomers(res?.data?.data));
   }, []);
   return (
