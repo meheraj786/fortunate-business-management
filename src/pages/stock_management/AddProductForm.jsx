@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   X,
@@ -16,106 +16,9 @@ import {
 
 import api from "../../api/axios";
 import toast from "react-hot-toast";
-
-// Helper components moved outside the main component to prevent re-creation on re-renders
-const InputField = ({
-  label,
-  type = "text",
-  value,
-  onChange,
-  required = false,
-  placeholder = "",
-  icon: Icon,
-  min,
-  step,
-  disabled = false,
-}) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <div className="relative">
-      {Icon && (
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-          <Icon className="w-4 h-4" />
-        </div>
-      )}
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        placeholder={placeholder}
-        min={min}
-        step={step}
-        disabled={disabled}
-        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
-          Icon ? "pl-10" : ""
-        } ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}`}
-      />
-    </div>
-  </div>
-);
-
-const SelectField = ({
-  label,
-  value,
-  onChange,
-  options,
-  required = false,
-  icon: Icon,
-}) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <div className="relative">
-      {Icon && (
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-          <Icon className="w-4 h-4" />
-        </div>
-      )}
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
-          Icon ? "pl-10" : ""
-        }`}
-      >
-        <option value="">Select {label}</option>
-        {options.map((option, index) => (
-          <option value={option._id || option.value || option} key={index}>
-            {option.name || option.label || option}
-          </option>
-        ))}
-      </select>
-    </div>
-  </div>
-);
-
-const TextAreaField = ({
-  label,
-  value,
-  onChange,
-  required = false,
-  placeholder = "",
-  rows = 3,
-}) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      required={required}
-      placeholder={placeholder}
-      rows={rows}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 resize-vertical"
-    />
-  </div>
-);
+import InputField from "../../components/forms/InputField";
+import SelectField from "../../components/forms/SelectField";
+import TextAreaField from "../../components/forms/TextAreaField";
 
 const AddProductForm = ({
   onClose,
@@ -142,31 +45,32 @@ const AddProductForm = ({
     supplierName: "",
   });
   const isEditMode = !!editingProduct;
-  
+
   const [productCategories, setProductCategories] = useState([]);
   const [completedLc, setCompletedLc] = useState([]);
   const [units, setUnits] = useState([]);
 
   useEffect(() => {
-    api
-      .get(`/category/get`)
-      .then((res) => setProductCategories(res.data.data));
-  }, []);
-  useEffect(() => {
-    api
-      .get(`/lc/completed-lc`)
-      .then((res) => setCompletedLc(res.data.data));
-  }, []);
+    const fetchData = async () => {
+      try {
+        const [categoriesRes, lcRes, unitsRes] = await Promise.all([
+          api.get(`/category/get`),
+          api.get(`/lc/completed-lc`),
+          api.get(`/unit/get`),
+        ]);
+        setProductCategories(categoriesRes.data.data || []);
+        setCompletedLc(lcRes.data.data || []);
+        setUnits(unitsRes.data.data || []);
+      } catch (error) {
+        console.error("Failed to fetch initial data for product form", error);
+        toast.error("Failed to load necessary data. Please try again.");
+      }
+    };
 
-  useEffect(() => {
-    api
-      .get(`/unit/get`)
-      .then((res) => setUnits(res.data.data))
-      .catch((err) => {
-        console.error(err);
-        toast.error("Failed to load units");
-      });
-  }, []);
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -207,7 +111,6 @@ const AddProductForm = ({
       }
     }
   }, [editingProduct, isOpen, warehouse]);
-
 
   const colorOptions = [
     "Silver",
@@ -281,10 +184,7 @@ const AddProductForm = ({
         toast.success("Product Updated");
         onProductUpdated();
       } else {
-        await api.post(
-          `/warehouse/${formData.warehouse}/products`,
-          dataToSave
-        );
+        await api.post(`/warehouse/${formData.warehouse}/products`, dataToSave);
         toast.success("Product Created");
         onProductAdded();
       }
@@ -348,7 +248,9 @@ const AddProductForm = ({
                     <InputField
                       label="Product Name"
                       value={formData.name}
-                      onChange={(value) => handleInputChange("name", value)}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
                       required
                       placeholder="Mild Steel Rod"
                       icon={Package}
@@ -357,7 +259,9 @@ const AddProductForm = ({
                     <SelectField
                       label="Category"
                       value={formData.category}
-                      onChange={(value) => handleInputChange("category", value)}
+                      onChange={(e) =>
+                        handleInputChange("category", e.target.value)
+                      }
                       options={productCategories}
                       required
                       icon={Tag}
@@ -365,10 +269,10 @@ const AddProductForm = ({
                     <SelectField
                       label="LC"
                       value={formData.LC}
-                      onChange={(value) => handleInputChange("LC", value)}
+                      onChange={(e) => handleInputChange("LC", e.target.value)}
                       options={completedLc.map((lc) => ({
-                        value: lc?._id,
-                        label: lc?.basicInfo?.lcNumber || "Untitled LC",
+                        _id: lc?._id,
+                        name: lc?.basicInfo?.lcNumber || "Untitled LC",
                       }))}
                       required
                       icon={Tag}
@@ -378,8 +282,8 @@ const AddProductForm = ({
                       label="Thickness (mm)"
                       type="number"
                       value={formData.thickness}
-                      onChange={(value) =>
-                        handleInputChange("thickness", value)
+                      onChange={(e) =>
+                        handleInputChange("thickness", e.target.value)
                       }
                       placeholder="e.g., 12"
                       icon={Ruler}
@@ -388,7 +292,9 @@ const AddProductForm = ({
                       label="Width (mm)"
                       type="number"
                       value={formData.width}
-                      onChange={(value) => handleInputChange("width", value)}
+                      onChange={(e) =>
+                        handleInputChange("width", e.target.value)
+                      }
                       placeholder="e.g., 1200"
                       icon={Ruler}
                     />
@@ -396,14 +302,18 @@ const AddProductForm = ({
                       label="Length (mm)"
                       type="number"
                       value={formData.length}
-                      onChange={(value) => handleInputChange("length", value)}
+                      onChange={(e) =>
+                        handleInputChange("length", e.target.value)
+                      }
                       placeholder="e.g., 2400"
                       icon={Ruler}
                     />
                     <InputField
                       label="Grade"
                       value={formData.grade}
-                      onChange={(value) => handleInputChange("grade", value)}
+                      onChange={(e) =>
+                        handleInputChange("grade", e.target.value)
+                      }
                       placeholder="e.g., ASTM A36"
                       icon={Tag}
                     />
@@ -411,7 +321,9 @@ const AddProductForm = ({
                     <SelectField
                       label="Color/Finish"
                       value={formData.color}
-                      onChange={(value) => handleInputChange("color", value)}
+                      onChange={(e) =>
+                        handleInputChange("color", e.target.value)
+                      }
                       options={colorOptions}
                       icon={Palette}
                     />
@@ -428,7 +340,9 @@ const AddProductForm = ({
                       label="Quantity in Stock"
                       type="text"
                       value={formData.quantity}
-                      onChange={(value) => handleInputChange("quantity", value)}
+                      onChange={(e) =>
+                        handleInputChange("quantity", e.target.value)
+                      }
                       required
                       placeholder="150"
                       icon={Hash}
@@ -437,7 +351,9 @@ const AddProductForm = ({
                     <SelectField
                       label="Unit of Measure"
                       value={formData.unit}
-                      onChange={(value) => handleInputChange("unit", value)}
+                      onChange={(e) =>
+                        handleInputChange("unit", e.target.value)
+                      }
                       options={units}
                       required
                       icon={Package}
@@ -447,8 +363,8 @@ const AddProductForm = ({
                       label="Unit Price ($)"
                       type="text"
                       value={formData.unitPrice}
-                      onChange={(value) =>
-                        handleInputChange("unitPrice", value)
+                      onChange={(e) =>
+                        handleInputChange("unitPrice", e.target.value)
                       }
                       required
                       placeholder="25.50"
@@ -482,8 +398,8 @@ const AddProductForm = ({
                     <TextAreaField
                       label="Product Description"
                       value={formData.productDescription || ""}
-                      onChange={(value) =>
-                        handleInputChange("productDescription", value)
+                      onChange={(e) =>
+                        handleInputChange("productDescription", e.target.value)
                       }
                       placeholder="Detailed description, material specifications, grade, standards compliance..."
                       rows={3}
@@ -492,8 +408,8 @@ const AddProductForm = ({
                     <InputField
                       label="Supplier/Manufacturer"
                       value={formData.supplierName || ""}
-                      onChange={(value) =>
-                        handleInputChange("supplierName", value)
+                      onChange={(e) =>
+                        handleInputChange("supplierName", e.target.value)
                       }
                       placeholder="Manufacturer name or supplier information"
                     />

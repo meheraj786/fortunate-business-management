@@ -165,6 +165,7 @@ const WarehouseStock = () => {
       await Promise.all([fetchProductsInWarehouse(), fetchWarehouseStats()]);
       handleProductFormClose();
       toast.success("Product updated successfully");
+      toast.success("Product updated successfully");
     } catch (err) {
       toast.error("Failed to update product data");
     }
