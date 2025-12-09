@@ -176,7 +176,10 @@ const CustomerForm = () => {
           setValue("customerNote", customer.customerNote);
           setDocuments(customer.documents || []);
         })
-        .catch((err) => console.error(err));
+        .catch((err) => {
+          console.error(err);
+          toast.error("Failed to load customer data for editing.");
+        });
     } else {
       setValue("joinDate", new Date().toISOString().split("T")[0]);
       setValue("customerType", "Retail Customer");
@@ -252,7 +255,6 @@ const CustomerForm = () => {
 
   return (
     <div className="">
-      <Toaster position="top-right" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

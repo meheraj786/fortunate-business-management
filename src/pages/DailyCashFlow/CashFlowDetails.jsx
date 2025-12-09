@@ -207,7 +207,7 @@ const CashFlowDetails = ({
           ) : (
             transactions.map((transaction) => (
               <TransactionCard
-                key={transaction._id || transaction.id || Math.random()}
+                key={transaction._id || transaction.id}
                 transaction={transaction}
                 iconComponents={iconComponents}
               />

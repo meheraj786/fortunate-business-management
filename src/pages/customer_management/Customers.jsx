@@ -1,29 +1,31 @@
-import React from "react";
-// import { customers } from "../../data/data";
+import React, { useState, useEffect } from "react";
 import CustomerCard from "../../layout/CustomerCard";
-import Input from "../../layout/Input";
 import { Filter, Plus, Search } from "lucide-react";
 import { Link } from "react-router";
-import Button from "../../components/common/Button";
-import Flex from "../../layout/Flex";
-import { Toaster } from "react-hot-toast";
-import { useState } from "react";
-import { useEffect } from "react";
 import api from "../../api/axios";
-import { useContext } from "react";
-
+import toast from "react-hot-toast";
 
 const Customers = () => {
-
   const [customers, setCustomers] = useState([]);
+
   useEffect(() => {
     api
       .get(`/customer/summary`)
-      .then((res) => setCustomers(res?.data?.data));
+      .then((res) => {
+        if (res.data && res.data.data) {
+          setCustomers(res.data.data);
+        } else {
+          setCustomers([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch customer summary:", err);
+        toast.error("Could not load customers.");
+      });
   }, []);
+
   return (
     <div className="">
-      <Toaster position="top-right" />
       <div className=" items-center flex-wrap flex justify-between">
         <h2 className="text-3xl font-semibold mb-4">Your Customers</h2>
         <Link to="/customer-form">

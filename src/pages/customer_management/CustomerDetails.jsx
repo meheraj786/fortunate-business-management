@@ -1,6 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
-import { customers, salesData } from "../../data/data";
 import {
   FiUser,
   FiMail,
@@ -16,13 +15,15 @@ import {
   FiStar,
   FiDownload,
   FiPieChart,
+  FiEdit,
+  FiTrash2,
 } from "react-icons/fi";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { Loader2 } from "lucide-react";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
 import api from "../../api/axios";
-
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import toast from "react-hot-toast";
+import { UrlContext } from "../../context/UrlContext";
 
 const StatusBadge = ({ status }) => {
   let bgColor, icon;
@@ -33,6 +34,7 @@ const StatusBadge = ({ status }) => {
       icon = <FiCheckCircle className="mr-1" />;
       break;
     case "inactive":
+    case "suspended":
       bgColor = "bg-gray-100 text-gray-800";
       icon = <FiXCircle className="mr-1" />;
       break;
@@ -71,39 +73,51 @@ const DataField = ({ label, value, icon, hidden = false, className = "" }) => {
 
 const CustomerDetails = () => {
   const { id } = useParams();
+  const { baseUrl } = useContext(UrlContext);
   const [customerData, setCustomerData] = useState(null);
   const [recentPurchases, setRecentPurchases] = useState([]);
-
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
 
-  useEffect(() => {
-    api
-      .get(`/customer/get-customer/${id}`)
-      .then((res) => {
-        console.log("Response:", res.data.data);
-        setCustomerData(res.data.data);
-      })
-      .catch((err) => console.error(err));
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [customerRes, salesRes] = await Promise.all([
+        api.get(`/customer/get-customer/${id}`),
+        api.get(`/sales/customer/${id}`),
+      ]);
 
-    api
-      .get(`/sales/customer/${id}`)
-      .then((res) => {
-        setRecentPurchases(res.data.data);
-      })
-      .catch((err) => console.error(err));
+      if (customerRes.data.data) {
+        setCustomerData(customerRes.data.data);
+      } else {
+        toast.error("Could not find customer data.");
+      }
+
+      if (salesRes.data.data) {
+        setRecentPurchases(salesRes.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch customer details:", err);
+      setError("Could not load customer details. Please try again.");
+      toast.error("Could not load customer details.");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleDelete = async () => {
     setIsConfirming(true);
     try {
-      const res = await api.delete(
-        `/customer/delete-customer/${id}`
-      );
-      console.log("Delete Response:", res.data);
+      await api.delete(`/customer/delete-customer/${id}`);
       toast.success("Customer deleted successfully!");
       navigate("/customers");
     } catch (err) {
@@ -115,16 +129,43 @@ const CustomerDetails = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
+        <span className="ml-3">Loading customer details...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center p-8">
+        <p className="mb-4 text-red-600">{error}</p>
+        <button
+          onClick={fetchData}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   if (!customerData) {
-    return <div>Customer not found</div>;
+    return (
+      <div className="text-center p-8">
+        <p>Customer not found.</p>
+      </div>
+    );
   }
 
   return (
     <div className="">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
               <FiUser className="text-[#003b75] text-2xl" />
             </div>
             <div>
@@ -182,7 +223,7 @@ const CustomerDetails = () => {
 
                 <DataField
                   label="Credit Limit"
-                  value={customerData?.creditLimit?.toLocaleString()}
+                  value={`৳${(customerData?.creditLimit || 0).toLocaleString()}`}
                   icon={<FiDollarSign />}
                 />
 
@@ -198,7 +239,7 @@ const CustomerDetails = () => {
 
                 <DataField
                   label="Customer Joined Date"
-                  value={customerData?.joinDate}
+                  value={new Date(customerData?.joinDate).toLocaleDateString()}
                   icon={<FiCalendar />}
                 />
 
@@ -208,67 +249,6 @@ const CustomerDetails = () => {
                 />
               </div>
             </CollapsibleCard>
-
-            <div className="lg:hidden">
-              <CollapsibleCard title="Status Info" icon={<FiStar />}>
-                <div className="space-y-3">
-                  <DataField
-                    label="Customer ID"
-                    value={customerData?.customerId}
-                  />
-                  <DataField
-                    label="Customer Type"
-                    value={customerData?.customerType}
-                  />
-                  <DataField
-                    label="Customer Status"
-                    value={
-                      <StatusBadge status={customerData?.customerStatus} />
-                    }
-                  />
-                  <DataField
-                    label="Customer Joined Date"
-                    value={customerData?.joinDate}
-                    icon={<FiCalendar />}
-                  />
-                </div>
-              </CollapsibleCard>
-            </div>
-
-            <div className="lg:hidden">
-              <CollapsibleCard title="Others" icon={<FiFileText />}>
-                <DataField
-                  label="Customer Note"
-                  value={customerData?.customerNote}
-                  icon={<FiFileText />}
-                  className="sm:col-span-2"
-                />
-                <div className="space-y-2 mt-4">
-                  <h3 className="text-sm font-medium text-gray-500">
-                    Uploaded Documents
-                  </h3>
-                  {customerData?.documents?.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center p-2 bg-gray-50 rounded-md"
-                    >
-                      <FiFileText className="text-gray-400 mr-2" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-700 truncate">
-                          {file.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {file.type} • {file.size} • {file.uploadDate}
-                        </div>
-                      </div>
-                      <button className="ml-2 text-[#003b75] hover:text-blue-800">
-                        <FiDownload />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleCard>
-            </div>
 
             <CollapsibleCard title="Transaction Overview" icon={<FiPieChart />}>
               <div className="grid grid-cols-2 gap-4">
@@ -280,7 +260,7 @@ const CustomerDetails = () => {
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-green-700">
-                    ${(customerData?.stats?.totalSpent || 0).toLocaleString()}
+                    ৳{(customerData?.stats?.totalSpent || 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-green-600">Total Spent</div>
                 </div>
@@ -292,7 +272,7 @@ const CustomerDetails = () => {
                 </div>
                 <div className="bg-red-50 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-red-700">
-                    $
+                    ৳
                     {(
                       customerData?.stats?.outstandingDues || 0
                     ).toLocaleString()}
@@ -305,66 +285,75 @@ const CustomerDetails = () => {
 
           {/* Column 2 */}
           <div className="space-y-4 lg:order-2 lg:col-span-1">
-            <div className="hidden lg:block">
-              <CollapsibleCard title="Status Info" icon={<FiStar />}>
-                <div className="space-y-3">
-                  <DataField
-                    label="Customer ID"
-                    value={customerData?.customerId}
-                  />
-                  <DataField
-                    label="Customer Type"
-                    value={customerData?.customerType}
-                  />
-                  <DataField
-                    label="Customer Status"
-                    value={
-                      <StatusBadge status={customerData?.customerStatus} />
-                    }
-                  />
-                  <DataField
-                    label="Customer Joined Date"
-                    value={customerData?.joinDate}
-                    icon={<FiCalendar />}
-                  />
-                </div>
-              </CollapsibleCard>
-            </div>
-
-            <div className="hidden lg:block">
-              <CollapsibleCard title="Others" icon={<FiFileText />}>
+            <CollapsibleCard title="Status Info" icon={<FiStar />}>
+              <div className="space-y-3">
                 <DataField
-                  label="Customer Note"
-                  value={customerData?.customerNote}
-                  icon={<FiFileText />}
-                  className="sm:col-span-2"
+                  label="Customer ID"
+                  value={customerData?.customerId}
                 />
-                <div className="space-y-2 mt-4">
-                  <h3 className="text-sm font-medium text-gray-500">
-                    Uploaded Documents
-                  </h3>
-                  {customerData?.documents?.map((file, index) => (
+                <DataField
+                  label="Customer Type"
+                  value={customerData?.customerType}
+                />
+                <DataField
+                  label="Customer Status"
+                  value={
+                    <StatusBadge status={customerData?.customerStatus} />
+                  }
+                />
+                <DataField
+                  label="Customer Joined Date"
+                  value={new Date(customerData?.joinDate).toLocaleDateString()}
+                  icon={<FiCalendar />}
+                />
+              </div>
+            </CollapsibleCard>
+
+            <CollapsibleCard title="Others" icon={<FiFileText />}>
+              <DataField
+                label="Customer Note"
+                value={customerData?.customerNote}
+                icon={<FiFileText />}
+                className="sm:col-span-2"
+              />
+              <div className="space-y-2 mt-4">
+                <h3 className="text-sm font-medium text-gray-500">
+                  Uploaded Documents
+                </h3>
+                {customerData?.documents?.length > 0 ? (
+                  customerData.documents.map((file, index) => (
                     <div
                       key={index}
                       className="flex items-center p-2 bg-gray-50 rounded-md"
                     >
-                      <FiFileText className="text-gray-400 mr-2" />
+                      <FiFileText className="text-gray-400 mr-2 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-700 truncate">
-                          {file.name}
+                          {file.name || file.originalName}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {file.type} • {file.size} • {file.uploadDate}
-                        </div>
+                        {file.size && (
+                          <div className="text-xs text-gray-500">
+                            {file.size}
+                          </div>
+                        )}
                       </div>
-                      <button className="ml-2 text-[#003b75] hover:text-blue-800">
+                      <a
+                        href={`${baseUrl}documents/${file.storedName}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download
+                        className="ml-2 text-[#003b75] hover:text-blue-800"
+                        title={`Download ${file.name || file.originalName}`}
+                      >
                         <FiDownload />
-                      </button>
+                      </a>
                     </div>
-                  ))}
-                </div>
-              </CollapsibleCard>
-            </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-gray-500 mt-2">No documents uploaded.</p>
+                )}
+              </div>
+            </CollapsibleCard>
           </div>
         </div>
 
@@ -391,7 +380,7 @@ const CustomerDetails = () => {
                           Qty: {sale.quantity}
                         </span>
                         <span className="text-gray-600">
-                          Price: $
+                          Price: ৳
                           {parseFloat(sale.pricePerUnit || 0).toFixed(2)}
                         </span>
                       </div>
@@ -422,7 +411,7 @@ const CustomerDetails = () => {
                       <div className="flex justify-between items-center">
                         <span className="font-medium text-gray-700">Total</span>
                         <span className="font-bold text-gray-900">
-                          ${(sale.totalAmount || 0).toFixed(2)}
+                          ৳{(sale.totalAmount || 0).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -475,16 +464,16 @@ const CustomerDetails = () => {
                         {sale.product.name}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                        {sale.product.LC?.basic_info?.lc_number || "N/A"}
+                        {sale.product.LC?.basicInfo?.lcNumber || "N/A"}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                        {sale.quantity} {sale.unit}
+                        {sale.quantity} {sale.unit?.name || sale.unit}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                        ${sale.pricePerUnit.toLocaleString()}
+                        ৳{sale.pricePerUnit.toLocaleString()}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                        ${sale.totalAmount.toLocaleString()}
+                        ৳{sale.totalAmount.toLocaleString()}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <StatusBadge status={sale.invoiceStatus} />

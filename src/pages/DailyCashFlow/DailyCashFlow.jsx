@@ -121,16 +121,15 @@ const DailyCashFlow = () => {
           setActiveLc(response.data.data);
         } else {
           setActiveLc([]);
+          toast.error("Could not parse LC data.");
         }
       } catch (error) {
         console.error("Failed to fetch LC data:", error);
+        toast.error("Failed to load active LCs for the form.");
         setActiveLc([]);
       }
     };
-
-    if (true) {
-      fetchActiveLc();
-    }
+    fetchActiveLc();
   }, []);
 
   // Fetch daily cash data
