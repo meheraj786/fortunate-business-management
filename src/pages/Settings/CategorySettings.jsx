@@ -108,7 +108,9 @@ export default function Category() {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${baseUrl}category/get`);
+        const response = await axios.get(`${baseUrl}category/get`, {
+          withCredentials: true,
+        });
         setCategories(response.data.data);
         setError(null);
       } catch (error) {

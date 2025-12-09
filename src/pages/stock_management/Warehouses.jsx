@@ -30,7 +30,7 @@ const Warehouses = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${baseUrl}warehouse/`);
+      const response = await axios.get(`${baseUrl}warehouse/`, { withCredentials: true });
       setWarehouses(response.data.data);
     } catch (err) {
       const errorMessage =

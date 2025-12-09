@@ -57,7 +57,7 @@ const ProductDetails = () => {
     setDeleting(true);
     try {
       await axios.delete(
-        `${baseUrl}warehouse/${warehouseId}/products/${productId}`
+        `${baseUrl}warehouse/${warehouseId}/products/${productId}`, { withCredentials: true }
       );
       toast.success("Product deleted successfully");
       navigate(`/stock/${warehouseId}`);

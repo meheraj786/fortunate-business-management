@@ -158,7 +158,7 @@ const CustomerForm = () => {
   useEffect(() => {
     if (id) {
       axios
-        .get(`${baseUrl}customer/get-customer/${id}`)
+        .get(`${baseUrl}customer/get-customer/${id}`, { withCredentials: true })
         .then((res) => {
           const customer = res.data.data;
           setValue("name", customer.name);
@@ -235,10 +235,10 @@ const CustomerForm = () => {
 
     try {
       if (id) {
-        await axios.patch(`${baseUrl}customer/update-customer/${id}`, payload);
+        await axios.patch(`${baseUrl}customer/update-customer/${id}`, payload, { withCredentials: true });
         toast.success("Customer Updated Successfully!");
       } else {
-        await axios.post(`${baseUrl}customer/create-customer`, payload);
+        await axios.post(`${baseUrl}customer/create-customer`, payload, { withCredentials: true });
         toast.success("Customer Created Successfully!");
       }
       navigate("/customers");

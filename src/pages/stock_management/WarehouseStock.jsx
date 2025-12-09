@@ -44,7 +44,7 @@ const WarehouseStock = () => {
   const fetchWarehouseDetails = useCallback(async () => {
     try {
       setLoading((prev) => ({ ...prev, warehouse: true }));
-      const response = await axios.get(`${baseUrl}warehouse/${warehouseId}`);
+      const response = await axios.get(`${baseUrl}warehouse/${warehouseId}`, { withCredentials: true });
       setWarehouse(response.data.data);
     } catch (err) {
       console.error("Error fetching warehouse details:", err);
@@ -59,7 +59,7 @@ const WarehouseStock = () => {
     try {
       setLoading((prev) => ({ ...prev, products: true }));
       const response = await axios.get(
-        `${baseUrl}warehouse/${warehouseId}/products`
+        `${baseUrl}warehouse/${warehouseId}/products`, { withCredentials: true }
       );
       setProductsInWarehouse(response.data.data);
     } catch (err) {
@@ -75,7 +75,7 @@ const WarehouseStock = () => {
     try {
       setLoading((prev) => ({ ...prev, stats: true }));
       const response = await axios.get(
-        `${baseUrl}warehouse/${warehouseId}/stats`
+        `${baseUrl}warehouse/${warehouseId}/stats`, { withCredentials: true }
       );
       setStats(response.data.data);
     } catch (err) {

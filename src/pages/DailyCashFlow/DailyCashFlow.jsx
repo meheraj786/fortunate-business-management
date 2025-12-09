@@ -116,7 +116,7 @@ const DailyCashFlow = () => {
   useEffect(() => {
     const fetchActiveLc = async () => {
       try {
-        const response = await axios.get(`${baseUrl}lc/get-all-lc`);
+        const response = await axios.get(`${baseUrl}lc/get-all-lc`, { withCredentials: true });
         if (Array.isArray(response.data.data)) {
           setActiveLc(response.data.data);
         } else {
@@ -142,7 +142,7 @@ const DailyCashFlow = () => {
     try {
       const response = await axios.get(`${baseUrl}cash/get-cash`, {
         params: { date: selectedDate },
-      });
+      }, { withCredentials: true });
       if (response.data.data) {
         setDailyData(response.data.data);
       } else {
@@ -259,10 +259,12 @@ const DailyCashFlow = () => {
       ) {
         response = await axios.post(
           `${baseUrl}lc/add-lc-expense/${newTransaction.lcId}`,
-          payload
+          payload, { withCredentials: true }
         );
       } else {
-        response = await axios.post(`${baseUrl}cash/${endpoint}`, payload);
+        response = await axios.post(`${baseUrl}cash/${endpoint}`, payload, { withCredentials: true });
+        console.log(response);
+        
       }
 
       toast.success(
@@ -289,7 +291,7 @@ const DailyCashFlow = () => {
   const handleOpenDay = async () => {
     const toastId = toast.loading("Opening cash for the day...");
     try {
-      await axios.post(`${baseUrl}cash/open`, { date: selectedDate });
+      await axios.post(`${baseUrl}cash/open`, { date: selectedDate }, { withCredentials: true });
       toast.success("Cash opened successfully!", { id: toastId, duration: 3000 });
       fetchDailyCash();
     } catch (err) {
@@ -306,7 +308,7 @@ const DailyCashFlow = () => {
     ) {
       const toastId = toast.loading("Closing cash for the day...");
       try {
-        await axios.post(`${baseUrl}cash/close`, { date: selectedDate });
+        await axios.post(`${baseUrl}cash/close`, { date: selectedDate }, { withCredentials: true });
         toast.success("Cash closed successfully!", { id: toastId, duration: 3000 });
         fetchDailyCash();
       } catch (err) {

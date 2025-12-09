@@ -18,7 +18,7 @@ const Customers = () => {
   const [customers, setCustomers] = useState([]);
   useEffect(() => {
     axios
-      .get(`${baseUrl}customer/summary`)
+      .get(`${baseUrl}customer/summary`, { withCredentials: true })
       .then((res) => setCustomers(res?.data?.data));
   }, []);
   return (

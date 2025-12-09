@@ -151,18 +151,18 @@ const AddProductForm = ({
 
   useEffect(() => {
     axios
-      .get(`${baseUrl}category/get`)
+      .get(`${baseUrl}category/get` ,{withCredentials: true})
       .then((res) => setProductCategories(res.data.data));
   }, []);
   useEffect(() => {
     axios
-      .get(`${baseUrl}lc/completed-lc`)
+      .get(`${baseUrl}lc/completed-lc` ,{withCredentials: true})
       .then((res) => setCompletedLc(res.data.data));
   }, []);
 
   useEffect(() => {
     axios
-      .get(`${baseUrl}unit/get`)
+      .get(`${baseUrl}unit/get` ,{withCredentials: true})
       .then((res) => setUnits(res.data.data))
       .catch((err) => {
         console.error(err);
