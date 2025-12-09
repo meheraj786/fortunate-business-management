@@ -31,9 +31,12 @@ const SelectField = ({
         } ${disabled ? "bg-gray-100" : ""}`}
       >
         <option value="">Select {label}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
+        {options.map((option, index) => (
+          <option
+            value={option._id || option.value || option}
+            key={option._id || option.value || index}
+          >
+            {option.name || option.label || option}
           </option>
         ))}
       </select>

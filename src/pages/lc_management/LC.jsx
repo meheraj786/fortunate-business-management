@@ -28,12 +28,18 @@ const LC = () => {
 
 
   useEffect(() => {
+    // const toastId = toast.loading("Loading LC data..."); // Removed loading toast
     api.get(`/lc/summary`).then((res) => {
       if (Array.isArray(res.data.data)) {
         setLcData(res.data.data);
+        // toast.success("LC data loaded", { id: toastId }); // Removed success toast
       } else {
         setLcData([]);
+        toast.error("Failed to load LC data"); // Kept error toast, removed id
       }
+    }).catch((error) => {
+      console.error("Error fetching LC summary:", error);
+      toast.error("Could not fetch LC data."); // Kept error toast
     });
   }, []);
 
@@ -52,20 +58,29 @@ const LC = () => {
       })
       .catch((error) => {
         console.error("Error fetching LC counts:", error);
+        toast.error("Could not fetch LC statistics.");
       });
   }, []);
 
+  const formatDateForExport = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date)) return "N/A";
+    return date.toLocaleDateString();
+  };
+  
   const handleExport = () => {
+    const toastId = toast.loading("Preparing data for export...");
     const formattedData = lcData.map((lc) => ({
       LC_Number: lc.lcNumber || lc.basicInfo?.lcNumber || "N/A",
       Status: lc.status || lc.basicInfo?.status || "N/A",
       Supplier: lc.supplierName || lc.basicInfo?.supplierName || "N/A",
-      Opening_Date: new Date(
+      Opening_Date: formatDateForExport(
         lc.lcOpeningDate || lc.basicInfo?.lcOpeningDate
-      ).toLocaleDateString(),
-      Arrival_Date: new Date(
+      ),
+      Arrival_Date: formatDateForExport(
         lc.dueDate || lc.shippingCustomsInfo?.expectedArrivalDate
-      ).toLocaleDateString(),
+      ),
       Products:
         lc.products
           ?.map(
@@ -96,7 +111,7 @@ const LC = () => {
 
     const today = new Date().toISOString().split("T")[0];
     exportToExcel(formattedData, `LC_Report_${today}.xlsx`, `LC Data ${today}`);
-    toast.success("LC Table Exported As XLSX");
+    toast.success("LC Table Exported As XLSX", { id: toastId });
   };
 
   return (

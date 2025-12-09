@@ -4,10 +4,43 @@ import { Check, X, Calendar, Package } from "lucide-react";
 
 const SalesTable = ({
   sales,
+  isLoading = false,
   title = "Sales",
   description = "A list of all sales records including customer, product, and payment details.",
 }) => {
-  if (!sales || sales.length === 0) {
+  const SkeletonRow = () => (
+    <tr className="animate-pulse">
+      <td className="py-4 pr-3 pl-4 sm:pl-6 lg:pl-8">
+        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      </td>
+      <td className="px-3 py-4">
+        <div className="h-4 bg-gray-200 rounded w-2/4"></div>
+      </td>
+      <td className="px-3 py-4">
+        <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+      </td>
+      <td className="px-3 py-4">
+        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      </td>
+      <td className="px-3 py-4">
+        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      </td>
+      <td className="px-3 py-4">
+        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      </td>
+      <td className="px-3 py-4">
+        <div className="h-4 bg-gray-200 rounded w-20"></div>
+      </td>
+      <td className="px-3 py-4">
+        <div className="h-4 bg-gray-200 rounded w-20"></div>
+      </td>
+      <td className="px-3 py-4">
+        <div className="h-4 bg-gray-200 rounded w-24"></div>
+      </td>
+    </tr>
+  );
+
+  if (!isLoading && (!sales || sales.length === 0)) {
     return (
       <div className="text-center py-8 sm:py-12">
         <div className="text-gray-500">
@@ -83,67 +116,69 @@ const SalesTable = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {sales.map((sale) => (
-                  <tr key={sale._id} className="hover:bg-gray-50">
-                    <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6 lg:pl-8">
-                      {sale?.customer?.name}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                      <Link
-                        to={`/sales/${sale._id}`}
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        {sale?.product?.name}
-                      </Link>
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                      {sale?.product?.LC?.basicInfo?.lcNumber}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                      {sale.quantity} {sale.unit?.name}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                      ${sale?.pricePerUnit}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap font-medium text-gray-900">
-                      {Math.floor(sale?.totalAmount || 0).toLocaleString()}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                      {sale.invoiceStatus === "Invoiced" ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <Check className="w-3 h-3 mr-1" />
-                          Invoiced
-                        </span>
-                      ) : sale.invoiceStatus === "Not-invoiced" ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          <X className="w-3 h-3 mr-1" />
-                          Not Invoiced
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          {sale.invoiceStatus}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          sale.paymentStatus === "Paid payment"
-                            ? "bg-green-100 text-green-800"
-                            : sale.paymentStatus === "Due payment"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {sale.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                      {new Date(sale.saleDate).toLocaleDateString("en-GB")}
-                    </td>
-                  </tr>
-                ))}
+                {isLoading
+                  ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
+                  : sales.map((sale) => (
+                      <tr key={sale._id} className="hover:bg-gray-50">
+                        <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6 lg:pl-8">
+                          {sale?.customer?.name}
+                        </td>
+                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                          <Link
+                            to={`/sales/${sale._id}`}
+                            className="text-indigo-600 hover:text-indigo-900"
+                          >
+                            {sale?.product?.name}
+                          </Link>
+                        </td>
+                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                          {sale?.product?.LC?.basicInfo?.lcNumber}
+                        </td>
+                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                          {sale.quantity} {sale.unit?.name}
+                        </td>
+                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                          ${sale?.pricePerUnit}
+                        </td>
+                        <td className="px-3 py-4 text-sm whitespace-nowrap font-medium text-gray-900">
+                          {Math.floor(sale?.totalAmount || 0).toLocaleString()}
+                        </td>
+                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                          {sale.invoiceStatus === "Invoiced" ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <Check className="w-3 h-3 mr-1" />
+                              Invoiced
+                            </span>
+                          ) : sale.invoiceStatus === "Not-invoiced" ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <X className="w-3 h-3 mr-1" />
+                              Not Invoiced
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              <Calendar className="w-3 h-3 mr-1" />
+                              {sale.invoiceStatus}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              sale.paymentStatus === "Paid payment"
+                                ? "bg-green-100 text-green-800"
+                                : sale.paymentStatus === "Due payment"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {sale.paymentStatus}
+                          </span>
+                        </td>
+                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+                          {new Date(sale.saleDate).toLocaleDateString("en-GB")}
+                        </td>
+                      </tr>
+                    ))}
               </tbody>
             </table>
           </div>

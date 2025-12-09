@@ -20,6 +20,7 @@ import { useParams, useNavigate } from "react-router";
 import CollapsibleCard from "../../components/common/CollapsibleCard";
 
 import api from "../../api/axios";
+import { UrlContext } from "../../context/UrlContext";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import toast from "react-hot-toast";
 
@@ -87,6 +88,7 @@ const LCdetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [lcData, setLcData] = useState(null);
+  const { baseUrl } = useContext(UrlContext);
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null); // 'delete' or 'export'
@@ -159,7 +161,6 @@ const LCdetails = () => {
       day: "numeric",
     });
   };
-console.log(lcData, "LC data");
 
   if (!lcData) {
     return (

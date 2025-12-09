@@ -32,16 +32,37 @@ const Sales = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const fetchSalesAndStats = () => {
+    // Fetch all sales
+    api
+      .get(`/sales/get-all-sales`)
+      .then((res) => setSalesData(res.data.data || []))
+      .catch((error) => {
+        console.error("Error fetching all sales:", error);
+        toast.error("Could not fetch sales data.");
+      });
+
+    // Fetch sales stats
+    api
+      .get(`/sales/get-all-invoices-status-count`)
+      .then((res) => {
+        if (res.data && res.data.data) {
+          setSalesStats({
+            notInvoiced: res.data.data.notInvoiced || 0,
+            due: res.data.data.due || 0,
+            paid: res.data.data.paid || 0,
+            cancelled: res.data.data.cancelled || 0,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching sales stats:", error);
+        toast.error("Could not fetch sales statistics.");
+      });
+  };
 
   useEffect(() => {
-    const fetchSales = () => {
-      api
-        .get(`/sales/get-all-sales`)
-        .then((res) => setSalesData(res.data.data || []))
-        .catch((error) => {
-          console.error("Error fetching all sales:", error);
-        });
-    };
+    fetchSalesAndStats();
 
     const fetchUnits = async () => {
       try {
@@ -57,26 +78,7 @@ const Sales = () => {
       }
     };
 
-    fetchSales();
     fetchUnits();
-  }, []);
-
-  useEffect(() => {
-    api
-      .get(`/sales/get-all-invoices-status-count`)
-      .then((res) => {
-        if (res.data && res.data.data) {
-          setSalesStats({
-            notInvoiced: res.data.data.notInvoiced || 0,
-            due: res.data.data.due || 0,
-            paid: res.data.data.paid || 0,
-            cancelled: res.data.data.cancelled || 0,
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching sales stats:", error);
-      });
   }, []);
 
   const augmentedSales = useMemo(() => {
@@ -105,6 +107,14 @@ const Sales = () => {
 
   const handleSaleAdded = () => {
     setShowAddSale(false);
+    fetchSalesAndStats(); // Refetch data
+  };
+
+  const formatDateForExport = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "N/A";
+    return date.toLocaleDateString("en-GB");
   };
 
   const handleExport = () => {
@@ -117,7 +127,7 @@ const Sales = () => {
       Customer: sale?.customer?.name,
       Invoice_Status: sale?.invoiceStatus,
       Payment_Status: sale?.paymentStatus,
-      Sale_Date: new Date(sale.saleDate).toLocaleDateString("en-GB"),
+      Sale_Date: formatDateForExport(sale.saleDate),
     }));
 
     const today = new Date().toISOString().split("T")[0];

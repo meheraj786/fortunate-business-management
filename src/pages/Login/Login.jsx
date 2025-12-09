@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import "../../styles/Login.css";
 import { useAuth } from "../../context/AuthContext";
-import {useNavigate} from 'react-router'
+import { useNavigate } from 'react-router';
+import toast from 'react-hot-toast'; // Import toast
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -11,8 +12,9 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [isLoading, setIsLoading] = useState(false); // New loading state
   const { login } = useAuth();
-  const navigate=useNavigate()
+  const navigate = useNavigate();
 
   // Validate form
   const validateForm = () => {
@@ -61,8 +63,16 @@ const Login = () => {
     setTouched({ email: true, password: true });
 
     if (validateForm()) {
-      await login(email, password);
-      navigate('/')
+      setIsLoading(true); // Start loading
+      try {
+        await login(email, password);
+        navigate('/');
+      } catch (error) {
+        console.error("Login failed:", error);
+        toast.error(error.response?.data?.message || error.message || "Login failed. Please check your credentials.");
+      } finally {
+        setIsLoading(false); // End loading
+      }
     }
   };
 
@@ -232,9 +242,10 @@ const Login = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
+                disabled={isLoading} // Disable button when loading
                 className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#003366] hover:bg-[#003b75] cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
-                Sign in
+                {isLoading ? "Signing in..." : "Sign in"}
               </motion.button>
             </form>
           </motion.div>

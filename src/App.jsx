@@ -19,7 +19,6 @@ import LCform from "./pages/lc_management/LCform";
 import CustomerForm from "./pages/customer_management/CustomerForm";
 import ProductDetails from "./pages/stock_management/ProductDetails";
 import SaleDetails from "./pages/Sales/SaleDetails";
-import InvoiceGenerator from "./pages/InvoiceGenerator";
 import TeamDetails from "./pages/Team/TeamDetails";
 import { Toaster } from "react-hot-toast";
 
@@ -148,10 +147,6 @@ const router = createBrowserRouter([
       {
         path: "customer-form/:id",
         element: <CustomerForm />,
-      },
-      {
-        path: "invoice",
-        element: <InvoiceGenerator />,
       },
     ],
   },

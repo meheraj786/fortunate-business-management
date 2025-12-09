@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   Printer,
@@ -8,12 +8,12 @@ import {
   Share2,
   Loader2,
 } from "lucide-react";
-import { UrlContext } from "../../context/UrlContext";
+import api from "../../api/axios";
+import toast from "react-hot-toast";
 
 const DisplayInvoice = () => {
   const navigate = useNavigate();
-  const { id, invoiceId } = useParams();
-  const { baseUrl } = useContext(UrlContext);
+  const { invoiceId } = useParams();
 
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,27 +21,28 @@ const DisplayInvoice = () => {
 
   useEffect(() => {
     const fetchInvoice = async () => {
-      if (!invoiceId || !baseUrl) return;
+      if (!invoiceId) return;
 
       setLoading(true);
       try {
-        const response = await fetch(`${baseUrl}invoice/${invoiceId}`);
-        const result = await response.json();
-
-        if (result.success) {
-          setInvoice(result.data);
+        const response = await api.get(`/invoice/${invoiceId}`);
+        if (response.data.success) {
+          setInvoice(response.data.data);
         } else {
-          setError(result.message || "Failed to fetch invoice data.");
+          setError(response.data.message || "Failed to fetch invoice data.");
+          toast.error(response.data.message || "Failed to fetch invoice data.");
         }
       } catch (err) {
         setError("An unexpected error occurred.");
+        toast.error("An unexpected error occurred while fetching the invoice.");
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchInvoice();
-  }, [id, baseUrl]);
+  }, [invoiceId]);
 
   const handlePrint = () => {
     window.print();

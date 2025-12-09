@@ -168,35 +168,33 @@ const FileInput = ({ files, onFileChange, onFileRemove }) => {
   );
 };
 
-let productIdCounter = 0;
-let expenseIdCounter = 0;
-
-const getNewProduct = () => ({
-  id: productIdCounter++,
-  itemName: "",
-  specification: {
-    thickness_mm: "",
-    width_mm: "",
-    length_mm: "",
-    grade: "",
-  },
-  quantityUnit: "",
-  quantityValue: "",
-  unitPriceUsd: "",
-  totalValueUsd: "",
-});
-
-const getNewExpense = () => ({
-  id: expenseIdCounter++,
-  name: "",
-  amount: "",
-});
-
 const LCForm = ({ onSave }) => {
-
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
+  const productIdCounter = useRef(0);
+  const expenseIdCounter = useRef(0);
+
+  const getNewProduct = () => ({
+    id: productIdCounter.current++,
+    itemName: "",
+    specification: {
+      thickness_mm: "",
+      width_mm: "",
+      length_mm: "",
+      grade: "",
+    },
+    quantityUnit: "",
+    quantityValue: "",
+    unitPriceUsd: "",
+    totalValueUsd: "",
+  });
+
+  const getNewExpense = () => ({
+    id: expenseIdCounter.current++,
+    name: "",
+    amount: "",
+  });
 
   const initialFormData = {
     basicInfo: {
@@ -286,14 +284,14 @@ const LCForm = ({ onSave }) => {
               otherExpenses: (lcData.financialInfo?.otherExpenses || []).map(
                 (e) => ({
                   ...e,
-                  id: expenseIdCounter++,
+                  id: expenseIdCounter.current++,
                 })
               ),
             },
             productInfo: (lcData.productInfo || []).map((p) => ({
               ...p,
               quantityUnit: p.quantityUnit?._id || "",
-              id: productIdCounter++,
+              id: productIdCounter.current++,
             })),
             shippingCustomsInfo: {
               portOfShipment: lcData.shippingCustomsInfo.portOfShipment,
@@ -307,7 +305,7 @@ const LCForm = ({ onSave }) => {
                 lcData.shippingCustomsInfo?.otherExpenses || []
               ).map((e) => ({
                 ...e,
-                id: expenseIdCounter++,
+                id: expenseIdCounter.current++,
               })),
             },
             agentTransportInfo: {
@@ -321,7 +319,7 @@ const LCForm = ({ onSave }) => {
                 lcData.agentTransportInfo?.otherExpenses || []
               ).map((e) => ({
                 ...e,
-                id: expenseIdCounter++,
+                id: expenseIdCounter.current++,
               })),
             },
             documentsNotes: {

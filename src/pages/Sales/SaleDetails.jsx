@@ -103,6 +103,7 @@ const SaleDetails = () => {
                 saleData.unit,
                 unitResponse.data.message
               );
+              toast.error("Could not fetch unit details for the sale.");
             }
           } catch (unitError) {
             console.error(
@@ -110,6 +111,7 @@ const SaleDetails = () => {
               saleData.unit,
               unitError
             );
+            toast.error("An unexpected error occurred while fetching unit details.");
           }
         }
 
@@ -135,7 +137,7 @@ const SaleDetails = () => {
       if (response.data.success) {
         setAccounts(response.data.data || []);
       } else {
-        toast.error("Failed to fetch accounts.");
+        toast.error(response.data.message || "Failed to fetch accounts.");
       }
     } catch (error) {
       console.error("Error fetching accounts:", error);
