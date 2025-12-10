@@ -30,10 +30,11 @@ import DisplayInvoice from "./pages/Sales/DisplayInvoice";
 import CategorySettings from "./pages/Settings/CategorySettings";
 import UnitsSettings from "./pages/Settings/UnitsSettings";
 import PrivateRoute from "./routes/PrivateRoutes";
+import AccountDetails from "./pages/Banking/AccountDetails";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
-
+  
   {
     path: "/",
     element: (
@@ -131,6 +132,10 @@ const router = createBrowserRouter([
       {
         path: "banking",
         element: <Banking />,
+      },
+      {
+        path: "banking/accounts/:accountId",
+        element: <AccountDetails />,
       },
       {
         path: "lc-form",

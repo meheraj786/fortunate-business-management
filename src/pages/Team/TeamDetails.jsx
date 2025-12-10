@@ -233,7 +233,7 @@ const TeamDetails = () => {
   const maxPermissions = MODULES.length * PERMISSIONS.length;
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 bg-gray-50">
+    <div>
       <div className="max-w-6xl mx-auto">
         <Breadcrumb items={breadcrumbItems} />
 

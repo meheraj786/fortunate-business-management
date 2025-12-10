@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router";
 import {
   Building,
   Smartphone,
@@ -52,9 +53,17 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
     fetchAccounts();
   }, [fetchAccounts, refresh]); // Depend on refresh prop
 
-  const handleDeleteClick = (account) => {
+  const handleDeleteClick = (e, account) => {
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation(); // Stop event bubbling
     setAccountToDelete(account);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleEditClick = (e, account) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit(account);
   };
 
   const confirmDelete = async () => {
@@ -81,7 +90,9 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
     }
   };
 
-  const copyToClipboard = (text, type) => {
+  const copyToClipboard = (e, text, type) => {
+    e.preventDefault();
+    e.stopPropagation();
     navigator.clipboard.writeText(text).then(() => {
       setCopiedText(`${type}_${text}`);
       setTimeout(() => setCopiedText(""), 2000);
@@ -111,9 +122,10 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
             </div>
           ) : bankAccounts.length > 0 ? (
             bankAccounts.map((account) => (
-              <div
+              <Link
+                to={`/banking/accounts/${account._id}`}
                 key={account._id}
-                className="border border-gray-200 rounded-lg p-4"
+                className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
@@ -124,13 +136,13 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
                       ৳{account.balance.toLocaleString()}
                     </span>
                     <button
-                      onClick={() => onEdit(account)}
+                      onClick={(e) => handleEditClick(e, account)}
                       className="text-gray-400 hover:text-blue-600 p-1"
                     >
                       <Edit size={16} />
                     </button>
                     <button
-                      onClick={() => handleDeleteClick(account)}
+                      onClick={(e) => handleDeleteClick(e, account)}
                       className="text-gray-400 hover:text-red-600 p-1"
                     >
                       <Trash2 size={16} />
@@ -155,8 +167,8 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
                       A/C: {account.accountNumber}
                     </span>
                     <button
-                      onClick={() =>
-                        copyToClipboard(account.accountNumber, "account")
+                      onClick={(e) =>
+                        copyToClipboard(e, account.accountNumber, "account")
                       }
                       className="cursor-pointer p-1 hover:bg-gray-100 rounded"
                     >
@@ -172,7 +184,7 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
                     {account.swiftCode}
                   </div>
                 </div>
-              </div>
+              </Link>
             ))
           ) : (
             <p className="text-center text-gray-500 py-4">
@@ -203,9 +215,10 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
             </div>
           ) : mobileBankingAccounts.length > 0 ? (
             mobileBankingAccounts.map((account) => (
-              <div
+              <Link
+                to={`/banking/accounts/${account._id}`}
                 key={account._id}
-                className="border border-gray-200 rounded-lg p-4"
+                className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -229,13 +242,13 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
                         ৳{account.balance.toLocaleString()}
                       </p>
                       <button
-                        onClick={() => onEdit(account)}
+                        onClick={(e) => handleEditClick(e, account)}
                         className="text-gray-400 hover:text-blue-600 p-1"
                       >
                         <Edit size={16} />
                       </button>
                       <button
-                        onClick={() => handleDeleteClick(account)}
+                        onClick={(e) => handleDeleteClick(e, account)}
                         className="text-gray-400 hover:text-red-600 p-1"
                       >
                         <Trash2 size={16} />
@@ -247,8 +260,8 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
                         {account.mobileNumber}
                       </span>
                       <button
-                        onClick={() =>
-                          copyToClipboard(account.mobileNumber, "mobile")
+                        onClick={(e) =>
+                          copyToClipboard(e, account.mobileNumber, "mobile")
                         }
                         className="cursor-pointer p-1 hover:bg-gray-100 rounded"
                       >
@@ -261,7 +274,7 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))
           ) : (
             <p className="text-center text-gray-500 py-4">
