@@ -1,5 +1,4 @@
 import React, {
-  useContext,
   useEffect,
   useState,
   useCallback,
@@ -10,9 +9,10 @@ import {
   Search,
   Plus,
   Package,
-  Layers,
-  ChevronsDown,
-  Archive,
+  MapPin, // Added for location
+  CheckCircle, // For In-stock
+  Box, // For Low Stock
+  XCircle, // For Stock Out
 } from "lucide-react";
 import ProductCard from "../../layout/ProductCard";
 import StatBox from "../../components/common/StatBox";
@@ -26,11 +26,9 @@ const WarehouseStock = () => {
   const { warehouseId } = useParams();
   const [warehouse, setWarehouse] = useState(null);
   const [productsInWarehouse, setProductsInWarehouse] = useState([]);
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState({
     warehouse: true,
     products: true,
-    stats: true,
   });
   const [error, setError] = useState(null);
 
@@ -71,22 +69,6 @@ const WarehouseStock = () => {
     }
   }, [warehouseId]);
 
-  const fetchWarehouseStats = useCallback(async () => {
-    try {
-      setLoading((prev) => ({ ...prev, stats: true }));
-      const response = await api.get(
-        `/warehouse/${warehouseId}/stats`
-      );
-      setStats(response.data.data);
-    } catch (err) {
-      console.error("Error fetching warehouse stats:", err);
-      setError("Failed to load statistics");
-      toast.error("Failed to load statistics");
-    } finally {
-      setLoading((prev) => ({ ...prev, stats: false }));
-    }
-  }, [warehouseId]);
-
   // Fetch all data
   useEffect(() => {
     if (!warehouseId) {
@@ -100,7 +82,6 @@ const WarehouseStock = () => {
         await Promise.all([
           fetchWarehouseDetails(),
           fetchProductsInWarehouse(),
-          fetchWarehouseStats(),
         ]);
       } catch (err) {
         console.error("Error loading warehouse data:", err);
@@ -114,7 +95,6 @@ const WarehouseStock = () => {
     navigate,
     fetchWarehouseDetails,
     fetchProductsInWarehouse,
-    fetchWarehouseStats,
   ]);
 
   // Memoized data processing
@@ -162,9 +142,8 @@ const WarehouseStock = () => {
 
   const handleProductAddedOrUpdated = async () => {
     try {
-      await Promise.all([fetchProductsInWarehouse(), fetchWarehouseStats()]);
+      await Promise.all([fetchProductsInWarehouse(), fetchWarehouseDetails()]); // Re-fetch details to update stats
       handleProductFormClose();
-      toast.success("Product updated successfully");
       toast.success("Product updated successfully");
     } catch (err) {
       toast.error("Failed to update product data");
@@ -179,7 +158,7 @@ const WarehouseStock = () => {
     [warehouse?.name]
   );
 
-  const isLoading = loading.warehouse || loading.products || loading.stats;
+  const isLoading = loading.warehouse || loading.products;
 
   // Loading state
   if (isLoading) {
@@ -226,9 +205,12 @@ const WarehouseStock = () => {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 {warehouse?.name} - Stock & Inventory
               </h1>
-              <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                Manage your steel inventory and product catalog.
-              </p>
+              {warehouse?.location && (
+                <div className="flex items-center gap-2 text-gray-600 mt-2 text-sm sm:text-base">
+                  <MapPin size={16} />
+                  <span>{warehouse.location}</span>
+                </div>
+              )}
             </div>
 
             <button
@@ -244,26 +226,27 @@ const WarehouseStock = () => {
           <div className="my-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatBox
               title="Total Products"
-              number={stats?.totalproductdocuments || 0}
+              number={warehouse?.stats?.totalProducts || 0}
               Icon={Package}
+              textColor="blue"
             />
             <StatBox
               title="Total In-stock"
-              number={stats?.totalinstockproductcount || 0}
-              Icon={Layers}
+              number={warehouse?.stats?.totalInStock || 0}
+              Icon={CheckCircle}
               textColor="green"
             />
             <StatBox
               title="Low Stock"
-              number={stats?.totallowstockproductscount || 0}
-              Icon={ChevronsDown}
-              textColor="red"
+              number={warehouse?.stats?.totalLowStock || 0}
+              Icon={Box}
+              textColor="orange"
             />
             <StatBox
               title="Stock Out"
-              number={stats?.totalstockoutproductscount || 0}
-              Icon={Archive}
-              textColor="orange"
+              number={warehouse?.stats?.totalStockOut || 0}
+              Icon={XCircle}
+              textColor="red"
             />
           </div>
 

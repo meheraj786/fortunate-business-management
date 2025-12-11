@@ -1,18 +1,30 @@
-import { Layers, Palette, Ruler } from "lucide-react";
-import React, { useState, useEffect, useContext } from "react";
+import { Layers, FileText, Ruler } from "lucide-react";
+import React from "react";
 import { Link } from "react-router";
 
 const ProductCard = ({ product, warehouseId }) => {
-  const getStockColor = (quantity) => {
-    if (quantity <= 10) return "bg-red-100 text-red-800";
-    if (quantity <= 50) return "bg-yellow-100 text-yellow-800";
-    return "bg-green-100 text-green-800";
+  // Updated getStockColor to work with stockStatus string
+  const getStockColor = (status) => {
+    switch (status) {
+      case "OK":
+        return "bg-green-100 text-green-800";
+      case "Low": // Backend sends "Low"
+      case "Medium": // Backend sends "Medium"
+        return "bg-yellow-100 text-yellow-800";
+      case "No Stock": // Backend sends "No Stock"
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
-  const getStockStatus = (quantity) => {
-    if (quantity <= 10) return "Low Stock";
-    if (quantity <= 50) return "Medium Stock";
-    return "In Stock";
+  const formatQuantity = (num) => {
+    if (typeof num !== "number") {
+      return num;
+    }
+    // Return number with a maximum of 3 decimal places
+    const formatted = parseFloat(num.toFixed(3));
+    return formatted;
   };
 
   const formatSize = (product) => {
@@ -25,7 +37,7 @@ const ProductCard = ({ product, warehouseId }) => {
 
   return (
     <Link to={`/stock/${warehouseId}/product/${product._id}`}>
-      <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 h-full">
+      <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate pr-2">
@@ -35,16 +47,17 @@ const ProductCard = ({ product, warehouseId }) => {
               {product.category?.name || "N/A"}
             </p>
           </div>
+          {/* Updated stock status badge */}
           <span
             className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStockColor(
-              product.quantity
+              product.stockStatus
             )}`}
           >
-            {getStockStatus(product.quantity)}
+            {product.stockStatus || "N/A"}
           </span>
         </div>
 
-        <div className="space-y-2 mb-3">
+        <div className="space-y-2 mb-3 flex-grow">
           <div className="flex items-center gap-2 text-gray-600">
             <Ruler size={12} className="sm:hidden flex-shrink-0" />
             <Ruler size={14} className="hidden sm:block flex-shrink-0" />
@@ -53,26 +66,32 @@ const ProductCard = ({ product, warehouseId }) => {
             </span>
           </div>
 
+          {/* Replaced Color with LC Number */}
           <div className="flex items-center gap-2 text-gray-600">
-            <Palette size={12} className="sm:hidden flex-shrink-0" />
-            <Palette size={14} className="hidden sm:block flex-shrink-0" />
-            <span className="text-xs sm:text-sm">Color: {product.color}</span>
+            <FileText size={12} className="sm:hidden flex-shrink-0" />
+            <FileText size={14} className="hidden sm:block flex-shrink-0" />
+            <span className="text-xs sm:text-sm">
+              LC: {product.LC?.basicInfo?.lcNumber || "N/A"}
+            </span>
           </div>
 
+          {/* Formatted Quantity */}
           <div className="flex items-center gap-2 text-gray-600">
             <Layers size={12} className="sm:hidden flex-shrink-0" />
             <Layers size={14} className="hidden sm:block flex-shrink-0" />
             <span className="text-xs sm:text-sm">
-              Qty: {product.quantity} {product.unit?.name}
+              Qty: {formatQuantity(product.quantity)} {product.unit?.name}
             </span>
           </div>
         </div>
 
         <div className="border-t border-gray-100 pt-3">
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">Unit Price</span>
             <span className="font-semibold text-gray-900 text-sm">
-              {product.unitPrice || "N/A"}
+              {product.unitPrice
+                ? `৳${product.unitPrice.toLocaleString()}`
+                : "N/A"}
             </span>
           </div>
         </div>

@@ -1,26 +1,66 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import {
-  Package,
+  Calendar,
   DollarSign,
-  ShoppingCart,
-  FileWarning,
-  FileClock,
   Edit,
-  Trash2,
+  FileClock,
+  FileWarning,
+  Hash,
   Loader2,
+  Package,
+  Ruler,
+  ShoppingCart,
+  Tag,
+  Trash2,
+  User,
 } from "lucide-react";
-import StatBox from "../../components/common/StatBox";
-import Breadcrumb from "../../components/common/Breadcrumb";
+import toast from "react-hot-toast";
 
 import api from "../../api/axios";
+import Breadcrumb from "../../components/common/Breadcrumb";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
+import StatBox from "../../components/common/StatBox";
 import AddProductForm from "./AddProductForm";
-import toast from "react-hot-toast";
-import DeleteConfirmationModal from "../../components/common/ConfirmationModal";
+import SalesHistory from "./SalesHistory";
+
+const formatNumber = (num) => {
+  if (typeof num !== "number") {
+    return num;
+  }
+  // Return number with a maximum of 3 decimal places
+  return parseFloat(num.toFixed(3));
+};
+
+const getStockStatusBadgeStyle = (status) => {
+  switch (status) {
+    case "OK":
+      return "bg-green-100 text-green-800 border-green-200";
+    case "Low":
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    case "No Stock": // Consistent with backend
+      return "bg-red-100 text-red-800 border-red-200";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-200";
+  }
+};
+
+const DetailItem = ({ label, value, unit, icon: Icon }) => (
+  <div className="flex items-start gap-3">
+    <div className="p-2 bg-gray-50 rounded-lg">
+      {Icon && <Icon size={16} className="text-gray-500" />}
+    </div>
+    <div>
+      <p className="text-sm text-gray-500">{label}</p>
+      <p className="font-medium text-gray-800">
+        {value} {unit || ""}
+      </p>
+    </div>
+  </div>
+);
 
 const ProductDetails = () => {
   const { warehouseId, productId } = useParams();
-
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
@@ -56,16 +96,13 @@ const ProductDetails = () => {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await api.delete(
-        `/warehouse/${warehouseId}/products/${productId}`
-      );
+      await api.delete(`/warehouse/${warehouseId}/products/${productId}`);
       toast.success("Product deleted successfully");
       navigate(`/stock/${warehouseId}`);
     } catch (err) {
       const errorMessage =
         err?.response?.data?.message || "Failed to delete product";
       toast.error(errorMessage);
-      console.error("Delete error:", err);
     } finally {
       setDeleting(false);
       setShowDeleteModal(false);
@@ -83,10 +120,21 @@ const ProductDetails = () => {
   const openDeleteModal = () => setShowDeleteModal(true);
   const closeDeleteModal = () => setShowDeleteModal(false);
 
-  // Loading state
+  const breadcrumbItems = useMemo(
+    () => [
+      { label: "Stock", path: "/stock-management" },
+      {
+        label: product?.warehouse?.name || "Warehouse",
+        path: `/stock/${product?.warehouse?._id}`,
+      },
+      { label: product?.name || "Product" },
+    ],
+    [product]
+  );
+
   if (loading) {
     return (
-      <div className=" flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <div className="flex items-center gap-3">
           <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
           <span className="text-gray-600">Loading Product Details...</span>
@@ -95,10 +143,9 @@ const ProductDetails = () => {
     );
   }
 
-  // Error state
   if (error && !product) {
     return (
-      <div className="flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 mb-4">Error loading product details</div>
           <button
@@ -112,10 +159,9 @@ const ProductDetails = () => {
     );
   }
 
-  // Safety check
   if (!product) {
     return (
-      <div className="flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <div className="text-gray-600 mb-4">Product not found</div>
           <button
@@ -128,199 +174,6 @@ const ProductDetails = () => {
       </div>
     );
   }
-
-  const sales = product.recentSales || [];
-  const stats = {
-    totalUnitsSold: product.totalUnitsSold || 0,
-    totalRevenue: product.totalRevenue || 0,
-    totalDueInvoices: product.totalDueInvoices || 0,
-    totalNotInvoiced: product.totalNotInvoiced || 0,
-  };
-
-  const breadcrumbItems = [
-    { label: "Stock", path: "/stock-management" },
-    {
-      label: product?.warehouse?.name,
-      path: `/stock/${product?.warehouse?._id}`,
-    },
-    { label: product.name },
-  ];
-
-  const getStatusBadge = (status, type) => {
-    const styles = {
-      invoice: {
-        Invoiced: "bg-green-100 text-green-800 border border-green-200",
-        "Not Invoiced":
-          "bg-yellow-100 text-yellow-800 border border-yellow-200",
-      },
-      payment: {
-        "Paid Payment": "bg-green-100 text-green-800 border border-green-200",
-        "Due Payment": "bg-yellow-100 text-yellow-800 border border-yellow-200",
-        "N/A": "bg-gray-100 text-gray-800 border border-gray-200",
-      },
-    };
-
-    const styleMap = type === "invoice" ? styles.invoice : styles.payment;
-    return `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-      styleMap[status] || styleMap["N/A"]
-    }`;
-  };
-
-  const NoDataMessage = () => (
-    <div className="text-center py-8 text-gray-500">
-      No sales data available for this product.
-    </div>
-  );
-
-  const SalesTableRow = ({ sale }) => (
-    <tr
-      className="hover:bg-gray-50 transition-colors cursor-pointer"
-      onClick={() => navigate(`/sales/${sale._id}`)}
-    >
-      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-        {new Date(sale.saleDate).toLocaleDateString()}
-      </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-        {sale.customer.name}
-      </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        {sale.quantity}
-      </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        ${parseFloat(sale.pricePerUnit || 0).toFixed(2)}
-      </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        ${sale.totalAmount.toFixed(2)}
-      </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        <span className={getStatusBadge(sale.invoiceStatus, "invoice")}>
-          {sale.invoiceStatus}
-        </span>
-      </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        <span className={getStatusBadge(sale.paymentStatus, "payment")}>
-          {sale.paymentStatus}
-        </span>
-      </td>
-    </tr>
-  );
-
-  const MobileSalesCard = ({ sale }) => (
-    <div
-      className="border-t border-gray-200 last:border-b bg-white cursor-pointer hover:bg-gray-50 transition-colors"
-      onClick={() => navigate(`/sales/${sale._id}`)}
-    >
-      <div className="px-4 py-4">
-        <div className="flex justify-between items-center mb-2">
-          <div className="font-medium text-gray-900">{sale.customer.name}</div>
-          <span className="text-sm text-gray-500">
-            {new Date(sale.saleDate).toLocaleDateString()}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Qty: {sale.quantity}</span>
-          <span className="text-gray-600">
-            Price: ${parseFloat(sale.pricePerUnit || 0).toFixed(2)}
-          </span>
-        </div>
-        <div className="border-t border-gray-100 my-2"></div>
-        <div className="flex justify-between items-center">
-          <span className={getStatusBadge(sale.invoiceStatus, "invoice")}>
-            {sale.invoiceStatus}
-          </span>
-          <span className={getStatusBadge(sale.paymentStatus, "payment")}>
-            {sale.paymentStatus}
-          </span>
-        </div>
-        <div className="border-t border-gray-100 my-2"></div>
-        <div className="flex justify-between items-center">
-          <span className="font-medium text-gray-700">Total</span>
-          <span className="font-bold text-gray-900">
-            ${sale.totalAmount.toFixed(2)}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderMobileSales = () => (
-    <div className="space-y-2 sm:hidden">
-      {sales.map((sale) => (
-        <MobileSalesCard key={sale._id} sale={sale} />
-      ))}
-      {sales.length === 0 && <NoDataMessage />}
-    </div>
-  );
-
-  const renderDesktopSales = () => (
-    <div className="hidden sm:block overflow-x-auto">
-      <table className="w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            {[
-              "Date",
-              "Customer",
-              "Qty",
-              "Price",
-              "Total",
-              "Invoice Status",
-              "Payment Status",
-            ].map((header) => (
-              <th
-                key={header}
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-              >
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-100">
-          {sales.map((sale) => (
-            <SalesTableRow key={sale._id} sale={sale} />
-          ))}
-        </tbody>
-      </table>
-      {sales.length === 0 && <NoDataMessage />}
-    </div>
-  );
-
-  const SpecificationItem = ({ label, value, unit }) => (
-    <div>
-      <p className="text-sm text-gray-600">{label}</p>
-      <p className="font-medium text-gray-900">
-        {value} {unit || ""}
-      </p>
-    </div>
-  );
-
-  const renderSpecifications = () => {
-    const specifications = [
-      { label: "Thickness", value: product.thickness, unit: "mm" },
-      { label: "Width", value: product.width, unit: "mm" },
-      { label: "Length", value: product.length, unit: "mm" },
-      { label: "Grade", value: product.grade },
-      { label: "Color", value: product.color },
-    ].filter((spec) => spec.value);
-
-    if (specifications.length === 0) return null;
-
-    return (
-      <>
-        <div className="border-t border-gray-200 my-6"></div>
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-700 mb-3">
-            Specifications
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            {specifications.map((spec) => (
-              <SpecificationItem key={spec.label} {...spec} />
-            ))}
-          </div>
-        </div>
-      </>
-    );
-  };
 
   return (
     <div className="">
@@ -338,7 +191,16 @@ const ProductDetails = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   {product.name}
                 </h1>
-                <p className="text-gray-600 mt-1">{product?.category?.name}</p>
+                <div className="flex items-center gap-4 mt-1">
+                  <p className="text-gray-600">{product?.category?.name}</p>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStockStatusBadgeStyle(
+                      product.stockStatus
+                    )}`}
+                  >
+                    {product.stockStatus}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
@@ -360,121 +222,122 @@ const ProductDetails = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Product Details */}
-          <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Product Details
-            </h2>
-
-            <div className="mb-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">LC Number</p>
-                  <p className="font-medium text-gray-900">
-                    {product.LC?.basicInfo?.lcNumber || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Category</p>
-                  <p className="font-medium text-gray-900">
-                    {product?.category?.name}
-                  </p>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Product Details & Specifications */}
+          <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6 space-y-6">
+            {/* General Information Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                General Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <DetailItem
+                  label="Category"
+                  value={product.category?.name || "N/A"}
+                  icon={Tag}
+                />
+                <DetailItem
+                  label="Supplier"
+                  value={product.LC?.basicInfo?.supplierName || "N/A"}
+                  icon={User}
+                />
+                <DetailItem
+                  label="LC Number"
+                  value={product.LC?.basicInfo?.lcNumber || "N/A"}
+                  icon={Hash}
+                />
+                <DetailItem
+                  label="Creation Date"
+                  value={new Date(product.createdAt).toLocaleDateString()}
+                  icon={Calendar}
+                />
               </div>
             </div>
 
-            {renderSpecifications()}
-
-            <div className="border-t border-gray-200 my-6"></div>
-
+            {/* Specifications Section */}
             <div>
-              <h3 className="text-lg font-medium text-gray-700 mb-3">
-                Inventory
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                Specifications
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Quantity in Stock</p>
-                  <p className="font-medium text-gray-900">
-                    {product.quantity} {product.unit?.name}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Location</p>
-                  <p className="font-medium text-gray-900">
-                    {product?.warehouse?.name}
-                  </p>
-                </div>
-                {product.unitPrice && (
-                  <div>
-                    <p className="text-sm text-gray-600">Unit Price</p>
-                    <p className="font-bold text-lg text-gray-900">
-                      ${parseFloat(product.unitPrice).toFixed(2)}
-                    </p>
-                  </div>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {[
+                  { label: "Thickness", value: product.thickness, unit: "mm" },
+                  { label: "Width", value: product.width, unit: "mm" },
+                  { label: "Length", value: product.length, unit: "mm" },
+                  { label: "Grade", value: product.grade },
+                ]
+                  .filter((spec) => spec.value)
+                  .map((spec) => (
+                    <DetailItem key={spec.label} {...spec} icon={Ruler} />
+                  ))}
+              </div>
+            </div>
+
+            {/* Inventory & Pricing Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                Inventory & Pricing
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <DetailItem
+                  label="Quantity in Stock"
+                  value={`${formatNumber(product.quantity)} ${
+                    product.unit?.name
+                  }`}
+                  icon={Package}
+                />
+                <DetailItem
+                  label="Unit Price"
+                  value={
+                    product.unitPrice
+                      ? `৳${product.unitPrice.toLocaleString()}`
+                      : "N/A"
+                  }
+                  icon={DollarSign}
+                />
               </div>
             </div>
           </div>
 
           {/* Sales Overview */}
-          <div className="bg-white rounded-lg shadow-sm p-6  min-w-[320px]">
+          <div className="bg-white rounded-lg shadow-sm p-6 min-w-[320px]">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Sales Overview
             </h2>
-            <div className="space-y-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+            <div className="space-y-4">
               <StatBox
                 title="Total Units Sold"
-                number={stats.totalUnitsSold.toLocaleString()}
+                number={formatNumber(product.totalUnitsSold)}
                 Icon={ShoppingCart}
-                iconColor="text-green-600"
-                iconBgColor="bg-green-100"
               />
               <StatBox
                 title="Total Revenue"
-                number={`$${stats.totalRevenue.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`}
+                number={`৳${formatNumber(
+                  product.totalRevenue
+                ).toLocaleString()}`}
                 Icon={DollarSign}
-                iconColor="text-blue-600"
-                iconBgColor="bg-blue-100"
+                textColor="green"
               />
               <StatBox
-                title="Total Due Invoices"
-                number={stats.totalDueInvoices}
+                title="Due Invoices"
+                number={product.totalDueInvoices}
                 Icon={FileClock}
-                iconColor="text-yellow-600"
-                iconBgColor="bg-yellow-100"
+                textColor="orange"
               />
               <StatBox
-                title="Total Not Invoiced"
-                number={stats.totalNotInvoiced}
+                title="Not Invoiced"
+                number={product.totalNotInvoiced}
                 Icon={FileWarning}
-                iconColor="text-red-600"
-                iconBgColor="bg-red-100"
+                textColor="red"
               />
             </div>
           </div>
         </div>
 
-        {/* Recent Sales */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="px-6 pt-6 pb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Recent Sales
-            </h2>
-            {sales.length > 0 && (
-              <p className="text-sm text-gray-600 mt-1">
-                Showing {sales.length} recent sale
-                {sales.length !== 1 ? "s" : ""}
-              </p>
-            )}
-          </div>
-          {renderMobileSales()}
-          {renderDesktopSales()}
-        </div>
+        {/* Sales History */}
+        <SalesHistory warehouseId={warehouseId} productId={productId} />
       </div>
+
       {/* Edit Form Modal */}
       {showEditForm && (
         <AddProductForm
@@ -485,8 +348,9 @@ const ProductDetails = () => {
           warehouse={product.warehouse}
         />
       )}
+
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
+      <ConfirmationModal
         isOpen={showDeleteModal}
         onClose={closeDeleteModal}
         onConfirm={handleDelete}
@@ -495,7 +359,7 @@ const ProductDetails = () => {
         confirmText="Delete Product"
         confirmingText="Deleting..."
         isConfirming={deleting}
-      />{" "}
+      />
     </div>
   );
 };
