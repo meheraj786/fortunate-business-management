@@ -1,17 +1,22 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import {
-  Trash2,
+  Box,
+  CheckCircle,
+  Edit,
   Loader,
+  MapPin,
   Package,
   Plus,
+  Trash2,
   Warehouse,
-  MapPin,
-  Edit,
+  XCircle,
 } from "lucide-react";
-import ConfirmationModal from "../../components/common/ConfirmationModal";
-import AddWarehouseForm from "./AddWarehouseForm";
+
 import api from "../../api/axios";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
+import StatBox from "../../components/common/StatBox"; // Import StatBox
+import AddWarehouseForm from "./AddWarehouseForm";
 
 import toast from "react-hot-toast";
 
@@ -24,7 +29,6 @@ const Warehouses = () => {
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [warehouseToDelete, setWarehouseToDelete] = useState(null);
-
 
   const fetchWarehouses = useCallback(async () => {
     try {
@@ -99,6 +103,22 @@ const Warehouses = () => {
     }
   };
 
+  const totalStats = warehouses.reduce(
+    (acc, warehouse) => {
+      acc.totalProducts += warehouse.stats?.totalProducts || 0;
+      acc.totalInStock += warehouse.stats?.totalInStock || 0;
+      acc.totalLowStock += warehouse.stats?.totalLowStock || 0;
+      acc.totalStockOut += warehouse.stats?.totalStockOut || 0;
+      return acc;
+    },
+    {
+      totalProducts: 0,
+      totalInStock: 0,
+      totalLowStock: 0,
+      totalStockOut: 0,
+    }
+  );
+
   // Loading state
   if (loading) {
     return (
@@ -132,8 +152,8 @@ const Warehouses = () => {
   }
 
   return (
-    <div className="">
-      <div className="">
+    <div>
+      <div className="mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="flex-1">
@@ -156,6 +176,36 @@ const Warehouses = () => {
             Add Warehouse
           </button>
         </div>
+
+        {/* Stats Cards */}
+        {warehouses.length > 0 && (
+          <div className="my-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <StatBox
+              title="Total Products"
+              number={totalStats.totalProducts}
+              Icon={Package}
+              textColor="blue"
+            />
+            <StatBox
+              title="Total In-stock"
+              number={totalStats.totalInStock}
+              Icon={CheckCircle}
+              textColor="green"
+            />
+            <StatBox
+              title="Total Low Stock"
+              number={totalStats.totalLowStock}
+              Icon={Box}
+              textColor="orange"
+            />
+            <StatBox
+              title="Total Out of Stock"
+              number={totalStats.totalStockOut}
+              Icon={XCircle}
+              textColor="red"
+            />
+          </div>
+        )}
 
         {/* Empty state */}
         {warehouses.length === 0 && !loading && (
@@ -207,12 +257,22 @@ const Warehouses = () => {
                           {warehouse.location}
                         </span>
                       </div>
-                      {/* <div className="flex items-center gap-2 text-xs font-medium text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-                        <Package size={14} />
-                        <span>
-                          {warehouse.productCount || 0} product{warehouse.productCount !== 1 ? 's' : ''}
-                        </span>
-                      </div> */}
+                      <div className="flex items-center gap-4 text-sm text-gray-700 mt-4 border-t border-gray-100 pt-4">
+                        <div className="flex items-center gap-2">
+                          <Package size={16} className="text-gray-500" />
+                          <span className="font-medium">
+                            {warehouse.stats?.totalProducts || 0}
+                          </span>
+                          <span className="text-gray-500">Products</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle size={16} className="text-green-500" />
+                          <span className="font-medium">
+                            {warehouse.stats?.totalInStock || 0}
+                          </span>
+                          <span className="text-gray-500">In Stock</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Link>
