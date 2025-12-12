@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import FormSection from "../../components/common/FormSection";
@@ -17,7 +17,6 @@ import {
   Paperclip,
 } from "lucide-react";
 import api from "../../api/axios";
-
 import toast from "react-hot-toast";
 
 const InputField = ({
@@ -173,73 +172,72 @@ const LCForm = ({ onSave }) => {
   const { id } = useParams();
   const isEditMode = !!id;
   const productIdCounter = useRef(0);
-  const expenseIdCounter = useRef(0);
+  const costIdCounter = useRef(0);
 
   const getNewProduct = () => ({
     id: productIdCounter.current++,
     itemName: "",
-    specification: {
-      thickness_mm: "",
-      width_mm: "",
-      length_mm: "",
-      grade: "",
-    },
+    thickness: "",
+    width: "",
+    length: "",
+    grade: "",
+    quantity: "",
     quantityUnit: "",
-    quantityValue: "",
     unitPriceUsd: "",
     totalValueUsd: "",
   });
 
-  const getNewExpense = () => ({
-    id: expenseIdCounter.current++,
+  const getNewCost = () => ({
+    id: costIdCounter.current++,
     name: "",
     amount: "",
+    date: new Date().toISOString().split("T")[0],
+    paymentMethod: "Cash",
+    accountId: "",
   });
 
   const initialFormData = {
     basicInfo: {
       lcNumber: "",
-      lcOpeningDate: "",
-      status: "Active",
-      bankName: "",
+      lcOpeningDate: new Date().toISOString().split("T")[0],
+      status: "Draft",
+      accountId: "",
       supplierName: "",
-      supplierCountry: "China",
+      supplierCountry: "",
     },
     financialInfo: {
       lcAmountUsd: "",
       exchangeRate: "",
       lcAmountBdt: "",
-      lcMarginPaidBdt: "",
-      bankChargesBdt: "",
-      insuranceCostBdt: "",
-      otherExpenses: [],
+      lcMarginPaidBdt: "", // Kept for input, but will be converted to a cost on submit
+      costs: [],
     },
     productInfo: [getNewProduct()],
     shippingCustomsInfo: {
-      portOfShipment: "Chittagong",
+      portOfShipment: "",
       expectedArrivalDate: "",
-      customsDutyBdt: "",
-      vatBdt: "",
-      aitBdt: "",
-      otherExpenses: [],
+      costs: [],
     },
     agentTransportInfo: {
-      cnfAgentName: "",
-      cnfAgentCommissionBdt: "",
-      indentingAgentCommissionBdt: "",
-      transportCostBdt: "",
-      otherExpenses: [],
+      costs: [],
     },
     documentsNotes: {
-      remarks: "",
+      note: "",
     },
   };
 
   const [formData, setFormData] = useState(initialFormData);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [units, setUnits] = useState([]);
+  const [bankAccounts, setBankAccounts] = useState([]);
+
   const [expandedSections, setExpandedSections] = useState({
-    basic_info: true,
+    basicInfo: true,
+    financialInfo: true,
+    productInfo: true,
+    shippingCustomsInfo: true,
+    agentTransportInfo: true,
+    documentsNotes: true,
   });
   const sectionRefs = useRef({});
 
@@ -257,20 +255,98 @@ const LCForm = ({ onSave }) => {
         console.error(err);
         toast.error("Failed to load units");
       });
+
+    api
+      .get(`/bank/get-all-accounts`)
+      .then((res) => {
+        setBankAccounts(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to load bank accounts");
+      });
   }, []);
 
   useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode && bankAccounts.length > 0) {
       api
         .get(`/lc/get-lc/${id}`)
         .then((res) => {
           const lcData = res.data.data;
+
+          const findAccountIdByName = (name) => {
+            const account = bankAccounts.find(acc => acc.accountName === name && acc.accountType === 'Bank');
+            return account ? account._id : '';
+          };
+
+          // --- Process Costs ---
+          const processSectionCosts = (sectionData, hardcodedCostMap) => {
+            if (sectionData.costs && sectionData.costs.length > 0) {
+              return sectionData.costs.map(c => ({...c, id: costIdCounter.current++}));
+            }
+            // Legacy fallback
+            let costs = [];
+            for (const [key, name] of Object.entries(hardcodedCostMap)) {
+              if (sectionData[key]) {
+                costs.push({
+                  id: costIdCounter.current++,
+                  name: name,
+                  amount: sectionData[key],
+                  date: formatDateForInput(lcData.basicInfo.lcOpeningDate),
+                  paymentMethod: "Cash",
+                  accountId: "",
+                });
+              }
+            }
+            const otherCosts = (sectionData.otherExpenses || []).map((e) => ({
+              ...e,
+              id: costIdCounter.current++,
+              date: formatDateForInput(lcData.basicInfo.lcOpeningDate),
+              paymentMethod: "Cash",
+              accountId: e.accountId || "",
+            }));
+            return [...costs, ...otherCosts];
+          }
+
+          // --- Financial Info ---
+          let marginPaidAmount = '';
+          let financialCosts = [];
+          if (lcData.financialInfo.costs && lcData.financialInfo.costs.length > 0) {
+              const marginCost = lcData.financialInfo.costs.find(c => c.name === 'LC Margin Paid');
+              if (marginCost) {
+                  marginPaidAmount = marginCost.amount;
+              }
+              financialCosts = lcData.financialInfo.costs
+                  .filter(c => c.name !== 'LC Margin Paid')
+                  .map(c => ({...c, id: costIdCounter.current++, date: formatDateForInput(c.date)}));
+          } else { // Legacy
+              marginPaidAmount = lcData.financialInfo.lcMarginPaidBdt || '';
+              financialCosts = processSectionCosts(lcData.financialInfo, { bankChargesBdt: "Bank Charges", insuranceCostBdt: "Insurance Cost" });
+          }
+
+          // --- Shipping & Customs Info ---
+          const shippingCosts = processSectionCosts(lcData.shippingCustomsInfo, { customsDutyBdt: "Customs Duty", vatBdt: "VAT", aitBdt: "AIT" });
+          
+          // --- Agent & Transport Info ---
+          const agentCosts = processSectionCosts(lcData.agentTransportInfo, { cnfAgentCommissionBdt: "C&F Agent Commission", indentingAgentCommissionBdt: "Indenting Agent Commission", transportCostBdt: "Transport Cost" });
+          if (lcData.agentTransportInfo.cnfAgentName) {
+            agentCosts.unshift({
+              id: costIdCounter.current++,
+              name: `C&F Agent Name: ${lcData.agentTransportInfo.cnfAgentName}`,
+              amount: "0",
+              date: formatDateForInput(lcData.basicInfo.lcOpeningDate),
+              paymentMethod: "Cash",
+              accountId: "",
+            });
+          }
+
+          // --- Construct final processed data for state ---
           const processedData = {
             basicInfo: {
               lcNumber: lcData.basicInfo.lcNumber,
               lcOpeningDate: formatDateForInput(lcData.basicInfo.lcOpeningDate),
               status: lcData.basicInfo.status,
-              bankName: lcData.basicInfo.bankName,
+              accountId: lcData.basicInfo.accountId?._id || lcData.basicInfo.accountId || findAccountIdByName(lcData.basicInfo.bankName),
               supplierName: lcData.basicInfo.supplierName,
               supplierCountry: lcData.basicInfo.supplierCountry,
             },
@@ -278,58 +354,36 @@ const LCForm = ({ onSave }) => {
               lcAmountUsd: lcData.financialInfo.lcAmountUsd,
               exchangeRate: lcData.financialInfo.exchangeRate,
               lcAmountBdt: lcData.financialInfo.lcAmountBdt,
-              lcMarginPaidBdt: lcData.financialInfo.lcMarginPaidBdt,
-              bankChargesBdt: lcData.financialInfo.bankChargesBdt,
-              insuranceCostBdt: lcData.financialInfo.insuranceCostBdt,
-              otherExpenses: (lcData.financialInfo?.otherExpenses || []).map(
-                (e) => ({
-                  ...e,
-                  id: expenseIdCounter.current++,
-                })
-              ),
+              lcMarginPaidBdt: marginPaidAmount,
+              costs: financialCosts,
             },
             productInfo: (lcData.productInfo || []).map((p) => ({
-              ...p,
-              quantityUnit: p.quantityUnit?._id || "",
               id: productIdCounter.current++,
+              itemName: p.itemName,
+              thickness: p.thickness || p.specification?.thickness_mm || '',
+              width: p.width || p.specification?.width_mm || '',
+              length: p.length || p.specification?.length_mm || '',
+              grade: p.grade || p.specification?.grade || '',
+              quantity: p.quantity || p.quantityValue || '',
+              quantityUnit: p.quantityUnit?._id || p.quantityUnit || "",
+              unitPriceUsd: p.unitPriceUsd,
+              totalValueUsd: p.totalValueUsd,
             })),
             shippingCustomsInfo: {
               portOfShipment: lcData.shippingCustomsInfo.portOfShipment,
               expectedArrivalDate: formatDateForInput(
                 lcData.shippingCustomsInfo?.expectedArrivalDate
               ),
-              customsDutyBdt: lcData.shippingCustomsInfo.customsDutyBdt,
-              vatBdt: lcData.shippingCustomsInfo.vatBdt,
-              aitBdt: lcData.shippingCustomsInfo.aitBdt,
-              otherExpenses: (
-                lcData.shippingCustomsInfo?.otherExpenses || []
-              ).map((e) => ({
-                ...e,
-                id: expenseIdCounter.current++,
-              })),
+              costs: shippingCosts,
             },
             agentTransportInfo: {
-              cnfAgentName: lcData.agentTransportInfo.cnfAgentName,
-              cnfAgentCommissionBdt:
-                lcData.agentTransportInfo.cnfAgentCommissionBdt,
-              indentingAgentCommissionBdt:
-                lcData.agentTransportInfo.indentingAgentCommissionBdt,
-              transportCostBdt: lcData.agentTransportInfo.transportCostBdt,
-              otherExpenses: (
-                lcData.agentTransportInfo?.otherExpenses || []
-              ).map((e) => ({
-                ...e,
-                id: expenseIdCounter.current++,
-              })),
+              costs: agentCosts,
             },
             documentsNotes: {
-              remarks: lcData.documentsNotes.remarks,
+              note: lcData.documentsNotes.note || lcData.documentsNotes.remarks || "",
             },
-            _id: lcData._id,
-            createdAt: lcData.createdAt,
-            updatedAt: lcData.updatedAt,
-            __v: lcData.__v,
           };
+
           setFormData(processedData);
         })
         .catch((err) => {
@@ -337,7 +391,7 @@ const LCForm = ({ onSave }) => {
           toast.error("Failed to fetch LC data for editing.");
         });
     }
-  }, [id, isEditMode]);
+  }, [id, isEditMode, bankAccounts]);
 
   useEffect(() => {
     const { lcAmountUsd, exchangeRate } = formData.financialInfo;
@@ -349,28 +403,22 @@ const LCForm = ({ onSave }) => {
 
   useEffect(() => {
     const updatedProducts = formData.productInfo.map((product) => {
-      const { quantityValue, unitPriceUsd } = product;
-      if (quantityValue && unitPriceUsd) {
-        const totalValue = parseFloat(quantityValue) * parseFloat(unitPriceUsd);
+      const { quantity, unitPriceUsd } = product;
+      if (quantity && unitPriceUsd) {
+        const totalValue = parseFloat(quantity) * parseFloat(unitPriceUsd);
         return { ...product, totalValueUsd: totalValue.toFixed(2) };
       }
       return product;
     });
 
-    if (
-      JSON.stringify(updatedProducts) !== JSON.stringify(formData.productInfo)
-    ) {
+    if (JSON.stringify(updatedProducts) !== JSON.stringify(formData.productInfo)) {
       setFormData((prev) => ({ ...prev, productInfo: updatedProducts }));
     }
-  }, [JSON.stringify(formData.productInfo)]);
+  }, [formData.productInfo]);
 
   const sections = [
     { id: "basicInfo", title: "Basic Information", icon: FileText },
-    {
-      id: "financialInfo",
-      title: "Financial Information",
-      icon: DollarSign,
-    },
+    { id: "financialInfo", title: "Financial Information", icon: DollarSign },
     { id: "productInfo", title: "Product Information", icon: Package },
     { id: "shippingCustomsInfo", title: "Shipping & Customs", icon: Truck },
     { id: "agentTransportInfo", title: "Agent & Transport", icon: User },
@@ -378,44 +426,19 @@ const LCForm = ({ onSave }) => {
   ];
 
   const toggleSection = (sectionId) => {
-    const isOpening = !expandedSections[sectionId];
-    setExpandedSections((prev) => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
-
-    if (isOpening) {
-      setTimeout(() => {
-        sectionRefs.current[sectionId]?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 300);
-    }
+    setExpandedSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
   };
 
   const handleInputChange = (section, field, value) => {
     setFormData((prev) => ({
       ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
+      [section]: { ...prev[section], [field]: value },
     }));
   };
 
   const handleProductChange = (id, field, value) => {
     const updatedProducts = formData.productInfo.map((p) =>
       p.id === id ? { ...p, [field]: value } : p
-    );
-    setFormData((prev) => ({ ...prev, productInfo: updatedProducts }));
-  };
-
-  const handleProductSpecChange = (id, field, value) => {
-    const updatedProducts = formData.productInfo.map((p) =>
-      p.id === id
-        ? { ...p, specification: { ...p.specification, [field]: value } }
-        : p
     );
     setFormData((prev) => ({ ...prev, productInfo: updatedProducts }));
   };
@@ -429,49 +452,47 @@ const LCForm = ({ onSave }) => {
 
   const removeProduct = (id) => {
     if (formData.productInfo.length > 1) {
-      const updatedProducts = formData.productInfo.filter((p) => p.id !== id);
-      setFormData((prev) => ({ ...prev, productInfo: updatedProducts }));
+      setFormData((prev) => ({
+        ...prev,
+        productInfo: prev.productInfo.filter((p) => p.id !== id),
+      }));
     }
   };
 
-  const handleOtherExpenseChange = (section, id, field, value) => {
+  const handleCostChange = (section, id, field, value) => {
     setFormData((prev) => {
-      const updatedExpenses = prev[section].otherExpenses.map((expense) =>
-        expense.id === id ? { ...expense, [field]: value } : expense
+      const updatedCosts = prev[section].costs.map((cost) =>
+        cost.id === id ? { ...cost, [field]: value } : cost
       );
+      if (field === "paymentMethod") {
+        const targetCost = updatedCosts.find((c) => c.id === id);
+        if (targetCost) targetCost.accountId = "";
+      }
       return {
         ...prev,
-        [section]: {
-          ...prev[section],
-          otherExpenses: updatedExpenses,
-        },
+        [section]: { ...prev[section], costs: updatedCosts },
       };
     });
   };
 
-  const addOtherExpense = (section) => {
+  const addCost = (section) => {
     setFormData((prev) => ({
       ...prev,
       [section]: {
         ...prev[section],
-        otherExpenses: [...prev[section].otherExpenses, getNewExpense()],
+        costs: [...(prev[section].costs || []), getNewCost()],
       },
     }));
   };
 
-  const removeOtherExpense = (section, id) => {
-    setFormData((prev) => {
-      const updatedExpenses = prev[section].otherExpenses.filter(
-        (expense) => expense.id !== id
-      );
-      return {
-        ...prev,
-        [section]: {
-          ...prev[section],
-          otherExpenses: updatedExpenses,
-        },
-      };
-    });
+  const removeCost = (section, id) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        costs: prev[section].costs.filter((cost) => cost.id !== id),
+      },
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -485,29 +506,28 @@ const LCForm = ({ onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const dataToSend = {
-        ...formData,
-        productInfo: formData.productInfo.map(({ id, ...product }) => product),
-        financialInfo: {
-          ...formData.financialInfo,
-          otherExpenses: formData.financialInfo.otherExpenses.map(
-            ({ id, ...expense }) => expense
-          ),
-        },
-        shippingCustomsInfo: {
-          ...formData.shippingCustomsInfo,
-          otherExpenses: formData.shippingCustomsInfo.otherExpenses.map(
-            ({ id, ...expense }) => expense
-          ),
-        },
-        agentTransportInfo: {
-          ...formData.agentTransportInfo,
-          otherExpenses: formData.agentTransportInfo.otherExpenses.map(
-            ({ id, ...expense }) => expense
-          ),
-        },
-      };
+      // Deep copy to avoid mutating state, especially for nested objects
+      const dataToSend = JSON.parse(JSON.stringify(formData));
 
+      // Handle LC Margin Paid as a cost
+      if (dataToSend.financialInfo.lcMarginPaidBdt) {
+        dataToSend.financialInfo.costs.push({
+          name: "LC Margin Paid",
+          amount: dataToSend.financialInfo.lcMarginPaidBdt,
+          date: dataToSend.basicInfo.lcOpeningDate,
+          paymentMethod: "Bank",
+          accountId: dataToSend.basicInfo.accountId,
+        });
+      }
+      // Remove the temporary field before sending
+      delete dataToSend.financialInfo.lcMarginPaidBdt;
+
+      // Clean up client-side IDs
+      dataToSend.productInfo = dataToSend.productInfo.map(({ id, ...p }) => p);
+      dataToSend.financialInfo.costs = dataToSend.financialInfo.costs.map(({ id, ...c }) => c);
+      dataToSend.shippingCustomsInfo.costs = dataToSend.shippingCustomsInfo.costs.map(({ id, ...c }) => c);
+      dataToSend.agentTransportInfo.costs = dataToSend.agentTransportInfo.costs.map(({ id, ...c }) => c);
+      
       const payload = new FormData();
       payload.append("lc_data", JSON.stringify(dataToSend));
       uploadedFiles.forEach((file) => {
@@ -516,17 +536,13 @@ const LCForm = ({ onSave }) => {
 
       if (isEditMode) {
         await api.patch(`/lc/update-lc/${id}`, payload, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
         toast.success("LC Updated");
         navigate(`/lc-details/${id}`);
       } else {
         await api.post(`/lc/create-lc`, payload, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
         toast.success("LC Created");
         navigate("/lc-management");
@@ -545,45 +561,77 @@ const LCForm = ({ onSave }) => {
     exit: { height: 0, opacity: 0, transition: { duration: 0.3 } },
   };
 
-  const renderOtherExpenses = (section) => (
-    <div className="space-y-4 col-span-1 md:col-span-2">
-      <h4 className="font-semibold text-gray-800">Other Expenses</h4>
+  const renderCosts = (section) => (
+    <div className="space-y-4 col-span-1 md:col-span-2 lg:col-span-3">
+      <h4 className="font-semibold text-gray-800">Costs</h4>
       <AnimatePresence>
-        {formData[section].otherExpenses.map((expense, index) => (
+        {(formData[section].costs || []).map((cost, index) => (
           <motion.div
-            key={expense.id}
+            key={cost.id}
             {...sectionAnimation}
-            className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center p-3 bg-gray-100 rounded-lg"
+            className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start p-3 bg-gray-100 rounded-lg"
           >
-            <div className="sm:col-span-6">
+            <div className="sm:col-span-3">
               <InputField
-                label={`Expense Name ${index + 1}`}
-                value={expense.name}
-                onChange={(v) =>
-                  handleOtherExpenseChange(section, expense.id, "name", v)
-                }
+                label={`Cost Name ${index + 1}`}
+                value={cost.name}
+                onChange={(v) => handleCostChange(section, cost.id, "name", v)}
                 placeholder="e.g., Port Fees"
                 required
               />
             </div>
-            <div className="sm:col-span-5">
+            <div className="sm:col-span-2">
               <InputField
                 label="Amount (BDT)"
                 type="number"
-                value={expense.amount}
-                onChange={(v) =>
-                  handleOtherExpenseChange(section, expense.id, "amount", v)
-                }
+                value={cost.amount}
+                onChange={(v) => handleCostChange(section, cost.id, "amount", v)}
                 placeholder="e.g., 5000"
                 required
               />
             </div>
-            <div className="sm:col-span-1 flex items-end justify-end">
+            <div className="sm:col-span-2">
+              <InputField
+                label="Date"
+                type="date"
+                value={cost.date}
+                onChange={(v) => handleCostChange(section, cost.id, "date", v)}
+                required
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <SelectField
+                label="Payment Method"
+                value={cost.paymentMethod}
+                onChange={(v) => handleCostChange(section, cost.id, "paymentMethod", v)}
+                options={[
+                  { value: "Cash", label: "Cash" },
+                  { value: "Bank", label: "Bank" },
+                  { value: "Mobile Banking", label: "Mobile Banking" },
+                ]}
+                required
+              />
+            </div>
+            <div className="sm:col-span-2">
+              {(cost.paymentMethod === "Bank" || cost.paymentMethod === "Mobile Banking") && (
+                <SelectField
+                  label="Select Account"
+                  value={cost.accountId}
+                  onChange={(v) => handleCostChange(section, cost.id, "accountId", v)}
+                  options={bankAccounts
+                    .filter((acc) => acc.accountType === cost.paymentMethod)
+                    .map((acc) => ({ value: acc._id, label: acc.accountName }))}
+                  placeholder="Choose account"
+                  required
+                />
+              )}
+            </div>
+            <div className="sm:col-span-1 flex items-end justify-end h-full">
               <button
                 type="button"
-                onClick={() => removeOtherExpense(section, expense.id)}
-                className="p-2 text-red-600 hover:bg-red-100 rounded-full transition-colors"
-                title="Remove Expense"
+                onClick={() => removeCost(section, cost.id)}
+                className="p-2 text-red-600 hover:bg-red-100 rounded-full transition-colors mt-6"
+                title="Remove Cost"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
@@ -593,11 +641,11 @@ const LCForm = ({ onSave }) => {
       </AnimatePresence>
       <button
         type="button"
-        onClick={() => addOtherExpense(section)}
+        onClick={() => addCost(section)}
         className="flex items-center space-x-2 px-4 py-2 border border-dashed border-gray-400 text-gray-600 rounded-lg hover:bg-gray-100 hover:border-gray-500 hover:text-gray-800 transition-colors"
       >
         <Plus className="w-4 h-4" />
-        <span>Add Other Expense</span>
+        <span>Add Cost</span>
       </button>
     </div>
   );
@@ -609,26 +657,22 @@ const LCForm = ({ onSave }) => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {isEditMode
-                  ? "Edit Letter of Credit"
-                  : "Create New Letter of Credit"}
+                {isEditMode ? "Edit Letter of Credit" : "Create New Letter of Credit"}
               </h1>
               <p className="text-gray-600">
-                Fill in the details below to {isEditMode ? "update" : "create"}{" "}
-                a new LC
+                Fill in the details below to {isEditMode ? "update" : "create"} a new LC
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link to="/lc-management">
-                <button
-                  type="button"
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Cancel</span>
-                </button>
-              </Link>
-              <button
+                          <Link to={isEditMode ? `/lc-details/${id}` : "/lc-management"}>
+                            <button
+                              type="button"
+                              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2"
+                            >
+                              <X className="w-4 h-4" />
+                              <span>Cancel</span>
+                            </button>
+                          </Link>              <button
                 onClick={handleSubmit}
                 className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 flex items-center space-x-2"
               >
@@ -654,61 +698,48 @@ const LCForm = ({ onSave }) => {
                   <InputField
                     label="LC Number"
                     value={formData.basicInfo.lcNumber}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "lcNumber", v)
-                    }
+                    onChange={(v) => handleInputChange("basicInfo", "lcNumber", v)}
                     required
                   />
                   <InputField
                     label="LC Opening Date"
                     type="date"
                     value={formData.basicInfo.lcOpeningDate}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "lcOpeningDate", v)
-                    }
+                    onChange={(v) => handleInputChange("basicInfo", "lcOpeningDate", v)}
                     required
                   />
                   <SelectField
                     label="Status"
                     value={formData.basicInfo.status}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "status", v)
-                    }
+                    onChange={(v) => handleInputChange("basicInfo", "status", v)}
                     options={[
+                      { value: "Draft", label: "Draft" },
                       { value: "Active", label: "Active" },
                       { value: "Completed", label: "Completed" },
                       { value: "Cancelled", label: "Cancelled" },
-                      { value: "Draft", label: "Draft" },
                     ]}
                     required
                   />
-                  <InputField
-                    label="Bank Name"
-                    value={formData.basicInfo.bankName}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "bankName", v)
-                    }
+                  <SelectField
+                    label="Choose a bank account"
+                    value={formData.basicInfo.accountId}
+                    onChange={(v) => handleInputChange("basicInfo", "accountId", v)}
+                    options={bankAccounts
+                      .filter((acc) => acc.accountType === "Bank")
+                      .map((acc) => ({ value: acc._id, label: acc.accountName }))}
+                    placeholder="Select Bank"
                     required
                   />
                   <InputField
                     label="Supplier Name"
                     value={formData.basicInfo.supplierName}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "supplierName", v)
-                    }
+                    onChange={(v) => handleInputChange("basicInfo", "supplierName", v)}
                     required
                   />
-                  <SelectField
+                  <InputField
                     label="Supplier Country"
                     value={formData.basicInfo.supplierCountry}
-                    onChange={(v) =>
-                      handleInputChange("basicInfo", "supplierCountry", v)
-                    }
-                    options={[
-                      { value: "China", label: "China" },
-                      { value: "India", label: "India" },
-                      { value: "US", label: "United States" },
-                    ]}
+                    onChange={(v) => handleInputChange("basicInfo", "supplierCountry", v)}
                     required
                   />
                 </div>
@@ -720,57 +751,30 @@ const LCForm = ({ onSave }) => {
                     label="LC Amount (USD)"
                     type="number"
                     value={formData.financialInfo.lcAmountUsd}
-                    onChange={(v) =>
-                      handleInputChange("financialInfo", "lcAmountUsd", v)
-                    }
+                    onChange={(v) => handleInputChange("financialInfo", "lcAmountUsd", v)}
                     required
                   />
                   <InputField
                     label="Exchange Rate"
                     type="number"
                     value={formData.financialInfo.exchangeRate}
-                    onChange={(v) =>
-                      handleInputChange("financialInfo", "exchangeRate", v)
-                    }
+                    onChange={(v) => handleInputChange("financialInfo", "exchangeRate", v)}
                     required
                   />
                   <InputField
                     label="LC Amount (BDT)"
                     type="number"
                     value={formData.financialInfo.lcAmountBdt}
-                    onChange={(v) =>
-                      handleInputChange("financialInfo", "lcAmountBdt", v)
-                    }
                     disabled
                   />
                   <InputField
                     label="LC Margin Paid (BDT)"
                     type="number"
                     value={formData.financialInfo.lcMarginPaidBdt}
-                    onChange={(v) =>
-                      handleInputChange("financialInfo", "lcMarginPaidBdt", v)
-                    }
+                    onChange={(v) => handleInputChange("financialInfo", "lcMarginPaidBdt", v)}
                     required
                   />
-                  <InputField
-                    label="Bank Charges (BDT)"
-                    type="number"
-                    value={formData.financialInfo.bankChargesBdt}
-                    onChange={(v) =>
-                      handleInputChange("financialInfo", "bankChargesBdt", v)
-                    }
-                    required
-                  />
-                  <InputField
-                    label="Insurance Cost (BDT)"
-                    type="number"
-                    value={formData.financialInfo.insuranceCostBdt}
-                    onChange={(v) =>
-                      handleInputChange("financialInfo", "insuranceCostBdt", v)
-                    }
-                    required
-                  />
-                  {renderOtherExpenses("financialInfo")}
+                  {renderCosts("financialInfo")}
                 </div>
               )}
 
@@ -797,95 +801,60 @@ const LCForm = ({ onSave }) => {
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                           <InputField
-                            label="Product Name"
+                            label="Item Name"
                             value={product.itemName}
-                            onChange={(v) =>
-                              handleProductChange(product.id, "itemName", v)
-                            }
+                            onChange={(v) => handleProductChange(product.id, "itemName", v)}
                             required
                           />
                           <InputField
-                            label="Thickness (mm)"
-                            type="number"
-                            value={product.specification.thickness_mm}
-                            onChange={(v) =>
-                              handleProductSpecChange(
-                                product.id,
-                                "thickness_mm",
-                                v
-                              )
-                            }
+                            label="Thickness"
+                            type="text"
+                            value={product.thickness}
+                            onChange={(v) => handleProductChange(product.id, "thickness", v)}
                           />
                           <InputField
-                            label="Width (mm)"
-                            type="number"
-                            value={product.specification.width_mm}
-                            onChange={(v) =>
-                              handleProductSpecChange(product.id, "width_mm", v)
-                            }
+                            label="Width"
+                            type="text"
+                            value={product.width}
+                            onChange={(v) => handleProductChange(product.id, "width", v)}
                           />
                           <InputField
-                            label="Length (mm)"
-                            type="number"
-                            value={product.specification.length_mm}
-                            onChange={(v) =>
-                              handleProductSpecChange(
-                                product.id,
-                                "length_mm",
-                                v
-                              )
-                            }
+                            label="Length"
+                            type="text"
+                            value={product.length}
+                            onChange={(v) => handleProductChange(product.id, "length", v)}
                           />
                           <InputField
                             label="Grade"
-                            value={product.specification.grade}
-                            onChange={(v) =>
-                              handleProductSpecChange(product.id, "grade", v)
-                            }
+                            value={product.grade}
+                            onChange={(v) => handleProductChange(product.id, "grade", v)}
                           />
                           <SelectField
                             label="Quantity Unit"
                             value={product.quantityUnit}
-                            onChange={(v) =>
-                              handleProductChange(product.id, "quantityUnit", v)
-                            }
+                            onChange={(v) => handleProductChange(product.id, "quantityUnit", v)}
                             options={units}
                             placeholder="Select Unit"
                             required
                           />
                           <InputField
-                            label="Product Quantity"
+                            label="Quantity"
                             type="number"
-                            value={product.quantityValue}
-                            onChange={(v) =>
-                              handleProductChange(
-                                product.id,
-                                "quantityValue",
-                                v
-                              )
-                            }
+                            value={product.quantity}
+                            onChange={(v) => handleProductChange(product.id, "quantity", v)}
                             required
                           />
                           <InputField
                             label="Unit Price (USD)"
                             type="number"
                             value={product.unitPriceUsd}
-                            onChange={(v) =>
-                              handleProductChange(product.id, "unitPriceUsd", v)
-                            }
+                            onChange={(v) => handleProductChange(product.id, "unitPriceUsd", v)}
                             required
                           />
                           <InputField
                             label="Total Value (USD)"
                             type="number"
                             value={product.totalValueUsd}
-                            onChange={(v) =>
-                              handleProductChange(
-                                product.id,
-                                "totalValueUsd",
-                                v
-                              )
-                            }
                             disabled
                           />
                         </div>
@@ -905,125 +874,32 @@ const LCForm = ({ onSave }) => {
 
               {section.id === "shippingCustomsInfo" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <SelectField
+                  <InputField
                     label="Port of Shipment"
                     value={formData.shippingCustomsInfo.portOfShipment}
-                    onChange={(v) =>
-                      handleInputChange(
-                        "shippingCustomsInfo",
-                        "portOfShipment",
-                        v
-                      )
-                    }
-                    options={[
-                      { value: "Chittagong", label: "Chittagong Port" },
-                      { value: "Mongla", label: "Mongla Port" },
-                      { value: "Payra", label: "Payra Port" },
-                      { value: "Matarbari", label: "Matarbari Port" },
-                    ]}
+                    onChange={(v) => handleInputChange("shippingCustomsInfo", "portOfShipment", v)}
                   />
                   <InputField
                     label="Expected Arrival Date"
                     type="date"
                     value={formData.shippingCustomsInfo.expectedArrivalDate}
-                    onChange={(v) =>
-                      handleInputChange(
-                        "shippingCustomsInfo",
-                        "expectedArrivalDate",
-                        v
-                      )
-                    }
+                    onChange={(v) => handleInputChange("shippingCustomsInfo", "expectedArrivalDate", v)}
                   />
-                  <InputField
-                    label="Customs Duty (BDT)"
-                    type="number"
-                    value={formData.shippingCustomsInfo.customsDutyBdt}
-                    onChange={(v) =>
-                      handleInputChange(
-                        "shippingCustomsInfo",
-                        "customsDutyBdt",
-                        v
-                      )
-                    }
-                  />
-                  <InputField
-                    label="VAT (BDT)"
-                    type="number"
-                    value={formData.shippingCustomsInfo.vatBdt}
-                    onChange={(v) =>
-                      handleInputChange("shippingCustomsInfo", "vatBdt", v)
-                    }
-                  />
-                  <InputField
-                    label="AIT (BDT)"
-                    type="number"
-                    value={formData.shippingCustomsInfo.aitBdt}
-                    onChange={(v) =>
-                      handleInputChange("shippingCustomsInfo", "aitBdt", v)
-                    }
-                  />
-                  {renderOtherExpenses("shippingCustomsInfo")}
+                  {renderCosts("shippingCustomsInfo")}
                 </div>
               )}
 
               {section.id === "agentTransportInfo" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <InputField
-                    label="C&F Agent Name"
-                    value={formData.agentTransportInfo.cnfAgentName}
-                    onChange={(v) =>
-                      handleInputChange("agentTransportInfo", "cnfAgentName", v)
-                    }
-                  />
-                  <InputField
-                    label="C&F Agent Commission (BDT)"
-                    type="number"
-                    value={formData.agentTransportInfo.cnfAgentCommissionBdt}
-                    onChange={(v) =>
-                      handleInputChange(
-                        "agentTransportInfo",
-                        "cnfAgentCommissionBdt",
-                        v
-                      )
-                    }
-                  />
-                  <InputField
-                    label="Indenting Agent Commission (BDT)"
-                    type="number"
-                    value={
-                      formData.agentTransportInfo.indentingAgentCommissionBdt
-                    }
-                    onChange={(v) =>
-                      handleInputChange(
-                        "agentTransportInfo",
-                        "indentingAgentCommissionBdt",
-                        v
-                      )
-                    }
-                  />
-                  <InputField
-                    label="Transport Cost (BDT)"
-                    type="number"
-                    value={formData.agentTransportInfo.transportCostBdt}
-                    onChange={(v) =>
-                      handleInputChange(
-                        "agentTransportInfo",
-                        "transportCostBdt",
-                        v
-                      )
-                    }
-                  />
-                  {renderOtherExpenses("agentTransportInfo")}
+                  {renderCosts("agentTransportInfo")}
                 </div>
               )}
               {section.id === "documentsNotes" && (
                 <div className="space-y-4">
                   <TextAreaField
-                    label="Remarks"
-                    value={formData.documentsNotes.remarks}
-                    onChange={(v) =>
-                      handleInputChange("documentsNotes", "remarks", v)
-                    }
+                    label="Note"
+                    value={formData.documentsNotes.note}
+                    onChange={(v) => handleInputChange("documentsNotes", "note", v)}
                   />
                   <FileInput
                     files={uploadedFiles}
@@ -1036,7 +912,7 @@ const LCForm = ({ onSave }) => {
           ))}
 
           <div className="flex justify-end gap-4 mt-8">
-            <Link to="/lc-management">
+            <Link to={isEditMode ? `/lc-details/${id}` : "/lc-management"}>
               <button
                 type="button"
                 className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-100 transition-colors"

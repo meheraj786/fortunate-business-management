@@ -14,6 +14,7 @@ import {
   FiDownload,
   FiEdit,
   FiTrash,
+  FiCreditCard,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router";
@@ -30,15 +31,14 @@ const StatusBadge = ({ status }) => {
   let bgColor, icon;
 
   switch (status.toLowerCase()) {
-    case "open":
+    case "draft":
+      bgColor = "bg-gray-100 text-gray-800";
+      icon = <FiClock className="mr-1" />;
+      break;
+    case "active":
       bgColor = "bg-blue-100 text-blue-800";
       icon = <FiClock className="mr-1" />;
       break;
-    case "partially used":
-      bgColor = "bg-yellow-100 text-yellow-800";
-      icon = <FiAlertCircle className="mr-1" />;
-      break;
-    case "closed":
     case "completed":
       bgColor = "bg-green-100 text-green-800";
       icon = <FiCheckCircle className="mr-1" />;
@@ -46,14 +46,6 @@ const StatusBadge = ({ status }) => {
     case "cancelled":
       bgColor = "bg-red-100 text-red-800";
       icon = <FiXCircle className="mr-1" />;
-      break;
-    case "documents submitted":
-      bgColor = "bg-purple-100 text-purple-800";
-      icon = <FiClipboard className="mr-1" />;
-      break;
-    case "pending":
-      bgColor = "bg-orange-100 text-orange-800";
-      icon = <FiClock className="mr-1" />;
       break;
     default:
       bgColor = "bg-gray-100 text-gray-800";
@@ -71,7 +63,8 @@ const StatusBadge = ({ status }) => {
 };
 
 const DataField = ({ label, value, icon, hidden = false }) => {
-  if (hidden || !value) return null;
+  if (hidden || value === null || value === undefined || value === "")
+    return null;
 
   return (
     <div className="mb-3 last:mb-0">
@@ -84,6 +77,22 @@ const DataField = ({ label, value, icon, hidden = false }) => {
   );
 };
 
+const CostField = ({ cost }) => {
+  if (!cost) return null;
+
+  return (
+    <div className="mb-3 last:mb-0">
+      <div className="flex items-center text-sm text-gray-500 mb-1">
+        <FiDollarSign className="mr-2" />
+        {cost.name} (BDT)
+      </div>
+      <div className="text-gray-900 font-medium">
+        {cost.amount ? `${Number(cost.amount).toLocaleString("en-IN")}` : "-"}
+      </div>
+    </div>
+  );
+};
+
 const LCdetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -91,7 +100,7 @@ const LCdetails = () => {
   const { baseUrl } = useContext(UrlContext);
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'delete' or 'export'
+  const [confirmAction, setConfirmAction] = useState(null);
   const [isConfirming, setIsConfirming] = useState(false);
 
   const openConfirmationModal = (action) => {
@@ -148,9 +157,9 @@ const LCdetails = () => {
       .catch((err) => console.error(err));
   }, [id]);
 
-  // Helper function to safely format numbers
   const formatNumber = (value) => {
-    return value != null ? value.toLocaleString() : "-";
+    if (value === null || value === undefined) return "-";
+    return Number(value).toLocaleString("en-IN");
   };
 
   const formatDate = (dateString) => {
@@ -162,243 +171,265 @@ const LCdetails = () => {
     });
   };
 
+  const getPaymentMethodDisplay = (cost) => {
+    if (!cost.paymentMethod) return "";
+
+    if (cost.paymentMethod === "Cash") {
+      return "Cash";
+    } else if (cost.accountId) {
+      const { accountHolderName, accountName, bankName, serviceName } =
+        cost.accountId;
+      const institutionName =
+        cost.paymentMethod === "Bank" ? bankName : serviceName;
+      const accountDisplay = `${accountHolderName} (${accountName})`;
+
+      return `${cost.paymentMethod}: ${accountDisplay} - ${institutionName}`;
+    }
+
+    return cost.paymentMethod;
+  };
+
   if (!lcData) {
     return (
       <div className="min-h-screen flex justify-center items-center">
-        Loading LC Details...
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003b75]"></div>
       </div>
     );
   }
 
-  // Safely extract data with fallbacks
-  const financialInfo = lcData?.financialInfo || {};
-  const shippingCustomsInfo = lcData?.shippingCustomsInfo || {};
-  const agentTransportInfo = lcData?.agentTransportInfo || {};
-  const productInfo = lcData?.productInfo || [];
-  const basicInfo = lcData?.basicInfo || {};
-  const documentsNotes = lcData?.documentsNotes || {};
+  const {
+    basicInfo = {},
+    financialInfo = {},
+    shippingCustomsInfo = {},
+    agentTransportInfo = {},
+    productInfo = [],
+    documentsNotes = {},
+    otherExpenses = {},
+  } = lcData;
 
-  const sumOtherExpenses = (expenses) => {
-    if (!expenses || !Array.isArray(expenses)) return 0;
-    return expenses.reduce(
-      (total, expense) => total + (expense.amount || 0),
-      0
-    );
-  };
-
-  const otherFinancialExpenses = sumOtherExpenses(financialInfo.otherExpenses);
-  const otherShippingExpenses = sumOtherExpenses(
-    shippingCustomsInfo.otherExpenses
+  // Calculate totals
+  const totalProductsValueUsd = productInfo.reduce(
+    (total, p) => total + (p.totalValueUsd || 0),
+    0
   );
-  const otherAgentExpenses = sumOtherExpenses(agentTransportInfo.otherExpenses);
-  const customsTotalBdt =
-    (shippingCustomsInfo.customsDutyBdt || 0) +
-    (shippingCustomsInfo.vatBdt || 0) +
-    (shippingCustomsInfo.aitBdt || 0) +
-    otherShippingExpenses;
-
-  const transportOtherBdt =
-    (agentTransportInfo.transportCostBdt || 0) + otherAgentExpenses;
-
-  const totalLcCostBdt =
-    (financialInfo.lcAmountBdt || 0) +
-    (financialInfo.bankChargesBdt || 0) +
-    (financialInfo.insuranceCostBdt || 0) +
-    customsTotalBdt +
-    (agentTransportInfo.cnfAgentCommissionBdt || 0) +
-    (agentTransportInfo.indentingAgentCommissionBdt || 0) +
-    transportOtherBdt +
-    otherFinancialExpenses;
-
-  const totalQuantityValue = productInfo.reduce(
-    (total, p) => total + (p.quantityValue || 0),
+  const allCosts = [
+    ...(financialInfo.costs || []),
+    ...(shippingCustomsInfo.costs || []),
+    ...(agentTransportInfo.costs || []),
+    ...(otherExpenses.costs || []),
+  ];
+  const totalLcExpenses = allCosts.reduce(
+    (total, cost) => total + (cost.amount || 0),
     0
   );
 
-  const perUnitLandingCostBdt = totalQuantityValue
-    ? totalLcCostBdt / totalQuantityValue
-    : 0;
-  const costSummary = {
-    lcAmountBdt: financialInfo.lcAmountBdt || 0,
-    bankChargesBdt: financialInfo.bankChargesBdt || 0,
-    insuranceCostBdt: financialInfo.insuranceCostBdt || 0,
-    customsTotalBdt,
-    agentCommissionBdt:
-      (agentTransportInfo.cnfAgentCommissionBdt || 0) +
-      (agentTransportInfo.indentingAgentCommissionBdt || 0),
-    transportOtherBdt,
-    totalLcCostBdt,
-    perUnitLandingCostBdt,
-    otherFinancialExpenses,
-  };
-
   return (
     <div>
-      <div className="mx-auto">
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
         <motion.div
-          className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between"
+          className="mb-5 p-6 bg-white rounded-xl shadow-sm border border-gray-100"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Letter of Credit Details
-            </h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base">
-              Comprehensive view of your Letter of Credit
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0 flex space-x-2">
-            <button
-              onClick={() => openConfirmationModal("export")}
-              className="cursor-pointer flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              <FiDownload className="mr-2" />
-              Export
-            </button>
-            <button
-              onClick={() => navigate(`/lc-form/${id}`)}
-              className="cursor-pointer flex items-center px-4 py-2 bg-[#003b75] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-[#002855]"
-            >
-              <FiEdit className="mr-2" />
-              Edit
-            </button>
-            <button
-              onClick={() => openConfirmationModal("delete")}
-              className="cursor-pointer flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700"
-            >
-              <FiTrash className="mr-2" />
-              Delete
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-[#003b75] rounded-lg">
+                  <FiFile className="text-white text-xl" />
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {basicInfo.lcNumber || "Letter of Credit Details"}
+                </h1>
+              </div>
+              <p className="text-gray-600 ml-12">
+                Comprehensive view of your Letter of Credit
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0 flex flex-wrap gap-2">
+              <button
+                onClick={() => openConfirmationModal("export")}
+                className="flex items-center justify-center px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200 shadow-sm hover:shadow"
+              >
+                <FiDownload className="mr-2" />
+                Export
+              </button>
+              <button
+                onClick={() => navigate(`/lc-form/${id}`)}
+                className="flex items-center px-4 py-2.5 bg-[#003b75] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-[#002855] transition-colors duration-200 shadow-sm hover:shadow"
+              >
+                <FiEdit className="mr-2" />
+                Edit
+              </button>
+              <button
+                onClick={() => openConfirmationModal("delete")}
+                className="flex items-center px-4 py-2.5 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 transition-colors duration-200 shadow-sm hover:shadow"
+              >
+                <FiTrash className="mr-2" />
+                Delete
+              </button>
+            </div>
           </div>
         </motion.div>
 
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main content - 2/3 width on large screens */}
-          <div className="lg:col-span-2 space-y-4">
-            <CollapsibleCard title="Basic LC Information" icon={<FiFile />}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DataField label="LC Number" value={basicInfo.lcNumber} />
+          {/* Left Column - 2/3 width */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic LC Information */}
+            <CollapsibleCard
+              title="Basic LC Information"
+              icon={<FiFile className="text-[#003b75]" />}
+              defaultOpen={true}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <DataField
+                  label="LC Number"
+                  value={basicInfo.lcNumber}
+                  icon={<FiFile />}
+                />
                 <DataField
                   label="LC Opening Date"
                   value={formatDate(basicInfo.lcOpeningDate)}
-                />
-                <DataField label="Bank Name" value={basicInfo.bankName} />
-                <DataField
-                  label="Status"
-                  value={<StatusBadge status={basicInfo.status} />}
+                  icon={<FiClock />}
                 />
                 <DataField
                   label="Supplier Name"
                   value={basicInfo.supplierName}
+                  icon={<FiUser />}
                 />
                 <DataField
                   label="Supplier Country"
                   value={basicInfo.supplierCountry}
+                  icon={<FiTruck />}
                 />
+                <div className="sm:col-span-2">
+                  <DataField
+                    label="Status"
+                    value={<StatusBadge status={basicInfo.status} />}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <DataField
+                    label="Bank Name"
+                    value={basicInfo.accountId?.bankName}
+                  />
+                  <DataField
+                    label="Branch Name"
+                    value={basicInfo.accountId?.branchName}
+                  />
+                  <DataField
+                    label="Account Holder"
+                    value={`${basicInfo.accountId?.accountHolderName} (${basicInfo.accountId?.accountName})`}
+                  />
+                  <DataField
+                    label="Account Number"
+                    value={basicInfo.accountId?.accountNumber}
+                  />
+                </div>
               </div>
             </CollapsibleCard>
 
+            {/* Financial Information */}
             <CollapsibleCard
               title="Financial Information"
-              icon={<FiDollarSign />}
+              icon={<FiDollarSign className="text-[#003b75]" />}
+              defaultOpen={true}
+              className=""
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <DataField
                   label="LC Amount (USD)"
-                  value={formatNumber(financialInfo.lcAmountUsd)}
+                  value={`$${formatNumber(financialInfo.lcAmountUsd)}`}
                 />
                 <DataField
                   label="Exchange Rate"
-                  value={financialInfo.exchangeRate || "-"}
+                  value={formatNumber(financialInfo.exchangeRate)}
                 />
                 <DataField
                   label="LC Amount (BDT)"
-                  value={formatNumber(financialInfo.lcAmountBdt)}
-                />
-                <DataField
-                  label="LC Margin Paid (BDT)"
-                  value={formatNumber(financialInfo.lcMarginPaidBdt)}
-                />
-                <DataField
-                  label="Bank Charges (BDT)"
-                  value={formatNumber(financialInfo.bankChargesBdt)}
-                />
-                <DataField
-                  label="Insurance Cost (BDT)"
-                  value={formatNumber(financialInfo.insuranceCostBdt)}
+                  value={`৳${formatNumber(financialInfo.lcAmountBdt)}`}
                 />
               </div>
-              {financialInfo.otherExpenses?.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-300">
-                  <h3 className="text-md font-semibold mb-2">Other Expenses</h3>
-                  <div className="space-y-2">
-                    {financialInfo.otherExpenses.map((expense) => (
-                      <div
-                        key={expense._id}
-                        className="flex justify-between items-center"
-                      >
-                        <span className="text-gray-600">{expense.name}</span>
-                        <span className="font-medium">
-                          {formatNumber(expense.amount)} BDT
-                        </span>
-                      </div>
-                    ))}
+
+              {financialInfo.costs && financialInfo.costs.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 mt-4 gap-2">
+                  {financialInfo.costs.map((cost) => (
+                    <CostField key={cost._id} cost={cost} />
+                  ))}
+                </div>
+              )}
+            </CollapsibleCard>
+
+            {/* Product Information */}
+            <CollapsibleCard
+              title="Product Information"
+              icon={<FiBox className="text-[#003b75]" />}
+              defaultOpen={true}
+            >
+              {productInfo.map((p, index) => (
+                <div
+                  key={p._id || index}
+                  className="pb-6 mb-6 last:pb-0 last:mb-0 border-b last:border-b-0 border-gray-200"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {p.itemName && (
+                      <DataField label="Item Name" value={p.itemName} />
+                    )}
+
+                    <DataField
+                      label="Specifications"
+                      value={
+                        `Thickness: ${p.thickness || "-"}, ` +
+                        `Width: ${p.width || "-"}, ` +
+                        `Length: ${p.length || "-"}`
+                      }
+                    />
+
+                    {p.grade && <DataField label="Grade" value={p.grade} />}
+
+                    <DataField
+                      label="Quantity"
+                      value={`${formatNumber(p.quantity)} ${
+                        p.quantityUnit?.name ? `(${p.quantityUnit.name})` : ""
+                      }`}
+                    />
+
+                    <DataField
+                      label="Unit Price (USD)"
+                      value={`$${formatNumber(p.unitPriceUsd)}`}
+                    />
+                    <DataField
+                      label="Total Value (USD)"
+                      value={`$${formatNumber(p.totalValueUsd)}`}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {productInfo.length > 0 && (
+                <div className="mt-6 bg-gray-50 rounded-lg p-3">
+                  <div className="flex justify-between items-center font-semibold text-lg">
+                    <span className="text-gray-700">Total Products Value</span>
+                    <span className="text-[#003b75]">
+                      ${formatNumber(totalProductsValueUsd)} USD
+                    </span>
                   </div>
                 </div>
               )}
             </CollapsibleCard>
 
-            <CollapsibleCard title="Product Information" icon={<FiBox />}>
-              {productInfo.map((p, index) => (
-                <div
-                  key={p._id || index}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b  border-gray-300 pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0"
-                >
-                  <DataField label="Item Name" value={p.itemName} />
-                  <DataField
-                    label="Unit Price (USD)"
-                    value={formatNumber(p.unitPriceUsd)}
-                  />
-                  {p.specification && (
-                    <DataField
-                      label="Specification"
-                      value={[
-                        p.specification.thickness_mm &&
-                          `Thickness: ${p.specification.thickness_mm}mm`,
-                        p.specification.width_mm &&
-                          `Width: ${p.specification.width_mm}mm`,
-                        p.specification.length_mm &&
-                          `Length: ${p.specification.length_mm}mm`,
-                        p.specification.grade &&
-                          `Grade: ${p.specification.grade}`,
-                      ]
-                        .filter(Boolean)
-                        .join(", ")}
-                    />
-                  )}
-                  <DataField
-                    label="Total Value (USD)"
-                    value={formatNumber(p.totalValueUsd)}
-                  />
-                  <DataField
-                    label="Quantity Unit"
-                    value={p.quantityUnit?.name || "-"}
-                  />
-                  <DataField
-                    label={`Quantity (${p.quantityUnit?.name || "N/A"})`}
-                    value={p.quantityValue || "-"}
-                  />
-                </div>
-              ))}
-            </CollapsibleCard>
+            {/* Shipping & Customs Information */}
 
             <CollapsibleCard
-              title="Shipping & Customs Information"
-              icon={<FiTruck />}
+              title="Shipping & Customs Info"
+              icon={<FiTruck className="text-[#003b75]" />}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <DataField
                   label="Port of Shipment"
                   value={shippingCustomsInfo.portOfShipment}
@@ -407,166 +438,208 @@ const LCdetails = () => {
                   label="Expected Arrival Date"
                   value={formatDate(shippingCustomsInfo.expectedArrivalDate)}
                 />
-                <DataField
-                  label="Customs Duty (BDT)"
-                  value={formatNumber(shippingCustomsInfo.customsDutyBdt)}
-                />
-                <DataField
-                  label="VAT (BDT)"
-                  value={formatNumber(shippingCustomsInfo.vatBdt)}
-                />
-                <DataField
-                  label="AIT (BDT)"
-                  value={formatNumber(shippingCustomsInfo.aitBdt)}
-                />
               </div>
-              {shippingCustomsInfo.otherExpenses?.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-300">
-                  <h3 className="text-md font-semibold mb-2">Other Expenses</h3>
-                  <div className="space-y-2">
-                    {shippingCustomsInfo.otherExpenses.map((expense) => (
-                      <div
-                        key={expense._id}
-                        className="flex justify-between items-center"
-                      >
-                        <span className="text-gray-600">{expense.name}</span>
-                        <span className="font-medium">
-                          {formatNumber(expense.amount)} BDT
-                        </span>
-                      </div>
+
+              {shippingCustomsInfo.costs &&
+                shippingCustomsInfo.costs.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 mt-4 gap-2">
+                    {shippingCustomsInfo.costs.map((cost) => (
+                      <CostField key={cost._id} cost={cost} />
                     ))}
                   </div>
-                </div>
-              )}
+                )}
             </CollapsibleCard>
 
+            {/* Agent & Transport Information */}
             <CollapsibleCard
-              title="Agent & Transport Information"
-              icon={<FiUser />}
+              title="Agent & Transport Info"
+              icon={<FiUser className="text-[#003b75]" />}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DataField
-                  label="C&F Agent Name"
-                  value={agentTransportInfo.cnfAgentName}
-                />
-                <DataField
-                  label="C&F Agent Commission (BDT)"
-                  value={formatNumber(agentTransportInfo.cnfAgentCommissionBdt)}
-                />
-                <DataField
-                  label="Indenting Agent Commission (BDT)"
-                  value={formatNumber(
-                    agentTransportInfo.indentingAgentCommissionBdt
-                  )}
-                />
-                <DataField
-                  label="Transport Cost (BDT)"
-                  value={formatNumber(agentTransportInfo.transportCostBdt)}
-                />
-              </div>
-              {agentTransportInfo.otherExpenses?.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-300">
-                  <h3 className="text-md font-semibold mb-2">Other Expenses</h3>
-                  <div className="space-y-2">
-                    {agentTransportInfo.otherExpenses.map((expense) => (
-                      <div
-                        key={expense._id}
-                        className="flex justify-between items-center"
-                      >
-                        <span className="text-gray-600">{expense.name}</span>
-                        <span className="font-medium">
-                          {formatNumber(expense.amount)} BDT
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+              {agentTransportInfo.costs &&
+              agentTransportInfo.costs.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 mt-4 gap-2">
+                  {agentTransportInfo.costs.map((cost) => (
+                    <CostField key={cost._id} cost={cost} />
+                  ))}
                 </div>
-              )}
-            </CollapsibleCard>
-          </div>
-
-          {/* Sidebar - 1/3 width on large screens */}
-          <div className="space-y-4">
-            <CollapsibleCard title="Cost Summary" icon={<FiPieChart />}>
-              <div className="space-y-3">
-                <DataField
-                  label="LC Amount (BDT)"
-                  value={formatNumber(costSummary.lcAmountBdt)}
-                />
-                <DataField
-                  label="Bank Charges (BDT)"
-                  value={formatNumber(costSummary.bankChargesBdt)}
-                />
-                <DataField
-                  label="Insurance Cost (BDT)"
-                  value={formatNumber(costSummary.insuranceCostBdt)}
-                />
-                <DataField
-                  label="Other Financial Expenses"
-                  value={formatNumber(costSummary.otherFinancialExpenses)}
-                />
-                <DataField
-                  label="Customs Total (BDT)"
-                  value={formatNumber(costSummary.customsTotalBdt)}
-                />
-                <DataField
-                  label="Agent Commission (BDT)"
-                  value={formatNumber(costSummary.agentCommissionBdt)}
-                />
-                <DataField
-                  label="Transport & Other (BDT)"
-                  value={formatNumber(costSummary.transportOtherBdt)}
-                />
-                <hr className="my-4 border-gray-200" />
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold">Total Cost (BDT)</p>
-                  <p className="font-bold text-lg">
-                    {formatNumber(costSummary.totalLcCostBdt)}
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 mb-2">
+                    <FiUser className="text-3xl mx-auto" />
+                  </div>
+                  <p className="text-gray-500">
+                    No agent & transport costs added
                   </p>
                 </div>
+              )}
+            </CollapsibleCard>
+
+            {/* Other Expenses */}
+            {otherExpenses.costs && otherExpenses.costs.length > 0 && (
+              <CollapsibleCard
+                title="Other Expenses"
+                icon={<FiAlertCircle className="text-[#003b75]" />}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {otherExpenses.costs.map((cost) => (
+                    <CostField key={cost._id} cost={cost} />
+                  ))}
+                </div>
+              </CollapsibleCard>
+            )}
+          </div>
+
+          {/* Right Column - 1/3 width */}
+          <div className="space-y-6">
+            {/* Cost Summary */}
+            <CollapsibleCard
+              title="Cost Summary"
+              icon={<FiPieChart className="text-[#003b75]" />}
+              defaultOpen={true}
+            >
+              <div className="space-y-4">
+                {allCosts.length > 0 ? (
+                  <>
+                    <div className="space-y-3 pr-2">
+                      {allCosts.map((cost) => (
+                        <div
+                          key={cost._id}
+                          className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
+                        >
+                          <span className="text-sm text-gray-600 truncate pr-2">
+                            {cost.name}
+                          </span>
+                          <span className="text-sm font-medium whitespace-nowrap">
+                            ৳{formatNumber(cost.amount)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="pt-4 border-t border-gray-200">
+                      <div className="flex justify-between items-center py-3 bg-gray-50 rounded-lg px-3">
+                        <span className="font-bold text-gray-800">
+                          Total LC Expenses
+                        </span>
+                        <span className="font-bold text-lg text-[#003b75]">
+                          ৳{formatNumber(totalLcExpenses)}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="text-gray-400 mb-2">
+                      <FiDollarSign className="text-3xl mx-auto" />
+                    </div>
+                    <p className="text-gray-500">No costs added yet</p>
+                  </div>
+                )}
               </div>
             </CollapsibleCard>
 
-            <CollapsibleCard title="Documents & Notes" icon={<FiClipboard />}>
+            {/* Documents & Notes */}
+            <CollapsibleCard
+              title="Documents & Notes"
+              icon={<FiClipboard className="text-[#003b75]" />}
+            >
               <div className="space-y-4">
-                {documentsNotes.uploadedDocuments &&
-                  documentsNotes.uploadedDocuments.length > 0 && (
-                    <div>
-                      <div className="text-sm text-gray-500 mb-2">
-                        Uploaded Documents
-                      </div>
-                      <div className="space-y-2">
-                        {documentsNotes.uploadedDocuments.map((doc) => (
-                          <div
-                            key={doc._id}
-                            className="flex items-center p-2 bg-gray-50 rounded-md"
-                          >
-                            <FiFile className="text-gray-400 mr-2 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-gray-700 truncate">
-                                {doc.originalName}
-                              </div>
+                {documentsNotes.uploadedDocuments?.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                      Uploaded Documents
+                    </h3>
+                    <div className="space-y-2">
+                      {documentsNotes.uploadedDocuments.map((doc) => (
+                        <div
+                          key={doc._id}
+                          className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors duration-200"
+                        >
+                          <FiFile className="text-gray-400 mr-3 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-700 truncate">
+                              {doc.originalName}
                             </div>
-                            <a
-                              href={`${baseUrl}lc/${lcData._id}/documents/${doc.storedName}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              download
-                              className="ml-2 text-[#003b75] hover:text-blue-800"
-                            >
-                              <FiDownload />
-                            </a>
                           </div>
-                        ))}
+                          <a
+                            href={`${baseUrl}lc/${lcData._id}/documents/${doc.storedName}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="ml-2 text-[#003b75] hover:text-blue-800 transition-colors duration-200"
+                            title="Download"
+                          >
+                            <FiDownload />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {documentsNotes.note &&
+                  documentsNotes.note !== "No notes given" && (
+                    <div className="pt-4 border-t border-gray-200">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                        Notes
+                      </h3>
+                      <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
+                        <p className="text-sm text-gray-700 whitespace-pre-line">
+                          {documentsNotes.note}
+                        </p>
                       </div>
                     </div>
                   )}
-                <DataField label="Remarks" value={documentsNotes.remarks} />
+              </div>
+            </CollapsibleCard>
+
+            {/* Payment History */}
+            <CollapsibleCard
+              title="Payment History"
+              icon={<FiCreditCard className="text-[#003b75]" />}
+              defaultOpen={true}
+            >
+              <div className="space-y-4">
+                {allCosts.length > 0 ? (
+                  <div className="space-y-3 max-h-[900px] overflow-y-auto pr-2">
+                    {allCosts.map((cost) => (
+                      <div
+                        key={cost._id}
+                        className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors duration-200"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-semibold text-gray-800 text-sm truncate pr-2">
+                            {cost.name}
+                          </span>
+                          <span className="font-bold text-gray-800 whitespace-nowrap">
+                            ৳{formatNumber(cost.amount)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mb-1">
+                          {formatDate(cost.date)}
+                        </div>
+                        <div className="text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">
+                          {getPaymentMethodDisplay(cost)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="text-gray-400 mb-2">
+                      <FiCreditCard className="text-3xl mx-auto" />
+                    </div>
+                    <p className="text-gray-500">
+                      No payment history available
+                    </p>
+                  </div>
+                )}
               </div>
             </CollapsibleCard>
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
@@ -574,27 +647,9 @@ const LCdetails = () => {
         title={
           confirmAction === "delete" ? "Confirm Deletion" : "Confirm Export"
         }
-        description={
-          confirmAction === "delete"
-            ? `Are you sure you want to delete this Letter of Credit (${lcData?.basicInfo?.lcNumber})? This action cannot be undone.`
-            : "Do you want to download the LC details as a PDF file?"
-        }
+        description={`Are you sure you want to ${confirmAction} this Letter of Credit (${basicInfo.lcNumber})?`}
         confirmText={confirmAction === "delete" ? "Delete" : "Export"}
         isConfirming={isConfirming}
-        confirmingText={
-          confirmAction === "delete" ? "Deleting..." : "Exporting..."
-        }
-        icon={confirmAction === "delete" ? FiTrash : FiDownload}
-        iconBgColor={confirmAction === "delete" ? "bg-red-100" : "bg-blue-100"}
-        iconTextColor={
-          confirmAction === "delete" ? "text-red-600" : "text-blue-600"
-        }
-        confirmButtonBgColor={
-          confirmAction === "delete" ? "bg-red-600" : "bg-blue-600"
-        }
-        confirmButtonHoverBgColor={
-          confirmAction === "delete" ? "hover:bg-red-700" : "hover:bg-blue-700"
-        }
       />
     </div>
   );

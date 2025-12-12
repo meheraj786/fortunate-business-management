@@ -36,7 +36,7 @@ const CollapsibleCard = ({ title, icon, children, defaultOpen = true }) => {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4">{children}</div>
+            <div className="px-5 pb-4">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
