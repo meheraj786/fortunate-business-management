@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UrlContext } from "./UrlContext";
+import { UrlContext } from "@/context/UrlContext";
 
 const UrlProvider = ({ children }) => {
   const [baseUrl] = useState(import.meta.env.VITE_BASE_URL);

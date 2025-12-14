@@ -1,39 +1,39 @@
 import React from "react";
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router";
-import Login from "./pages/Login/Login";
-import Dashboard from "./pages/Dashboard/Dashboard";
-import Layout from "./components/layout/Layout";
-import LC from "./pages/lc_management/LC";
-import Customers from "./pages/customer_management/Customers";
-import Settings from "./pages/Settings/Settings";
-import LCdetails from "./pages/lc_management/LCdetails";
-import CustomerDetails from "./pages/customer_management/CustomerDetails";
-import Stock from "./pages/stock_management/StockManagement";
-import WarehouseStock from "./pages/stock_management/WarehouseStock";
-import Team from "./pages/Team/Team";
-import Sales from "./pages/Sales/Sales";
-import DailyCashFlow from "./pages/DailyCashFlow/DailyCashFlow";
-import Accounts from "./pages/Accounts/Accounts";
-import LCform from "./pages/lc_management/LCform";
-import CustomerForm from "./pages/customer_management/CustomerForm";
-import ProductDetails from "./pages/stock_management/ProductDetails";
-import SaleDetails from "./pages/Sales/SaleDetails";
-import TeamDetails from "./pages/Team/TeamDetails";
+import LoginPage from "@/features/login/LoginPage";
+import DashboardPage from "@/features/dashboard/DashboardPage";
+import Layout from "@/components/layout/Layout";
+import LCPage from "@/features/lc-management/LCPage";
+import CustomersPage from "@/features/customers/CustomersPage";
+import SettingsPage from "@/features/settings/SettingsPage";
+import LCDetailsPage from "@/features/lc-management/LCDetailsPage";
+import CustomerDetailsPage from "@/features/customers/CustomerDetailsPage";
+import StockManagementPage from "@/features/stock-management/StockManagementPage";
+import WarehouseStockPage from "@/features/stock-management/WarehouseStockPage";
+import TeamPage from "@/features/team/TeamPage";
+import SalesDashboardPage from "@/features/sales/SalesDashboardPage";
+import DailyCashFlowPage from "@/features/daily-cash-flow/DailyCashFlowPage";
+import AccountsPage from "@/features/accounts/AccountsPage";
+import LCFormPage from "@/features/lc-management/LCFormPage";
+import CustomerFormPage from "@/features/customers/CustomerFormPage";
+import ProductDetailsPage from "@/features/stock-management/ProductDetailsPage";
+import SaleDetailsPage from "@/features/sales/SaleDetailsPage";
+import TeamDetailsPage from "@/features/team/TeamDetailsPage";
 import { Toaster } from "react-hot-toast";
 
-import NotInvoicedSales from "./pages/Sales/NotInvoicedSales";
-import DueInvoices from "./pages/Sales/DueInvoices";
-import PaidInvoices from "./pages/Sales/PaidInvoices";
-import CancelledSales from "./pages/Sales/CancelledSales";
-import DisplayInvoice from "./pages/Sales/DisplayInvoice";
-import CategorySettings from "./pages/Settings/CategorySettings";
-import UnitsSettings from "./pages/Settings/UnitsSettings";
-import PrivateRoute from "./routes/PrivateRoutes";
-import AccountDetails from "./pages/Accounts/AccountDetails";
+import NotInvoicedSalesPage from "@/features/sales/NotInvoicedSalesPage";
+import DueInvoicesPage from "@/features/sales/DueInvoicesPage";
+import PaidInvoicesPage from "@/features/sales/PaidInvoicesPage";
+import CancelledSalesPage from "@/features/sales/CancelledSalesPage";
+import DisplayInvoicePage from "@/features/sales/DisplayInvoicePage";
+import CategorySettingsPage from "@/features/settings/CategorySettingsPage";
+import UnitsSettingsPage from "@/features/settings/UnitsSettingsPage";
+import PrivateRoute from "@/routes/PrivateRoutes";
+import AccountDetailsPage from "@/features/accounts/AccountDetailsPage";
 
 const router = createBrowserRouter([
-  { path: "/login", element: <Login /> },
+  { path: "/login", element: <LoginPage /> },
   
   {
     path: "/",
@@ -45,113 +45,113 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Dashboard />,
+        element: <DashboardPage />,
       },
       {
         path: "lc-management",
-        element: <LC />,
+        element: <LCPage />,
       },
       {
         path: "customers",
-        element: <Customers />,
+        element: <CustomersPage />,
       },
       {
         path: "settings",
-        element: <Settings />,
+        element: <SettingsPage />,
         children: [
           {
             index: true,
-            element: <CategorySettings />,
+            element: <CategorySettingsPage />,
           },
           {
             path: "units",
-            element: <UnitsSettings />,
+            element: <UnitsSettingsPage />,
           },
         ],
       },
       {
         path: "lc-details/:id",
-        element: <LCdetails />,
+        element: <LCDetailsPage />,
       },
       {
         path: "customer-details/:id",
-        element: <CustomerDetails />,
+        element: <CustomerDetailsPage />,
       },
       {
         path: "stock-management",
-        element: <Stock />,
+        element: <StockManagementPage />,
       },
       {
         path: "stock/:warehouseId",
-        element: <WarehouseStock />,
+        element: <WarehouseStockPage />,
       },
       {
         path: "stock/:warehouseId/product/:productId",
-        element: <ProductDetails />,
+        element: <ProductDetailsPage />,
       },
       {
         path: "team",
-        element: <Team />,
+        element: <TeamPage />,
       },
       {
         path: "team/:id",
-        element: <TeamDetails />,
+        element: <TeamDetailsPage />,
       },
       {
         path: "sales",
-        element: <Sales />,
+        element: <SalesDashboardPage />,
       },
       {
         path: "sales/not-invoiced",
-        element: <NotInvoicedSales />,
+        element: <NotInvoicedSalesPage />,
       },
       {
         path: "sales/due-invoices",
-        element: <DueInvoices />,
+        element: <DueInvoicesPage />,
       },
       {
         path: "sales/paid-invoices",
-        element: <PaidInvoices />,
+        element: <PaidInvoicesPage />,
       },
       {
         path: "sales/cancelled",
-        element: <CancelledSales />,
+        element: <CancelledSalesPage />,
       },
       {
         path: "sales/:id",
-        element: <SaleDetails />,
+        element: <SaleDetailsPage />,
       },
       {
         path: "sales/:id/invoice/:invoiceId",
-        element: <DisplayInvoice />,
+        element: <DisplayInvoicePage />,
       },
       {
         path: "daily-cash-flow",
-        element: <DailyCashFlow />,
+        element: <DailyCashFlowPage />,
       },
       {
         path: "accounts",
-        element: <Accounts />,
+        element: <AccountsPage />,
       },
       {
         path: "accounts/:accountId",
-        element: <AccountDetails />,
+        element: <AccountDetailsPage />,
       },
       {
         path: "lc-form",
-        element: <LCform />,
+        element: <LCFormPage />,
       },
       {
         path: "lc-form/:id",
-        element: <LCform />,
+        element: <LCFormPage />,
       },
       {
         path: "customer-form",
-        element: <CustomerForm />,
+        element: <CustomerFormPage />,
       },
       {
         path: "customer-form/:id",
-        element: <CustomerForm />,
+        element: <CustomerFormPage />,
       },
     ],
   },

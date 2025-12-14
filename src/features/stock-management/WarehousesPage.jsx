@@ -1,0 +1,334 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
+import {
+  Box,
+  CheckCircle,
+  Edit,
+  Loader,
+  MapPin,
+  Package,
+  Plus,
+  Trash2,
+  Warehouse,
+  XCircle,
+} from "lucide-react";
+
+import api from "@/services/apiService";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import StatBox from "@/components/ui/StatBox"; // Import StatBox
+import AddWarehouseForm from "./AddWarehouseForm";
+
+import toast from "react-hot-toast";
+
+const Warehouses = () => {
+  const [warehouses, setWarehouses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [showAddWarehouseForm, setShowAddWarehouseForm] = useState(false);
+  const [editingWarehouse, setEditingWarehouse] = useState(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [warehouseToDelete, setWarehouseToDelete] = useState(null);
+
+  const fetchWarehouses = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get(`/warehouse/`);
+      setWarehouses(response.data.data);
+    } catch (err) {
+      const errorMessage =
+        err?.response?.data?.message || "Failed to fetch warehouses";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWarehouses();
+  }, [fetchWarehouses]);
+
+  const handleFormClose = () => {
+    setShowAddWarehouseForm(false);
+    setEditingWarehouse(null);
+  };
+
+  const handleWarehouseAdded = () => {
+    fetchWarehouses();
+    handleFormClose();
+    toast.success("Warehouse added successfully!");
+  };
+
+  const handleWarehouseUpdated = () => {
+    fetchWarehouses();
+    handleFormClose();
+    toast.success("Warehouse updated successfully!");
+  };
+
+  const handleAddClick = () => {
+    setEditingWarehouse(null);
+    setShowAddWarehouseForm(true);
+  };
+
+  const handleEditClick = (warehouse) => {
+    setEditingWarehouse(warehouse);
+    setShowAddWarehouseForm(true);
+  };
+
+  const handleDeleteClick = (warehouse) => {
+    setWarehouseToDelete(warehouse);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!warehouseToDelete) return;
+
+    try {
+      setDeletingId(warehouseToDelete._id);
+      setShowDeleteConfirmation(false);
+      await api.delete(`/warehouse/${warehouseToDelete._id}`);
+      toast.success("Warehouse deleted successfully");
+      fetchWarehouses();
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Failed to delete warehouse"
+      );
+      console.error("Delete error:", error);
+    } finally {
+      setDeletingId(null);
+      setWarehouseToDelete(null);
+    }
+  };
+
+  const totalStats = warehouses.reduce(
+    (acc, warehouse) => {
+      acc.totalProducts += warehouse.stats?.totalProducts || 0;
+      acc.totalInStock += warehouse.stats?.totalInStock || 0;
+      acc.totalLowStock += warehouse.stats?.totalLowStock || 0;
+      acc.totalStockOut += warehouse.stats?.totalStockOut || 0;
+      return acc;
+    },
+    {
+      totalProducts: 0,
+      totalInStock: 0,
+      totalLowStock: 0,
+      totalStockOut: 0,
+    }
+  );
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className=" flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader className="animate-spin text-primary" size={32} />
+          <p className="text-gray-600">Loading warehouses...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && warehouses.length === 0) {
+    return (
+      <div className=" flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="bg-red-50 rounded-full p-3 w-12 h-12 flex items-center justify-center mx-auto mb-4">
+            <Warehouse className="text-red-500" size={24} />
+          </div>
+          <p className="text-red-600 mb-4 text-sm">{error}</p>
+          <button
+            onClick={fetchWarehouses}
+            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-hover transition-colors font-medium"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+              Warehouse Management
+            </h1>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base max-w-2xl">
+              {warehouses.length === 0
+                ? "Get started by adding your first warehouse to organize your inventory."
+                : `Manage ${warehouses.length} warehouse${
+                    warehouses.length !== 1 ? "s" : ""
+                  } and their inventory.`}
+            </p>
+          </div>
+          <button
+            onClick={handleAddClick}
+            className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
+          >
+            <Plus size={20} />
+            Add Warehouse
+          </button>
+        </div>
+
+        {/* Stats Cards */}
+        {warehouses.length > 0 && (
+          <div className="my-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <StatBox
+              title="Total Products"
+              number={totalStats.totalProducts}
+              Icon={Package}
+              textColor="blue"
+            />
+            <StatBox
+              title="Total In-stock"
+              number={totalStats.totalInStock}
+              Icon={CheckCircle}
+              textColor="green"
+            />
+            <StatBox
+              title="Total Low Stock"
+              number={totalStats.totalLowStock}
+              Icon={Box}
+              textColor="orange"
+            />
+            <StatBox
+              title="Total Out of Stock"
+              number={totalStats.totalStockOut}
+              Icon={XCircle}
+              textColor="red"
+            />
+          </div>
+        )}
+
+        {/* Empty state */}
+        {warehouses.length === 0 && !loading && (
+          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-blue-50 rounded-full p-4 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <Warehouse className="text-blue-600" size={32} />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              No warehouses yet
+            </h3>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto text-sm leading-relaxed">
+              Start by adding your first warehouse to organize and manage your
+              inventory efficiently.
+            </p>
+            <button
+              onClick={handleAddClick}
+              className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 mx-auto shadow-sm hover:shadow-md active:scale-95"
+            >
+              <Plus size={20} />
+              Add Your First Warehouse
+            </button>
+          </div>
+        )}
+
+        {/* Warehouses Grid */}
+        {warehouses.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
+            {warehouses.map((warehouse) => (
+              <div
+                key={warehouse._id}
+                className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col border border-gray-200/60 hover:border-gray-300 group"
+              >
+                {/* Card Content */}
+                <Link
+                  to={`/stock/${warehouse._id}`}
+                  className="p-6 flex-grow block hover:bg-gray-50/50 transition-colors duration-200"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-xl group-hover:scale-105 transition-transform duration-200">
+                      <Warehouse className="text-blue-600" size={24} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-semibold text-gray-900 truncate mb-1 group-hover:text-blue-700 transition-colors">
+                        {warehouse.name}
+                      </h2>
+                      <div className="flex items-center gap-2 text-gray-600 mb-3">
+                        <MapPin size={14} className="flex-shrink-0 mt-0.5" />
+                        <span className="text-sm truncate">
+                          {warehouse.location}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-700 mt-4 border-t border-gray-100 pt-4">
+                        <div className="flex items-center gap-2">
+                          <Package size={16} className="text-gray-500" />
+                          <span className="font-medium">
+                            {warehouse.stats?.totalProducts || 0}
+                          </span>
+                          <span className="text-gray-500">Products</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle size={16} className="text-green-500" />
+                          <span className="font-medium">
+                            {warehouse.stats?.totalInStock || 0}
+                          </span>
+                          <span className="text-gray-500">In Stock</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Actions */}
+                <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
+                  <button
+                    onClick={() => handleEditClick(warehouse)}
+                    className="cursor-pointer p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:scale-105"
+                    aria-label={`Edit ${warehouse.name}`}
+                    title="Edit Warehouse"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(warehouse)}
+                    disabled={deletingId === warehouse._id}
+                    className="cursor-pointer p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    aria-label={`Delete ${warehouse.name}`}
+                    title="Delete Warehouse"
+                  >
+                    {deletingId === warehouse._id ? (
+                      <Loader className="animate-spin" size={16} />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add/Edit Form Modal */}
+      <AddWarehouseForm
+        isOpen={showAddWarehouseForm}
+        onClose={handleFormClose}
+        onWarehouseAdded={handleWarehouseAdded}
+        onWarehouseUpdated={handleWarehouseUpdated}
+        editingWarehouse={editingWarehouse}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirmation}
+        onClose={() => setShowDeleteConfirmation(false)}
+        onConfirm={confirmDelete}
+        title="Delete Warehouse"
+        description={`Are you sure you want to delete the warehouse "${warehouseToDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        isConfirming={deletingId === warehouseToDelete?._id}
+        confirmingText="Deleting..."
+      />
+    </div>
+  );
+};
+
+export default Warehouses;
