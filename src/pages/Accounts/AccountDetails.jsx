@@ -18,8 +18,8 @@ import TransactionList from "./TransactionList"; // Reusing for structure/style
 
 // Mock data fetching since backend is not ready
 const fetchAccountDetailsMock = async (accountId) => {
-  // In a real scenario, this would be an API call: `/bank/get-account/${accountId}`
-  const allAccountsResponse = await api.get(`/bank/get-all-accounts`);
+  // In a real scenario, this would be an API call: `/account/get-account/${accountId}`
+  const allAccountsResponse = await api.get(`/account/get-all-accounts`);
   const account = allAccountsResponse.data.data.find(
     (acc) => acc._id === accountId
   );
@@ -33,7 +33,7 @@ const fetchAccountTransactionsMock = async (accountId) => {
   // In a real scenario: `/transaction/get-all?accountId=${accountId}`
   const allTransactionsResponse = await api.get(`/transaction/get-all`);
   const transactions = allTransactionsResponse.data.data.filter(
-    (t) => t.bankAccount?._id === accountId
+    (t) => t.account?._id === accountId
   );
   return { success: true, data: transactions };
 };
@@ -96,8 +96,8 @@ const AccountDetails = () => {
     return (
       <div className="text-center py-10">
         <h2 className="text-xl font-semibold">Account not found.</h2>
-        <Link to="/banking" className="text-blue-600 hover:underline">
-          Go back to Banking
+        <Link to="/accounts" className="text-blue-600 hover:underline">
+          Go back to Accounts
         </Link>
       </div>
     );
@@ -110,7 +110,7 @@ const AccountDetails = () => {
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Link
-          to="/banking"
+          to="/accounts"
           className="p-2 rounded-full hover:bg-gray-100 transition-colors"
         >
           <ArrowLeft className="w-6 h-6 text-gray-700" />

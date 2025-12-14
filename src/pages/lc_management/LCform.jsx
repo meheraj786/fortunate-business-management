@@ -229,7 +229,7 @@ const LCForm = ({ onSave }) => {
   const [formData, setFormData] = useState(initialFormData);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [units, setUnits] = useState([]);
-  const [bankAccounts, setBankAccounts] = useState([]);
+  const [accounts, setAccounts] = useState([]);
 
   const [expandedSections, setExpandedSections] = useState({
     basicInfo: true,
@@ -257,9 +257,9 @@ const LCForm = ({ onSave }) => {
       });
 
     api
-      .get(`/bank/get-all-accounts`)
+      .get(`/account/get-all-accounts`)
       .then((res) => {
-        setBankAccounts(res.data.data);
+        setAccounts(res.data.data);
       })
       .catch((err) => {
         console.error(err);
@@ -268,14 +268,14 @@ const LCForm = ({ onSave }) => {
   }, []);
 
   useEffect(() => {
-    if (isEditMode && bankAccounts.length > 0) {
+    if (isEditMode && accounts.length > 0) {
       api
         .get(`/lc/get-lc/${id}`)
         .then((res) => {
           const lcData = res.data.data;
 
           const findAccountIdByName = (name) => {
-            const account = bankAccounts.find(acc => acc.accountName === name && acc.accountType === 'Bank');
+            const account = accounts.find(acc => acc.accountName === name && acc.accountType === 'Bank');
             return account ? account._id : '';
           };
 
@@ -391,7 +391,7 @@ const LCForm = ({ onSave }) => {
           toast.error("Failed to fetch LC data for editing.");
         });
     }
-  }, [id, isEditMode, bankAccounts]);
+  }, [id, isEditMode, accounts]);
 
   useEffect(() => {
     const { lcAmountUsd, exchangeRate } = formData.financialInfo;
@@ -618,7 +618,7 @@ const LCForm = ({ onSave }) => {
                   label="Select Account"
                   value={cost.accountId}
                   onChange={(v) => handleCostChange(section, cost.id, "accountId", v)}
-                  options={bankAccounts
+                  options={accounts
                     .filter((acc) => acc.accountType === cost.paymentMethod)
                     .map((acc) => ({ value: acc._id, label: acc.accountName }))}
                   placeholder="Choose account"
@@ -724,7 +724,7 @@ const LCForm = ({ onSave }) => {
                     label="Choose a bank account"
                     value={formData.basicInfo.accountId}
                     onChange={(v) => handleInputChange("basicInfo", "accountId", v)}
-                    options={bankAccounts
+                    options={accounts
                       .filter((acc) => acc.accountType === "Bank")
                       .map((acc) => ({ value: acc._id, label: acc.accountName }))}
                     placeholder="Select Bank"

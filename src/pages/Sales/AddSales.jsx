@@ -79,7 +79,7 @@ const AddSales = ({
           api.get(`/customer/get-customers`),
           api.get(`/warehouse/`),
           api.get(`/category/get`),
-          api.get(`/bank/get-all-accounts`),
+          api.get(`/account/get-all-accounts`),
           api.get(`/unit/get`),
         ]);
 
@@ -142,7 +142,7 @@ const AddSales = ({
           editData.payments?.map((p) => ({
             ...p,
             date: new Date(p.date).toISOString().split("T")[0],
-            bankAccount: p.bankAccount?._id || "",
+            account: p.account?._id || "",
           })) || [],
         notes: editData.notes || "",
       });
@@ -381,7 +381,7 @@ const AddSales = ({
         for (const p of formData.payments) {
           if (
             (p.method === "bank" || p.method === "mobile-banking") &&
-            !p.bankAccount
+            !p.account
           ) {
             toast.error(
               `Please select an account for the ${p.method} payment.`
@@ -399,7 +399,7 @@ const AddSales = ({
               method: p.method,
             };
             if (p.method === "bank" || p.method === "mobile-banking") {
-              paymentPayload.bankAccount = p.bankAccount;
+              paymentPayload.account = p.account;
             }
             return paymentPayload;
           });
@@ -820,7 +820,7 @@ const AddSales = ({
                             onChange={(e) =>
                               handleArrayField("payments", "update", index, {
                                 method: e.target.value,
-                                bankAccount: "",
+                                account: "",
                               })
                             }
                             options={paymentMethodOptions}
@@ -829,11 +829,11 @@ const AddSales = ({
                             payment.method === "mobile-banking") && (
                             <SelectField
                               label="Account"
-                              name={`payments[${index}].bankAccount`}
-                              value={payment.bankAccount}
+                              name={`payments[${index}].account`}
+                              value={payment.account}
                               onChange={(e) =>
                                 handleArrayField("payments", "update", index, {
-                                  bankAccount: e.target.value,
+                                  account: e.target.value,
                                 })
                               }
                               options={accounts
@@ -870,7 +870,7 @@ const AddSales = ({
                               amount: "",
                               date: new Date().toISOString().split("T")[0],
                               method: "",
-                              bankAccount: "",
+                              account: "",
                             },
                           })
                         }
@@ -890,7 +890,7 @@ const AddSales = ({
                         onChange={(e) =>
                           handleArrayField("payments", "update", 0, {
                             method: e.target.value,
-                            bankAccount: "",
+                            account: "",
                           })
                         }
                         options={paymentMethodOptions}
@@ -900,11 +900,11 @@ const AddSales = ({
                         formData.payments[0]?.method === "mobile-banking") && (
                         <SelectField
                           label="Account"
-                          name="payments[0].bankAccount"
-                          value={formData.payments[0]?.bankAccount || ""}
+                          name="payments[0].account"
+                          value={formData.payments[0]?.account || ""}
                           onChange={(e) =>
                             handleArrayField("payments", "update", 0, {
-                              bankAccount: e.target.value,
+                              account: e.target.value,
                             })
                           }
                           options={accounts

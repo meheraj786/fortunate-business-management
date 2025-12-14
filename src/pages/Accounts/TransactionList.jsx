@@ -63,7 +63,7 @@ const TransactionList = () => {
       filtered = filtered.filter(
         (item) =>
           item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.bankAccount?.accountName
+          item.account?.accountName
             .toLowerCase()
             .includes(searchTerm.toLowerCase())
       );
@@ -71,7 +71,7 @@ const TransactionList = () => {
 
     if (paymentMethodFilter !== "all") {
       filtered = filtered.filter(
-        (item) => item.bankAccount?.accountType === paymentMethodFilter
+        (item) => item.account?.accountType === paymentMethodFilter
       );
     }
 
@@ -227,10 +227,10 @@ const TransactionList = () => {
               <div className="flex justify-between items-center">
                 <span
                   className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPaymentMethodColor(
-                    transaction.bankAccount?.accountType
+                    transaction.account?.accountType
                   )}`}
                 >
-                  {transaction.bankAccount?.accountType || "N/A"}
+                  {transaction.account?.accountType || "N/A"}
                 </span>
                 <div className="text-xs text-gray-500">
                   {new Date(transaction.date).toLocaleDateString()}
@@ -238,7 +238,7 @@ const TransactionList = () => {
               </div>
               <div className="mt-2 text-xs text-gray-600">
                 <span className="font-medium">Via:</span>{" "}
-                {transaction.bankAccount?.accountName || "N/A"}
+                {transaction.account?.accountName || "N/A"}
               </div>
             </div>
           ))}
@@ -292,22 +292,22 @@ const TransactionList = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentMethodColor(
-                        transaction.bankAccount?.accountType
+                        transaction.account?.accountType
                       )}`}
                     >
-                      {transaction.bankAccount?.accountType === "Bank" && (
+                      {transaction.account?.accountType === "Bank" && (
                         <Building className="w-3 h-3 mr-1" />
                       )}
-                      {transaction.bankAccount?.accountType ===
+                      {transaction.account?.accountType ===
                         "Mobile Banking" && (
                         <Smartphone className="w-3 h-3 mr-1" />
                       )}
-                      {transaction.bankAccount?.accountType || "N/A"}
+                      {transaction.account?.accountType || "N/A"}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900 max-w-48 truncate">
-                      {transaction.bankAccount?.accountName || "N/A"}
+                      {transaction.account?.accountName || "N/A"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

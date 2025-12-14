@@ -48,7 +48,7 @@ const SaleDetails = () => {
     amount: "",
     date: new Date().toISOString().split("T")[0],
     method: "cash",
-    bankAccount: "",
+    account: "",
   });
 
   // Modal states
@@ -133,7 +133,7 @@ const SaleDetails = () => {
 
   const fetchAccounts = async () => {
     try {
-      const response = await api.get(`/bank/get-all-accounts`);
+      const response = await api.get(`/account/get-all-accounts`);
       if (response.data.success) {
         setAccounts(response.data.data || []);
       } else {
@@ -274,7 +274,7 @@ const SaleDetails = () => {
     setPaymentData((prev) => {
       const newState = { ...prev, [name]: value };
       if (name === "method") {
-        newState.bankAccount = "";
+        newState.account = "";
       }
       return newState;
     });
@@ -318,8 +318,8 @@ const SaleDetails = () => {
     };
 
     if (paymentData.method === "cash") {
-      payload.bankAccount = null;
-    } else if (!paymentData.bankAccount) {
+      payload.account = null;
+    } else if (!paymentData.account) {
       toast.error("Please select an account for this payment method.");
       return;
     }
@@ -337,7 +337,7 @@ const SaleDetails = () => {
           amount: "",
           date: new Date().toISOString().split("T")[0],
           method: "cash",
-          bankAccount: "",
+          account: "",
         });
         await fetchSaleDetails();
       } else {
@@ -776,8 +776,8 @@ const SaleDetails = () => {
                             </p>
                             <p className="text-xs text-gray-500 truncate">
                               {payment.method}{" "}
-                              {payment.bankAccount?.accountName &&
-                                `(${payment.bankAccount.accountName})`}
+                              {payment.account?.accountName &&
+                                `(${payment.account.accountName})`}
                             </p>
                           </div>
                           <span className="font-medium text-green-600 whitespace-nowrap ml-2">
@@ -902,8 +902,8 @@ const SaleDetails = () => {
               paymentData.method === "mobile-banking") && (
               <SelectField
                 label="Account"
-                name="bankAccount"
-                value={paymentData.bankAccount}
+                name="account"
+                value={paymentData.account}
                 onChange={handlePaymentFormChange}
                 options={accounts
                   .filter((acc) =>

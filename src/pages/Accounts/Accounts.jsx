@@ -9,7 +9,7 @@ import AddBankAccountForm from "./AddBankAccountForm";
 import AddMobileAccountForm from "./AddMobileAccountForm";
 import AddTransactionForm from "./AddTransactionForm";
 
-const Banking = () => {
+const Accounts = () => {
   // Form states
   const [isBankFormOpen, setIsBankFormOpen] = useState(false);
   const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
@@ -94,7 +94,7 @@ const Banking = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
-                Banking & Payment Information
+                Accounts & Payment Information
               </h1>
               <p className="text-gray-600 text-sm sm:text-base">
                 Manage bank accounts, mobile banking details and track payment
@@ -178,4 +178,4 @@ const Banking = () => {
   );
 };
 
-export default Banking;
+export default Accounts;

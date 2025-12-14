@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 
 const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   const initialTransactionData = {
-    bankAccount: "",
+    account: "",
     date: new Date().toISOString().split("T")[0],
     description: "",
     type: "Credit",
@@ -23,7 +23,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   useEffect(() => {
     if (isOpen) {
       api
-        .get(`/bank/get-all-accounts`)
+        .get(`/account/get-all-accounts`)
         .then((res) => {
           if (res.data.success) {
             setAccounts(res.data.data);
@@ -43,9 +43,9 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   const handleAddTransaction = async () => {
     setIsSubmitting(true);
     try {
-      const { bankAccount, date, description, type, amount } =
+      const { account, date, description, type, amount } =
         transactionFormData;
-      if (!bankAccount || !description || !type || !amount) {
+      if (!account || !description || !type || !amount) {
         toast.error("Please fill all required fields.");
         return;
       }
@@ -87,8 +87,8 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
       <div className="space-y-4">
         <SelectField
           label="Account"
-          name="bankAccount"
-          value={transactionFormData.bankAccount}
+          name="account"
+          value={transactionFormData.account}
           onChange={handleTransactionFormChange}
           options={accounts.map((acc) => ({
             value: acc._id,

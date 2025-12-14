@@ -67,7 +67,7 @@ const Sidebar = () => {
     { icon: MdInventory, label: "Stock Management", path: "/stock-management", module: "STOCK" },
     { icon: ChartColumnIncreasing, label: "Sales", path: "/sales", module: "SALE" },
     { icon: WalletMinimal, label: "Daily Cash", path: "/daily-cash-flow", module: "CASH" },
-    { icon: CreditCard, label: "Banking", path: "/banking", module: "BANKING" },
+    { icon: CreditCard, label: "Accounts", path: "/accounts", module: "ACCOUNTS" },
     { icon: MdPeopleAlt, label: "Team", path: "/team", module: "CUSTOMER" },
     { icon: MdPeopleAlt, label: "Customers", path: "/customers", module: "CUSTOMER" },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },

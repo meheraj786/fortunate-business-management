@@ -18,7 +18,7 @@ import api from "../../api/axios";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 
 const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
-  const [bankAccounts, setBankAccounts] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [mobileBankingAccounts, setMobileBankingAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copiedText, setCopiedText] = useState("");
@@ -29,10 +29,10 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/bank/get-all-accounts`);
+      const response = await api.get(`/account/get-all-accounts`);
       if (response.data.success) {
         const allAccounts = response.data.data;
-        setBankAccounts(
+        setAccounts(
           allAccounts.filter((acc) => acc.accountType === "Bank")
         );
         setMobileBankingAccounts(
@@ -71,7 +71,7 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
     setIsConfirmingDelete(true);
     try {
       const response = await api.delete(
-        `/bank/delete-account/${accountToDelete._id}`
+        `/account/delete-account/${accountToDelete._id}`
       );
       if (response.data.success) {
         toast.success("Account deleted successfully!");
@@ -120,10 +120,10 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
             <div className="flex justify-center items-center p-8">
               <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
             </div>
-          ) : bankAccounts.length > 0 ? (
-            bankAccounts.map((account) => (
+          ) : accounts.length > 0 ? (
+            accounts.map((account) => (
               <Link
-                to={`/banking/accounts/${account._id}`}
+                to={`/accounts/${account._id}`}
                 key={account._id}
                 className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
               >
@@ -216,7 +216,7 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
           ) : mobileBankingAccounts.length > 0 ? (
             mobileBankingAccounts.map((account) => (
               <Link
-                to={`/banking/accounts/${account._id}`}
+                to={`/accounts/${account._id}`}
                 key={account._id}
                 className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
               >

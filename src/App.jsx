@@ -14,7 +14,7 @@ import WarehouseStock from "./pages/stock_management/WarehouseStock";
 import Team from "./pages/Team/Team";
 import Sales from "./pages/Sales/Sales";
 import DailyCashFlow from "./pages/DailyCashFlow/DailyCashFlow";
-import Banking from "./pages/Banking/Banking";
+import Accounts from "./pages/Accounts/Accounts";
 import LCform from "./pages/lc_management/LCform";
 import CustomerForm from "./pages/customer_management/CustomerForm";
 import ProductDetails from "./pages/stock_management/ProductDetails";
@@ -30,7 +30,7 @@ import DisplayInvoice from "./pages/Sales/DisplayInvoice";
 import CategorySettings from "./pages/Settings/CategorySettings";
 import UnitsSettings from "./pages/Settings/UnitsSettings";
 import PrivateRoute from "./routes/PrivateRoutes";
-import AccountDetails from "./pages/Banking/AccountDetails";
+import AccountDetails from "./pages/Accounts/AccountDetails";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
@@ -130,11 +130,11 @@ const router = createBrowserRouter([
         element: <DailyCashFlow />,
       },
       {
-        path: "banking",
-        element: <Banking />,
+        path: "accounts",
+        element: <Accounts />,
       },
       {
-        path: "banking/accounts/:accountId",
+        path: "accounts/:accountId",
         element: <AccountDetails />,
       },
       {

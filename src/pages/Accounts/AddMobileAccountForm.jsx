@@ -4,46 +4,40 @@ import InputField from "../../components/forms/InputField";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 
-const AddBankAccountForm = ({
+const AddMobileAccountForm = ({
   isOpen,
   onClose,
   editingAccount,
   onSuccess,
 }) => {
-  const initialBankData = {
-    bankName: "",
-    branchName: "",
+  const initialMobileData = {
+    serviceName: "",
+    mobileNumber: "",
     accountHolderName: "",
     accountName: "",
-    accountNumber: "",
-    swiftCode: "",
-    routingNumber: "",
     balance: "",
   };
 
-  const [bankFormData, setBankFormData] = useState(initialBankData);
+  const [mobileFormData, setMobileFormData] = useState(initialMobileData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (editingAccount) {
-      setBankFormData({
-        bankName: editingAccount.bankName || "",
-        branchName: editingAccount.branchName || "",
+      setMobileFormData({
+        serviceName: editingAccount.serviceName || "",
+        mobileNumber: editingAccount.mobileNumber || "",
         accountHolderName: editingAccount.accountHolderName || "",
         accountName: editingAccount.accountName || "",
-        accountNumber: editingAccount.accountNumber || "",
-        swiftCode: editingAccount.swiftCode || "",
-        routingNumber: editingAccount.routingNumber || "",
         balance: editingAccount.balance || "",
       });
     } else {
-      setBankFormData(initialBankData);
+      setMobileFormData(initialMobileData);
     }
   }, [editingAccount, isOpen]);
 
-  const handleBankFormChange = (e) => {
+  const handleMobileFormChange = (e) => {
     const { name, value } = e.target;
-    setBankFormData((prev) => ({ ...prev, [name]: value }));
+    setMobileFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSaveAccount = async () => {
@@ -51,14 +45,14 @@ const AddBankAccountForm = ({
     try {
       const isEditing = !!editingAccount;
       const url = isEditing
-        ? `/bank/update-account/${editingAccount._id}`
-        : `/bank/create-account`;
+        ? `/account/update-account/${editingAccount._id}`
+        : `/account/create-account`;
       const method = isEditing ? "patch" : "post";
 
       const payload = {
-        ...bankFormData,
-        accountType: "Bank",
-        balance: Number(bankFormData.balance) || 0,
+        ...mobileFormData,
+        accountType: "Mobile Banking",
+        balance: Number(mobileFormData.balance) || 0,
       };
 
       const response = await api[method](url, payload);
@@ -88,7 +82,11 @@ const AddBankAccountForm = ({
     <FormDialog
       open={isOpen}
       onClose={onClose}
-      title={editingAccount ? "Update Bank Account" : "Add New Bank Account"}
+      title={
+        editingAccount
+          ? "Update Mobile Banking Account"
+          : "Add New Mobile Banking Account"
+      }
       primaryButtonText={
         isSubmitting
           ? editingAccount
@@ -102,61 +100,43 @@ const AddBankAccountForm = ({
       onSubmit={handleSaveAccount}
       isPrimaryButtonDisabled={isSubmitting}
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="space-y-4">
         <InputField
-          label="Bank Name"
-          name="bankName"
-          value={bankFormData.bankName}
-          onChange={handleBankFormChange}
+          label="Service Name"
+          name="serviceName"
+          value={mobileFormData.serviceName}
+          onChange={handleMobileFormChange}
+          placeholder="e.g., Bkash, Nagad"
           required
         />
         <InputField
-          label="Branch Name"
-          name="branchName"
-          value={bankFormData.branchName}
-          onChange={handleBankFormChange}
+          label="Account Number"
+          name="mobileNumber"
+          value={mobileFormData.mobileNumber}
+          onChange={handleMobileFormChange}
           required
         />
         <InputField
           label="Account Holder Name"
           name="accountHolderName"
-          value={bankFormData.accountHolderName}
-          onChange={handleBankFormChange}
+          value={mobileFormData.accountHolderName}
+          onChange={handleMobileFormChange}
           required
         />
         <InputField
           label="Account Name"
           name="accountName"
-          value={bankFormData.accountName}
-          onChange={handleBankFormChange}
-          placeholder="e.g., Primary Business Account"
+          value={mobileFormData.accountName}
+          onChange={handleMobileFormChange}
+          placeholder="e.g., Personal Bkash"
           required
-        />
-        <InputField
-          label="Account Number"
-          name="accountNumber"
-          value={bankFormData.accountNumber}
-          onChange={handleBankFormChange}
-          required
-        />
-        <InputField
-          label="SWIFT Code"
-          name="swiftCode"
-          value={bankFormData.swiftCode}
-          onChange={handleBankFormChange}
-        />
-        <InputField
-          label="Routing Number"
-          name="routingNumber"
-          value={bankFormData.routingNumber}
-          onChange={handleBankFormChange}
         />
         <InputField
           label="Initial Balance"
           name="balance"
           type="number"
-          value={bankFormData.balance}
-          onChange={handleBankFormChange}
+          value={mobileFormData.balance}
+          onChange={handleMobileFormChange}
           required
         />
       </div>
@@ -164,4 +144,4 @@ const AddBankAccountForm = ({
   );
 };
 
-export default AddBankAccountForm;
+export default AddMobileAccountForm;
