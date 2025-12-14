@@ -3,6 +3,7 @@ import React from "react";
 const InputField = ({
   label,
   name,
+  register,
   type = "text",
   value,
   onChange,
@@ -14,6 +15,10 @@ const InputField = ({
   step,
   disabled = false,
 }) => {
+  const props = register
+    ? { ...register(name, { required }) }
+    : { value: value || "", onChange };
+
   return (
     <div className="space-y-2">
       {label && (
@@ -28,10 +33,9 @@ const InputField = ({
           </div>
         )}
         <input
+          id={name}
           name={name}
           type={type}
-          value={value || ""}
-          onChange={onChange}
           required={required}
           placeholder={placeholder}
           min={min}
@@ -41,6 +45,7 @@ const InputField = ({
           className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
             Icon ? "pl-10" : ""
           } ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}`}
+          {...props}
         />
       </div>
     </div>

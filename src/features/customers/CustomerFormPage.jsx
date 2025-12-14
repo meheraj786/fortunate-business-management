@@ -1,17 +1,12 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
-import { motion } from "framer-motion";
-import { Link, useNavigate, useParams } from "react-router";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router";
 import { useForm } from "react-hook-form";
 import FormSection from "@/components/ui/FormSection";
 import {
-  Save,
-  X,
   User,
   Building,
   Phone,
   Mail,
-  MapPin,
-  CreditCard,
   FileText,
   Calendar,
   DollarSign,
@@ -20,11 +15,11 @@ import {
   Trash2,
 } from "lucide-react";
 import api from "@/services/apiService";
-
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
+import FormPageLayout from "@/components/ui/FormPageLayout";
 
 const CustomerForm = () => {
   const { id } = useParams();
@@ -155,244 +150,179 @@ const CustomerForm = () => {
   };
 
   return (
-    <div className="">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="max-w-6xl mx-auto"
-      >
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {id ? "Edit Customer" : "Add New Customer"}
-              </h1>
-              <p className="text-gray-600">
-                {id
-                  ? "Update customer information and details"
-                  : "Complete the form below to add a new customer"}
-              </p>
+    <FormPageLayout
+      title={id ? "Edit Customer" : "Add New Customer"}
+      subtitle={
+        id
+          ? "Update customer information and details"
+          : "Complete the form below to add a new customer"
+      }
+      cancelLink="/customers"
+      onSubmit={handleSubmit(onSubmit)}
+      isEditMode={!!id}
+      submitButtonText="Customer"
+    >
+      {sections.map((section) => (
+        <FormSection
+          key={section.id}
+          title={section.title}
+          icon={section.icon}
+          isExpanded={!!expandedSections[section.id]}
+          onToggle={() => toggleSection(section.id)}
+          sectionRef={(el) => (sectionRefs.current[section.id] = el)}
+        >
+          {section.id === "basic" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <InputField
+                label="Full Name"
+                name="name"
+                register={register}
+                required
+                placeholder="Ahmed Hassan"
+                icon={User}
+              />
+              <InputField
+                label="Company Name"
+                name="companyName"
+                register={register}
+                placeholder="Hassan Trading"
+                icon={Building}
+              />
+              <SelectField
+                label="Customer Type"
+                name="customerType"
+                register={register}
+                options={customerTypes}
+                required
+                icon={Building}
+              />
+              <SelectField
+                label="Customer Status"
+                name="customerStatus"
+                register={register}
+                options={statusOptions}
+                required
+                icon={Shield}
+              />
+              <InputField
+                label="Customer Join"
+                name="joinDate"
+                register={register}
+                type="date"
+                required
+                icon={Calendar}
+              />
+              <InputField
+                label="Credit Limit"
+                name="creditLimit"
+                register={register}
+                type="text"
+                placeholder="5000"
+                icon={DollarSign}
+              />
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link to="/customers">
-                <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2">
-                  <X className="w-4 h-4" />
-                  <span>Cancel</span>
-                </button>
-              </Link>
-              <button
-                onClick={handleSubmit(onSubmit)}
-                className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 flex items-center space-x-2"
-              >
-                <Save className="w-4 h-4" />
-                <span>{id ? "Update Customer" : "Save Customer"}</span>
-              </button>
+          )}
+          {section.id === "contact" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <InputField
+                label="Phone Number"
+                name="phone"
+                register={register}
+                required
+                placeholder="+880 1712-345678"
+                icon={Phone}
+              />
+              <InputField
+                label="Email Address"
+                name="email"
+                register={register}
+                type="email"
+                required
+                placeholder="ahmed.hassan@email.com"
+                icon={Mail}
+              />
+              <div className="lg:col-span-2">
+                <TextAreaField
+                  label="Billing Address"
+                  name="billingAddress"
+                  register={register}
+                  required
+                  placeholder="45 Dhanmondi Road, Dhaka-1205, Bangladesh"
+                  rows={2}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {sections.map((section) => (
-            <FormSection
-              key={section.id}
-              title={section.title}
-              icon={section.icon}
-              isExpanded={!!expandedSections[section.id]}
-              onToggle={() => toggleSection(section.id)}
-              sectionRef={(el) => (sectionRefs.current[section.id] = el)}
-            >
-              {section.id === "basic" && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <InputField
-                    label="Full Name"
-                    name="name"
-                    register={register}
-                    errors={errors}
-                    required
-                    placeholder="Ahmed Hassan"
-                    icon={User}
+          )}
+          {section.id === "others" && (
+            <div className="space-y-6">
+              <TextAreaField
+                label="Notes"
+                name="customerNote"
+                register={register}
+                placeholder="Add any relevant notes here..."
+                rows={4}
+              />
+              <div>
+                <h4 className="text-md font-semibold text-gray-900 mb-4">
+                  Upload Documents
+                </h4>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-4">
+                    Drag and drop files here or click to upload
+                  </p>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="document-upload"
                   />
-                  <InputField
-                    label="Company Name"
-                    name="companyName"
-                    register={register}
-                    errors={errors}
-                    placeholder="Hassan Trading"
-                    icon={Building}
-                  />
-                  <SelectField
-                    label="Customer Type"
-                    name="customerType"
-                    register={register}
-                    errors={errors}
-                    options={customerTypes}
-                    required
-                    icon={Building}
-                  />
-                  <SelectField
-                    label="Customer Status"
-                    name="customerStatus"
-                    register={register}
-                    errors={errors}
-                    options={statusOptions}
-                    required
-                    icon={Shield}
-                  />
-                  <InputField
-                    label="Customer Join"
-                    name="joinDate"
-                    register={register}
-                    errors={errors}
-                    type="date"
-                    required
-                    icon={Calendar}
-                  />
-                  <InputField
-                    label="Credit Limit"
-                    name="creditLimit"
-                    register={register}
-                    errors={errors}
-                    type="text"
-                    placeholder="5000"
-                    icon={DollarSign}
-                  />
+                  <label
+                    htmlFor="document-upload"
+                    className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 cursor-pointer inline-block"
+                  >
+                    Choose Files
+                  </label>
                 </div>
-              )}
-              {section.id === "contact" && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <InputField
-                    label="Phone Number"
-                    name="phone"
-                    register={register}
-                    errors={errors}
-                    required
-                    placeholder="+880 1712-345678"
-                    icon={Phone}
-                  />
-                  <InputField
-                    label="Email Address"
-                    name="email"
-                    register={register}
-                    errors={errors}
-                    type="email"
-                    required
-                    placeholder="ahmed.hassan@email.com"
-                    icon={Mail}
-                  />
-                  <div className="lg:col-span-2">
-                    <TextAreaField
-                      label="Billing Address"
-                      name="billingAddress"
-                      register={register}
-                      errors={errors}
-                      required
-                      placeholder="45 Dhanmondi Road, Dhaka-1205, Bangladesh"
-                      rows={2}
-                    />
-                  </div>
-                </div>
-              )}
-              {section.id === "others" && (
-                <div className="space-y-6">
-                  <TextAreaField
-                    label="Notes"
-                    name="customerNote"
-                    register={register}
-                    errors={errors}
-                    placeholder="Add any relevant notes here..."
-                    rows={4}
-                  />
-                  <div>
-                    <h4 className="text-md font-semibold text-gray-900 mb-4">
-                      Upload Documents
-                    </h4>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600 mb-4">
-                        Drag and drop files here or click to upload
-                      </p>
-                      <input
-                        type="file"
-                        multiple
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        id="document-upload"
-                      />
-                      <label
-                        htmlFor="document-upload"
-                        className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 cursor-pointer inline-block"
-                      >
-                        Choose Files
-                      </label>
-                    </div>
-                    {documents.length > 0 && (
-                      <div className="mt-4">
-                        <h5 className="text-sm font-medium text-gray-700 mb-2">
-                          Uploaded Documents:
-                        </h5>
-                        <div className="space-y-2">
-                          {documents.map((doc, index) => (
-                            <div
-                              key={index}
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                            >
-                              <div className="flex items-center space-x-3">
-                                <FileText className="w-4 h-4 text-gray-400" />
-                                <span className="text-sm text-gray-700">
-                                  {doc.name}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  ({doc.size})
-                                </span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => removeDocument(index)}
-                                className="p-1 text-red-600 hover:bg-red-50 rounded"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
+                {documents.length > 0 && (
+                  <div className="mt-4">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">
+                      Uploaded Documents:
+                    </h5>
+                    <div className="space-y-2">
+                      {documents.map((doc, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <FileText className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm text-gray-700">
+                              {doc.name}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ({doc.size})
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeDocument(index)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </FormSection>
-          ))}
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-            className="flex flex-col sm:flex-row justify-between items-center bg-white rounded-xl shadow-lg p-6 space-y-4 sm:space-y-0"
-          >
-            <Link to="/customers">
-              <button
-                type="button"
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
-              >
-                Cancel
-              </button>
-            </Link>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Complete all sections to save
-              </span>
+                )}
+              </div>
             </div>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 font-medium"
-            >
-              {id ? "Update Customer" : "Save Customer"}
-            </button>
-          </motion.div>
-        </form>
-      </motion.div>
-    </div>
+          )}
+        </FormSection>
+      ))}
+    </FormPageLayout>
   );
 };
 
