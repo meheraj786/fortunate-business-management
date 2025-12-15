@@ -115,35 +115,84 @@ const MobileSalesCard = ({ sale }) => {
   );
 };
 
+const PaginationControls = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  isLoading,
+}) => {
+  if (totalPages <= 1) {
+    return null;
+  }
+
+  return (
+    <div className="flex justify-between items-center p-4">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1 || isLoading}
+        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Previous
+      </button>
+      <span className="text-sm text-gray-700">
+        Page {currentPage} of {totalPages}
+      </span>
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages || isLoading}
+        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Next
+      </button>
+    </div>
+  );
+};
+
 const SalesHistory = ({ warehouseId, productId }) => {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
 
-  const fetchSalesHistory = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.get(
-        `/warehouse/${warehouseId}/products/${productId}/sales`
-      );
-      setSales(response.data.data);
-    } catch (err) {
-      const errorMessage =
-        err?.response?.data?.message || "Failed to fetch sales history";
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error("Fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [warehouseId, productId]);
+  const fetchSalesHistory = useCallback(
+    async (page) => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await api.get(
+          `/warehouse/${warehouseId}/products/${productId}/sales?page=${page}&limit=10`
+        );
+        const {
+          sales,
+          totalPages: newTotalPages,
+          currentPage: newCurrentPage,
+          totalItems: newTotalItems,
+        } = response.data.data;
+
+        setSales(sales);
+        setTotalPages(newTotalPages);
+        setCurrentPage(newCurrentPage);
+        setTotalItems(newTotalItems);
+      } catch (err) {
+        const errorMessage =
+          err?.response?.data?.message || "Failed to fetch sales history";
+        setError(errorMessage);
+        toast.error(errorMessage);
+        console.error("Fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [warehouseId, productId]
+  );
 
   useEffect(() => {
     if (warehouseId && productId) {
-      fetchSalesHistory();
+      fetchSalesHistory(currentPage);
     }
-  }, [fetchSalesHistory, warehouseId, productId]);
+  }, [fetchSalesHistory, warehouseId, productId, currentPage]);
 
   if (loading) {
     return (
@@ -166,10 +215,10 @@ const SalesHistory = ({ warehouseId, productId }) => {
     <div className="bg-white rounded-lg shadow-sm">
       <div className="px-6 pt-6 pb-4">
         <h2 className="text-xl font-semibold text-gray-800">Sales History</h2>
-        {sales.length > 0 && (
+        {totalItems > 0 && (
           <p className="text-sm text-gray-600 mt-1">
-            Showing {sales.length} sale
-            {sales.length !== 1 ? "s" : ""}
+            Showing {sales.length} of {totalItems} sale
+            {totalItems !== 1 ? "s" : ""}
           </p>
         )}
       </div>
@@ -213,6 +262,15 @@ const SalesHistory = ({ warehouseId, productId }) => {
           <NoDataMessage />
         )}
       </div>
+
+      {totalItems > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          isLoading={loading}
+        />
+      )}
     </div>
   );
 };

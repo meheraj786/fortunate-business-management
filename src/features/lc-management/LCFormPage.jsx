@@ -600,6 +600,7 @@ const LCForm = ({ onSave }) => {
                     handleInputChange("basicInfo", "lcNumber", e.target.value)
                   }
                   required
+                  autoFocus
                 />
                 <InputField
                   label="LC Opening Date"
