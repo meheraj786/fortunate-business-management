@@ -13,17 +13,35 @@ import {
 // Stat Card Component
 const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
   const colorClasses = {
-    blue: { text: "text-blue-600", bg: "bg-blue-100", border: "border-blue-500" },
-    green: { text: "text-green-600", bg: "bg-green-100", border: "border-green-500" },
+    blue: {
+      text: "text-blue-600",
+      bg: "bg-blue-100",
+      border: "border-blue-500",
+    },
+    green: {
+      text: "text-green-600",
+      bg: "bg-green-100",
+      border: "border-green-500",
+    },
     red: { text: "text-red-600", bg: "bg-red-100", border: "border-red-500" },
-    purple: { text: "text-purple-600", bg: "bg-purple-100", border: "border-purple-500" },
-    orange: { text: "text-orange-600", bg: "bg-orange-100", border: "border-orange-500" },
+    purple: {
+      text: "text-purple-600",
+      bg: "bg-purple-100",
+      border: "border-purple-500",
+    },
+    orange: {
+      text: "text-orange-600",
+      bg: "bg-orange-100",
+      border: "border-orange-500",
+    },
   };
 
   const selectedColor = colorClasses[color] || colorClasses.blue;
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm p-5 border-l-4 ${selectedColor.border} hover:shadow-md transition-shadow`}>
+    <div
+      className={`bg-white rounded-xl shadow-sm p-5 border-l-4 ${selectedColor.border} hover:shadow-md transition-shadow`}
+    >
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
@@ -51,17 +69,25 @@ const TransactionCard = ({ transaction, iconComponents }) => {
   const color = isIncome ? "green" : "red";
 
   const colorClasses = {
-    green: { text: "text-green-600", bg: "bg-green-100", border: "border-green-500" },
+    green: {
+      text: "text-green-600",
+      bg: "bg-green-100",
+      border: "border-green-500",
+    },
     red: { text: "text-red-600", bg: "bg-red-100", border: "border-red-500" },
   };
 
   const selectedColor = colorClasses[color];
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm p-4 border-l-4 ${selectedColor.border} mb-3 hover:shadow-md transition-shadow`}>
+    <div
+      className={`bg-white rounded-lg shadow-sm p-4 border-l-4 ${selectedColor.border} mb-3 hover:shadow-md transition-shadow`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className={`p-2.5 ${selectedColor.bg} rounded-lg flex-shrink-0`}>
+          <div
+            className={`p-2.5 ${selectedColor.bg} rounded-lg flex-shrink-0`}
+          >
             <IconComponent className={`w-5 h-5 ${selectedColor.text}`} />
           </div>
           <div className="flex-1 min-w-0">
@@ -78,12 +104,15 @@ const TransactionCard = ({ transaction, iconComponents }) => {
             </div>
             <p className="text-xs text-gray-500 mt-2">
               Paid via: {transaction.paymentMethod || "Cash"}
+              {transaction.bankNumber && ` (${transaction.bankNumber})`}
+              {transaction.mobileBank && ` (${transaction.mobileBank})`}
             </p>
           </div>
         </div>
         <div className="text-right ml-3 flex-shrink-0">
           <p className={`text-lg font-bold ${selectedColor.text}`}>
-            {isIncome ? "+" : "-"}৳{transaction.amount?.toLocaleString() || "0"}
+            {isIncome ? "+" : "-"}৳
+            {transaction.amount?.toLocaleString() || "0"}
           </p>
           <p className="text-xs text-gray-500 mt-1">
             {isIncome ? "Income" : "Expense"}
@@ -104,7 +133,8 @@ const EmptyTransactions = () => (
       No transactions found
     </h3>
     <p className="text-gray-500 max-w-md mx-auto">
-      There are no transactions for this day. Try adding some income or expenses to get started.
+      There are no transactions for this day. Try adding some income or
+      expenses to get started.
     </p>
   </div>
 );
@@ -161,14 +191,18 @@ const CashFlowDetails = ({
           amount={totalIncome}
           icon={TrendingUp}
           color="green"
-          subtitle={`${filteredTransactions.filter((t) => t.type === "income").length} transactions`}
+          subtitle={`${
+            filteredTransactions.filter((t) => t.type === "income").length
+          } transactions`}
         />
         <StatCard
           title="Total Expenses"
           amount={totalExpenses}
           icon={TrendingDown}
           color="red"
-          subtitle={`${filteredTransactions.filter((t) => t.type === "expense").length} transactions`}
+          subtitle={`${
+            filteredTransactions.filter((t) => t.type === "expense").length
+          } transactions`}
         />
         <StatCard
           title="Running Balance"
@@ -244,7 +278,9 @@ const CashFlowDetails = ({
                 {transactions.map((transaction) => {
                   const Icon = iconComponents[transaction.icon];
                   const isIncome = transaction.type === "income";
-                  const colorClass = isIncome ? "text-green-600" : "text-red-600";
+                  const colorClass = isIncome
+                    ? "text-green-600"
+                    : "text-red-600";
 
                   return (
                     <tr
@@ -274,10 +310,16 @@ const CashFlowDetails = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                           {transaction.paymentMethod || "Cash"}
+                          {transaction.bankNumber &&
+                            ` (${transaction.bankNumber})`}
+                          {transaction.mobileBank &&
+                            ` (${transaction.mobileBank})`}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className={`text-sm font-semibold ${colorClass}`}>
+                        <div
+                          className={`text-sm font-semibold ${colorClass}`}
+                        >
                           {isIncome ? "+" : "-"} ৳
                           {transaction.amount?.toLocaleString() || "0"}
                         </div>
@@ -304,7 +346,10 @@ const CashFlowDetails = ({
                 </span>{" "}
                 to{" "}
                 <span className="font-semibold">
-                  {Math.min(currentPage * 10, filteredTransactions.length)}
+                  {Math.min(
+                    currentPage * 10,
+                    filteredTransactions.length
+                  )}
                 </span>{" "}
                 of{" "}
                 <span className="font-semibold">
@@ -324,32 +369,35 @@ const CashFlowDetails = ({
                 </button>
 
                 <div className="flex items-center border-t border-b border-gray-300 bg-white">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
+                  {Array.from(
+                    { length: Math.min(5, totalPages) },
+                    (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
 
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                        className={`px-4 py-2 text-sm font-medium border-x border-gray-300 ${
-                          currentPage === pageNum
-                            ? "bg-blue-50 text-blue-600 border-blue-500"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`px-4 py-2 text-sm font-medium border-x border-gray-300 ${
+                            currentPage === pageNum
+                              ? "bg-blue-50 text-blue-600 border-blue-500"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    }
+                  )}
                 </div>
 
                 <button

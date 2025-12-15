@@ -1,6 +1,5 @@
 // LC.jsx
-import React, { useState, useEffect, useContext } from "react";
-import Flex from "@/components/ui/Flex";
+import React, { useState, useEffect, useCallback } from "react";
 import StatBox from "@/components/ui/StatBox";
 import LCTable from "./components/LCTable";
 import {
@@ -10,15 +9,38 @@ import {
   MonitorDot,
   Plus,
   Grid2x2Check,
+  Loader2,
 } from "lucide-react";
 import api from "@/services/apiService";
-
 import { Link } from "react-router";
 import { exportToExcel } from "@/lib/exportXlsx";
 import toast from "react-hot-toast";
+import { useDebounce } from "@/hooks/useDebounce";
+
+const LC_STATUS_OPTIONS = [
+  { value: "", label: "All Statuses" },
+  { value: "Active", label: "Active" },
+  { value: "Completed", label: "Completed" },
+  { value: "Draft", label: "Draft" },
+  { value: "Cancelled", label: "Cancelled" },
+];
 
 const LC = () => {
   const [lcData, setLcData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalDocuments: 0,
+    limit: 10,
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+  const [filterStatus, setFilterStatus] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc"); // 'asc' or 'desc'
+
   const [lcCounts, setLcCounts] = useState({
     Active: 0,
     Completed: 0,
@@ -26,22 +48,62 @@ const LC = () => {
     Cancelled: 0,
   });
 
+  const fetchLcSummary = useCallback(
+    async (page, limit, query, status, sortby, order) => {
+      setLoading(true);
+      try {
+        const isSearchOrFilter = query || status;
+        const endpoint = isSearchOrFilter ? `/lc/summary/search` : `/lc/summary`;
+        const params = { page, limit };
+
+        if (query) {
+          params.searchQuery = query;
+        }
+        if (status) {
+          params.status = status;
+        }
+        if (sortby) {
+          params.sortBy = sortby;
+          params.sortOrder = order;
+        }
+
+        const response = await api.get(endpoint, { params });
+        const { data, pagination: newPagination } = response.data.data;
+        if (Array.isArray(data)) {
+          setLcData(data);
+          setPagination(newPagination);
+        } else {
+          setLcData([]);
+          toast.error("Failed to load LC data");
+        }
+      } catch (error) {
+        console.error("Error fetching LC summary:", error);
+        toast.error("Could not fetch LC data.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    // const toastId = toast.loading("Loading LC data..."); // Removed loading toast
-    api.get(`/lc/summary`).then((res) => {
-      if (Array.isArray(res.data.data)) {
-        setLcData(res.data.data);
-        // toast.success("LC data loaded", { id: toastId }); // Removed success toast
-      } else {
-        setLcData([]);
-        toast.error("Failed to load LC data"); // Kept error toast, removed id
-      }
-    }).catch((error) => {
-      console.error("Error fetching LC summary:", error);
-      toast.error("Could not fetch LC data."); // Kept error toast
-    });
-  }, []);
+    fetchLcSummary(
+      pagination.currentPage,
+      pagination.limit,
+      debouncedSearchQuery,
+      filterStatus,
+      sortBy,
+      sortOrder
+    );
+  }, [
+    fetchLcSummary,
+    pagination.currentPage,
+    pagination.limit,
+    debouncedSearchQuery,
+    filterStatus,
+    sortBy,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     api
@@ -62,56 +124,93 @@ const LC = () => {
       });
   }, []);
 
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= pagination.totalPages) {
+      setPagination((prev) => ({ ...prev, currentPage: newPage }));
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset to page 1 on search
+  };
+
+  const handleStatusChange = (e) => {
+    setFilterStatus(e.target.value);
+    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset to page 1 on filter change
+  };
+
+  const handleSortChange = (column) => {
+    // If clicking the same column, toggle sort order
+    if (sortBy === column) {
+      setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
+    } else {
+      // If clicking a new column, set it as sortBy and default to desc order
+      setSortBy(column);
+      setSortOrder("desc");
+    }
+    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset to page 1 on sort change
+  };
+
   const formatDateForExport = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
     if (isNaN(date)) return "N/A";
     return date.toLocaleDateString();
   };
-  
-  const handleExport = () => {
-    const toastId = toast.loading("Preparing data for export...");
-    const formattedData = lcData.map((lc) => ({
-      LC_Number: lc.lcNumber || lc.basicInfo?.lcNumber || "N/A",
-      Status: lc.status || lc.basicInfo?.status || "N/A",
-      Supplier: lc.supplierName || lc.basicInfo?.supplierName || "N/A",
-      Opening_Date: formatDateForExport(
-        lc.lcOpeningDate || lc.basicInfo?.lcOpeningDate
-      ),
-      Arrival_Date: formatDateForExport(
-        lc.dueDate || lc.shippingCustomsInfo?.expectedArrivalDate
-      ),
-      Products:
-        lc.products
-          ?.map(
-            (p) =>
-              `${p.itemName || "Unnamed"} (${p.quantity || 0} ${
-                p.unit || "units"
-              })`
-          )
-          .join(", ") ||
-        lc.productInfo
-          ?.map(
-            (p) =>
-              `${p.itemName || "Unnamed"} (${p.quantityValue || 0} ${
-                p.quantityUnit?.name || "units"
-              })`
-          )
-          .join(", ") ||
-        "No products",
-      Total_Quantity:
-        lc.products?.reduce((acc, item) => acc + (item.quantity || 0), 0) ||
-        lc.productInfo?.reduce(
-          (acc, item) => acc + (item.quantityValue || 0),
-          0
-        ) ||
-        0,
-      Total_Cost_BDT: lc.totalCost || lc.financialInfo?.lcAmountBdt || 0,
-    }));
 
-    const today = new Date().toISOString().split("T")[0];
-    exportToExcel(formattedData, `LC_Report_${today}.xlsx`, `LC Data ${today}`);
-    toast.success("LC Table Exported As XLSX", { id: toastId });
+  const handleExport = async () => {
+    const toastId = toast.loading("Preparing data for export...");
+
+    try {
+      const isSearchOrFilter = debouncedSearchQuery || filterStatus;
+      const endpoint = isSearchOrFilter ? `/lc/summary/search` : `/lc/summary`;
+      const params = {
+        limit: pagination.totalDocuments, // To export all found documents
+        sortBy,
+        sortOrder,
+      };
+      if (debouncedSearchQuery) {
+        params.searchQuery = debouncedSearchQuery;
+      }
+      if (filterStatus) {
+        params.status = filterStatus;
+      }
+
+      const allDataResponse = await api.get(endpoint, { params });
+
+      if (!allDataResponse.data.data.data) {
+        toast.error("Could not fetch all data for export.", { id: toastId });
+        return;
+      }
+
+      const formattedData = allDataResponse.data.data.data.map((lc) => ({
+        LC_Number: lc.lcNumber || "N/A",
+        Status: lc.status || "N/A",
+        Supplier: lc.supplierName || "N/A",
+        Opening_Date: formatDateForExport(lc.lcOpeningDate),
+        Arrival_Date: formatDateForExport(lc.dueDate),
+        Products:
+          lc.products
+            ?.map((p) => `${p.itemName} (${p.quantity} ${p.unit})`)
+            .join(", ") || "No products",
+        Total_Quantity:
+          lc.products?.reduce((acc, item) => acc + (item.quantity || 0), 0) ||
+          0,
+        Total_Cost_BDT: lc.totalCost || 0,
+      }));
+
+      const today = new Date().toISOString().split("T")[0];
+      exportToExcel(
+        formattedData,
+        `LC_Report_${today}.xlsx`,
+        `LC Data ${today}`
+      );
+      toast.success("LC Table Exported As XLSX", { id: toastId });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export data.", { id: toastId });
+    }
   };
 
   return (
@@ -176,7 +275,20 @@ const LC = () => {
 
       {/* LC Table */}
       <div>
-        <LCTable lcData={lcData} />
+        <LCTable
+          lcData={lcData}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          loading={loading}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          filterStatus={filterStatus}
+          onStatusChange={handleStatusChange}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={handleSortChange}
+          statusOptions={LC_STATUS_OPTIONS}
+        />
       </div>
     </div>
   );

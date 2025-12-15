@@ -59,6 +59,8 @@ const INITIAL_TRANSACTION_STATE = {
   category: "",
   description: "",
   paymentMethod: "cash",
+  bankNumber: "",
+  mobileBank: "",
   lcId: "",
 };
 
@@ -79,16 +81,19 @@ const ICON_COMPONENTS = {
   "Office Expense": Building,
   Transportation: Truck,
 };
-
 const DailyCashFlow = () => {
   // State
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const getLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
   const [dailyData, setDailyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
 
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,8 +114,17 @@ const DailyCashFlow = () => {
     totalExpense = 0,
     runningBalance = 0,
     isClosed = false,
-    transactions = [],
+    incomeList = [],
+    expenseList = [],
   } = dailyData || {};
+
+  const transactions = useMemo(() => {
+    const incomes = incomeList.map((item) => ({ ...item, type: "income" }));
+    const expenses = expenseList.map((item) => ({ ...item, type: "expense" }));
+    return [...incomes, ...expenses].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+  }, [incomeList, expenseList]);
 
   // Fetch active LC data
   useEffect(() => {
@@ -174,7 +188,7 @@ const DailyCashFlow = () => {
   // Filter transactions
   const filteredTransactions = useMemo(() => {
     if (!transactions || !Array.isArray(transactions)) return [];
-    
+
     let filtered = [...transactions];
 
     if (searchTerm.trim()) {
@@ -203,7 +217,10 @@ const DailyCashFlow = () => {
   }, [transactions]);
 
   // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE)
+  );
   const paginatedTransactions = filteredTransactions.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
@@ -237,6 +254,8 @@ const DailyCashFlow = () => {
       category: newTransaction.category,
       description: newTransaction.description || "",
       paymentMethod: newTransaction.paymentMethod,
+      bankNumber: newTransaction.bankNumber || "",
+      mobileBank: newTransaction.mobileBank || "",
       time: new Date().toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
@@ -265,14 +284,17 @@ const DailyCashFlow = () => {
       }
 
       toast.success(
-        `${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)} added successfully!`,
+        `${
+          transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
+        } added successfully!`,
         { id: toastId, duration: 3000 }
       );
       setShowAddTransaction(false);
       setNewTransaction(INITIAL_TRANSACTION_STATE);
       fetchDailyCash();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || `Failed to add ${transactionType}.`;
+      const errorMessage =
+        err.response?.data?.message || `Failed to add ${transactionType}.`;
       toast.error(errorMessage, { id: toastId, duration: 4000 });
     } finally {
       setIsSubmitting(false);
@@ -289,10 +311,14 @@ const DailyCashFlow = () => {
     const toastId = toast.loading("Opening cash for the day...");
     try {
       await api.post(`/cash/open`, { date: selectedDate });
-      toast.success("Cash opened successfully!", { id: toastId, duration: 3000 });
+      toast.success("Cash opened successfully!", {
+        id: toastId,
+        duration: 3000,
+      });
       fetchDailyCash();
     } catch (err) {
-      const errorMessage = err.response?.data?.message || "Failed to open cash.";
+      const errorMessage =
+        err.response?.data?.message || "Failed to open cash.";
       toast.error(errorMessage, { id: toastId, duration: 4000 });
     }
   };
@@ -306,10 +332,14 @@ const DailyCashFlow = () => {
       const toastId = toast.loading("Closing cash for the day...");
       try {
         await api.post(`/cash/close`, { date: selectedDate });
-        toast.success("Cash closed successfully!", { id: toastId, duration: 3000 });
+        toast.success("Cash closed successfully!", {
+          id: toastId,
+          duration: 3000,
+        });
         fetchDailyCash();
       } catch (err) {
-        const errorMessage = err.response?.data?.message || "Failed to close cash.";
+        const errorMessage =
+          err.response?.data?.message || "Failed to close cash.";
         toast.error(errorMessage, { id: toastId, duration: 4000 });
       }
     }
@@ -394,7 +424,7 @@ const DailyCashFlow = () => {
                 Track daily cash flow and business expenses in real-time
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
               {/* Mobile Filters Button */}
               <button
@@ -414,7 +444,7 @@ const DailyCashFlow = () => {
                 <Plus className="w-4 h-4" />
                 Add Income
               </button>
-              
+
               <button
                 onClick={() => handleAddTransaction("expense")}
                 disabled={isClosed}
@@ -423,7 +453,7 @@ const DailyCashFlow = () => {
                 <Plus className="w-4 h-4" />
                 Add Expense
               </button>
-              
+
               <button
                 onClick={handleCloseDay}
                 disabled={isClosed}
@@ -516,17 +546,17 @@ const DailyCashFlow = () => {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex-1 max-w-md">
               <input
                 type="date"
                 value={selectedDate}
                 onChange={handleDateChange}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                max={new Date().toISOString().split("T")[0]}
+                max={getLocalDateString(new Date())}
               />
             </div>
-            
+
             <div className="text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg">
               {new Date(selectedDate).toDateString() ===
               new Date().toDateString()
@@ -558,9 +588,11 @@ const DailyCashFlow = () => {
                 />
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-700">Category:</span>
+              <span className="text-sm font-medium text-gray-700">
+                Category:
+              </span>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
@@ -573,7 +605,7 @@ const DailyCashFlow = () => {
                   </option>
                 ))}
               </select>
-              
+
               {(searchTerm || categoryFilter !== "all") && (
                 <button
                   onClick={() => {
@@ -619,7 +651,7 @@ const DailyCashFlow = () => {
             min="0"
             step="0.01"
           />
-          
+
           {transactionType === "income" ? (
             <InputField
               label="Category"
@@ -643,7 +675,7 @@ const DailyCashFlow = () => {
               placeholder="Select category"
             />
           )}
-          
+
           {newTransaction.category === "lc" && (
             <SelectField
               label="Select LC"
@@ -658,7 +690,7 @@ const DailyCashFlow = () => {
               placeholder="Select an LC"
             />
           )}
-          
+
           <TextAreaField
             label="Description"
             name="description"
@@ -667,7 +699,7 @@ const DailyCashFlow = () => {
             placeholder="Enter description (optional)"
             rows="3"
           />
-          
+
           <SelectField
             label="Payment Method"
             name="paymentMethod"
@@ -680,6 +712,24 @@ const DailyCashFlow = () => {
             ]}
             required
           />
+          {newTransaction.paymentMethod === "bank" && (
+            <InputField
+              label="Bank Number"
+              name="bankNumber"
+              value={newTransaction.bankNumber}
+              onChange={handleNewTransactionChange}
+              placeholder="Enter bank account number"
+            />
+          )}
+          {newTransaction.paymentMethod === "mobile-banking" && (
+            <InputField
+              label="Mobile Bank Number"
+              name="mobileBank"
+              value={newTransaction.mobileBank}
+              onChange={handleNewTransactionChange}
+              placeholder="Enter mobile banking number"
+            />
+          )}
         </div>
       </FormDialog>
     </div>

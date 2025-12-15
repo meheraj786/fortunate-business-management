@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import {
   FiFile,
   FiDollarSign,
@@ -16,6 +16,7 @@ import {
   FiTrash,
   FiCreditCard,
 } from "react-icons/fi";
+import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router";
 import CollapsibleCard from "@/components/ui/CollapsibleCard";
@@ -24,6 +25,7 @@ import api from "@/services/apiService";
 import { UrlContext } from "../../context/UrlContext";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import toast from "react-hot-toast";
+import AddCostForm from "./components/AddCostForm";
 
 const StatusBadge = ({ status }) => {
   if (!status) return null;
@@ -103,6 +105,26 @@ const LCdetails = () => {
   const [confirmAction, setConfirmAction] = useState(null);
   const [isConfirming, setIsConfirming] = useState(false);
 
+  const [isAddCostOpen, setIsAddCostOpen] = useState(false);
+  const [costCategory, setCostCategory] = useState(null);
+
+  const fetchLcData = useCallback(() => {
+    if (!id) return;
+    api
+      .get(`/lc/get-lc/${id}`)
+      .then((res) => {
+        setLcData(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to fetch LC details.");
+      });
+  }, [id]);
+
+  useEffect(() => {
+    fetchLcData();
+  }, [fetchLcData]);
+
   const openConfirmationModal = (action) => {
     setConfirmAction(action);
     setIsConfirmModalOpen(true);
@@ -147,15 +169,14 @@ const LCdetails = () => {
     setConfirmAction(null);
   };
 
-  useEffect(() => {
-    if (!id) return;
-    api
-      .get(`/lc/get-lc/${id}`)
-      .then((res) => {
-        setLcData(res.data.data);
-      })
-      .catch((err) => console.error(err));
-  }, [id]);
+  const handleOpenAddCost = (category) => {
+    setCostCategory(category);
+    setIsAddCostOpen(true);
+  };
+
+  const handleAddCostSuccess = () => {
+    fetchLcData();
+  };
 
   const formatNumber = (value) => {
     if (value === null || value === undefined) return "-";
@@ -221,6 +242,16 @@ const LCdetails = () => {
   const totalLcExpenses = allCosts.reduce(
     (total, cost) => total + (cost.amount || 0),
     0
+  );
+
+  const addCostButton = (category) => (
+    <button
+      onClick={() => handleOpenAddCost(category)}
+      className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-medium"
+    >
+      <Plus size={14} />
+      Add Cost
+    </button>
   );
 
   return (
@@ -339,7 +370,7 @@ const LCdetails = () => {
               title="Financial Information"
               icon={<FiDollarSign className="text-[#003b75]" />}
               defaultOpen={true}
-              className=""
+              headerActions={addCostButton("financialInfo")}
             >
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <DataField
@@ -357,10 +388,12 @@ const LCdetails = () => {
               </div>
 
               {financialInfo.costs && financialInfo.costs.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 mt-4 gap-2">
-                  {financialInfo.costs.map((cost) => (
-                    <CostField key={cost._id} cost={cost} />
-                  ))}
+                <div className="mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {financialInfo.costs.map((cost) => (
+                      <CostField key={cost._id} cost={cost} />
+                    ))}
+                  </div>
                 </div>
               )}
             </CollapsibleCard>
@@ -428,6 +461,7 @@ const LCdetails = () => {
             <CollapsibleCard
               title="Shipping & Customs Info"
               icon={<FiTruck className="text-[#003b75]" />}
+              headerActions={addCostButton("shippingCustomsInfo")}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <DataField
@@ -442,10 +476,12 @@ const LCdetails = () => {
 
               {shippingCustomsInfo.costs &&
                 shippingCustomsInfo.costs.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 mt-4 gap-2">
-                    {shippingCustomsInfo.costs.map((cost) => (
-                      <CostField key={cost._id} cost={cost} />
-                    ))}
+                  <div className="mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {shippingCustomsInfo.costs.map((cost) => (
+                        <CostField key={cost._id} cost={cost} />
+                      ))}
+                    </div>
                   </div>
                 )}
             </CollapsibleCard>
@@ -454,10 +490,11 @@ const LCdetails = () => {
             <CollapsibleCard
               title="Agent & Transport Info"
               icon={<FiUser className="text-[#003b75]" />}
+              headerActions={addCostButton("agentTransportInfo")}
             >
               {agentTransportInfo.costs &&
               agentTransportInfo.costs.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3 mt-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {agentTransportInfo.costs.map((cost) => (
                     <CostField key={cost._id} cost={cost} />
                   ))}
@@ -475,18 +512,23 @@ const LCdetails = () => {
             </CollapsibleCard>
 
             {/* Other Expenses */}
-            {otherExpenses.costs && otherExpenses.costs.length > 0 && (
-              <CollapsibleCard
-                title="Other Expenses"
-                icon={<FiAlertCircle className="text-[#003b75]" />}
-              >
+            <CollapsibleCard
+              title="Other Expenses"
+              icon={<FiAlertCircle className="text-[#003b75]" />}
+              headerActions={addCostButton("otherExpenses")}
+            >
+              {otherExpenses.costs && otherExpenses.costs.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {otherExpenses.costs.map((cost) => (
                     <CostField key={cost._id} cost={cost} />
                   ))}
                 </div>
-              </CollapsibleCard>
-            )}
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No other costs added</p>
+                </div>
+              )}
+            </CollapsibleCard>
           </div>
 
           {/* Right Column - 1/3 width */}
@@ -638,6 +680,15 @@ const LCdetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Cost Form Dialog */}
+      <AddCostForm
+        open={isAddCostOpen}
+        onClose={() => setIsAddCostOpen(false)}
+        lcId={id}
+        category={costCategory}
+        onSuccess={handleAddCostSuccess}
+      />
 
       {/* Confirmation Modal */}
       <ConfirmationModal
