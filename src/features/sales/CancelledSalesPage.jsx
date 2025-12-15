@@ -11,7 +11,7 @@ const CancelledSales = () => {
     <SalesListingsPage
       title="Cancelled Sales"
       description="Sales that have been cancelled."
-      fetchUrl="/sales/get-all-cancelled-invoices"
+      initialFilters={{ invoiceStatus: "Cancelled" }}
       breadcrumbItems={breadcrumbItems}
     />
   );

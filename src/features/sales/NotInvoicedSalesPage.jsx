@@ -11,7 +11,7 @@ const NotInvoicedSales = () => {
     <SalesListingsPage
       title="Not Invoiced Sales"
       description="Sales that have not been invoiced yet."
-      fetchUrl="/sales/get-all-not-invoices"
+      initialFilters={{ invoiceStatus: "Not-invoiced" }}
       breadcrumbItems={breadcrumbItems}
     />
   );

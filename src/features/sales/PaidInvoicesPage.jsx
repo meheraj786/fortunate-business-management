@@ -11,7 +11,7 @@ const PaidInvoices = () => {
     <SalesListingsPage
       title="Paid Invoices"
       description="Sales that have been fully paid."
-      fetchUrl="/sales/get-all-paid-invoices"
+      initialFilters={{ paymentStatus: "Paid payment" }}
       breadcrumbItems={breadcrumbItems}
     />
   );

@@ -11,7 +11,7 @@ const DueInvoices = () => {
     <SalesListingsPage
       title="Due Invoices"
       description="Sales with due payments."
-      fetchUrl="/sales/get-all-due-invoices"
+      initialFilters={{ paymentStatus: "Due payment" }}
       breadcrumbItems={breadcrumbItems}
     />
   );

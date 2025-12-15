@@ -1,13 +1,46 @@
 import React from "react";
 import { Link } from "react-router";
-import { Check, X, Calendar, Package } from "lucide-react";
+import { Check, X, Calendar, Package, ArrowUp, ArrowDown } from "lucide-react";
 
 const SalesTable = ({
   sales,
   isLoading = false,
-  title = "Sales",
-  description = "A list of all sales records including customer, product, and payment details.",
+  sortBy,
+  sortOrder,
+  onSort,
 }) => {
+  const SortableHeader = ({ label, value }) => {
+    const isSorted = sortBy === value;
+    let order;
+    if (isSorted) {
+      if(value === 'totalAmountToBePaid') {
+        order = sortOrder === 'bigger' ? 'desc' : 'asc'
+      } else {
+        order = sortOrder
+      }
+    }
+    
+    return (
+      <th
+        scope="col"
+        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer"
+        onClick={() => onSort(value)}
+      >
+        <div className="flex items-center gap-1">
+          {label}
+          {isSorted && (
+            <span>
+              {order === "desc" ? (
+                <ArrowDown className="w-4 h-4" />
+              ) : (
+                <ArrowUp className="w-4 h-4" />
+              )}
+            </span>
+          )}
+        </div>
+      </th>
+    );
+  };
   const SkeletonRow = () => (
     <tr className="animate-pulse">
       <td className="py-4 pr-3 pl-4 sm:pl-6 lg:pl-8">
@@ -77,24 +110,15 @@ const SalesTable = ({
                   >
                     LC Number
                   </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Quantity
-                  </th>
+                  <SortableHeader label="Quantity" value="quantity" />
                   <th
                     scope="col"
                     className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                   >
                     Unit Price
                   </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Total
-                  </th>
+                  <SortableHeader label="Total" value="totalAmountToBePaid" />
+
                   <th
                     scope="col"
                     className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
@@ -107,17 +131,14 @@ const SalesTable = ({
                   >
                     Payment Status
                   </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Date
-                  </th>
+                  <SortableHeader label="Date" value="saleDate" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {isLoading
-                  ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
+                  ? Array.from({ length: 5 }).map((_, i) => (
+                      <SkeletonRow key={i} />
+                    ))
                   : sales.map((sale) => (
                       <tr key={sale._id} className="hover:bg-gray-50">
                         <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6 lg:pl-8">
@@ -132,16 +153,18 @@ const SalesTable = ({
                           </Link>
                         </td>
                         <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                          {sale?.product?.LC?.basicInfo?.lcNumber}
+                          {sale?.lc?.number}
                         </td>
                         <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                          {sale.quantity} {sale.unit?.name}
+                          {sale.quantity} {sale?.unit?.name}
                         </td>
                         <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
-                          ${sale?.pricePerUnit}
+                          ${sale.pricePerUnit}
                         </td>
                         <td className="px-3 py-4 text-sm whitespace-nowrap font-medium text-gray-900">
-                          {Math.floor(sale?.totalAmount || 0).toLocaleString()}
+                          {Math.floor(
+                            sale.totalAmountToBePaid || 0
+                          ).toLocaleString()}
                         </td>
                         <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
                           {sale.invoiceStatus === "Invoiced" ? (

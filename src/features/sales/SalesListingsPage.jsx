@@ -1,79 +1,94 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import api from "@/services/apiService";
 import SalesTable from "./components/SalesTable";
 import SearchBar from "@/components/ui/SearchBar";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import toast from "react-hot-toast";
+import { useDebounce } from "@/hooks/useDebounce";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const SalesListPage = ({ title, description, fetchUrl, breadcrumbItems }) => {
+const SalesListPage = ({
+  title,
+  description,
+  breadcrumbItems,
+  initialFilters = {},
+}) => {
   const [sales, setSales] = useState([]);
-  const [units, setUnits] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    totalSales: 0,
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("saleDate");
+  const [sortOrder, setSortOrder] = useState("desc");
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   useEffect(() => {
-    const fetchSales = () => {
+    const fetchSales = async () => {
       setLoading(true);
-      // const toastId = toast.loading(`Loading ${title}...`); // Removed loading toast
-      api
-        .get(fetchUrl)
-        .then((res) => {
-          if (res.data && res.data.data) {
-            setSales(res.data.data);
-            // toast.success(`${title} loaded successfully`, { id: toastId }); // Removed success toast
-          } else {
-            toast.error(`Failed to load ${title}`); // Kept error toast
-          }
-        })
-        .catch((error) => {
-          console.error(`Error fetching ${title}:`, error);
-          toast.error(`Could not fetch ${title}.`); // Kept error toast
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    };
-
-    const fetchUnits = async () => {
       try {
-        const response = await api.get(`/unit/get`);
+        const params = {
+          page: pagination.page,
+          limit: pagination.limit,
+          search: debouncedSearchTerm,
+          sortBy,
+          sortOrder,
+          ...initialFilters,
+        };
+        const response = await api.get("/sales/sales-summary-table", { params });
         if (response.data.success) {
-          setUnits(response.data.data || []);
+          const { sales, totalSales, page, limit, totalPages } =
+            response.data.data;
+          setSales(sales);
+          setPagination({ totalSales, page, limit, totalPages });
         } else {
-          toast.error(response.data.message || "Failed to fetch units.");
+          toast.error(response.data.message || `Failed to load ${title}`);
         }
       } catch (error) {
-        console.error("Error fetching units:", error);
-        toast.error("An unexpected error occurred while fetching units.");
+        console.error(`Error fetching ${title}:`, error);
+        toast.error(error.response?.data?.message || `Could not fetch ${title}.`);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchSales();
-    fetchUnits();
-  }, [fetchUrl, title]);
+  }, [
+    pagination.page,
+    pagination.limit,
+    debouncedSearchTerm,
+    sortBy,
+    sortOrder,
+    initialFilters,
+    title,
+  ]);
+  
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, page: newPage }));
+    }
+  };
 
-  const augmentedSales = useMemo(() => {
-    if (!units.length) return sales;
-    const unitsMap = new Map(units.map((unit) => [unit._id, unit]));
-    return sales.map((sale) => ({
-      ...sale,
-      unit: unitsMap.get(sale.unit) || sale.unit,
-    }));
-  }, [sales, units]);
-
-  const filteredSales = useMemo(() => {
-    if (!augmentedSales) return [];
-    return augmentedSales.filter(
-      (sale) =>
-        (sale.product?.name?.toLowerCase() || "").includes(
-          searchTerm.toLowerCase()
-        ) ||
-        (sale.customer?.name?.toLowerCase() || "").includes(
-          searchTerm.toLowerCase()
-        ) ||
-        (sale._id?.toString() || "").includes(searchTerm)
-    );
-  }, [augmentedSales, searchTerm]);
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      if (field === 'totalAmountToBePaid') {
+        setSortOrder(prev => prev === 'bigger' ? 'smaller' : 'bigger');
+      } else {
+        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+      }
+    } else {
+      setSortBy(field);
+      if (field === 'totalAmountToBePaid') {
+        setSortOrder('bigger');
+      } else {
+        setSortOrder('desc');
+      }
+    }
+  };
 
   return (
     <div className="">
@@ -83,9 +98,7 @@ const SalesListPage = ({ title, description, fetchUrl, breadcrumbItems }) => {
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
             {title}
           </h1>
-          <p className="text-gray-600 text-sm sm:text-base">
-            {description}
-          </p>
+          <p className="text-gray-600 text-sm sm:text-base">{description}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-gray-200">
@@ -95,8 +108,37 @@ const SalesListPage = ({ title, description, fetchUrl, breadcrumbItems }) => {
             />
           </div>
           <div className="px-3 pb-3">
-            <SalesTable sales={filteredSales} isLoading={loading} />
+            <SalesTable 
+              sales={sales} 
+              isLoading={loading} 
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSort={handleSort}
+            />
           </div>
+          {pagination.totalPages > 1 && (
+            <div className="p-4 border-t border-gray-200 flex items-center justify-between">
+              <span className="text-sm text-gray-700">
+                Page {pagination.page} of {pagination.totalPages} ({pagination.totalSales} records)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1}
+                  className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page >= pagination.totalPages}
+                  className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
