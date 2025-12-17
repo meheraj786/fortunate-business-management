@@ -8,6 +8,7 @@ import { RiSettings3Fill, RiMenuLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react";
 import { ChartColumnIncreasing, CreditCard, WalletMinimal } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useLogout } from "../../api/hooks/user";
 
 const SidebarItem = ({ icon: Icon, label, active, onClick, index, collapsed }) => (
   <motion.div
@@ -56,6 +57,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const logoutMutation=useLogout()
 
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -218,6 +220,7 @@ const Sidebar = () => {
           ))}
         </div>
       </div>
+      <button className="absolute bottom-4 left-1/2 -translate-x-1/2" onClick={()=>logoutMutation.mutate()}>Logout</button>
     </motion.div>
   );
 };

@@ -6,24 +6,20 @@ import api from "@/services/apiService";
 
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
+import { useUsers } from "../../api/hooks/user";
 
 const Team = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [teamMembers, setTeamMembers] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editMember, setEditMember] = useState(null);
+  const {data:team}=useUsers()
 
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const isSuperAdmin= user?.roleName === "SUPER_ADMIN";
 console.log(user)
 
 
-  useEffect(() => {
-    api
-      .get(`/auth/get-users`)
-      .then((res) => setTeamMembers(res.data.data));
-  }, []);
-  console.log(teamMembers);
 
   const handleFormSubmit = (newMember) => {
     if (editMember) {
@@ -42,7 +38,7 @@ console.log(user)
     setIsFormOpen(true);
   };
 
-  const filteredMembers = teamMembers?.filter(
+  const filteredMembers = team?.data?.filter(
     (member) =>
       member?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       member?.role?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
@@ -96,7 +92,7 @@ console.log(user)
         </div>
 
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          {filteredMembers.map((member) => (
+          {filteredMembers?.map((member) => (
             <TeamMemberCard
               key={member._id}
               member={member}
@@ -105,7 +101,7 @@ console.log(user)
           ))}
         </div>
 
-        {filteredMembers.length === 0 && (
+        {filteredMembers?.length === 0 && (
           <div className="text-center py-8 sm:py-12">
             <div className="text-gray-400 mb-2">
               <User size={32} className="sm:hidden mx-auto" />

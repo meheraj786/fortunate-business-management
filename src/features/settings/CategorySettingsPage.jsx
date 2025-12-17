@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import FormDialog from "@/components/ui/FormDialog";
 import FormDialogInput from "@/components/ui/FormDialogInput";
 import FormDialogTextarea from "@/components/ui/FormDialogTextarea";
-import api from "@/services/apiService";
-import { useContext } from "react";
 
+import {
+  useCategories,
+  useCreateCategory,
+  useDeleteCategory,
+  useUpdateCategory,
+} from "../../api/hooks/category";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -14,10 +18,14 @@ function classNames(...classes) {
 export default function Category() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
+  const { data: category, isLoading } = useCategories();
+  const createCatMutation = useCreateCategory();
+  const updateCatMutation = useUpdateCategory();
+  const deleteCatMutation = useDeleteCategory();
 
+  console.log(category, "cat");
 
   const {
     register,
@@ -52,9 +60,7 @@ export default function Category() {
       if (data.description) {
         categoryData.description = data.description;
       }
-      const response = await api.post(`/category/create`, categoryData);
-      setCategories([...categories, response.data.data]);
-      setRefetch((prev) => !prev);
+      createCatMutation.mutate(categoryData);
       closeModal();
     } catch (error) {
       console.error("Error creating category:", error);
@@ -65,19 +71,15 @@ export default function Category() {
 
   const handleUpdateCategory = async (data) => {
     if (!editingCategory) return;
+    console.log(editingCategory._id._id, data);
 
     const previousCategories = categories;
     try {
-      const response = await api.put(
-        `/category/update/${editingCategory._id}`,
-        data
-      );
-      setCategories(
-        categories.map((category) =>
-          category._id === editingCategory._id ? response.data.data : category
-        )
-      );
-      setRefetch((prev) => !prev);
+      updateCatMutation.mutate({
+        id: editingCategory._id,
+        data,
+      });
+
       closeModal();
     } catch (error) {
       console.error("Error updating category:", error);
@@ -89,9 +91,7 @@ export default function Category() {
   const handleDeleteCategory = async (id) => {
     const previousCategories = categories;
     try {
-      await api.delete(`/category/delete/${id}`);
-      setCategories(categories.filter((category) => category._id !== id));
-      setRefetch((prev) => !prev);
+      deleteCatMutation.mutate(id);
     } catch (error) {
       console.error("Error deleting category:", error);
       setCategories(previousCategories);
@@ -99,27 +99,7 @@ export default function Category() {
     }
   };
 
-  const [refetch, setRefetch] = useState(false);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(`/category/get`);
-        setCategories(response.data.data);
-        setError(null);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, [refetch]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="">
         <div className="flex justify-between items-center">
@@ -225,7 +205,7 @@ export default function Category() {
             </tr>
           </thead>
           <tbody>
-            {categories.map((plan, planIdx) => (
+            {category?.data?.map((plan, planIdx) => (
               <tr key={plan._id}>
                 <td
                   className={classNames(

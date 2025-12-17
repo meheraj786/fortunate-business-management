@@ -14,6 +14,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 import { useAuth } from "../../context/AuthContext";
+import { useUser } from "../../api/hooks/user";
 
 // Module and permission definitions
 const MODULES = [
@@ -30,29 +31,16 @@ const PERMISSIONS = ["CREATE", "GET", "UPDATE", "DELETE"];
 const TeamDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [member, setMember] = useState(null);
+  // const [member, setMember] = useState(null);
   const [accessPermissions, setAccessPermissions] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
+const { data: member, isLoading, isError } = useUser(id);
+
   const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
 
-  useEffect(() => {
-    api
-      .get(`/auth/get-user/${id}`)
-      .then((res) => {
-        setMember(res.data.data);
-        setAccessPermissions(res.data.data.access || []);
-      })
-      .catch((err) => {
-        toast.error("Failed to load user data");
-        console.error(err);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [id]);
+
 
   const handlePermissionToggle = (moduleName, permission) => {
     setAccessPermissions((prev) => {
@@ -296,9 +284,9 @@ const TeamDetails = () => {
                     />
                     <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                       {member?.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
+                        ?.split(" ")
+                        ?.map((n) => n[0])
+                        ?.join("")}
                     </div>
                   </div>
                   {member?.status === "Active" && (
