@@ -68,7 +68,7 @@ const CustomerForm = ({ onSave }) => {
     { id: "others", title: "Others", icon: FileText },
   ];
 
-  const { expandedSections, toggleSection, scrollToSection } =
+  const { expandedSections, toggleSection, setSectionRef } =
     useSectionManager(SECTIONS);
 
   // Data
@@ -177,7 +177,7 @@ const CustomerForm = ({ onSave }) => {
           icon={section.icon}
           isExpanded={expandedSections[section.id]}
           onToggle={() => toggleSection(section.id)}
-          sectionRef={(el) => scrollToSection(section.id, el)}
+          sectionRef={(el) => setSectionRef(section.id, el)}
           ariaLabel={`${section.title} section`}
         >
           {section.id === "basic" && (

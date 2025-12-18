@@ -1,4 +1,3 @@
-// LC.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import StatBox from "@/components/ui/StatBox";
 import LCTable from "./components/LCTable";
@@ -9,7 +8,6 @@ import {
   MonitorDot,
   Plus,
   Grid2x2Check,
-  Loader2,
 } from "lucide-react";
 import api from "@/services/apiService";
 import { Link } from "react-router";
@@ -28,6 +26,7 @@ const LC_STATUS_OPTIONS = [
 const LC = () => {
   const [lcData, setLcData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -39,7 +38,7 @@ const LC = () => {
 
   const [filterStatus, setFilterStatus] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState("desc"); // 'asc' or 'desc'
+  const [sortOrder, setSortOrder] = useState("desc");
 
   const [lcCounts, setLcCounts] = useState({
     Active: 0,
@@ -48,81 +47,72 @@ const LC = () => {
     Cancelled: 0,
   });
 
-  const fetchLcSummary = useCallback(
-    async (page, limit, query, status, sortby, order) => {
-      setLoading(true);
-      try {
-        const isSearchOrFilter = query || status;
-        const endpoint = isSearchOrFilter ? `/lc/summary/search` : `/lc/summary`;
-        const params = { page, limit };
+  const fetchLcData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const isSearchOrFilter = searchQuery || filterStatus;
+      const endpoint = isSearchOrFilter ? `/lc/summary/search` : `/lc/summary`;
 
-        if (query) {
-          params.searchQuery = query;
-        }
-        if (status) {
-          params.status = status;
-        }
-        if (sortby) {
-          params.sortBy = sortby;
-          params.sortOrder = order;
-        }
+      const params = {
+        page: pagination.currentPage,
+        limit: pagination.limit,
+        sortBy,
+        sortOrder,
+      };
 
-        const response = await api.get(endpoint, { params });
+      if (searchQuery) params.searchQuery = searchQuery;
+      if (filterStatus) params.status = filterStatus;
+
+      const response = await api.get(endpoint, { params });
+
+      if (response.data?.success) {
         const { data, pagination: newPagination } = response.data.data;
-        if (Array.isArray(data)) {
-          setLcData(data);
-          setPagination(newPagination);
-        } else {
-          setLcData([]);
-          toast.error("Failed to load LC data");
-        }
-      } catch (error) {
-        console.error("Error fetching LC summary:", error);
-        toast.error("Could not fetch LC data.");
-      } finally {
-        setLoading(false);
+        setLcData(Array.isArray(data) ? data : []);
+        setPagination(newPagination || pagination);
+      } else {
+        throw new Error(response.data?.message || "Failed to load LC data");
       }
-    },
-    []
-  );
-
-  useEffect(() => {
-    fetchLcSummary(
-      pagination.currentPage,
-      pagination.limit,
-      debouncedSearchQuery,
-      filterStatus,
-      sortBy,
-      sortOrder
-    );
+    } catch (error) {
+      console.error("Error fetching LC data:", error);
+      setError(error.message || "Could not fetch LC data.");
+      toast.error("Could not fetch LC data.");
+    } finally {
+      setLoading(false);
+    }
   }, [
-    fetchLcSummary,
     pagination.currentPage,
     pagination.limit,
-    debouncedSearchQuery,
+    searchQuery,
     filterStatus,
     sortBy,
     sortOrder,
   ]);
 
-  useEffect(() => {
-    api
-      .get(`/lc/counts/status`)
-      .then((res) => {
-        if (res.data && res.data.data) {
-          setLcCounts({
-            Active: res.data.data.Active || 0,
-            Completed: res.data.data.Completed || 0,
-            Draft: res.data.data.Draft || 0,
-            Cancelled: res.data.data.Cancelled || 0,
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching LC counts:", error);
-        toast.error("Could not fetch LC statistics.");
-      });
+  const fetchLcCounts = useCallback(async () => {
+    try {
+      const response = await api.get(`/lc/counts/status`);
+      if (response.data?.data) {
+        setLcCounts({
+          Active: response.data.data.Active || 0,
+          Completed: response.data.data.Completed || 0,
+          Draft: response.data.data.Draft || 0,
+          Cancelled: response.data.data.Cancelled || 0,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching LC counts:", error);
+      // Don't show toast for this as it's secondary data
+    }
   }, []);
+
+  useEffect(() => {
+    fetchLcData();
+  }, [fetchLcData]);
+
+  useEffect(() => {
+    fetchLcCounts();
+  }, [fetchLcCounts]);
 
   const handlePageChange = (newPage) => {
     if (newPage > 0 && newPage <= pagination.totalPages) {
@@ -132,64 +122,55 @@ const LC = () => {
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
-    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset to page 1 on search
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
   const handleStatusChange = (e) => {
     setFilterStatus(e.target.value);
-    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset to page 1 on filter change
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
   const handleSortChange = (column) => {
-    // If clicking the same column, toggle sort order
     if (sortBy === column) {
-      setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
-      // If clicking a new column, set it as sortBy and default to desc order
       setSortBy(column);
       setSortOrder("desc");
     }
-    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset to page 1 on sort change
-  };
-
-  const formatDateForExport = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (isNaN(date)) return "N/A";
-    return date.toLocaleDateString();
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
   const handleExport = async () => {
     const toastId = toast.loading("Preparing data for export...");
 
     try {
-      const isSearchOrFilter = debouncedSearchQuery || filterStatus;
+      const isSearchOrFilter = searchQuery || filterStatus;
       const endpoint = isSearchOrFilter ? `/lc/summary/search` : `/lc/summary`;
       const params = {
-        limit: pagination.totalDocuments, // To export all found documents
+        limit: pagination.totalDocuments,
         sortBy,
         sortOrder,
       };
-      if (debouncedSearchQuery) {
-        params.searchQuery = debouncedSearchQuery;
-      }
-      if (filterStatus) {
-        params.status = filterStatus;
-      }
 
-      const allDataResponse = await api.get(endpoint, { params });
+      if (searchQuery) params.searchQuery = searchQuery;
+      if (filterStatus) params.status = filterStatus;
 
-      if (!allDataResponse.data.data.data) {
-        toast.error("Could not fetch all data for export.", { id: toastId });
-        return;
+      const response = await api.get(endpoint, { params });
+
+      if (!response.data?.data?.data) {
+        throw new Error("No data available for export");
       }
 
-      const formattedData = allDataResponse.data.data.data.map((lc) => ({
+      const formattedData = response.data.data.data.map((lc) => ({
         LC_Number: lc.lcNumber || "N/A",
         Status: lc.status || "N/A",
         Supplier: lc.supplierName || "N/A",
-        Opening_Date: formatDateForExport(lc.lcOpeningDate),
-        Arrival_Date: formatDateForExport(lc.dueDate),
+        Opening_Date: lc.lcOpeningDate
+          ? new Date(lc.lcOpeningDate).toLocaleDateString()
+          : "N/A",
+        Arrival_Date: lc.dueDate
+          ? new Date(lc.dueDate).toLocaleDateString()
+          : "N/A",
         Products:
           lc.products
             ?.map((p) => `${p.itemName} (${p.quantity} ${p.unit})`)
@@ -206,18 +187,39 @@ const LC = () => {
         `LC_Report_${today}.xlsx`,
         `LC Data ${today}`
       );
-      toast.success("LC Table Exported As XLSX", { id: toastId });
+
+      toast.success("LC Table Exported Successfully", { id: toastId });
     } catch (error) {
       console.error("Export error:", error);
-      toast.error("Failed to export data.", { id: toastId });
+      toast.error(error.message || "Failed to export data", { id: toastId });
     }
   };
 
+  if (error && !loading) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Error Loading Data
+          </h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchLcData}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {/* Header with buttons */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               Letters of Credit
@@ -230,22 +232,24 @@ const LC = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleExport}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors w-full sm:w-auto"
+              disabled={loading || lcData.length === 0}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 touch-manipulation"
+              aria-label="Export LC data to Excel"
             >
-              <Grid2x2Check size={20} />
+              <Grid2x2Check size={20} aria-hidden="true" />
               <span>Export XLSX</span>
             </button>
             <Link to="/lc-form" className="sm:w-auto w-full">
-              <button className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors w-full">
-                <Plus size={20} />
+              <button className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors w-full active:scale-95 touch-manipulation">
+                <Plus size={20} aria-hidden="true" />
                 <span>Add LC</span>
               </button>
             </Link>
           </div>
         </div>
 
-        {/* Stats Cards*/}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatBox
             title="Active LC"
             Icon={MonitorDot}
@@ -265,7 +269,7 @@ const LC = () => {
             textColor="yellow"
           />
           <StatBox
-            title="Canceled LC"
+            title="Cancelled LC"
             Icon={BookmarkX}
             number={lcCounts.Cancelled}
             textColor="red"

@@ -1,8 +1,6 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Plus,
-  ChevronLeft,
-  ChevronRight,
   FileWarning,
   FileClock,
   FileCheck,
@@ -28,22 +26,24 @@ const Sales = () => {
   });
   const [showAddSale, setShowAddSale] = useState(false);
   const [loading, setLoading] = useState(true);
-    const [pagination, setPagination] = useState({
-      page: 1,
-      limit: 10,
-      totalPages: 1,
-      totalSales: 0,
-    });
-    const [searchTerm, setSearchTerm] = useState("");
-    const [sortBy, setSortBy] = useState("saleDate");
-    const [sortOrder, setSortOrder] = useState("desc");
-    const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  
-    const fetchSalesAndStats = useCallback(() => {
-      setLoading(true);
-      // Fetch paginated sales
-      api
-        .get(`/sales/sales-summary-table`, {
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    totalSales: 0,
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("saleDate");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const fetchSalesData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [salesResponse, statsResponse] = await Promise.all([
+        api.get(`/sales/sales-summary-table`, {
           params: {
             page: pagination.page,
             limit: pagination.limit,
@@ -51,239 +51,299 @@ const Sales = () => {
             sortBy,
             sortOrder,
           },
-        })
-        .then((res) => {
-          if (res.data.success) {
-            const { sales, totalSales, page, limit, totalPages } =
-              res.data.data;
-            setSalesData(sales);
-            setPagination({ totalSales, page, limit, totalPages });
-          } else {
-            toast.error("Could not fetch sales data.");
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching sales:", error);
-          toast.error("Could not fetch sales data.");
-        })
-        .finally(() => setLoading(false));
-  
-      // Fetch sales stats
-      api
-        .get(`/sales/get-all-invoices-status-count`)
-        .then((res) => {
-          if (res.data && res.data.data) {
-            setSalesStats({
-              notInvoiced: res.data.data.notInvoiced || 0,
-              due: res.data.data.due || 0,
-              paid: res.data.data.paid || 0,
-              cancelled: res.data.data.cancelled || 0,
-            });
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching sales stats:", error);
-          toast.error("Could not fetch sales statistics.");
-        });
-    }, [pagination.page, pagination.limit, debouncedSearchTerm, sortBy, sortOrder]);
-  
-    useEffect(() => {
-      fetchSalesAndStats();
-    }, [fetchSalesAndStats]);
-  
-    const handleSaleAdded = () => {
-      setShowAddSale(false);
-      fetchSalesAndStats(); // Refetch data
-    };
-    
-    const handlePageChange = (newPage) => {
-      if (newPage > 0 && newPage <= pagination.totalPages) {
-        setPagination(prev => ({ ...prev, page: newPage }));
+        }),
+        api.get(`/sales/get-all-invoices-status-count`),
+      ]);
+
+      if (salesResponse.data.success) {
+        const { sales, totalSales, page, limit, totalPages } =
+          salesResponse.data.data;
+        setSalesData(Array.isArray(sales) ? sales : []);
+        setPagination({ totalSales, page, limit, totalPages });
+      } else {
+        throw new Error("Failed to fetch sales data");
       }
-    };
-  
-    const handleSort = (field) => {
+
+      if (statsResponse.data?.data) {
+        setSalesStats({
+          notInvoiced: statsResponse.data.data.notInvoiced || 0,
+          due: statsResponse.data.data.due || 0,
+          paid: statsResponse.data.data.paid || 0,
+          cancelled: statsResponse.data.data.cancelled || 0,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching sales data:", error);
+      setError(error.message || "Could not fetch sales data");
+      toast.error("Could not fetch sales data");
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    pagination.page,
+    pagination.limit,
+    debouncedSearchTerm,
+    sortBy,
+    sortOrder,
+  ]);
+
+  useEffect(() => {
+    fetchSalesData();
+  }, [fetchSalesData]);
+
+  const handleSaleAdded = useCallback(() => {
+    setShowAddSale(false);
+    fetchSalesData();
+  }, [fetchSalesData]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= pagination.totalPages) {
+      setPagination((prev) => ({ ...prev, page: newPage }));
+    }
+  };
+
+  const handleSort = useCallback(
+    (field) => {
       if (sortBy === field) {
-        if (field === 'totalAmountToBePaid') {
-          setSortOrder(prev => prev === 'bigger' ? 'smaller' : 'bigger');
-        } else {
-          setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-        }
+        setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
       } else {
         setSortBy(field);
-        if (field === 'totalAmountToBePaid') {
-          setSortOrder('bigger');
-        } else {
-          setSortOrder('desc');
-        }
+        setSortOrder(field === "totalAmountToBePaid" ? "desc" : "desc");
       }
-    };
-  
-    const formatDateForExport = (dateString) => {
-      if (!dateString) return "N/A";
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "N/A";
-      return date.toLocaleDateString("en-GB");
-    };
-  
-    const handleExport = async () => {
-      const toastId = toast.loading("Exporting all sales data...");
-      try {
-        // Fetch all sales data with a large limit
-        const response = await api.get(`/sales/sales-summary-table`, {
-          params: { limit: 10000 }, // A large limit to fetch all data
-        });
-  
-        if (response.data.success) {
-          const allSales = response.data.data.sales;
-          const formattedSales = allSales.map((sale) => ({
-            Product: sale.product?.name,
-            LC_Number: sale.lc?.number,
-            Quantity: `${sale.quantity} ${sale.unit?.name || "N/A"}`,
-            Unit_Price: sale.pricePerUnit,
-            Total_Amount: sale.totalAmountToBePaid,
-            Customer: sale.customer?.name,
-            Invoice_Status: sale.invoiceStatus,
-            Payment_Status: sale.paymentStatus,
-            Sale_Date: formatDateForExport(sale.saleDate),
-          }));
-  
-          const today = new Date().toISOString().split("T")[0];
-          exportToExcel(
-            formattedSales,
-            `Sales_Report_${today}.xlsx`,
-            `Sales Data ${today}`
-          );
-          toast.success("Sales Data Exported as XLSX", { id: toastId });
-        } else {
-          toast.error("Failed to fetch data for export.", { id: toastId });
-        }
-      } catch (error) {
-        console.error("Error exporting sales data:", error);
-        toast.error("Could not export sales data.", { id: toastId });
+    },
+    [sortBy]
+  );
+
+  const handleExport = async () => {
+    const toastId = toast.loading("Exporting sales data...");
+    try {
+      const response = await api.get(`/sales/sales-summary-table`, {
+        params: { limit: 10000 },
+      });
+
+      if (response.data.success) {
+        const allSales = response.data.data.sales;
+        const formattedSales = allSales.map((sale) => ({
+          Product: sale.product?.name || "N/A",
+          LC_Number: sale.lc?.number || "N/A",
+          Quantity: `${sale.quantity?.toLocaleString() || 0} ${
+            sale.unit?.name || ""
+          }`,
+          Unit_Price: `$${sale.pricePerUnit?.toFixed(2) || "0.00"}`,
+          Total_Amount: `$${(sale.totalAmountToBePaid || 0).toFixed(2)}`,
+          Customer: sale.customer?.name || "N/A",
+          Invoice_Status: sale.invoiceStatus || "N/A",
+          Payment_Status: sale.paymentStatus || "N/A",
+          Sale_Date: sale.saleDate
+            ? new Date(sale.saleDate).toLocaleDateString("en-GB")
+            : "N/A",
+        }));
+
+        const today = new Date().toISOString().split("T")[0];
+        exportToExcel(
+          formattedSales,
+          `Sales_Report_${today}.xlsx`,
+          `Sales Data ${today}`
+        );
+        toast.success("Sales Data Exported Successfully", { id: toastId });
+      } else {
+        throw new Error("Failed to fetch data for export");
       }
-    };
-  
+    } catch (error) {
+      console.error("Error exporting sales data:", error);
+      toast.error(error.message || "Could not export sales data", {
+        id: toastId,
+      });
+    }
+  };
+
+  if (error && !loading) {
     return (
-      <div>
-        <div className="">
-          <AddSalesForm
-            isOpen={showAddSale}
-            onClose={() => setShowAddSale(false)}
-            onSaleAdded={handleSaleAdded}
+      <div className="min-h-[400px] flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Error Loading Sales Data
+          </h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchSalesData}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <AddSalesForm
+        isOpen={showAddSale}
+        onClose={() => setShowAddSale(false)}
+        onSaleAdded={handleSaleAdded}
+      />
+
+      {/* Header Section */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Sales Dashboard
+            </h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Manage and track your product sales in real-time
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleExport}
+              disabled={loading || salesData.length === 0}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 touch-manipulation"
+              aria-label="Export sales data to Excel"
+            >
+              <Download className="w-4 h-4" aria-hidden="true" />
+              Export XLSX
+            </button>
+            <button
+              onClick={() => setShowAddSale(true)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors active:scale-95 touch-manipulation"
+              aria-label="Add new sale"
+            >
+              <Plus className="w-4 h-4" aria-hidden="true" />
+              Add Sale
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <SalesStatCard
+            title="Not Invoiced"
+            count={salesStats.notInvoiced}
+            linkTo="/sales/not-invoiced"
+            icon={FileWarning}
+            color="yellow"
           />
-  
-          {/* Header Section */}
-          <div className="sm:flex sm:items-center sm:justify-between mb-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Sales Dashboard
-              </h1>
-              <p className="mt-2 text-sm text-gray-700">
-                Manage and track your product sales
-              </p>
-            </div>
-            <div className="mt-4 sm:mt-0 sm:ml-4 flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={handleExport}
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
-              >
-                <Download className="w-4 h-4" />
-                Export XLSX
-              </button>
-              <button
-                onClick={() => setShowAddSale(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                <Plus className="w-4 h-4" />
-                Add Sale
-              </button>
-            </div>
-          </div>
-  
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <SalesStatCard
-              title="Not Invoiced"
-              count={salesStats.notInvoiced}
-              linkTo="/sales/not-invoiced"
-              icon={FileWarning}
-              color="yellow"
-            />
-            <SalesStatCard
-              title="Due Invoices"
-              count={salesStats.due}
-              linkTo="/sales/due-invoices"
-              icon={FileClock}
-              color="orange"
-            />
-            <SalesStatCard
-              title="Paid Invoices"
-              count={salesStats.paid}
-              linkTo="/sales/paid-invoices"
-              icon={FileCheck}
-              color="green"
-            />
-            <SalesStatCard
-              title="Cancelled"
-              count={salesStats.cancelled}
-              linkTo="/sales/cancelled"
-              icon={FileX}
-              color="red"
-            />
-          </div>
-  
-          {/* Table Section */}
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="p-4 sm:p-6">
-              <div className="sm:flex sm:items-center sm:justify-between mb-6">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    All Sales Records
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-700">
-                    Showing {salesData.length} of {pagination.totalSales} records
-                  </p>
-                </div>
-                <SearchBar onSearch={setSearchTerm} placeholder="Search sales..."/>
+          <SalesStatCard
+            title="Due Invoices"
+            count={salesStats.due}
+            linkTo="/sales/due-invoices"
+            icon={FileClock}
+            color="orange"
+          />
+          <SalesStatCard
+            title="Paid Invoices"
+            count={salesStats.paid}
+            linkTo="/sales/paid-invoices"
+            icon={FileCheck}
+            color="green"
+          />
+          <SalesStatCard
+            title="Cancelled"
+            count={salesStats.cancelled}
+            linkTo="/sales/cancelled"
+            icon={FileX}
+            color="red"
+          />
+        </div>
+      </div>
+
+      {/* Table Section */}
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-6">
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                  All Sales Records
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {pagination.totalSales?.toLocaleString()} total records
+                </p>
               </div>
-              <SalesTable 
+              <div className="w-full sm:w-64">
+                <SearchBar
+                  onSearch={setSearchTerm}
+                  placeholder="Search sales..."
+                  debounceDelay={300}
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4">
+              <SalesTable
                 sales={salesData}
                 isLoading={loading}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onSort={handleSort}
               />
-              
-              {/* Bottom Pagination */}
-              {pagination.totalPages > 1 && (
-                 <div className="p-4 border-t border-gray-200 flex items-center justify-between">
-                 <span className="text-sm text-gray-700">
-                   Page {pagination.page} of {pagination.totalPages} ({pagination.totalSales} records)
-                 </span>
-                 <div className="flex items-center gap-2">
-                   <button
-                     onClick={() => handlePageChange(pagination.page - 1)}
-                     disabled={pagination.page <= 1}
-                     className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                   >
-                     <ChevronLeft className="w-4 h-4" />
-                   </button>
-                   <button
-                     onClick={() => handlePageChange(pagination.page + 1)}
-                     disabled={pagination.page >= pagination.totalPages}
-                     className="p-2 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                   >
-                     <ChevronRight className="w-4 h-4" />
-                   </button>
-                 </div>
-               </div>
-              )}
             </div>
+
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-sm text-gray-700">
+                    Page <span className="font-medium">{pagination.page}</span>{" "}
+                    of{" "}
+                    <span className="font-medium">{pagination.totalPages}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                      disabled={pagination.page <= 1}
+                      className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 touch-manipulation"
+                      aria-label="Previous page"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                    </button>
+                    <span className="text-sm text-gray-700 px-2">
+                      {pagination.page} / {pagination.totalPages}
+                    </span>
+                    <button
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                      disabled={pagination.page >= pagination.totalPages}
+                      className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 touch-manipulation"
+                      aria-label="Next page"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    );
+    </div>
+  );
 };
 
 export default Sales;

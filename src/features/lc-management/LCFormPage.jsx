@@ -51,7 +51,7 @@ const LCForm = ({ onSave }) => {
   // Custom Hooks
   const { units, isLoading: unitsLoading } = useUnits();
   const { accounts, isLoading: accountsLoading } = useAccounts();
-  const { expandedSections, toggleSection, scrollToSection } =
+  const { expandedSections, toggleSection, setSectionRef } =
     useSectionManager(SECTIONS);
 
   const {
@@ -272,7 +272,7 @@ const LCForm = ({ onSave }) => {
           icon={section.icon}
           isExpanded={expandedSections[section.id]}
           onToggle={() => toggleSection(section.id)}
-          sectionRef={(el) => scrollToSection(section.id, el)}
+          sectionRef={(el) => setSectionRef(section.id, el)}
           ariaLabel={`${section.title} section`}
         >
           {section.id === "basicInfo" && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import {
   ChevronLeft,
@@ -16,11 +16,11 @@ import {
   Trash2,
   XCircle,
   ExternalLink,
+  CreditCard,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
@@ -31,7 +31,6 @@ const SaleDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-
   // Main states
   const [sale, setSale] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +38,6 @@ const SaleDetails = () => {
   const [invoiceHistory, setInvoiceHistory] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [accounts, setAccounts] = useState([]);
-  const [isRegisteredCustomer, setIsRegisteredCustomer] = useState(false);
 
   // Payment dialog states
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
@@ -58,119 +56,95 @@ const SaleDetails = () => {
   const [isSubmittingConfirm, setIsSubmittingConfirm] = useState(false);
 
   // Helper functions
-  const formatCurrency = (amount) => `$${(amount || 0).toFixed(2)}`;
+  const formatCurrency = useCallback((amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount || 0);
+  }, []);
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
     });
-  };
+  }, []);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Paid payment":
-        return "bg-green-100 text-green-800";
-      case "Due payment":
-        return "bg-yellow-100 text-yellow-800";
-      case "Cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  const formatShortDate = useCallback((dateString) => {
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  }, []);
 
-  // Fetch data functions
-  const fetchSaleDetails = async () => {
+  // Fetch all data at once
+  const fetchAllData = useCallback(async () => {
     setLoading(true);
-    try {
-      const response = await api.get(`/sales/get-sales/${id}`);
-      if (response.data.success) {
-        let saleData = response.data.data;
+    setError(null);
 
-        // If saleData.unit is an ID string, fetch the unit details
+    try {
+      const [saleResponse, invoiceResponse, accountsResponse] =
+        await Promise.all([
+          api.get(`/sales/get-sales/${id}`),
+          api.get(`/invoice/sale/${id}`),
+          api.get(`/account/get-all-accounts`),
+        ]);
+
+      // Process sale data
+      if (saleResponse.data.success) {
+        let saleData = saleResponse.data.data;
+
+        // Fetch unit details if unit is an ID string
         if (saleData.unit && typeof saleData.unit === "string") {
           try {
-            const unitResponse = await api.get(
-              `/unit/get/${saleData.unit}`
-            );
+            const unitResponse = await api.get(`/unit/get/${saleData.unit}`);
             if (unitResponse.data.success) {
               saleData = { ...saleData, unit: unitResponse.data.data };
-            } else {
-              console.warn(
-                "Failed to fetch unit details for ID:",
-                saleData.unit,
-                unitResponse.data.message
-              );
-              toast.error("Could not fetch unit details for the sale.");
             }
           } catch (unitError) {
-            console.error(
-              "Error fetching unit details for ID:",
-              saleData.unit,
-              unitError
-            );
-            toast.error("An unexpected error occurred while fetching unit details.");
+            console.warn("Could not fetch unit details:", unitError);
           }
         }
 
         setSale(saleData);
-        // Check if customer is registered (has customerId object)
-        setIsRegisteredCustomer(!!saleData.customer?.customerId?._id);
       } else {
-        setError(response.data.message);
-        toast.error(response.data.message || "Failed to fetch sale details.");
+        throw new Error(
+          saleResponse.data.message || "Failed to fetch sale details"
+        );
+      }
+
+      // Process invoice history
+      if (invoiceResponse.data.success) {
+        setInvoiceHistory(invoiceResponse.data.data || []);
+      }
+
+      // Process accounts
+      if (accountsResponse.data.success) {
+        setAccounts(accountsResponse.data.data || []);
       }
     } catch (err) {
-      setError("Failed to fetch sale details.");
-      toast.error("An unexpected error occurred while fetching sale details.");
       console.error("Error fetching sale details:", err);
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to fetch sale details"
+      );
+      toast.error("Failed to load sale details");
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchAccounts = async () => {
-    try {
-      const response = await api.get(`/account/get-all-accounts`);
-      if (response.data.success) {
-        setAccounts(response.data.data || []);
-      } else {
-        toast.error(response.data.message || "Failed to fetch accounts.");
-      }
-    } catch (error) {
-      console.error("Error fetching accounts:", error);
-      toast.error("An unexpected error occurred while fetching accounts.");
-    }
-  };
-
-  const fetchInvoiceHistory = async () => {
-    try {
-      const response = await api.get(`/invoice/sale/${id}`);
-      if (response.data.success) {
-        setInvoiceHistory(response.data.data || []);
-      } else {
-        toast.error(
-          response.data.message || "Failed to fetch invoice history."
-        );
-      }
-    } catch (error) {
-      console.error("Failed to fetch invoice history:", error);
-      toast.error(
-        "An unexpected error occurred while fetching invoice history."
-      );
-    }
-  };
-
-  // Effect hook
+  // Initial data fetch
   useEffect(() => {
     if (id) {
-      fetchSaleDetails();
-      fetchInvoiceHistory();
-      fetchAccounts();
+      fetchAllData();
     }
-  }, [id]);
+  }, [id, fetchAllData]);
 
   // Action handlers
   const handleDeleteClick = () => {
@@ -189,45 +163,30 @@ const SaleDetails = () => {
 
     setIsSubmittingConfirm(true);
     const toastId = toast.loading(
-      `${type === "delete" ? "Deleting" : "Cancelling"} sale...`
+      type === "delete" ? "Deleting sale..." : "Cancelling sale..."
     );
 
     try {
       if (type === "delete") {
-        const response = await api.delete(
-          `/sales/delete-sale/${id}`
-        );
+        const response = await api.delete(`/sales/delete-sale/${id}`);
         if (response.data.success) {
-          toast.success(response.data.message || "Sale deleted successfully", {
-            id: toastId,
-          });
+          toast.success("Sale deleted successfully", { id: toastId });
           navigate("/sales");
         } else {
-          toast.error(response.data.message || "Failed to delete sale.", {
-            id: toastId,
-          });
+          throw new Error(response.data.message);
         }
       } else if (type === "cancel") {
         const response = await api.patch(`/sales/cancel-sale/${id}`);
         if (response.data.success) {
-          toast.success(
-            response.data.message || "Sale cancelled successfully",
-            {
-              id: toastId,
-            }
-          );
+          toast.success("Sale cancelled successfully", { id: toastId });
           setSale(response.data.data);
         } else {
-          toast.error(response.data.message || "Failed to cancel sale.", {
-            id: toastId,
-          });
+          throw new Error(response.data.message);
         }
       }
     } catch (err) {
       toast.error(
-        err.response?.data?.message ||
-          err.message ||
-          "An unexpected error occurred.",
+        err.response?.data?.message || err.message || "Action failed",
         { id: toastId }
       );
     } finally {
@@ -237,31 +196,35 @@ const SaleDetails = () => {
     }
   };
 
-  const onSaleUpdated = (updatedSale) => {
-    setSale(updatedSale);
-    setIsUpdateModalOpen(false);
-    fetchInvoiceHistory();
-  };
+  const onSaleUpdated = useCallback(
+    (updatedSale) => {
+      setSale(updatedSale);
+      setIsUpdateModalOpen(false);
+      // Refresh invoice history
+      api.get(`/invoice/sale/${id}`).then((response) => {
+        if (response.data.success) {
+          setInvoiceHistory(response.data.data || []);
+        }
+      });
+    },
+    [id]
+  );
 
   const handleGenerateInvoice = async () => {
     setIsGenerating(true);
     try {
-      const response = await api.post(`/invoice/generate`, {
-        saleId: id,
-      });
+      const response = await api.post(`/invoice/generate`, { saleId: id });
       if (response.data.success) {
-        toast.success(
-          response.data.message || "Invoice generated successfully!"
-        );
+        toast.success("Invoice generated successfully!");
         navigate(`/sales/${id}/invoice/${response.data.data._id}`);
       } else {
-        toast.error(response.data.message || "Failed to generate invoice.");
+        throw new Error(response.data.message);
       }
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          "An unexpected error occurred while generating the invoice."
+          "Failed to generate invoice"
       );
     } finally {
       setIsGenerating(false);
@@ -294,44 +257,42 @@ const SaleDetails = () => {
     const balanceDue = netAmount - totalPayments;
 
     if (!amount || amount <= 0) {
-      toast.error("Please enter a valid payment amount.");
+      toast.error("Please enter a valid payment amount");
       return;
     }
 
     if (amount > balanceDue) {
       toast.error(
-        `Payment cannot be greater than the balance due of ${formatCurrency(
-          balanceDue
-        )}.`
+        `Payment cannot exceed balance due of ${formatCurrency(balanceDue)}`
       );
       return;
     }
 
     if (isCancelled) {
-      toast.error("Cannot add payment to a cancelled sale.");
+      toast.error("Cannot add payment to a cancelled sale");
       return;
     }
 
     const payload = {
-      ...paymentData,
       amount: amount,
+      date: paymentData.date,
+      method: paymentData.method,
     };
 
-    if (paymentData.method === "cash") {
-      payload.account = null;
-    } else if (!paymentData.account) {
-      toast.error("Please select an account for this payment method.");
+    if (paymentData.method !== "cash" && !paymentData.account) {
+      toast.error("Please select an account for this payment method");
       return;
+    }
+
+    if (paymentData.method !== "cash") {
+      payload.account = paymentData.account;
     }
 
     setIsSubmittingPayment(true);
     try {
-      const response = await api.post(
-        `/sales/${id}/payments`,
-        payload
-      );
+      const response = await api.post(`/sales/${id}/payments`, payload);
       if (response.data.success) {
-        toast.success(response.data.message || "Payment added successfully!");
+        toast.success("Payment added successfully!");
         setIsPaymentDialogOpen(false);
         setPaymentData({
           amount: "",
@@ -339,46 +300,50 @@ const SaleDetails = () => {
           method: "cash",
           account: "",
         });
-        await fetchSaleDetails();
+        await fetchAllData();
       } else {
-        toast.error(response.data.message || "Failed to add payment.");
+        throw new Error(response.data.message);
       }
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
           error.message ||
-          "An unexpected error occurred while adding the payment."
+          "Failed to add payment"
       );
     } finally {
       setIsSubmittingPayment(false);
     }
   };
 
-  // Loading and error states
+  // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <Loader2 className="animate-spin h-12 w-12 text-blue-500 mx-auto" />
-          <p className="text-lg sm:text-xl font-semibold mt-4 text-gray-700">
-            Loading Sale Details...
+          <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto" />
+          <p className="mt-4 text-lg font-medium text-gray-700">
+            Loading sale details...
           </p>
         </div>
       </div>
     );
   }
 
+  // Error state
   if (error && !sale) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
-          <p className="text-xl font-bold text-red-600 mb-4">Error</p>
-          <p className="text-gray-700 mb-6">{error}</p>
+          <div className="text-red-500 mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Error Loading Sale
+          </h3>
+          <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => navigate("/sales")}
-            className="inline-flex items-center text-blue-500 hover:text-blue-700 hover:underline transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <ChevronLeft size={16} className="mr-1" />
+            <ChevronLeft className="w-4 h-4 mr-2" />
             Back to Sales
           </button>
         </div>
@@ -388,17 +353,19 @@ const SaleDetails = () => {
 
   if (!sale) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
-          <p className="text-xl font-bold text-gray-800 mb-4">Sale Not Found</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Sale Not Found
+          </h3>
           <p className="text-gray-600 mb-6">
-            The requested sale could not be found.
+            The requested sale could not be found
           </p>
           <button
             onClick={() => navigate("/sales")}
-            className="inline-flex items-center text-blue-500 hover:text-blue-700 hover:underline transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <ChevronLeft size={16} className="mr-1" />
+            <ChevronLeft className="w-4 h-4 mr-2" />
             Back to Sales
           </button>
         </div>
@@ -412,14 +379,17 @@ const SaleDetails = () => {
       (sum, charge) => sum + (charge.amount || 0),
       0
     ) || 0;
+
   const totalPayments =
     sale?.payments?.reduce((sum, payment) => sum + (payment.amount || 0), 0) ||
     0;
+
   const netAmount = sale?.totalAmountToBePaid || 0;
   const balanceDue = netAmount - totalPayments;
   const isCancelled = sale.invoiceStatus === "Cancelled";
   const canAddPayment =
     !isCancelled && sale.paymentStatus === "Due payment" && balanceDue > 0;
+  const isRegisteredCustomer = !!sale.customer?.customerId?._id;
 
   const breadcrumbItems = [
     { label: "Sales", path: "/sales" },
@@ -427,410 +397,395 @@ const SaleDetails = () => {
   ];
 
   return (
-    <div className="">
+    <div>
       <div className="max-w-7xl mx-auto">
+        {/* Breadcrumb */}
         <Breadcrumb items={breadcrumbItems} />
 
-        {/* Header Section */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6">
-          {/* TOP */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            {/* LEFT */}
-            <div className="flex items-start sm:items-center gap-3">
-              {/* ICON */}
-              <div className="p-2 sm:p-3 bg-blue-100/60 rounded-lg shrink-0">
-                <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 text-blue-700" />
+        {/* Main Content */}
+        <div className="mt-6 space-y-6">
+          {/* Header Card */}
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <ShoppingCart className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                    Sale #{sale._id.slice(-6)}
+                  </h1>
+                  <p className="text-sm text-gray-600 mt-1 flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    Sold on {formatDate(sale.saleDate)}
+                  </p>
+                </div>
               </div>
 
-              {/* TITLE */}
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">
-                  Sale #{sale._id.slice(-6)}
-                </h1>
-
-                <p className="text-xs sm:text-sm text-gray-600 mt-1 flex items-center gap-1">
-                  <Calendar size={14} className="text-blue-600/70" />
-                  Sold on {formatDate(sale.saleDate)}
+              <div className="flex flex-col items-end gap-2">
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    isCancelled
+                      ? "bg-red-100 text-red-800"
+                      : balanceDue > 0
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-green-100 text-green-800"
+                  }`}
+                >
+                  {isCancelled
+                    ? "Cancelled"
+                    : balanceDue > 0
+                    ? "Due Payment"
+                    : "Paid"}
+                </span>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                  {formatCurrency(netAmount)}
                 </p>
               </div>
             </div>
 
-            {/* RIGHT */}
-            <div className="flex justify-between lg:flex-col lg:items-end items-center gap-2">
-              {/* STATUS */}
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-medium
-        ${
-          isCancelled
-            ? "bg-red-100/70 text-red-700"
-            : "bg-emerald-100/70 text-emerald-700"
-        }`}
-              >
-                {isCancelled ? "Cancelled" : sale.paymentStatus}
-              </span>
+            {/* Action Buttons */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setIsUpdateModalOpen(true)}
+                  disabled={isCancelled}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Edit className="h-4 w-4" />
+                  Update Sale
+                </button>
 
-              {/* AMOUNT */}
-              <p className="text-lg sm:text-xl font-bold text-blue-800">
-                {formatCurrency(netAmount)}
-              </p>
-            </div>
-          </div>
+                <button
+                  onClick={handleCancelClick}
+                  disabled={isCancelled}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel Sale
+                </button>
 
-          {/* BUTTONS */}
-          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <button
-              onClick={() => setIsUpdateModalOpen(true)}
-              disabled={isCancelled}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
-      bg-blue-700 hover:bg-blue-800 text-white transition disabled:bg-gray-400"
-            >
-              <Edit size={16} />
-              Update
-            </button>
-
-            <button
-              onClick={handleCancelClick}
-              disabled={isCancelled}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
-      bg-yellow-700 hover:bg-yellow-800 text-white transition disabled:bg-gray-400"
-            >
-              <XCircle size={16} />
-              Cancel
-            </button>
-
-            <button
-              onClick={handleDeleteClick}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
-      bg-red-700 hover:bg-red-800 text-white transition"
-            >
-              <Trash2 size={16} />
-              Delete
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Sale Information Card */}
-            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6 flex items-center">
-                <Info size={18} className="mr-2 text-blue-500 flex-shrink-0" />
-                Sale Information
-              </h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                    Product
-                  </p>
-                  <p className="font-medium text-gray-900 flex items-center">
-                    <Package
-                      size={16}
-                      className="mr-2 text-gray-400 flex-shrink-0"
-                    />
-                    <span className="truncate">
-                      {sale.product?.name || "N/A"}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                    Quantity
-                  </p>
-                  <p className="font-medium text-gray-900">
-                    {sale.quantity} {sale.unit?.name || "units"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                    Price Per Unit
-                  </p>
-                  <p className="font-medium text-gray-900">
-                    {formatCurrency(sale.pricePerUnit)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                    Total Amount
-                  </p>
-                  <p className="font-medium text-gray-900">
-                    {formatCurrency(sale.totalAmount)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                    Invoice Status
-                  </p>
-                  <p className="font-medium text-gray-900 flex items-center">
-                    <FileText
-                      size={16}
-                      className="mr-2 text-gray-400 flex-shrink-0"
-                    />
-                    {sale.invoiceStatus}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                    Payment Status
-                  </p>
-                  <p className="font-medium text-gray-900 flex items-center">
-                    <DollarSign
-                      size={16}
-                      className="mr-2 text-gray-400 flex-shrink-0"
-                    />
-                    {isCancelled ? "N/A" : sale.paymentStatus}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Financial Summary Card */}
-            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 sm:mb-6">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Financial Summary
-                </h3>
-                {canAddPayment && (
-                  <button
-                    onClick={() => setIsPaymentDialogOpen(true)}
-                    className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors w-full sm:w-auto"
-                  >
-                    Add Payment
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">
-                    {formatCurrency(sale.totalAmount)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 flex items-center">
-                    <Truck
-                      size={16}
-                      className="mr-1.5 text-gray-400 flex-shrink-0"
-                    />
-                    Delivery Charge
-                  </span>
-                  <span className="font-medium">
-                    {formatCurrency(sale.deliveryCharge)}
-                  </span>
-                </div>
-
-                {totalOtherCharges > 0 && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Other Charges</span>
-                    <span className="font-medium">
-                      {formatCurrency(totalOtherCharges)}
-                    </span>
-                  </div>
-                )}
-
-                {sale.discount > 0 && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Discount</span>
-                    <span className="font-medium text-green-600">
-                      -{formatCurrency(sale.discount)}
-                    </span>
-                  </div>
-                )}
-
-                <div className="border-t border-gray-200 pt-3 flex justify-between items-center font-semibold">
-                  <span className="text-gray-800">Net Amount</span>
-                  <span className="text-gray-800">
-                    {formatCurrency(netAmount)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Payments Made</span>
-                  <span className="font-medium">
-                    {formatCurrency(totalPayments)}
-                  </span>
-                </div>
-
-                <div className="border-t border-gray-200 pt-3 flex justify-between items-center font-semibold text-base sm:text-lg">
-                  <span
-                    className={
-                      balanceDue > 0 ? "text-red-600" : "text-green-600"
-                    }
-                  >
-                    {balanceDue > 0 ? "Balance Due" : "Overpayment"}
-                  </span>
-                  <span
-                    className={
-                      balanceDue > 0 ? "text-red-600" : "text-green-600"
-                    }
-                  >
-                    {formatCurrency(Math.abs(balanceDue))}
-                  </span>
-                </div>
+                <button
+                  onClick={handleDeleteClick}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Sale
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-4 sm:space-y-6">
-            {/* Customer Information Card */}
-            {sale.customer && (
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Sale Info */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Sale Information */}
               <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-                <div className="flex justify-between items-start mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800 flex items-center">
-                    <User
-                      size={18}
-                      className="mr-2 text-blue-500 flex-shrink-0"
-                    />
+                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Info className="h-5 w-5 mr-2 text-blue-500" />
+                  Sale Information
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Product
+                    </label>
+                    <div className="flex items-center text-gray-900">
+                      <Package className="h-4 w-4 mr-2 text-gray-400" />
+                      {sale.product?.name || "N/A"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Quantity
+                    </label>
+                    <p className="text-gray-900">
+                      {sale.quantity?.toLocaleString()}{" "}
+                      {sale.unit?.name || "units"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Unit Price
+                    </label>
+                    <p className="text-gray-900">
+                      {formatCurrency(sale.pricePerUnit)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Total Amount
+                    </label>
+                    <p className="text-gray-900">
+                      {formatCurrency(sale.totalAmount)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Invoice Status
+                    </label>
+                    <div className="flex items-center text-gray-900">
+                      <FileText className="h-4 w-4 mr-2 text-gray-400" />
+                      {sale.invoiceStatus}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      Payment Status
+                    </label>
+                    <div className="flex items-center text-gray-900">
+                      <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
+                      {sale.paymentStatus}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Summary */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Financial Summary
+                  </h2>
+                  {canAddPayment && (
+                    <button
+                      onClick={() => setIsPaymentDialogOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <CreditCard className="h-4 w-4" />
+                      Add Payment
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium">
+                      {formatCurrency(sale.totalAmount)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-600 flex items-center">
+                      <Truck className="h-4 w-4 mr-2 text-gray-400" />
+                      Delivery Charge
+                    </span>
+                    <span className="font-medium">
+                      {formatCurrency(sale.deliveryCharge)}
+                    </span>
+                  </div>
+
+                  {totalOtherCharges > 0 && (
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-gray-600">Other Charges</span>
+                      <span className="font-medium">
+                        {formatCurrency(totalOtherCharges)}
+                      </span>
+                    </div>
+                  )}
+
+                  {sale.discount > 0 && (
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-gray-600">Discount</span>
+                      <span className="font-medium text-green-600">
+                        -{formatCurrency(sale.discount)}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="border-t border-gray-200 pt-3 flex justify-between items-center font-semibold">
+                    <span className="text-gray-900">Net Amount</span>
+                    <span className="text-gray-900">
+                      {formatCurrency(netAmount)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-600">Payments Made</span>
+                    <span className="font-medium">
+                      {formatCurrency(totalPayments)}
+                    </span>
+                  </div>
+
+                  <div className="border-t border-gray-200 pt-3 flex justify-between items-center text-lg font-semibold">
+                    <span
+                      className={
+                        balanceDue > 0 ? "text-red-600" : "text-green-600"
+                      }
+                    >
+                      {balanceDue > 0 ? "Balance Due" : "Overpayment"}
+                    </span>
+                    <span
+                      className={
+                        balanceDue > 0 ? "text-red-600" : "text-green-600"
+                      }
+                    >
+                      {formatCurrency(Math.abs(balanceDue))}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Customer & Details */}
+            <div className="space-y-6">
+              {/* Customer Information */}
+              {sale.customer && (
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <User className="h-5 w-5 mr-2 text-blue-500" />
                     Customer Information
                   </h2>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
+                        Name
+                      </label>
+                      <p className="text-gray-900">{sale.customer.name}</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
+                        Phone
+                      </label>
+                      <p className="text-gray-900">{sale.customer.phone}</p>
+                    </div>
+
+                    {!isRegisteredCustomer && sale.customer.address && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          Address
+                        </label>
+                        <p className="text-gray-900">{sale.customer.address}</p>
+                      </div>
+                    )}
+
+                    {isRegisteredCustomer && (
+                      <Link
+                        to={`/customer-details/${sale.customer.customerId._id}`}
+                        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        View Customer Details
+                        <ExternalLink className="h-4 w-4 ml-1" />
+                      </Link>
+                    )}
+                  </div>
                 </div>
+              )}
+
+              {/* Additional Details */}
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Additional Details
+                </h3>
 
                 <div className="space-y-4">
-                  <div>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                      Name
-                    </p>
-                    <p className="font-medium text-gray-900 truncate">
-                      {sale.customer.name}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                      Phone
-                    </p>
-                    <p className="font-medium text-gray-900">
-                      {sale.customer.phone}
-                    </p>
-                  </div>
-                  {!isRegisteredCustomer && sale.customer.address && (
+                  {/* Other Charges */}
+                  {sale.otherCharges && sale.otherCharges.length > 0 && (
                     <div>
-                      <p className="text-xs sm:text-sm text-gray-600 mb-1">
-                        Billing Address
-                      </p>
-                      <p className="font-medium text-gray-900">
-                        {sale.customer.address}
-                      </p>
-                    </div>
-                  )}
-                  {isRegisteredCustomer && (
-                    <Link
-                      to={`/customer-details/${sale.customer.customerId._id}`}
-                      className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                    >
-                      View Details
-                      <ExternalLink size={14} />
-                    </Link>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Additional Details Card */}
-            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Additional Details
-              </h3>
-
-              <div className="space-y-4">
-                {sale.otherCharges && sale.otherCharges.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-2">
-                      Other Charges
-                    </p>
-                    <div className="space-y-2">
-                      {sale.otherCharges.map((charge, index) => (
-                        <div
-                          key={index}
-                          className="flex justify-between items-center text-sm"
-                        >
-                          <span className="text-gray-600 truncate">
-                            {charge.name}
-                          </span>
-                          <span className="font-medium whitespace-nowrap">
-                            ${charge.amount?.toFixed(2) || "0.00"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {sale.payments && sale.payments.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-2">
-                      Payment History
-                    </p>
-                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                      {sale.payments.map((payment, index) => (
-                        <div
-                          key={index}
-                          className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-gray-600 truncate">
-                              {formatDate(payment.date)}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {payment.method}{" "}
-                              {payment.account?.accountName &&
-                                `(${payment.account.accountName})`}
-                            </p>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        Other Charges
+                      </h4>
+                      <div className="space-y-2">
+                        {sale.otherCharges.map((charge, index) => (
+                          <div
+                            key={index}
+                            className="flex justify-between items-center text-sm"
+                          >
+                            <span className="text-gray-600">{charge.name}</span>
+                            <span className="font-medium">
+                              {formatCurrency(charge.amount)}
+                            </span>
                           </div>
-                          <span className="font-medium text-green-600 whitespace-nowrap ml-2">
-                            ${payment.amount?.toFixed(2) || "0.00"}
-                          </span>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-2">
-                    Notes
-                  </p>
-                  <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg min-h-[60px]">
-                    {sale.notes || "No additional notes for this sale."}
-                  </p>
+                  {/* Payment History */}
+                  {sale.payments && sale.payments.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        Payment History
+                      </h4>
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                        {sale.payments.map((payment, index) => (
+                          <div
+                            key={index}
+                            className="flex justify-between items-center p-2 bg-gray-50 rounded"
+                          >
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {formatShortDate(payment.date)}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {payment.method}{" "}
+                                {payment.account?.accountName
+                                  ? `(${payment.account.accountName})`
+                                  : ""}
+                              </p>
+                            </div>
+                            <span className="text-sm font-medium text-green-600">
+                              {formatCurrency(payment.amount)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notes */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">
+                      Notes
+                    </h4>
+                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                      {sale.notes || "No additional notes"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Invoice Section */}
-        {sale.invoiceStatus === "Invoiced" && !isCancelled && (
-          <div className="bg-white rounded-xl shadow-sm mt-6">
-            <div className="p-4 sm:p-6 border-b border-gray-200">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-                Invoice History
-              </h2>
-            </div>
-            <div className="p-4 sm:p-6">
-              <button
-                onClick={handleGenerateInvoice}
-                disabled={isGenerating}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-4 disabled:bg-blue-400 disabled:cursor-not-allowed w-full sm:w-auto"
-              >
-                <Printer size={16} />
-                {isGenerating ? "Generating..." : "Generate New Invoice"}
-              </button>
-              <div className="space-y-2">
-                {invoiceHistory.length > 0 ? (
-                  invoiceHistory.map((invoice) => (
+          {/* Invoice Section */}
+          {sale.invoiceStatus === "Invoiced" && !isCancelled && (
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Invoice History
+                </h2>
+                <button
+                  onClick={handleGenerateInvoice}
+                  disabled={isGenerating}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Printer className="h-4 w-4" />
+                  {isGenerating ? "Generating..." : "Generate New Invoice"}
+                </button>
+              </div>
+
+              {invoiceHistory.length > 0 ? (
+                <div className="space-y-3">
+                  {invoiceHistory.map((invoice) => (
                     <div
                       key={invoice._id}
-                      className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-gray-50 rounded-lg gap-2"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg"
                     >
-                      <div className="min-w-0">
-                        <p className="font-medium text-gray-800 truncate">
+                      <div>
+                        <p className="font-medium text-gray-900">
                           Invoice #{invoice._id.slice(-6)}
                         </p>
-                        <p className="text-xs sm:text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 mt-1">
                           Generated:{" "}
                           {new Date(
                             invoice.invoiceGeneratedDate
@@ -841,131 +796,132 @@ const SaleDetails = () => {
                         onClick={() =>
                           navigate(`/sales/${sale._id}/invoice/${invoice._id}`)
                         }
-                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline text-left sm:text-right"
+                        className="mt-2 sm:mt-0 text-sm text-blue-600 hover:text-blue-800 hover:underline"
                       >
                         View Invoice
                       </button>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 text-center py-4">
-                    No invoices generated yet.
-                  </p>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 py-4">
+                  No invoices generated yet
+                </p>
+              )}
             </div>
-          </div>
-        )}
-
-        {/* Payment Dialog */}
-        <FormDialog
-          open={isPaymentDialogOpen}
-          onClose={() => setIsPaymentDialogOpen(false)}
-          title="Add New Payment"
-          primaryButtonText={isSubmittingPayment ? "Adding..." : "Add Payment"}
-          secondaryButtonText="Cancel"
-          onSubmit={handleAddPayment}
-          isPrimaryButtonDisabled={isSubmittingPayment}
-        >
-          <div className="space-y-4">
-            <InputField
-              label="Amount"
-              name="amount"
-              type="number"
-              value={paymentData.amount}
-              onChange={handlePaymentFormChange}
-              placeholder={`Balance Due: ${formatCurrency(balanceDue)}`}
-              max={balanceDue}
-              required
-            />
-            <InputField
-              label="Date"
-              name="date"
-              type="date"
-              value={paymentData.date}
-              onChange={handlePaymentFormChange}
-              required
-            />
-            <SelectField
-              label="Payment Method"
-              name="method"
-              value={paymentData.method}
-              onChange={handlePaymentFormChange}
-              options={[
-                { value: "cash", label: "Cash" },
-                { value: "bank", label: "Bank Transfer" },
-                { value: "mobile-banking", label: "Mobile Banking" },
-              ]}
-              required
-            />
-            {(paymentData.method === "bank" ||
-              paymentData.method === "mobile-banking") && (
-              <SelectField
-                label="Account"
-                name="account"
-                value={paymentData.account}
-                onChange={handlePaymentFormChange}
-                options={accounts
-                  .filter((acc) =>
-                    paymentData.method === "bank"
-                      ? acc.accountType === "Bank"
-                      : acc.accountType === "Mobile Banking"
-                  )
-                  .map((acc) => ({
-                    value: acc._id,
-                    label: `${acc.accountName} (${
-                      acc.bankName || acc.serviceName
-                    })`,
-                  }))}
-                required
-              />
-            )}
-          </div>
-        </FormDialog>
-
-        {/* Update Sale Modal */}
-        {isUpdateModalOpen && (
-          <AddSalesForm
-            isOpen={isUpdateModalOpen}
-            onClose={() => setIsUpdateModalOpen(false)}
-            editData={sale}
-            onSaleAdded={onSaleUpdated}
-          />
-        )}
-
-        {/* Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={isConfirmModalOpen}
-          onClose={() => setIsConfirmModalOpen(false)}
-          onConfirm={handleConfirmAction}
-          title={
-            confirmAction.type === "delete" ? "Delete Sale" : "Cancel Sale"
-          }
-          description={`Are you sure you want to ${confirmAction.type} this sale? This action cannot be undone.`}
-          confirmText={
-            confirmAction.type === "delete" ? "Delete" : "Confirm Cancel"
-          }
-          isConfirming={isSubmittingConfirm}
-          confirmingText={
-            confirmAction.type === "delete" ? "Deleting..." : "Cancelling..."
-          }
-          icon={confirmAction.type === "delete" ? Trash2 : XCircle}
-          iconBgColor={
-            confirmAction.type === "delete" ? "bg-red-100" : "bg-amber-100"
-          }
-          iconTextColor={
-            confirmAction.type === "delete" ? "text-red-600" : "text-amber-600"
-          }
-          confirmButtonBgColor={
-            confirmAction.type === "delete" ? "bg-red-600" : "bg-amber-500"
-          }
-          confirmButtonHoverBgColor={
-            confirmAction.type === "delete"
-              ? "hover:bg-red-700"
-              : "hover:bg-amber-600"
-          }
-        />
+          )}
+        </div>
       </div>
+
+      {/* Payment Dialog */}
+      <FormDialog
+        open={isPaymentDialogOpen}
+        onClose={() => setIsPaymentDialogOpen(false)}
+        title="Add New Payment"
+        primaryButtonText={isSubmittingPayment ? "Adding..." : "Add Payment"}
+        secondaryButtonText="Cancel"
+        onSubmit={handleAddPayment}
+        isPrimaryButtonDisabled={isSubmittingPayment}
+      >
+        <div className="space-y-4">
+          <InputField
+            label="Amount"
+            name="amount"
+            type="number"
+            value={paymentData.amount}
+            onChange={handlePaymentFormChange}
+            placeholder={`Balance Due: ${formatCurrency(balanceDue)}`}
+            max={balanceDue}
+            required
+          />
+
+          <InputField
+            label="Date"
+            name="date"
+            type="date"
+            value={paymentData.date}
+            onChange={handlePaymentFormChange}
+            required
+          />
+
+          <SelectField
+            label="Payment Method"
+            name="method"
+            value={paymentData.method}
+            onChange={handlePaymentFormChange}
+            options={[
+              { value: "cash", label: "Cash" },
+              { value: "bank", label: "Bank Transfer" },
+              { value: "mobile-banking", label: "Mobile Banking" },
+            ]}
+            required
+          />
+
+          {(paymentData.method === "bank" ||
+            paymentData.method === "mobile-banking") && (
+            <SelectField
+              label="Account"
+              name="account"
+              value={paymentData.account}
+              onChange={handlePaymentFormChange}
+              options={accounts
+                .filter((acc) =>
+                  paymentData.method === "bank"
+                    ? acc.accountType === "Bank"
+                    : acc.accountType === "Mobile Banking"
+                )
+                .map((acc) => ({
+                  value: acc._id,
+                  label: `${acc.accountName} (${
+                    acc.bankName || acc.serviceName
+                  })`,
+                }))}
+              required
+            />
+          )}
+        </div>
+      </FormDialog>
+
+      {/* Update Sale Modal */}
+      {isUpdateModalOpen && (
+        <AddSalesForm
+          isOpen={isUpdateModalOpen}
+          onClose={() => setIsUpdateModalOpen(false)}
+          editData={sale}
+          onSaleAdded={onSaleUpdated}
+        />
+      )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmAction}
+        title={confirmAction.type === "delete" ? "Delete Sale" : "Cancel Sale"}
+        description={`Are you sure you want to ${confirmAction.type} this sale? This action cannot be undone.`}
+        confirmText={
+          confirmAction.type === "delete" ? "Delete" : "Confirm Cancel"
+        }
+        isConfirming={isSubmittingConfirm}
+        confirmingText={
+          confirmAction.type === "delete" ? "Deleting..." : "Cancelling..."
+        }
+        icon={confirmAction.type === "delete" ? Trash2 : XCircle}
+        iconBgColor={
+          confirmAction.type === "delete" ? "bg-red-100" : "bg-amber-100"
+        }
+        iconTextColor={
+          confirmAction.type === "delete" ? "text-red-600" : "text-amber-600"
+        }
+        confirmButtonBgColor={
+          confirmAction.type === "delete" ? "bg-red-600" : "bg-amber-500"
+        }
+        confirmButtonHoverBgColor={
+          confirmAction.type === "delete"
+            ? "hover:bg-red-700"
+            : "hover:bg-amber-600"
+        }
+      />
     </div>
   );
 };
