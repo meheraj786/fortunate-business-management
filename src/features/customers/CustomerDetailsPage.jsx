@@ -1,504 +1,515 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  memo,
+  useContext,
+} from "react";
+import PropTypes from "prop-types";
 import { useParams, useNavigate } from "react-router";
+import { motion } from "framer-motion";
 import {
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiMapPin,
-  FiDollarSign,
-  FiFileText,
-  FiCalendar,
-  FiCheckCircle,
-  FiXCircle,
-  FiAlertCircle,
-  FiBriefcase,
-  FiStar,
-  FiDownload,
-  FiPieChart,
-  FiEdit,
-  FiTrash2,
-} from "react-icons/fi";
-import { Loader2 } from "lucide-react";
-import CollapsibleCard from "@/components/ui/CollapsibleCard";
-import api from "@/services/apiService";
-import ConfirmationModal from "@/components/ui/ConfirmationModal";
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  DollarSign,
+  FileText,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Briefcase,
+  Star,
+  Download,
+  PieChart,
+  Edit,
+  Trash2,
+  Building,
+  Clock,
+  TrendingUp,
+  CreditCard,
+} from "lucide-react";
 import toast from "react-hot-toast";
-import { UrlContext } from "../../context/UrlContext";
+import api from "@/services/apiService";
 
-const StatusBadge = ({ status }) => {
-  let bgColor, icon;
+// Components
+import CollapsibleCard from "@/components/ui/CollapsibleCard";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import StatusBadge from "@/components/ui/StatusBadge";
+import DataField from "@/components/ui/DataField";
+import Pagination from "@/components/ui/Pagination";
 
-  switch (status?.toLowerCase()) {
-    case "active":
-    case "invoiced":
-    case "paid payment":
-      bgColor = "bg-green-100 text-green-800";
-      icon = <FiCheckCircle className="mr-1" />;
-      break;
-    case "inactive":
-    case "suspended":
-      bgColor = "bg-gray-100 text-gray-800";
-      icon = <FiXCircle className="mr-1" />;
-      break;
-    case "pending":
-    case "not-invoiced":
-    case "due payment":
-      bgColor = "bg-yellow-100 text-yellow-800";
-      icon = <FiAlertCircle className="mr-1" />;
-      break;
-    default:
-      bgColor = "bg-gray-100 text-gray-800";
-      icon = <FiAlertCircle className="mr-1" />;
-  }
-
-  return (
-    <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${bgColor}`}
-    >
-      {icon}
-      {status}
-    </span>
-  );
-};
-
-const DataField = ({ label, value, icon, hidden = false, className = "" }) => {
-  if (hidden || !value) return null;
-
-  return (
-    <div className={`mb-3 last:mb-0 ${className}`}>
-      <div className="flex items-center text-sm text-gray-500 mb-1">
-        {icon && <span className="mr-2">{icon}</span>}
-        {label}
-      </div>
-      <div className="text-gray-900 font-medium">{value}</div>
-    </div>
-  );
-};
-
-const Pagination = ({ currentPage, totalPages, onPageChange, isLoading }) => {
-  if (totalPages <= 1) return null;
-  return (
-    <div className="flex justify-end items-center mt-4 p-2">
-      <span className="text-sm text-gray-600 mr-4">
-        Page {currentPage} of {totalPages}
-      </span>
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1 || isLoading}
-        className="px-3 py-1 border rounded-md disabled:opacity-50"
-      >
-        Prev
-      </button>
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages || isLoading}
-        className="px-3 py-1 border rounded-md ml-2 disabled:opacity-50"
-      >
-        Next
-      </button>
-    </div>
-  );
-};
+// Custom Hooks
+import { useUrl } from "@/context/UrlProvider";
+import { useCustomerData, useSalesData } from "@/hooks/useCustomerOperations";
 
 const CustomerDetails = () => {
   const { id } = useParams();
-  const { baseUrl } = useContext(UrlContext);
-  const [customerData, setCustomerData] = useState(null);
-  const [recentPurchases, setRecentPurchases] = useState([]);
-  const [salesPagination, setSalesPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-  });
-  const [loadingCustomer, setLoadingCustomer] = useState(true);
-  const [loadingSales, setLoadingSales] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { baseUrl } = useUrl();
 
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(false);
+  // State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    description: "",
+  });
 
-  const fetchCustomerData = useCallback(async () => {
-    setLoadingCustomer(true);
-    setError(null);
-    try {
-      const customerRes = await api.get(`/customer/get-customer/${id}`);
-      if (customerRes.data.data) {
-        setCustomerData(customerRes.data.data);
-      } else {
-        toast.error("Could not find customer data.");
-        setError("Customer not found.");
-      }
-    } catch (err) {
-      console.error("Failed to fetch customer details:", err);
-      setError("Could not load customer details. Please try again.");
-      toast.error("Could not load customer details.");
-    } finally {
-      setLoadingCustomer(false);
-    }
-  }, [id]);
+  // Custom Hooks
+  const {
+    customerData,
+    loading: loadingCustomer,
+    error: customerError,
+    refetch: refetchCustomer,
+  } = useCustomerData(id);
 
-  const fetchSalesData = useCallback(
-    async (page) => {
-      setLoadingSales(true);
-      try {
-        const salesRes = await api.get(
-          `/sales/customer/${id}?page=${page}&limit=10`
-        );
-        if (salesRes.data.data) {
-          const { sales, totalPages, currentPage, totalItems } =
-            salesRes.data.data;
-          setRecentPurchases(sales);
-          setSalesPagination({ totalPages, currentPage, totalItems });
-        }
-      } catch (err) {
-        console.error("Failed to fetch customer sales:", err);
-        toast.error("Could not load customer sales history.");
-      } finally {
-        setLoadingSales(false);
-      }
+  const {
+    salesData,
+    pagination,
+    loading: loadingSales,
+    fetchSales,
+  } = useSalesData(id);
+
+  // Effects
+  useEffect(() => {
+    refetchCustomer();
+  }, [refetchCustomer]);
+
+  useEffect(() => {
+    fetchSales(pagination.currentPage);
+  }, [fetchSales, pagination.currentPage]);
+
+  // Helper function to construct document URLs
+  const getDocumentUrl = useCallback(
+    (documentName) => {
+      if (!baseUrl || !documentName) return "#";
+      return `${baseUrl}documents/${documentName}`;
     },
-    [id]
+    [baseUrl]
   );
 
-  useEffect(() => {
-    fetchCustomerData();
-  }, [fetchCustomerData]);
-
-  useEffect(() => {
-    fetchSalesData(salesPagination.currentPage);
-  }, [fetchSalesData, salesPagination.currentPage]);
-
-  const handleSalesPageChange = (newPage) => {
-    if (
-      newPage > 0 &&
-      newPage <= salesPagination.totalPages &&
-      newPage !== salesPagination.currentPage
-    ) {
-      setSalesPagination((prev) => ({ ...prev, currentPage: newPage }));
-    }
-  };
-
-  const handleDelete = async () => {
-    setIsConfirming(true);
+  // Handlers
+  const handleDelete = useCallback(async () => {
     try {
       await api.delete(`/customer/delete-customer/${id}`);
       toast.success("Customer deleted successfully!");
       navigate("/customers");
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to delete customer.");
-    } finally {
-      setIsConfirming(false);
-      setIsConfirmModalOpen(false);
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to delete customer."
+      );
     }
-  };
+  }, [id, navigate]);
 
+  const handleOpenDeleteModal = useCallback(() => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Customer",
+      description: `Are you sure you want to delete customer "${customerData?.name}"? This action cannot be undone.`,
+    });
+  }, [customerData?.name]);
+
+  const handleSalesPageChange = useCallback(
+    (page) => {
+      fetchSales(page);
+    },
+    [fetchSales]
+  );
+
+  const formatCurrency = useCallback((amount) => {
+    return `৳${parseFloat(amount || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }, []);
+
+  // Memoized values
+  const customerStats = useMemo(
+    () => ({
+      totalPurchases: customerData?.stats?.totalPurchases || 0,
+      totalSpent: formatCurrency(customerData?.stats?.totalSpent),
+      notInvoiced: customerData?.stats?.notInvoiced || 0,
+      outstandingDues: formatCurrency(customerData?.stats?.outstandingDues),
+    }),
+    [customerData?.stats, formatCurrency]
+  );
+
+  // Loading and error states
   if (loadingCustomer) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
-        <span className="ml-3">Loading customer details...</span>
+      <div className="flex flex-col items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003b75]"></div>
+        <p className="mt-4 text-gray-600">Loading customer details...</p>
       </div>
     );
   }
 
-  if (error) {
+  if (customerError) {
     return (
-      <div className="text-center p-8">
-        <p className="mb-4 text-red-600">{error}</p>
-        <button
-          onClick={fetchCustomerData}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-        >
-          Retry
-        </button>
+      <div className="flex flex-col items-center justify-center h-full ">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+          <h3 className="text-lg font-semibold text-red-800 mb-2">
+            Error Loading Customer
+          </h3>
+          <p className="text-red-600 mb-4">{customerError}</p>
+          <div className="flex gap-3">
+            <button
+              onClick={refetchCustomer}
+              className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002855] transition-colors"
+            >
+              Retry
+            </button>
+            <button
+              onClick={() => navigate("/customers")}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Back to Customers
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!customerData) {
     return (
-      <div className="text-center p-8">
-        <p>Customer not found.</p>
+      <div className="flex flex-col items-center justify-center h-full">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md">
+          <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+            Customer Not Found
+          </h3>
+          <p className="text-yellow-600 mb-4">
+            The requested customer could not be found.
+          </p>
+          <button
+            onClick={() => navigate("/customers")}
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Back to Customers
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="">
+    <div>
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-              <FiUser className="text-[#003b75] text-2xl" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {customerData?.name}
-              </h1>
-              <div className="flex items-center mt-1">
-                <span className="text-gray-600 mr-3">
-                  {customerData?.customerId}
-                </span>
-                <StatusBadge status={customerData?.customerStatus} />
+        {/* Header */}
+        <motion.div
+          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-xl shadow-sm border border-gray-100"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center flex-1 min-w-0">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                <User className="text-[#003b75] text-xl sm:text-2xl" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
+                  {customerData.name}
+                </h1>
+                <div className="flex items-center mt-1 flex-wrap gap-2">
+                  {customerData.customerId && (
+                    <span className="text-gray-600 text-sm sm:text-base">
+                      {customerData.customerId}
+                    </span>
+                  )}
+                  <StatusBadge status={customerData.customerStatus} />
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-x-3">
-            <button
-              onClick={() => navigate(`/customer-form/${id}`)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
-            >
-              <FiEdit size={20} />
-              Edit Customer
-            </button>
-            <button
-              onClick={() => setIsConfirmModalOpen(true)}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
-            >
-              <FiTrash2 size={20} />
-              Delete Customer
-            </button>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Column 1 */}
-          <div className="space-y-4 lg:order-1 lg:col-span-2">
-            <CollapsibleCard title="General Info" icon={<FiUser />} defaultOpen={true}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate(`/customer-form/${id}`)}
+                className="flex items-center px-3 sm:px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002855] active:bg-[#001c3a] transition-colors text-sm font-medium"
+                aria-label="Edit customer"
+              >
+                <Edit className="mr-2 w-4 h-4" aria-hidden="true" />
+                Edit
+              </button>
+              <button
+                onClick={handleOpenDeleteModal}
+                className="flex items-center px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors text-sm font-medium"
+                aria-label="Delete customer"
+              >
+                <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
+                Delete
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Column 1 - General Info & Transaction Overview */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* General Info */}
+            <CollapsibleCard
+              title="General Information"
+              icon={<User className="text-[#003b75]" />}
+              defaultOpen={true}
+              ariaLabel="General Information Section"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <DataField
                   label="Company Name"
-                  value={customerData?.companyName}
-                  icon={<FiBriefcase />}
+                  value={customerData.companyName}
+                  icon={Building}
                 />
-
-                <DataField
-                  label="Email"
-                  value={customerData?.email}
-                  icon={<FiMail />}
-                />
-
-                <DataField
-                  label="Billing Address"
-                  value={customerData?.billingAddress}
-                  icon={<FiMapPin />}
-                />
-
-                <DataField
-                  label="Credit Limit"
-                  value={`৳${(
-                    customerData?.creditLimit || 0
-                  ).toLocaleString()}`}
-                  icon={<FiDollarSign />}
-                />
-
-                <DataField
-                  label="Customer Status"
-                  value={<StatusBadge status={customerData?.customerStatus} />}
-                />
-
                 <DataField
                   label="Customer Type"
-                  value={customerData?.customerType}
+                  value={customerData.customerType}
                 />
-
                 <DataField
-                  label="Customer Joined Date"
-                  value={new Date(customerData?.joinDate).toLocaleDateString()}
-                  icon={<FiCalendar />}
+                  label="Email"
+                  value={customerData.email}
+                  icon={Mail}
+                  type="email"
                 />
-
                 <DataField
-                  label="Customer Note"
-                  value={customerData?.customerNote}
+                  label="Phone"
+                  value={customerData.phone}
+                  icon={Phone}
+                  type="tel"
                 />
+                <DataField
+                  label="Credit Limit"
+                  value={formatCurrency(customerData.creditLimit)}
+                  icon={CreditCard}
+                />
+                <DataField
+                  label="Join Date"
+                  value={new Date(customerData.joinDate).toLocaleDateString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }
+                  )}
+                  icon={Calendar}
+                />
+                <div className="sm:col-span-2">
+                  <DataField
+                    label="Billing Address"
+                    value={customerData.billingAddress}
+                    icon={MapPin}
+                  />
+                </div>
+                {customerData.customerNote && (
+                  <div className="sm:col-span-2">
+                    <DataField
+                      label="Notes"
+                      value={customerData.customerNote}
+                      icon={FileText}
+                    />
+                  </div>
+                )}
               </div>
             </CollapsibleCard>
 
-            <CollapsibleCard title="Transaction Overview" icon={<FiPieChart />} defaultOpen={true}>
-              <div className="grid grid-cols-2 gap-4">
+            {/* Transaction Overview */}
+            <CollapsibleCard
+              title="Transaction Overview"
+              icon={<PieChart className="text-[#003b75]" />}
+              defaultOpen={true}
+              ariaLabel="Transaction Overview Section"
+            >
+              <div className="grid grid-cols-2 gap-3">
                 <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-blue-700">
-                    {customerData?.stats?.totalPurchases || 0}
+                  <div className="text-xl sm:text-2xl font-bold text-blue-700">
+                    {customerStats.totalPurchases}
                   </div>
-                  <div className="text-sm text-[#003b75]">Total Purchases</div>
+                  <div className="text-xs sm:text-sm text-[#003b75] mt-1">
+                    Total Purchases
+                  </div>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-green-700">
-                    ৳{(customerData?.stats?.totalSpent || 0).toLocaleString()}
+                  <div className="text-xl sm:text-2xl font-bold text-green-700">
+                    {customerStats.totalSpent}
                   </div>
-                  <div className="text-sm text-green-600">Total Spent</div>
+                  <div className="text-xs sm:text-sm text-green-600 mt-1">
+                    Total Spent
+                  </div>
                 </div>
                 <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-yellow-700">
-                    {customerData?.stats?.notInvoiced || 0}
+                  <div className="text-xl sm:text-2xl font-bold text-yellow-700">
+                    {customerStats.notInvoiced}
                   </div>
-                  <div className="text-sm text-yellow-600">Not Invoiced</div>
+                  <div className="text-xs sm:text-sm text-yellow-600 mt-1">
+                    Not Invoiced
+                  </div>
                 </div>
                 <div className="bg-red-50 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-red-700">
-                    ৳
-                    {(
-                      customerData?.stats?.outstandingDues || 0
-                    ).toLocaleString()}
+                  <div className="text-xl sm:text-2xl font-bold text-red-700">
+                    {customerStats.outstandingDues}
                   </div>
-                  <div className="text-sm text-red-600">Outstanding Dues</div>
+                  <div className="text-xs sm:text-sm text-red-600 mt-1">
+                    Outstanding Dues
+                  </div>
                 </div>
               </div>
             </CollapsibleCard>
           </div>
 
-          {/* Column 2 */}
-          <div className="space-y-4 lg:order-2 lg:col-span-1">
-            <CollapsibleCard title="Status Info" icon={<FiStar />} defaultOpen={true}>
+          {/* Column 2 - Status & Documents */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Status Info */}
+            <CollapsibleCard
+              title="Status Information"
+              icon={<Star className="text-[#003b75]" />}
+              defaultOpen={true}
+              ariaLabel="Status Information Section"
+            >
               <div className="space-y-3">
                 <DataField
-                  label="Customer ID"
-                  value={customerData?.customerId}
+                  label="Customer Status"
+                  value={<StatusBadge status={customerData.customerStatus} />}
                 />
                 <DataField
                   label="Customer Type"
-                  value={customerData?.customerType}
+                  value={customerData.customerType}
                 />
                 <DataField
-                  label="Customer Status"
-                  value={
-                    <StatusBadge status={customerData?.customerStatus} />
-                  }
+                  label="Customer ID"
+                  value={customerData.customerId}
                 />
                 <DataField
-                  label="Customer Joined Date"
-                  value={new Date(customerData?.joinDate).toLocaleDateString()}
-                  icon={<FiCalendar />}
+                  label="Join Date"
+                  value={new Date(customerData.joinDate).toLocaleDateString()}
+                  icon={Calendar}
                 />
               </div>
             </CollapsibleCard>
 
-            <CollapsibleCard title="Others" icon={<FiFileText />} defaultOpen={true}>
-              <DataField
-                label="Customer Note"
-                value={customerData?.customerNote}
-                icon={<FiFileText />}
-                className="sm:col-span-2"
-              />
-              <div className="space-y-2 mt-4">
-                <h3 className="text-sm font-medium text-gray-500">
-                  Uploaded Documents
-                </h3>
-                {customerData?.documents?.length > 0 ? (
-                  customerData.documents.map((file, index) => (
+            {/* Documents */}
+            <CollapsibleCard
+              title="Documents"
+              icon={<FileText className="text-[#003b75]" />}
+              defaultOpen={true}
+              ariaLabel="Documents Section"
+            >
+              <div className="space-y-3">
+                {customerData.documents?.length > 0 ? (
+                  customerData.documents.map((doc, index) => (
                     <div
                       key={index}
-                      className="flex items-center p-2 bg-gray-50 rounded-md"
+                      className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
                     >
-                      <FiFileText className="text-gray-400 mr-2 flex-shrink-0" />
+                      <FileText className="text-gray-400 mr-3 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-700 truncate">
-                          {file.name || file.originalName}
+                          {doc.name || doc.originalName}
                         </div>
-                        {file.size && (
-                          <div className="text-xs text-gray-500">
-                            {file.size}
+                        {doc.size && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {doc.size}
                           </div>
                         )}
                       </div>
                       <a
-                        href={`${baseUrl}documents/${file.storedName}`}
+                        href={getDocumentUrl(doc.storedName)}
                         target="_blank"
                         rel="noopener noreferrer"
                         download
-                        className="ml-2 text-[#003b75] hover:text-blue-800"
-                        title={`Download ${file.name || file.originalName}`}
+                        className="ml-2 text-[#003b75] hover:text-blue-800 transition-colors"
+                        aria-label={`Download ${doc.name || doc.originalName}`}
                       >
-                        <FiDownload />
+                        <Download className="w-4 h-4" />
                       </a>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-gray-500 mt-2">
-                    No documents uploaded.
-                  </p>
+                  <div className="text-center py-6 text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">No documents uploaded</p>
+                  </div>
                 )}
               </div>
             </CollapsibleCard>
           </div>
         </div>
 
-        <div className="mt-3 lg:col-span-3">
-          <CollapsibleCard title="Recent Purchases" icon={<FiDollarSign />} defaultOpen={true}>
-            {loadingSales && (
-              <div className="flex items-center justify-center h-40">
-                <Loader2 className="animate-spin h-6 w-6 text-blue-600" />
+        {/* Recent Purchases - Full Width */}
+        <div className="mt-4 sm:mt-6">
+          <CollapsibleCard
+            title="Recent Purchases"
+            icon={<DollarSign className="text-[#003b75]" />}
+            defaultOpen={true}
+            ariaLabel="Recent Purchases Section"
+          >
+            {loadingSales ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003b75]"></div>
+                <span className="ml-3 text-gray-600">Loading purchases...</span>
               </div>
-            )}
-            {!loadingSales && salesPagination.totalItems === 0 && (
-              <div className="text-center py-8 text-gray-500 border-t">
-                No sales data available for this customer.
+            ) : salesData.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No purchases found for this customer</p>
               </div>
-            )}
-            {!loadingSales && salesPagination.totalItems > 0 && (
+            ) : (
               <>
-                <div className="block sm:hidden">
-                  <div className="space-y-2">
-                    {recentPurchases.map((sale) => (
-                      <div
-                        key={sale._id}
-                        className="border-t border-gray-200 last:border-b bg-white cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => navigate(`/sales/${sale._id}`)}
-                      >
-                        <div className="px-4 py-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="font-medium text-gray-900">
-                              {sale.product.name}
-                            </div>
-                            <span className="text-sm text-gray-500">
-                              {new Date(sale.saleDate).toLocaleDateString()}
-                            </span>
+                {/* Mobile View */}
+                <div className="block sm:hidden space-y-3">
+                  {salesData.map((sale) => (
+                    <div
+                      key={sale._id}
+                      className="border border-gray-200 rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/sales/${sale._id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          navigate(`/sales/${sale._id}`);
+                        }
+                      }}
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 text-sm">
+                            {sale.product?.name || "N/A"}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(sale.saleDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-gray-900 text-sm">
+                            {formatCurrency(sale.totalAmountToBePaid)}
                           </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600">
-                              Qty: {sale.quantity} {sale.unit?.name}
-                            </span>
-                            <span className="text-gray-600">
-                              Price: ৳
-                              {parseFloat(sale.pricePerUnit || 0).toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="border-t border-gray-100 my-2"></div>
-                          <div className="flex justify-between items-center">
-                            <StatusBadge status={sale.invoiceStatus} />
-                            <StatusBadge status={sale.paymentStatus} />
-                          </div>
-                          <div className="border-t border-gray-100 my-2"></div>
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium text-gray-700">
-                              Total
-                            </span>
-                            <span className="font-bold text-gray-900">
-                              ৳
-                              {parseFloat(
-                                sale.totalAmountToBePaid || 0
-                              ).toFixed(2)}
-                            </span>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Qty: {sale.quantity} {sale.unit?.name || ""}
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                        <StatusBadge status={sale.invoiceStatus} />
+                        <StatusBadge status={sale.paymentStatus} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
+
+                {/* Desktop View */}
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
+                    <thead>
+                      <tr className="bg-gray-50">
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Date
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Product
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           LC Number
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -508,7 +519,7 @@ const CustomerDetails = () => {
                           Unit Price
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Total Price
+                          Total
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Invoice Status
@@ -519,29 +530,31 @@ const CustomerDetails = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {recentPurchases.map((sale) => (
+                      {salesData.map((sale) => (
                         <tr
                           key={sale._id}
                           className="hover:bg-gray-50 cursor-pointer"
                           onClick={() => navigate(`/sales/${sale._id}`)}
                         >
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                             {new Date(sale.saleDate).toLocaleDateString()}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap font-medium text-[#003b75]">
-                            {sale.product.name}
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm font-medium text-[#003b75]">
+                              {sale.product?.name || "N/A"}
+                            </div>
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                            {sale.product.LC?.basicInfo?.lcNumber || "N/A"}
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            {sale.product?.LC?.basicInfo?.lcNumber || "N/A"}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                            {sale.quantity} {sale.unit?.name || sale.unit}
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            {sale.quantity} {sale.unit?.name || ""}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                            ৳{sale.pricePerUnit.toLocaleString()}
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            {formatCurrency(sale.pricePerUnit)}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                            ৳{sale.totalAmountToBePaid.toLocaleString()}
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {formatCurrency(sale.totalAmountToBePaid)}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <StatusBadge status={sale.invoiceStatus} />
@@ -554,34 +567,44 @@ const CustomerDetails = () => {
                     </tbody>
                   </table>
                 </div>
-                <Pagination
-                  currentPage={salesPagination.currentPage}
-                  totalPages={salesPagination.totalPages}
-                  onPageChange={handleSalesPageChange}
-                  isLoading={loadingSales}
-                />
+
+                {/* Pagination */}
+                {pagination.totalPages > 1 && (
+                  <div className="mt-4">
+                    <Pagination
+                      currentPage={pagination.currentPage}
+                      totalPages={pagination.totalPages}
+                      onPageChange={handleSalesPageChange}
+                      isLoading={loadingSales}
+                      totalItems={pagination.totalItems}
+                    />
+                  </div>
+                )}
               </>
             )}
           </CollapsibleCard>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
       <ConfirmationModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
         onConfirm={handleDelete}
-        title="Delete Customer"
-        description={`Are you sure you want to delete customer "${customerData?.name}"? This action cannot be undone.`}
+        title={confirmModal.title}
+        description={confirmModal.description}
         confirmText="Delete"
-        isConfirming={isConfirming}
-        confirmingText="Deleting..."
-        icon={FiTrash2}
+        cancelText="Cancel"
+        isConfirming={false}
+        icon={Trash2}
         iconBgColor="bg-red-100"
         iconTextColor="text-red-600"
         confirmButtonBgColor="bg-red-600"
         confirmButtonHoverBgColor="hover:bg-red-700"
+        size="md"
       />
     </div>
   );
 };
 
-export default CustomerDetails;
+export default memo(CustomerDetails);

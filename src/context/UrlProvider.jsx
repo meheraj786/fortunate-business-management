@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { UrlContext } from "@/context/UrlContext";
 
 const UrlProvider = ({ children }) => {
@@ -7,6 +7,10 @@ const UrlProvider = ({ children }) => {
   return (
     <UrlContext.Provider value={{ baseUrl }}>{children}</UrlContext.Provider>
   );
+};
+
+export const useUrl = () => {
+  return useContext(UrlContext);
 };
 
 export default UrlProvider;
