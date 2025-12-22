@@ -558,9 +558,9 @@ const AddSales = ({
   // Payment method options
   const paymentMethodOptions = useMemo(
     () => [
-      { value: "cash", label: "Cash" },
-      { value: "bank", label: "Bank Transfer" },
-      { value: "mobile-banking", label: "Mobile Banking" },
+      { value: "Cash", label: "Cash" },
+      { value: "Bank", label: "Bank Transfer" },
+      { value: "Mobile Banking", label: "Mobile Banking" },
     ],
     []
   );
@@ -569,11 +569,7 @@ const AddSales = ({
   const getFilteredAccounts = useCallback(
     (method) => {
       return accounts
-        .filter((acc) =>
-          method === "bank"
-            ? acc.accountType === "Bank"
-            : acc.accountType === "Mobile Banking"
-        )
+        .filter((acc) => acc.accountType === method)
         .map((acc) => ({
           value: acc._id,
           label: `${acc.accountName} (${acc.bankName || acc.serviceName})`,
@@ -1008,8 +1004,9 @@ const AddSales = ({
                             disabled={loading}
                           />
 
-                          {(payment.method === "bank" ||
-                            payment.method === "mobile-banking") && (
+                          {(payment.method === "Bank" ||
+                            payment.method === "Mobile Banking" ||
+                            payment.method === "Cash") && (
                             <SelectField
                               label="Account"
                               name={`payments[${index}].account`}
@@ -1077,8 +1074,9 @@ const AddSales = ({
                         disabled={loading}
                       />
 
-                      {(formData.payments[0]?.method === "bank" ||
-                        formData.payments[0]?.method === "mobile-banking") && (
+                      {(formData.payments[0]?.method === "Bank" ||
+                        formData.payments[0]?.method === "Mobile Banking" ||
+                        formData.payments[0]?.method === "Cash") && (
                         <SelectField
                           label="Account"
                           name="payments[0].account"

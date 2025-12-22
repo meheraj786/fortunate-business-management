@@ -8,7 +8,9 @@ import {
   ChevronRight,
   Receipt,
   AlertCircle,
+  Package,
 } from "lucide-react";
+import PropTypes from "prop-types";
 
 // Stat Card Component
 const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
@@ -63,9 +65,9 @@ const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
 };
 
 // Transaction Card Component for Mobile
-const TransactionCard = ({ transaction, iconComponents }) => {
-  const IconComponent = iconComponents[transaction.icon] || Receipt;
-  const isIncome = transaction.type === "income";
+const TransactionCard = ({ transaction, iconComponents, onClick }) => {
+  const IconComponent = iconComponents[transaction.category] || Receipt; // Use category for icon
+  const isIncome = transaction.transactionType === "income"; // Use transactionType
   const color = isIncome ? "green" : "red";
 
   const colorClasses = {
@@ -81,7 +83,8 @@ const TransactionCard = ({ transaction, iconComponents }) => {
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm p-4 border-l-4 ${selectedColor.border} mb-3 hover:shadow-md transition-shadow`}
+      className={`bg-white rounded-lg shadow-sm p-4 border-l-4 ${selectedColor.border} mb-3 hover:shadow-md transition-shadow cursor-pointer`}
+      onClick={() => onClick(transaction._id)}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -92,20 +95,18 @@ const TransactionCard = ({ transaction, iconComponents }) => {
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-semibold text-gray-900 truncate">
-              {transaction.description || "No description"}
+              {transaction.name || transaction.description || "No description"}
             </h4>
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                 {transaction.category || "Uncategorized"}
               </span>
               <span className="text-xs text-gray-500">
-                {transaction.time || "N/A"}
+                {new Date(transaction.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || "N/A"}
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Paid via: {transaction.paymentMethod || "Cash"}
-              {transaction.bankNumber && ` (${transaction.bankNumber})`}
-              {transaction.mobileBank && ` (${transaction.mobileBank})`}
+              Paid via: {transaction.paymentMethod || "N/A"}
             </p>
           </div>
         </div>
@@ -151,12 +152,14 @@ const CashFlowDetails = ({
   setCurrentPage,
   iconComponents,
   filteredTransactions = [],
+  onTransactionClick, // New prop
 }) => {
   // Determine running balance color
   const getRunningBalanceColor = () => {
-    if (runningBalance >= totalIncome * 0.8) return "green";
-    if (runningBalance >= totalIncome * 0.5) return "blue";
-    if (runningBalance >= totalIncome * 0.2) return "orange";
+    const net = totalIncome - totalExpenses;
+    if (net >= openingBalance * 0.8) return "green";
+    if (net >= openingBalance * 0.5) return "blue";
+    if (net >= openingBalance * 0.2) return "orange";
     return "red";
   };
 
@@ -192,7 +195,7 @@ const CashFlowDetails = ({
           icon={TrendingUp}
           color="green"
           subtitle={`${
-            filteredTransactions.filter((t) => t.type === "income").length
+            filteredTransactions.filter((t) => t.transactionType === "income").length
           } transactions`}
         />
         <StatCard
@@ -201,7 +204,7 @@ const CashFlowDetails = ({
           icon={TrendingDown}
           color="red"
           subtitle={`${
-            filteredTransactions.filter((t) => t.type === "expense").length
+            filteredTransactions.filter((t) => t.transactionType === "expense").length
           } transactions`}
         />
         <StatCard
@@ -241,9 +244,10 @@ const CashFlowDetails = ({
           ) : (
             transactions.map((transaction) => (
               <TransactionCard
-                key={transaction._id || transaction.id}
+                key={transaction._id}
                 transaction={transaction}
                 iconComponents={iconComponents}
+                onClick={onTransactionClick}
               />
             ))
           )}
@@ -261,7 +265,7 @@ const CashFlowDetails = ({
                     Category
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
+                    Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Time
@@ -276,16 +280,17 @@ const CashFlowDetails = ({
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {transactions.map((transaction) => {
-                  const Icon = iconComponents[transaction.icon];
-                  const isIncome = transaction.type === "income";
+                  const Icon = iconComponents[transaction.category] || Receipt; // Use category for icon
+                  const isIncome = transaction.transactionType === "income"; // Use transactionType
                   const colorClass = isIncome
                     ? "text-green-600"
                     : "text-red-600";
 
                   return (
                     <tr
-                      key={transaction._id || transaction.id}
-                      className="hover:bg-gray-50 transition-colors"
+                      key={transaction._id}
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => onTransactionClick(transaction._id)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -299,21 +304,17 @@ const CashFlowDetails = ({
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900 max-w-xs truncate">
-                          {transaction.description || "No description"}
+                          {transaction.name || transaction.description || "No description"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                          {transaction.time || "N/A"}
+                          {new Date(transaction.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          {transaction.paymentMethod || "Cash"}
-                          {transaction.bankNumber &&
-                            ` (${transaction.bankNumber})`}
-                          {transaction.mobileBank &&
-                            ` (${transaction.mobileBank})`}
+                          {transaction.paymentMethod || "N/A"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -415,6 +416,34 @@ const CashFlowDetails = ({
       </div>
     </div>
   );
+};
+
+CashFlowDetails.propTypes = {
+  openingBalance: PropTypes.number,
+  totalIncome: PropTypes.number,
+  totalExpenses: PropTypes.number,
+  runningBalance: PropTypes.number,
+  transactions: PropTypes.array,
+  currentPage: PropTypes.number.isRequired,
+  totalPages: PropTypes.number.isRequired,
+  setCurrentPage: PropTypes.func.isRequired,
+  iconComponents: PropTypes.object.isRequired,
+  filteredTransactions: PropTypes.array,
+  onTransactionClick: PropTypes.func.isRequired,
+};
+
+TransactionCard.propTypes = {
+  transaction: PropTypes.object.isRequired,
+  iconComponents: PropTypes.object.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
+StatCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  amount: PropTypes.number.isRequired,
+  color: PropTypes.string.isRequired,
+  subtitle: PropTypes.string,
+  icon: PropTypes.elementType,
 };
 
 export default CashFlowDetails;

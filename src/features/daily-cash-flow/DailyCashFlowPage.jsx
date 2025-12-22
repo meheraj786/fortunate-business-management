@@ -1,9 +1,9 @@
 import React, {
   useState,
   useMemo,
-  useContext,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import {
   Calendar,
@@ -30,6 +30,7 @@ import {
   Receipt,
   PiggyBank,
   Loader2,
+  Package,
 } from "lucide-react";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
@@ -39,29 +40,67 @@ import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
+import TransactionDetailsModal from "./TransactionDetailsModal"; // New component for details
+
+// Custom hook for account fetching
+const useAccounts = () => {
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchAccounts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/account/get-all-accounts");
+      if (response.data.success) {
+        setAccounts(response.data.data || []);
+      } else {
+        throw new Error("Failed to fetch accounts");
+      }
+    } catch (error) {
+      console.error("Failed to fetch accounts:", error);
+      toast.error("Failed to load accounts. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { accounts, loading, fetchAccounts };
+};
 
 // Constants
-const DROPDOWN_MENU = [
-  "sales",
-  "transport",
-  "commission",
-  "utilities",
-  "office",
-  "lc",
-  "others",
+const INCOME_CATEGORIES = [
+  "LC",
+  "Sales",
+  "Donation",
+  "Commission",
+  "Interest",
+  "Service Charge",
+  "Others",
+];
+const EXPENSE_CATEGORIES = [
+  "LC",
+  "Sales",
+  "Rent",
+  "Salary",
+  "Office Expense",
+  "Transport",
+  "Utility",
+  "Others",
 ];
 
 const ITEMS_PER_PAGE = 10;
 
 // Initial state for new transaction
 const INITIAL_TRANSACTION_STATE = {
+  name: "", // For income/expense name
   amount: "",
   category: "",
   description: "",
-  paymentMethod: "cash",
-  bankNumber: "",
-  mobileBank: "",
-  lcId: "",
+  paymentMethod: "Cash",
+  accountId: "",
+  lcId: "", // For LC transactions
+  salesId: "", // For Sales transactions
+  costName: "", // For LC/Sales expense costs
 };
 
 // Icon mapping
@@ -76,11 +115,14 @@ const ICON_COMPONENTS = {
   CreditCard,
   Receipt,
   PiggyBank,
+  Wallet,
+  Package, // For LC/Sales
   User: Users,
   Sale: DollarSign,
   "Office Expense": Building,
   Transportation: Truck,
 };
+
 const DailyCashFlow = () => {
   // State
   const getLocalDateString = (date) => {
@@ -90,102 +132,37 @@ const DailyCashFlow = () => {
     return `${year}-${month}-${day}`;
   };
 
-  const [selectedDate, setSelectedDate] = useState(getLocalDateString(new Date()));
-  const [dailyData, setDailyData] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(
+    getLocalDateString(new Date())
+  );
+  const [dailyCashSummary, setDailyCashSummary] = useState(null);
+  const [dailyCashStatus, setDailyCashStatus] = useState(null); // 'Open', 'Closed', 'Not Opened Yet'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [transactionType, setTransactionType] = useState("income");
+  const [transactionType, setTransactionType] = useState("income"); // 'income' or 'expense'
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeLc, setActiveLc] = useState([]);
+  const [activeLc, setActiveLc] = useState([]); // For LC dropdown
+  const [activeSales, setActiveSales] = useState([]); // For Sales dropdown
   const [newTransaction, setNewTransaction] = useState(
     INITIAL_TRANSACTION_STATE
   );
+  const { accounts, loading: accountsLoading, fetchAccounts } = useAccounts();
 
-  // Data extraction with fallbacks
-  const {
-    openingBalance = 0,
-    totalIncome = 0,
-    totalExpense = 0,
-    runningBalance = 0,
-    isClosed = false,
-    incomeList = [],
-    expenseList = [],
-  } = dailyData || {};
+  const [showTransactionDetailsModal, setShowTransactionDetailsModal] =
+    useState(false);
+  const [selectedTransactionId, setSelectedTransactionId] = useState(null);
 
+  // Memoized filtered transactions for display
   const transactions = useMemo(() => {
-    const incomes = incomeList.map((item) => ({ ...item, type: "income" }));
-    const expenses = expenseList.map((item) => ({ ...item, type: "expense" }));
-    return [...incomes, ...expenses].sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    );
-  }, [incomeList, expenseList]);
+    return dailyCashSummary?.transactions || [];
+  }, [dailyCashSummary]);
 
-  // Fetch active LC data
-  useEffect(() => {
-    const fetchActiveLc = async () => {
-      try {
-        const response = await api.get(`/lc/get-all-lc`);
-        if (Array.isArray(response.data.data)) {
-          setActiveLc(response.data.data);
-        } else {
-          setActiveLc([]);
-          toast.error("Could not parse LC data.");
-        }
-      } catch (error) {
-        console.error("Failed to fetch LC data:", error);
-        toast.error("Failed to load active LCs for the form.");
-        setActiveLc([]);
-      }
-    };
-    fetchActiveLc();
-  }, []);
-
-  // Fetch daily cash data
-  const fetchDailyCash = useCallback(async () => {
-    if (!selectedDate) return;
-
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await api.get(`/cash/get-cash`, {
-        params: { date: selectedDate },
-      });
-      if (response.data.data) {
-        setDailyData(response.data.data);
-      } else {
-        setDailyData(null);
-        setError(response.data.message || "Cash for this day is not open.");
-      }
-    } catch (err) {
-      setDailyData(null);
-      if (err.response && err.response.status === 404) {
-        setError("Cash for this day has not been opened yet.");
-      } else if (err.response && err.response.status === 400) {
-        setError("Invalid date or request format.");
-      } else {
-        setError(
-          err.response?.data?.message ||
-            "An error occurred while fetching data. Please try again."
-        );
-      }
-      console.error("Fetch daily cash error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedDate]);
-
-  // Fetch data when selectedDate changes
-  useEffect(() => {
-    fetchDailyCash();
-  }, [fetchDailyCash]);
-
-  // Filter transactions
   const filteredTransactions = useMemo(() => {
     if (!transactions || !Array.isArray(transactions)) return [];
 
@@ -196,7 +173,8 @@ const DailyCashFlow = () => {
       filtered = filtered.filter(
         (transaction) =>
           transaction.description?.toLowerCase().includes(term) ||
-          transaction.category?.toLowerCase().includes(term)
+          transaction.category?.toLowerCase().includes(term) ||
+          transaction.name?.toLowerCase().includes(term)
       );
     }
 
@@ -205,16 +183,18 @@ const DailyCashFlow = () => {
         (transaction) => transaction.category === categoryFilter
       );
     }
-
-    return filtered;
+    return filtered.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
   }, [transactions, searchTerm, categoryFilter]);
 
-  // Get unique categories
-  const categories = useMemo(() => {
-    if (!transactions || !Array.isArray(transactions)) return [];
-    const allCategories = transactions.map((t) => t.category).filter(Boolean);
-    return [...new Set(allCategories)].sort();
-  }, [transactions]);
+  // Get unique categories for filter dropdown
+  const allCategories = useMemo(() => {
+    const incomeCats = INCOME_CATEGORIES.map(cat => ({ value: cat, label: cat }));
+    const expenseCats = EXPENSE_CATEGORIES.map(cat => ({ value: cat, label: cat }));
+    const uniqueCategories = [...new Set([...incomeCats.map(c => c.value), ...expenseCats.map(c => c.value)])];
+    return uniqueCategories.sort().map(cat => ({ value: cat, label: cat }));
+  }, []);
 
   // Pagination
   const totalPages = Math.max(
@@ -226,11 +206,100 @@ const DailyCashFlow = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
-  // Event handlers
-  const handleNewTransactionChange = (e) => {
+  // Fetch daily cash status
+  const fetchDailyCashStatus = useCallback(async () => {
+    if (!selectedDate) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get(`/cash/status`, {
+        params: { date: selectedDate },
+      });
+      setDailyCashStatus(response.data.data.status);
+    } catch (err) {
+      console.error("Failed to fetch daily cash status:", err);
+      setError("Failed to fetch daily cash status.");
+      setDailyCashStatus("Error");
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate]);
+
+  // Fetch daily cash summary
+  const fetchDailyCashSummary = useCallback(async () => {
+    if (!selectedDate || dailyCashStatus !== "Open") return; // Only fetch summary if cash is open
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get(`/cash/summary`, {
+        params: { date: selectedDate },
+      });
+      setDailyCashSummary(response.data.data);
+    } catch (err) {
+      console.error("Failed to fetch daily cash summary:", err);
+      setError("Failed to fetch daily cash summary.");
+      setDailyCashSummary(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate, dailyCashStatus]);
+
+  // Fetch active LCs and Sales for dropdowns
+  const fetchReferences = useCallback(async () => {
+    if (!showAddTransaction) return;
+    try {
+      const [lcRes, salesRes] = await Promise.all([
+        api.get(`/lc/get-all-lc?status=Active`),
+        api.get(`/sales/get-all-sales?status=Invoiced&paymentStatus=Due%20payment`),
+      ]);
+      setActiveLc(lcRes.data.data || []);
+      setActiveSales(salesRes.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch references:", error);
+      toast.error("Failed to load LCs or Sales for transaction linking.");
+    }
+  }, [showAddTransaction]);
+
+  useEffect(() => {
+    fetchDailyCashStatus();
+    fetchAccounts(); // Fetch accounts once
+  }, [selectedDate, fetchDailyCashStatus, fetchAccounts]);
+
+  useEffect(() => {
+    fetchDailyCashSummary();
+  }, [dailyCashStatus, fetchDailyCashSummary]); // Re-fetch summary if status changes
+
+  useEffect(() => {
+    fetchReferences();
+  }, [fetchReferences]);
+
+  // Handle new transaction form changes
+  const handleNewTransactionChange = useCallback((e) => {
     const { name, value } = e.target;
-    setNewTransaction((prev) => ({ ...prev, [name]: value }));
-  };
+    setNewTransaction((prev) => {
+      let newState = { ...prev, [name]: value };
+
+      // Reset accountId if payment method changes
+      if (name === "paymentMethod") {
+        newState.accountId = "";
+      }
+      // Reset LC/Sales IDs if category changes
+      if (name === "category") {
+        newState.lcId = "";
+        newState.salesId = "";
+        newState.costName = ""; // Reset costName for expense
+        // Auto-fill description for LC/Sales categories if empty
+        if ((value === "LC" || value === "Sales") && !prev.description) {
+          newState.description = `Auto-generated description for ${value}`;
+        } else if ((prev.category === "LC" || prev.category === "Sales") && prev.description.startsWith("Auto-generated")) {
+          // Clear auto-generated description if category changes from LC/Sales
+          newState.description = "";
+        }
+      }
+      return newState;
+    });
+  }, []);
+
 
   const handleAddTransactionSubmit = async () => {
     // Validation
@@ -238,11 +307,31 @@ const DailyCashFlow = () => {
       toast.error("Please enter a valid amount");
       return;
     }
-
     if (!newTransaction.category) {
       toast.error("Please select a category");
       return;
     }
+    if (!newTransaction.name && (newTransaction.category !== "LC" && newTransaction.category !== "Sales")) {
+        toast.error("Please enter a name for the transaction");
+        return;
+    }
+    if (!newTransaction.accountId) {
+      toast.error("Please select an account");
+      return;
+    }
+    if (newTransaction.category === "LC" && !newTransaction.lcId) {
+      toast.error("Please select an LC for this transaction");
+      return;
+    }
+    if (newTransaction.category === "Sales" && !newTransaction.salesId) {
+      toast.error("Please select a Sale for this transaction");
+      return;
+    }
+    if (transactionType === "expense" && (newTransaction.category === "LC" || newTransaction.category === "Sales") && !newTransaction.costName) {
+        toast.error("Please enter a cost name");
+        return;
+    }
+
 
     const endpoint = transactionType === "income" ? "income" : "expense";
     const toastId = toast.loading(`Adding ${transactionType}...`);
@@ -252,37 +341,25 @@ const DailyCashFlow = () => {
       date: selectedDate,
       amount: parseFloat(newTransaction.amount),
       category: newTransaction.category,
-      description: newTransaction.description || "",
+      name: newTransaction.name, // The actual name of the income/expense
       paymentMethod: newTransaction.paymentMethod,
-      bankNumber: newTransaction.bankNumber || "",
-      mobileBank: newTransaction.mobileBank || "",
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }),
+      accountId: newTransaction.accountId,
+      description: newTransaction.description || undefined, // Send only if provided
     };
 
-    // Add LC ID if applicable
-    if (newTransaction.category === "lc" && newTransaction.lcId) {
+    if (newTransaction.category === "LC") {
       payload.lcId = newTransaction.lcId;
     }
+    if (newTransaction.category === "Sales") {
+      payload.salesId = newTransaction.salesId;
+    }
+    if (transactionType === "expense" && (newTransaction.category === "LC" || newTransaction.category === "Sales")) {
+        payload.costName = newTransaction.costName;
+    }
+
 
     try {
-      let response;
-      if (
-        transactionType === "expense" &&
-        newTransaction.category === "lc" &&
-        newTransaction.lcId
-      ) {
-        response = await api.post(
-          `/lc/add-lc-expense/${newTransaction.lcId}`,
-          payload
-        );
-      } else {
-        response = await api.post(`/cash/${endpoint}`, payload);
-      }
-
+      const response = await api.post(`/cash/${endpoint}`, payload);
       toast.success(
         `${
           transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
@@ -291,7 +368,7 @@ const DailyCashFlow = () => {
       );
       setShowAddTransaction(false);
       setNewTransaction(INITIAL_TRANSACTION_STATE);
-      fetchDailyCash();
+      fetchDailyCashSummary(); // Refresh summary after transaction
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || `Failed to add ${transactionType}.`;
@@ -303,19 +380,20 @@ const DailyCashFlow = () => {
 
   const handleAddTransaction = (type) => {
     setTransactionType(type);
-    setNewTransaction(INITIAL_TRANSACTION_STATE);
+    setNewTransaction(INITIAL_TRANSACTION_STATE); // Reset form
     setShowAddTransaction(true);
   };
 
   const handleOpenDay = async () => {
     const toastId = toast.loading("Opening cash for the day...");
     try {
-      await api.post(`/cash/open`, { date: selectedDate });
-      toast.success("Cash opened successfully!", {
+      const response = await api.post(`/cash/open`, { date: selectedDate });
+      toast.success(response.data.message || "Cash opened successfully!", {
         id: toastId,
         duration: 3000,
       });
-      fetchDailyCash();
+      fetchDailyCashStatus(); // Refresh status
+      fetchDailyCashSummary(); // Fetch summary as it's now open
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || "Failed to open cash.";
@@ -331,12 +409,13 @@ const DailyCashFlow = () => {
     ) {
       const toastId = toast.loading("Closing cash for the day...");
       try {
-        await api.post(`/cash/close`, { date: selectedDate });
-        toast.success("Cash closed successfully!", {
+        const response = await api.post(`/cash/close`, { date: selectedDate });
+        toast.success(response.data.message || "Cash closed successfully!", {
           id: toastId,
           duration: 3000,
         });
-        fetchDailyCash();
+        fetchDailyCashStatus(); // Refresh status
+        fetchDailyCashSummary(); // Fetch summary again, status might change
       } catch (err) {
         const errorMessage =
           err.response?.data?.message || "Failed to close cash.";
@@ -350,6 +429,13 @@ const DailyCashFlow = () => {
     setCurrentPage(1);
     setSearchTerm("");
     setCategoryFilter("all");
+    setDailyCashSummary(null); // Clear summary when date changes
+    setDailyCashStatus(null); // Clear status when date changes
+  };
+
+  const handleTransactionClick = (transactionId) => {
+    setSelectedTransactionId(transactionId);
+    setShowTransactionDetailsModal(true);
   };
 
   // Render content based on state
@@ -363,16 +449,37 @@ const DailyCashFlow = () => {
       );
     }
 
-    if (error && !dailyData) {
+    if (dailyCashStatus === "Error") {
+        return (
+            <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200">
+                <p className="text-lg font-semibold text-red-800 mb-4">
+                    Error loading daily cash flow. Please try again.
+                </p>
+            </div>
+        );
+    }
+
+    if (dailyCashStatus === "Not Opened Yet" || dailyCashStatus === "Closed") {
       return (
         <div className="text-center p-8 bg-yellow-50 rounded-lg border border-yellow-200">
-          <p className="text-lg font-semibold text-yellow-800 mb-4">{error}</p>
-          <button
-            onClick={handleOpenDay}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm"
-          >
-            Open Cash for This Day
-          </button>
+          <p className="text-lg font-semibold text-yellow-800 mb-4">
+            Cash for {selectedDate} is{" "}
+            {dailyCashStatus === "Closed" ? "closed" : "not opened yet"}.
+          </p>
+          {dailyCashStatus === "Closed" && (
+            <p className="text-sm text-gray-600 mt-4">
+              You cannot add transactions to a closed day.
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    if (dailyCashStatus === "Open" && !dailyCashSummary) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="animate-spin h-12 w-12 text-blue-500" />
+          <span className="ml-3 text-gray-600">Loading daily summary...</span>
         </div>
       );
     }
@@ -381,34 +488,46 @@ const DailyCashFlow = () => {
       <>
         <div
           className={`p-4 rounded-lg text-center mb-6 border ${
-            isClosed
+            dailyCashSummary?.isClosed
               ? "bg-gray-100 text-gray-800 border-gray-300"
               : "bg-blue-50 text-blue-800 border-blue-200"
           }`}
         >
           <p className="font-semibold text-sm">
-            {isClosed
+            {dailyCashSummary?.isClosed
               ? "📋 This day's account is closed"
               : "✅ This day's account is active"}
           </p>
         </div>
 
-        <CashFlowDetails
-          openingBalance={openingBalance}
-          totalIncome={totalIncome}
-          totalExpenses={totalExpense}
-          runningBalance={runningBalance}
-          transactions={paginatedTransactions}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          setCurrentPage={setCurrentPage}
-          iconComponents={ICON_COMPONENTS}
-          categories={categories}
-          filteredTransactions={filteredTransactions}
-        />
+        {dailyCashSummary && (
+          <CashFlowDetails
+            openingBalance={dailyCashSummary.openingBalance}
+            totalIncome={dailyCashSummary.totalIncome}
+            totalExpenses={dailyCashSummary.totalExpenses}
+            runningBalance={dailyCashSummary.runningBalance}
+            transactions={paginatedTransactions}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            setCurrentPage={setCurrentPage}
+            iconComponents={ICON_COMPONENTS}
+            filteredTransactions={filteredTransactions}
+            onTransactionClick={handleTransactionClick}
+          />
+        )}
       </>
     );
   };
+
+  const getFilteredAccounts = useCallback(() => {
+    return accounts.filter((acc) => acc.accountType === newTransaction.paymentMethod);
+  }, [accounts, newTransaction.paymentMethod]);
+
+  const isDescriptionDisabled = useMemo(() => {
+    return (newTransaction.category === "LC" || newTransaction.category === "Sales");
+  }, [newTransaction.category]);
+
+  const transactionCategories = transactionType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   return (
     <div className="">
@@ -438,7 +557,7 @@ const DailyCashFlow = () => {
               {/* Action Buttons */}
               <button
                 onClick={() => handleAddTransaction("income")}
-                disabled={isClosed}
+                disabled={dailyCashStatus !== "Open"}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
                 <Plus className="w-4 h-4" />
@@ -447,25 +566,30 @@ const DailyCashFlow = () => {
 
               <button
                 onClick={() => handleAddTransaction("expense")}
-                disabled={isClosed}
+                disabled={dailyCashStatus !== "Open"}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 Add Expense
               </button>
 
-              <button
-                onClick={handleCloseDay}
-                disabled={isClosed}
-                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm ${
-                  isClosed
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-500 text-white hover:bg-blue-600"
-                }`}
-              >
-                <Target className="w-4 h-4" />
-                {isClosed ? "Day Closed" : "Close Day"}
-              </button>
+              {dailyCashStatus === "Open" ? (
+                <button
+                  onClick={handleCloseDay}
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm bg-blue-500 text-white hover:bg-blue-600`}
+                >
+                  <Target className="w-4 h-4" />
+                  Close Day
+                </button>
+              ) : (dailyCashStatus === "Closed" || dailyCashStatus === "Not Opened Yet") && (
+                <button
+                  onClick={handleOpenDay}
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm bg-green-500 text-white hover:bg-green-600`}
+                >
+                  <Target className="w-4 h-4" />
+                  Open Day
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -509,9 +633,9 @@ const DailyCashFlow = () => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                   >
                     <option value="all">All Categories</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                    {allCategories.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
                       </option>
                     ))}
                   </select>
@@ -599,9 +723,9 @@ const DailyCashFlow = () => {
                 className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[180px]"
               >
                 <option value="all">All Categories</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                {allCategories.map((category) => (
+                  <option key={category.value} value={category.value}>
+                    {category.label}
                   </option>
                 ))}
               </select>
@@ -636,7 +760,7 @@ const DailyCashFlow = () => {
         primaryButtonText={isSubmitting ? "Adding..." : "Add Transaction"}
         secondaryButtonText="Cancel"
         onSubmit={handleAddTransactionSubmit}
-        isPrimaryButtonDisabled={isSubmitting}
+        isPrimaryButtonDisabled={isSubmitting || accountsLoading}
         size="md"
       >
         <div className="space-y-4">
@@ -652,31 +776,31 @@ const DailyCashFlow = () => {
             step="0.01"
           />
 
-          {transactionType === "income" ? (
-            <InputField
-              label="Category"
-              name="category"
-              value={newTransaction.category}
-              onChange={handleNewTransactionChange}
-              placeholder="e.g., Sale, Commission"
-              required
-            />
-          ) : (
-            <SelectField
-              label="Category"
-              name="category"
-              value={newTransaction.category}
-              onChange={handleNewTransactionChange}
-              options={DROPDOWN_MENU.map((item) => ({
+          <SelectField
+            label="Category"
+            name="category"
+            value={newTransaction.category}
+            onChange={handleNewTransactionChange}
+            options={transactionCategories.map((item) => ({
                 value: item,
                 label: item.charAt(0).toUpperCase() + item.slice(1),
-              }))}
+            }))}
+            required
+            placeholder="Select category"
+          />
+
+          {newTransaction.category !== "LC" && newTransaction.category !== "Sales" && (
+            <InputField
+              label={`${transactionType === "income" ? "Income" : "Expense"} Name`}
+              name="name"
+              value={newTransaction.name}
+              onChange={handleNewTransactionChange}
+              placeholder={`e.g., ${transactionType === "income" ? "Donation from John" : "Office Rent"}`}
               required
-              placeholder="Select category"
             />
           )}
 
-          {newTransaction.category === "lc" && (
+          {newTransaction.category === "LC" && (
             <SelectField
               label="Select LC"
               name="lcId"
@@ -686,18 +810,45 @@ const DailyCashFlow = () => {
                 value: lc._id,
                 label: lc.basicInfo?.lcNumber || `LC ${lc._id?.slice(-6)}`,
               }))}
-              required={newTransaction.category === "lc"}
+              required
               placeholder="Select an LC"
             />
           )}
 
+          {newTransaction.category === "Sales" && (
+            <SelectField
+              label="Select Sale"
+              name="salesId"
+              value={newTransaction.salesId}
+              onChange={handleNewTransactionChange}
+              options={activeSales.map((sale) => ({
+                value: sale._id,
+                label: sale.saleId || `Sale ${sale._id?.slice(-6)}`,
+              }))}
+              required
+              placeholder="Select a Sale"
+            />
+          )}
+
+          {(newTransaction.category === "LC" || newTransaction.category === "Sales") && transactionType === "expense" && (
+            <InputField
+              label="Cost Name"
+              name="costName"
+              value={newTransaction.costName}
+              onChange={handleNewTransactionChange}
+              placeholder="e.g., Transport Cost"
+              required
+            />
+          )}
+
           <TextAreaField
-            label="Description"
+            label="Description (Auto-generated for LC/Sales)"
             name="description"
             value={newTransaction.description}
             onChange={handleNewTransactionChange}
             placeholder="Enter description (optional)"
             rows="3"
+            disabled={isDescriptionDisabled}
           />
 
           <SelectField
@@ -706,32 +857,41 @@ const DailyCashFlow = () => {
             value={newTransaction.paymentMethod}
             onChange={handleNewTransactionChange}
             options={[
-              { value: "cash", label: "💵 Cash" },
-              { value: "bank", label: "🏦 Bank Transfer" },
-              { value: "mobile-banking", label: "📱 Mobile Banking" },
+              { value: "Cash", label: "💵 Cash" },
+              { value: "Bank", label: "🏦 Bank Transfer" },
+              { value: "Mobile Banking", label: "📱 Mobile Banking" },
             ]}
             required
           />
-          {newTransaction.paymentMethod === "bank" && (
-            <InputField
-              label="Bank Number"
-              name="bankNumber"
-              value={newTransaction.bankNumber}
+          {(newTransaction.paymentMethod === "Bank" ||
+            newTransaction.paymentMethod === "Mobile Banking" ||
+            newTransaction.paymentMethod === "Cash") && (
+            <SelectField
+              label="Select Account"
+              name="accountId"
+              value={newTransaction.accountId}
               onChange={handleNewTransactionChange}
-              placeholder="Enter bank account number"
-            />
-          )}
-          {newTransaction.paymentMethod === "mobile-banking" && (
-            <InputField
-              label="Mobile Bank Number"
-              name="mobileBank"
-              value={newTransaction.mobileBank}
-              onChange={handleNewTransactionChange}
-              placeholder="Enter mobile banking number"
+              options={getFilteredAccounts().map((acc) => ({
+                value: acc._id,
+                label: `${acc.accountHolderName} - ${
+                  acc.accountNumber || acc.mobileNumber || acc.accountName || ""
+                }`.trim(),
+              }))}
+              placeholder="Select an account"
+              required
+              loading={accountsLoading}
             />
           )}
         </div>
       </FormDialog>
+
+      {selectedTransactionId && (
+        <TransactionDetailsModal
+          isOpen={showTransactionDetailsModal}
+          onClose={() => setShowTransactionDetailsModal(false)}
+          transactionId={selectedTransactionId}
+        />
+      )}
     </div>
   );
 };

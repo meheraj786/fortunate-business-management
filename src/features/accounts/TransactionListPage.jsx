@@ -31,9 +31,9 @@ const TransactionList = () => {
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/transaction/get-all`);
+      const response = await api.get(`/transactions/`);
       if (response.data.success) {
-        setTransactions(response.data.data);
+        setTransactions(response.data.data.docs);
       } else {
         toast.error(response.data.message || "Failed to fetch transactions.");
       }

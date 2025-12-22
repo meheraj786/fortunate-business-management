@@ -55,7 +55,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
         amount: Number(amount),
       };
 
-      const response = await api.post(`/transaction/create`, payload);
+      const response = await api.post(`/transaction`, payload);
 
       if (response.data.success) {
         toast.success(
