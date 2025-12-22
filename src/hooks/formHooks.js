@@ -195,11 +195,6 @@ export const useFormData = (isEditMode, id, accounts = []) => {
         cost.id === id ? { ...cost, [field]: value } : cost
       );
 
-      if (field === "paymentMethod") {
-        const targetCost = updatedCosts.find((c) => c.id === id);
-        if (targetCost) targetCost.accountId = "";
-      }
-
       return {
         ...prev,
         [section]: { ...prev[section], costs: updatedCosts },
@@ -354,7 +349,7 @@ export const useAccounts = () => {
       setAccounts(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch accounts:", error);
-      toast.error("Failed to load bank accounts");
+      toast.error("Failed to load accounts");
     } finally {
       setIsLoading(false);
     }

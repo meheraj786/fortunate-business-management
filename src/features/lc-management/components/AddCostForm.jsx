@@ -92,7 +92,7 @@ const AddCostForm = ({
       newErrors.date = "Date is required";
     }
 
-    if (expense.paymentMethod !== "Cash" && !expense.accountId) {
+    if (!expense.accountId) {
       newErrors.accountId = "Please select an account for this payment method";
     }
 
@@ -107,7 +107,6 @@ const AddCostForm = ({
       setExpense((prev) => ({
         ...prev,
         [name]: value,
-        ...(name === "paymentMethod" && value === "Cash" && { accountId: "" }),
       }));
 
       // Clear error for this field
@@ -119,13 +118,7 @@ const AddCostForm = ({
   );
 
   const getFilteredAccounts = useCallback(() => {
-    if (expense.paymentMethod === "Bank") {
-      return accounts.filter((acc) => acc.accountType === "Bank");
-    }
-    if (expense.paymentMethod === "Mobile Banking") {
-      return accounts.filter((acc) => acc.accountType === "Mobile Banking");
-    }
-    return [];
+    return accounts.filter((acc) => acc.accountType === expense.paymentMethod);
   }, [accounts, expense.paymentMethod]);
 
   const handleSubmit = useCallback(async () => {
@@ -248,7 +241,8 @@ const AddCostForm = ({
         />
 
         {(expense.paymentMethod === "Bank" ||
-          expense.paymentMethod === "Mobile Banking") && (
+          expense.paymentMethod === "Mobile Banking" ||
+          expense.paymentMethod === "Cash") && (
           <SelectField
             label="Select Account"
             name="accountId"

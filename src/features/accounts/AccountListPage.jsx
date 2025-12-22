@@ -12,14 +12,16 @@ import {
   Loader2,
   Edit,
   Trash2,
+  Wallet,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
-const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
+const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => {
   const [accounts, setAccounts] = useState([]);
   const [mobileBankingAccounts, setMobileBankingAccounts] = useState([]);
+  const [cashAccounts, setCashAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copiedText, setCopiedText] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -37,6 +39,9 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
         );
         setMobileBankingAccounts(
           allAccounts.filter((acc) => acc.accountType === "Mobile Banking")
+        );
+        setCashAccounts(
+          allAccounts.filter((acc) => acc.accountType === "Cash")
         );
       } else {
         toast.error(response.data.message || "Failed to fetch accounts.");
@@ -100,7 +105,7 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
@@ -188,7 +193,7 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
             ))
           ) : (
             <p className="text-center text-gray-500 py-4">
-              No bank accounts found.
+              No Bank accounts found.
             </p>
           )}
         </div>
@@ -279,6 +284,78 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, refresh }) => {
           ) : (
             <p className="text-center text-gray-500 py-4">
               No mobile banking accounts found.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-green-600" />
+            Cash Accounts
+          </h2>
+          <button
+            onClick={onAddCash}
+            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
+          >
+            <Plus size={16} />
+            Add Account
+          </button>
+        </div>
+        <div className="space-y-4">
+          {loading ? (
+            <div className="flex justify-center items-center p-8">
+              <Loader2 className="animate-spin h-8 w-8 text-green-500" />
+            </div>
+          ) : cashAccounts.length > 0 ? (
+            cashAccounts.map((account) => (
+              <Link
+                to={`/accounts/${account._id}`}
+                key={account._id}
+                className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center`}
+                    >
+                      <Wallet className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
+                        {account.accountName}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        {account.accountHolderName}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center gap-3 justify-end">
+                      <p className="font-bold text-lg text-green-600">
+                        ৳{account.balance.toLocaleString()}
+                      </p>
+                      <button
+                        onClick={(e) => handleEditClick(e, account)}
+                        className="text-gray-400 hover:text-blue-600 p-1"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteClick(e, account)}
+                        className="text-gray-400 hover:text-red-600 p-1"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <p className="text-center text-gray-500 py-4">
+              No cash accounts found.
             </p>
           )}
         </div>

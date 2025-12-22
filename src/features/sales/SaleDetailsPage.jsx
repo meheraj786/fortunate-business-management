@@ -45,7 +45,7 @@ const SaleDetails = () => {
   const [paymentData, setPaymentData] = useState({
     amount: "",
     date: new Date().toISOString().split("T")[0],
-    method: "cash",
+    method: "Cash",
     account: "",
   });
 
@@ -273,20 +273,17 @@ const SaleDetails = () => {
       return;
     }
 
-    const payload = {
-      amount: amount,
-      date: paymentData.date,
-      method: paymentData.method,
-    };
-
-    if (paymentData.method !== "cash" && !paymentData.account) {
+    if (!paymentData.account) {
       toast.error("Please select an account for this payment method");
       return;
     }
 
-    if (paymentData.method !== "cash") {
-      payload.account = paymentData.account;
-    }
+    const payload = {
+      amount: amount,
+      date: paymentData.date,
+      method: paymentData.method,
+      account: paymentData.account,
+    };
 
     setIsSubmittingPayment(true);
     try {
@@ -297,7 +294,7 @@ const SaleDetails = () => {
         setPaymentData({
           amount: "",
           date: new Date().toISOString().split("T")[0],
-          method: "cash",
+          method: "Cash",
           account: "",
         });
         await fetchAllData();

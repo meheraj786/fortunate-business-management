@@ -314,7 +314,7 @@ const LCForm = ({ onSave }) => {
                 required
               />
               <SelectField
-                label="Choose a bank account"
+                label="Choose an account"
                 value={formData.basicInfo.accountId}
                 onChange={(e) =>
                   handleInputChange("basicInfo", "accountId", e.target.value)

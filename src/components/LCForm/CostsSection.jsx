@@ -95,7 +95,8 @@ const CostsSection = ({
             </div>
             <div className="sm:col-span-2">
               {(cost.paymentMethod === "Bank" ||
-                cost.paymentMethod === "Mobile Banking") && (
+                cost.paymentMethod === "Mobile Banking" ||
+                cost.paymentMethod === "Cash") && (
                 <SelectField
                   label="Select Account"
                   value={cost.accountId}

@@ -30,8 +30,8 @@ const fetchAccountDetailsMock = async (accountId) => {
 };
 
 const fetchAccountTransactionsMock = async (accountId) => {
-  // In a real scenario: `/transaction/get-all?accountId=${accountId}`
-  const allTransactionsResponse = await api.get(`/transaction/get-all`);
+  // In a real scenario: `/transactions/get-all?accountId=${accountId}`
+  const allTransactionsResponse = await api.get(`/transaction`);
   const transactions = allTransactionsResponse.data.data.filter(
     (t) => t.account?._id === accountId
   );

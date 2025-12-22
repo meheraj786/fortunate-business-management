@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Building, Smartphone, Receipt, Plus, DollarSign } from "lucide-react";
+import { Building, Smartphone, Receipt, Plus, DollarSign, Wallet } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 import StatBox from "@/components/ui/StatBox"; // Using common StatBox
@@ -7,12 +7,14 @@ import AccountList from "./AccountListPage";
 import TransactionList from "./TransactionListPage"; // Corrected import path
 import AddBankAccountForm from "./AddBankAccountFormPage";
 import AddMobileAccountForm from "./AddMobileAccountFormPage";
+import AddCashAccountForm from "./AddCashAccountFormPage";
 import AddTransactionForm from "./AddTransactionFormPage";
 
 const Accounts = () => {
   // Form states
   const [isBankFormOpen, setIsBankFormOpen] = useState(false);
   const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
+  const [isCashFormOpen, setIsCashFormOpen] = useState(false);
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [transactionStats, setTransactionStats] = useState(null);
@@ -24,7 +26,7 @@ const Accounts = () => {
   // Fetch Transaction Stats
   const fetchTransactionStats = useCallback(async () => {
     try {
-      const response = await api.get(`/transaction/get-stats`);
+      const response = await api.get(`/transactions/stats`);
       if (response.data.success) {
         setTransactionStats(response.data.data);
       } else {
@@ -57,8 +59,10 @@ const Accounts = () => {
     // If account is not null, it's an edit operation
     if (account.accountType === "Bank") {
       setIsBankFormOpen(true);
-    } else {
+    } else if (account.accountType === "Mobile Banking") {
       setIsMobileFormOpen(true);
+    } else {
+      setIsCashFormOpen(true);
     }
   };
 
@@ -72,9 +76,15 @@ const Accounts = () => {
     setIsMobileFormOpen(true);
   };
 
+  const handleOpenAddCashForm = () => {
+    setEditingAccount(null); // Clear editing state for new account
+    setIsCashFormOpen(true);
+  };
+
   const handleAccountFormSuccess = () => {
     setIsBankFormOpen(false);
     setIsMobileFormOpen(false);
+    setIsCashFormOpen(false);
     setEditingAccount(null);
     setRefreshAccountList((prev) => !prev); // Trigger refresh in AccountList
     fetchTransactionStats(); // Refresh stats after account changes
@@ -97,7 +107,7 @@ const Accounts = () => {
                 Accounts & Payment Information
               </h1>
               <p className="text-gray-600 text-sm sm:text-base">
-                Manage bank accounts, mobile banking details and track payment
+                Manage bank, mobile, and cash accounts, and track payment
                 transactions
               </p>
             </div>
@@ -146,6 +156,7 @@ const Accounts = () => {
           onEdit={handleEditClick}
           onAddBank={handleOpenAddBankForm}
           onAddMobile={handleOpenAddMobileForm}
+          onAddCash={handleOpenAddCashForm}
           refresh={refreshAccountList}
         />
 
@@ -164,6 +175,14 @@ const Accounts = () => {
       <AddMobileAccountForm
         isOpen={isMobileFormOpen}
         onClose={() => setIsMobileFormOpen(false)}
+        editingAccount={editingAccount}
+        onSuccess={handleAccountFormSuccess}
+      />
+
+      {/* Add Cash Account Form */}
+      <AddCashAccountForm
+        isOpen={isCashFormOpen}
+        onClose={() => setIsCashFormOpen(false)}
         editingAccount={editingAccount}
         onSuccess={handleAccountFormSuccess}
       />
