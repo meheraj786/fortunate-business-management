@@ -1,4 +1,6 @@
-import React from "react";
+import React, { memo, useId, useRef, useEffect } from "react";
+import PropTypes from "prop-types";
+import { AlertCircle } from "lucide-react";
 
 const TextAreaField = ({
   label,
@@ -9,26 +11,129 @@ const TextAreaField = ({
   required = false,
   placeholder = "",
   rows = 3,
+  maxRows = 10,
+  error,
+  className = "",
+  autoResize = true,
 }) => {
+  const id = useId();
+  const errorId = `${id}-error`;
+  const textareaRef = useRef(null);
+
+  const textareaProps = register
+    ? register(name, { required })
+    : {
+        value: value || "",
+        onChange,
+        id: `${id}-${name}`,
+      };
+
+  useEffect(() => {
+    if (autoResize && textareaRef.current) {
+      const textarea = textareaRef.current;
+      textarea.style.height = "auto";
+
+      const maxHeight = maxRows * 24; // 24px per row
+      const scrollHeight = textarea.scrollHeight;
+
+      textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+      textarea.style.overflowY = scrollHeight > maxHeight ? "auto" : "hidden";
+    }
+  }, [value, autoResize, maxRows]);
+
+  const handleChange = (e) => {
+    if (onChange) onChange(e);
+    if (register && textareaProps.onChange) textareaProps.onChange(e);
+
+    if (autoResize && textareaRef.current) {
+      const textarea = textareaRef.current;
+      textarea.style.height = "auto";
+
+      const maxHeight = maxRows * 24;
+      const scrollHeight = textarea.scrollHeight;
+
+      textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+      textarea.style.overflowY = scrollHeight > maxHeight ? "auto" : "hidden";
+    }
+  };
+
   const props = register
-    ? { ...register(name, { required }) }
-    : { value: value || "", onChange };
+    ? {
+        ...textareaProps,
+        onChange: handleChange,
+        ref: (e) => {
+          if (textareaProps.ref) textareaProps.ref(e);
+          textareaRef.current = e;
+        },
+      }
+    : { ...textareaProps, ref: textareaRef, onChange: handleChange };
+
   return (
-    <div className="space-y-2">
-      <label className="block text-start text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <textarea
-        id={name}
-        name={name}
-        required={required}
-        placeholder={placeholder}
-        rows={rows}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 resize-vertical"
-        {...props}
-      />
+    <div className={`space-y-2 ${className}`}>
+      {label && (
+        <label
+          htmlFor={`${id}-${name}`}
+          className="block text-start text-sm font-medium text-gray-700"
+        >
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      )}
+      <div className="relative">
+        <textarea
+          id={`${id}-${name}`}
+          name={name}
+          required={required}
+          placeholder={placeholder}
+          rows={rows}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
+          className={`
+            w-full px-3 py-2.5 sm:py-2
+            border rounded-lg
+            focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent
+            transition-all duration-200
+            ${error ? "border-red-300 focus:ring-red-500" : "border-gray-300"}
+            placeholder:text-gray-400
+            text-base sm:text-sm
+            resize-none
+            min-h-[${rows * 24}px]
+          `}
+          style={{ minHeight: `${rows * 24}px` }}
+          {...props}
+        />
+        {error && (
+          <div
+            id={errorId}
+            className="absolute right-3 top-3"
+            aria-hidden="true"
+          >
+            <AlertCircle className="w-4 h-4 text-red-500" />
+          </div>
+        )}
+      </div>
+      {error && (
+        <p id={errorId} className="text-sm text-red-600 mt-1">
+          {error}
+        </p>
+      )}
     </div>
   );
 };
 
-export default TextAreaField;
+TextAreaField.propTypes = {
+  label: PropTypes.string,
+  name: PropTypes.string.isRequired,
+  register: PropTypes.func,
+  value: PropTypes.string,
+  onChange: PropTypes.func,
+  required: PropTypes.bool,
+  placeholder: PropTypes.string,
+  rows: PropTypes.number,
+  maxRows: PropTypes.number,
+  error: PropTypes.string,
+  className: PropTypes.string,
+  autoResize: PropTypes.bool,
+};
+
+export default memo(TextAreaField);

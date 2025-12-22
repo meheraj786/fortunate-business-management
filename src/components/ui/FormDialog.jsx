@@ -1,19 +1,3 @@
-// /**
-//  * FormDialog Component
-//  *
-//  * A reusable dialog component for displaying forms or other content in a modal.
-//  * It provides a consistent look and feel for dialogs across the application.
-//  *
-//  * @param {object} props - The component's properties.
-//  * @param {boolean} props.open - Controls the visibility of the dialog. True to open, false to close.
-//  * @param {function} props.onClose - Callback function to be called when the dialog is requested to close (e.g., by clicking the backdrop or a close button).
-//  * @param {string} props.title - The title displayed at the top of the dialog.
-//  * @param {React.ReactNode} props.children - The content to be rendered inside the dialog's body. This is typically the form elements.
-//  * @param {string} props.primaryButtonText - The text for the primary action button (e.g., "Submit", "Save").
-//  * @param {string} props.secondaryButtonText - The text for the secondary action button (e.g., "Cancel", "Close").
-//  * @param {function} props.onSubmit - Callback function to be called when the primary action button is clicked.
-//  */
-
 import {
   Dialog,
   DialogBackdrop,

@@ -1,7 +1,19 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useForm } from "react-hook-form";
+import PropTypes from "prop-types";
+import api from "@/services/apiService";
+import toast from "react-hot-toast";
+
+// Components
 import FormSection from "@/components/ui/FormSection";
+import InputField from "@/components/ui/InputField";
+import SelectField from "@/components/ui/SelectField";
+import TextAreaField from "@/components/ui/TextAreaField";
+import FileInput from "@/components/ui/FileInput";
+import FormPageLayout from "@/components/ui/FormPageLayout";
+
+// Icons
 import {
   User,
   Building,
@@ -11,36 +23,55 @@ import {
   Calendar,
   DollarSign,
   Shield,
-  Upload,
-  Trash2,
 } from "lucide-react";
-import api from "@/services/apiService";
-import toast from "react-hot-toast";
-import InputField from "@/components/ui/InputField";
-import SelectField from "@/components/ui/SelectField";
-import TextAreaField from "@/components/ui/TextAreaField";
-import FormPageLayout from "@/components/ui/FormPageLayout";
 
-const CustomerForm = () => {
+// Custom Hooks
+import { useSectionManager } from "@/hooks/useSectionManager";
+
+const CustomerForm = ({ onSave }) => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const isEditMode = !!id;
+
+  // Form handling
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid, isSubmitting },
     setValue,
-  } = useForm();
-  const [expandedSections, setExpandedSections] = useState({});
-  const [documents, setDocuments] = useState([]);
+    watch,
+    reset,
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      name: "",
+      companyName: "",
+      customerType: "Retail",
+      customerStatus: "Active",
+      joinDate: new Date().toISOString().split("T")[0],
+      creditLimit: "",
+      phone: "",
+      email: "",
+      billingAddress: "",
+      customerNote: "",
+    },
+  });
 
-  const sectionRefs = useRef({});
-  const navigate = useNavigate();
+  // State
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const sections = [
+  // Sections
+  const SECTIONS = [
     { id: "basic", title: "Basic Information", icon: User },
     { id: "contact", title: "Contact Information", icon: Phone },
     { id: "others", title: "Others", icon: FileText },
   ];
 
+  const { expandedSections, toggleSection, setSectionRef } =
+    useSectionManager(SECTIONS);
+
+  // Data
   const customerTypes = [
     { value: "Retail", label: "Retail" },
     { value: "Wholesale", label: "Wholesale" },
@@ -51,128 +82,106 @@ const CustomerForm = () => {
     { value: "Suspended", label: "Suspended" },
   ];
 
+  // Effects
   useEffect(() => {
     if (id) {
-      api
-        .get(`/customer/get-customer/${id}`)
-        .then((res) => {
-          const customer = res.data.data;
-          setValue("name", customer.name);
-          setValue("companyName", customer.companyName);
-          setValue("customerType", customer.customerType);
-          setValue("customerStatus", customer.customerStatus);
-          setValue(
-            "joinDate",
-            new Date(customer.joinDate).toISOString().split("T")[0]
-          );
-          setValue("creditLimit", customer.creditLimit);
-          setValue("phone", customer.phone);
-          setValue("email", customer.email);
-          setValue("billingAddress", customer.billingAddress);
-          setValue("customerNote", customer.customerNote);
-          setDocuments(customer.documents || []);
-        })
-        .catch((err) => {
-          console.error(err);
-          toast.error("Failed to load customer data for editing.");
-        });
-    } else {
-      setValue("joinDate", new Date().toISOString().split("T")[0]);
-      setValue("customerType", "Retail Customer");
-      setValue("customerStatus", "Active");
+      fetchCustomerData();
     }
-  }, [id, setValue]);
+  }, [id]);
 
-  useEffect(() => {
-    setExpandedSections((prev) => ({ ...prev, [sections[0].id]: true }));
+  const fetchCustomerData = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get(`/customer/get-customer/${id}`);
+      const customer = response.data.data;
+
+      // Set form values
+      Object.keys(customer).forEach((key) => {
+        if (key in watch()) {
+          if (key === "joinDate") {
+            setValue(key, new Date(customer[key]).toISOString().split("T")[0]);
+          } else {
+            setValue(key, customer[key]);
+          }
+        }
+      });
+
+      if (customer.documents) {
+        setUploadedFiles(customer.documents);
+      }
+    } catch (error) {
+      console.error("Failed to fetch customer:", error);
+      toast.error("Failed to load customer data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Event Handlers
+  const handleFileChange = useCallback((files) => {
+    setUploadedFiles((prev) => [...prev, ...files]);
   }, []);
 
-  const toggleSection = (sectionId) => {
-    const isOpening = !expandedSections[sectionId];
-    setExpandedSections((prev) => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
-
-    if (isOpening) {
-      setTimeout(() => {
-        sectionRefs.current[sectionId]?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 300);
-    }
-  };
-
-  const handleFileUpload = (event) => {
-    const files = Array.from(event.target.files);
-    const newDocuments = files.map((file) => ({
-      name: file.name,
-      type: file.type,
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      uploadDate: new Date().toISOString().split("T")[0],
-      file: file,
-    }));
-    setDocuments((prev) => [...prev, ...newDocuments]);
-  };
-
-  const removeDocument = (index) => {
-    setDocuments((prev) => prev.filter((_, i) => i !== index));
-  };
+  const handleFileRemove = useCallback((index) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
   const onSubmit = async (data) => {
-    const payload = {
-      ...data,
-      creditLimit: parseFloat(data.creditLimit) || 0,
-      documents: documents.map((doc) => ({
-        name: doc.name,
-        type: doc.type,
-        size: doc.size,
-        uploadDate: doc.uploadDate,
-      })),
-    };
-
     try {
-      if (id) {
+      const payload = {
+        ...data,
+        creditLimit: parseFloat(data.creditLimit) || 0,
+        documents: uploadedFiles.map((file) => ({
+          name: file.name || file.file?.name,
+          type: file.type || file.file?.type,
+          size: file.size,
+          uploadDate: file.uploadDate || new Date().toISOString().split("T")[0],
+        })),
+      };
+
+      if (isEditMode) {
         await api.patch(`/customer/update-customer/${id}`, payload);
-        toast.success("Customer Updated Successfully!");
+        toast.success("Customer updated successfully");
       } else {
         await api.post(`/customer/create-customer`, payload);
-        toast.success("Customer Created Successfully!");
+        toast.success("Customer created successfully");
       }
+
+      if (onSave) onSave(payload);
       navigate("/customers");
     } catch (error) {
-      toast.error(
-        id ? "Failed to update customer." : "Failed to create customer."
-      );
-      console.error(error);
+      console.error("Submission error:", error);
+      toast.error(`Failed to ${isEditMode ? "update" : "create"} customer`);
     }
   };
 
   return (
     <FormPageLayout
-      title={id ? "Edit Customer" : "Add New Customer"}
+      title={isEditMode ? "Edit Customer" : "Add New Customer"}
       subtitle={
-        id
+        isEditMode
           ? "Update customer information and details"
           : "Complete the form below to add a new customer"
       }
       cancelLink="/customers"
       onSubmit={handleSubmit(onSubmit)}
-      isEditMode={!!id}
+      isEditMode={isEditMode}
       submitButtonText="Customer"
+      isLoading={isSubmitting || isLoading}
+      isValid={isValid}
     >
-      {sections.map((section) => (
+      {SECTIONS.map((section) => (
         <FormSection
           key={section.id}
           title={section.title}
           icon={section.icon}
-          isExpanded={!!expandedSections[section.id]}
+          isExpanded={expandedSections[section.id]}
           onToggle={() => toggleSection(section.id)}
-          sectionRef={(el) => (sectionRefs.current[section.id] = el)}
+          sectionRef={(el) => setSectionRef(section.id, el)}
+          ariaLabel={`${section.title} section`}
         >
           {section.id === "basic" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <InputField
                 label="Full Name"
                 name="name"
@@ -180,6 +189,8 @@ const CustomerForm = () => {
                 required
                 placeholder="Ahmed Hassan"
                 icon={User}
+                error={errors.name?.message}
+                validation={{ required: "Full name is required" }}
               />
               <InputField
                 label="Company Name"
@@ -187,6 +198,7 @@ const CustomerForm = () => {
                 register={register}
                 placeholder="Hassan Trading"
                 icon={Building}
+                error={errors.companyName?.message}
               />
               <SelectField
                 label="Customer Type"
@@ -195,6 +207,8 @@ const CustomerForm = () => {
                 options={customerTypes}
                 required
                 icon={Building}
+                error={errors.customerType?.message}
+                validation={{ required: "Customer type is required" }}
               />
               <SelectField
                 label="Customer Status"
@@ -203,6 +217,8 @@ const CustomerForm = () => {
                 options={statusOptions}
                 required
                 icon={Shield}
+                error={errors.customerStatus?.message}
+                validation={{ required: "Customer status is required" }}
               />
               <InputField
                 label="Customer Join"
@@ -211,19 +227,25 @@ const CustomerForm = () => {
                 type="date"
                 required
                 icon={Calendar}
+                error={errors.joinDate?.message}
+                validation={{ required: "Join date is required" }}
               />
               <InputField
                 label="Credit Limit"
                 name="creditLimit"
                 register={register}
-                type="text"
+                type="number"
                 placeholder="5000"
                 icon={DollarSign}
+                min="0"
+                step="0.01"
+                error={errors.creditLimit?.message}
               />
             </div>
           )}
+
           {section.id === "contact" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <InputField
                 label="Phone Number"
                 name="phone"
@@ -231,6 +253,14 @@ const CustomerForm = () => {
                 required
                 placeholder="+880 1712-345678"
                 icon={Phone}
+                error={errors.phone?.message}
+                validation={{
+                  required: "Phone number is required",
+                  pattern: {
+                    value: /^[+]?[0-9\s\-\(\)]+$/,
+                    message: "Invalid phone number format",
+                  },
+                }}
               />
               <InputField
                 label="Email Address"
@@ -240,6 +270,14 @@ const CustomerForm = () => {
                 required
                 placeholder="ahmed.hassan@email.com"
                 icon={Mail}
+                error={errors.email?.message}
+                validation={{
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Invalid email address",
+                  },
+                }}
               />
               <div className="lg:col-span-2">
                 <TextAreaField
@@ -249,75 +287,35 @@ const CustomerForm = () => {
                   required
                   placeholder="45 Dhanmondi Road, Dhaka-1205, Bangladesh"
                   rows={2}
+                  autoResize
+                  error={errors.billingAddress?.message}
+                  validation={{ required: "Billing address is required" }}
                 />
               </div>
             </div>
           )}
+
           {section.id === "others" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <TextAreaField
                 label="Notes"
                 name="customerNote"
                 register={register}
                 placeholder="Add any relevant notes here..."
                 rows={4}
+                autoResize
+                error={errors.customerNote?.message}
               />
-              <div>
-                <h4 className="text-md font-semibold text-gray-900 mb-4">
-                  Upload Documents
-                </h4>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 mb-4">
-                    Drag and drop files here or click to upload
-                  </p>
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="document-upload"
-                  />
-                  <label
-                    htmlFor="document-upload"
-                    className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 cursor-pointer inline-block"
-                  >
-                    Choose Files
-                  </label>
-                </div>
-                {documents.length > 0 && (
-                  <div className="mt-4">
-                    <h5 className="text-sm font-medium text-gray-700 mb-2">
-                      Uploaded Documents:
-                    </h5>
-                    <div className="space-y-2">
-                      {documents.map((doc, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <FileText className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-700">
-                              {doc.name}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              ({doc.size})
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeDocument(index)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+
+              <FileInput
+                files={uploadedFiles}
+                onFileChange={handleFileChange}
+                onFileRemove={handleFileRemove}
+                label="Upload Documents"
+                maxSize={10}
+                acceptedTypes="*/*"
+                error={errors.documents?.message}
+              />
             </div>
           )}
         </FormSection>
@@ -326,4 +324,8 @@ const CustomerForm = () => {
   );
 };
 
-export default CustomerForm;
+CustomerForm.propTypes = {
+  onSave: PropTypes.func,
+};
+
+export default React.memo(CustomerForm);

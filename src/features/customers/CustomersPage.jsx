@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import CustomerCard from "./components/CustomerCard";
 import {
   Filter,
@@ -8,12 +8,12 @@ import {
   ArrowDown,
   X,
   ChevronDown,
+  Users,
 } from "lucide-react";
 import { Link } from "react-router";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/hooks/useDebounce";
-import { motion, AnimatePresence } from "framer-motion";
 
 const sortOptions = [
   { value: "joinDate", label: "Join Date" },
@@ -22,47 +22,106 @@ const sortOptions = [
   { value: "lastPurchaseDate", label: "Last Purchase" },
   { value: "creditLimit", label: "Credit Limit" },
   { value: "totalDue", label: "Total Due" },
+  { value: "name", label: "Name" },
 ];
 
-const statusOptions = ["Active", "Suspended"];
-const customerTypeOptions = ["Retail", "Wholesale"];
+const statusOptions = [
+  { value: "", label: "All Statuses" },
+  { value: "Active", label: "Active" },
+  { value: "Suspended", label: "Suspended" },
+];
+
+const customerTypeOptions = [
+  { value: "", label: "All Types" },
+  { value: "Retail", label: "Retail" },
+  { value: "Wholesale", label: "Wholesale" },
+];
 
 const Pagination = ({ currentPage, totalPages, onPageChange, isLoading }) => {
   if (totalPages <= 1) return null;
+
   return (
-    <div className="flex justify-center items-center mt-8">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1 || isLoading}
-        className="px-4 py-2 mx-1 border rounded-lg disabled:opacity-50 bg-white hover:bg-gray-100 transition-colors"
-      >
-        Prev
-      </button>
-      <span className="text-sm text-gray-600 mx-4">
-        Page {currentPage} of {totalPages}
-      </span>
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages || isLoading}
-        className="px-4 py-2 mx-1 border rounded-lg disabled:opacity-50 bg-white hover:bg-gray-100 transition-colors"
-      >
-        Next
-      </button>
+    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pt-6 border-t border-gray-200">
+      <div className="text-sm text-gray-600">
+        Page <span className="font-semibold">{currentPage}</span> of{" "}
+        <span className="font-semibold">{totalPages}</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1 || isLoading}
+          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+        >
+          <ArrowUp className="w-4 h-4 rotate-90" />
+          <span>Previous</span>
+        </button>
+
+        <div className="flex items-center gap-1">
+          {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+            const pageNum = i + 1;
+            return (
+              <button
+                key={pageNum}
+                onClick={() => onPageChange(pageNum)}
+                disabled={isLoading}
+                className={`w-10 h-10 rounded-lg transition-colors ${
+                  currentPage === pageNum
+                    ? "bg-primary text-white"
+                    : "border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+          {totalPages > 5 && <span className="px-2 text-gray-500">...</span>}
+        </div>
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages || isLoading}
+          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+        >
+          <span>Next</span>
+          <ArrowDown className="w-4 h-4 -rotate-90" />
+        </button>
+      </div>
     </div>
   );
 };
 
 const SkeletonCard = () => (
-  <div className="bg-white p-4 rounded-xl shadow-sm animate-pulse">
-    <div className="flex items-center mb-4">
-      <div className="w-12 h-12 bg-gray-200 rounded-full mr-3"></div>
+  <div className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse">
+    <div className="flex justify-between items-start mb-4">
       <div className="flex-1">
-        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+        <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
         <div className="h-3 bg-gray-200 rounded w-1/2"></div>
       </div>
+      <div className="flex flex-col gap-1">
+        <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
+        <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+      </div>
     </div>
-    <div className="h-3 bg-gray-200 rounded w-full mt-2"></div>
-    <div className="h-3 bg-gray-200 rounded w-5/6 mt-2"></div>
+
+    <div className="space-y-2 mb-4">
+      <div className="h-4 bg-gray-200 rounded w-full"></div>
+      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+    </div>
+
+    <div className="border-t border-gray-200 pt-4">
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+          <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+        </div>
+        <div>
+          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+          <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+        </div>
+      </div>
+      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+    </div>
   </div>
 );
 
@@ -85,19 +144,10 @@ const Customers = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  const isInitialMount = useRef(true);
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    setPage(1);
-  }, [debouncedSearchTerm, filters, sorting]);
-
-  useEffect(() => {
-    const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(
+    async () => {
       setLoading(true);
+
       try {
         const params = {
           page,
@@ -109,6 +159,7 @@ const Customers = () => {
           sortOrder: sorting.sortOrder,
         };
 
+        // Remove empty params
         Object.keys(params).forEach((key) => {
           if (params[key] === "" || params[key] === null) {
             delete params[key];
@@ -117,162 +168,212 @@ const Customers = () => {
 
         const res = await api.get(`/customer/summary`, { params });
 
-        if (res.data && res.data.data) {
-          const { customers, totalPages, currentPage } = res.data.data;
-          setCustomers(customers);
-          setTotalPages(totalPages);
-          setPage(currentPage);
+        if (res.data?.success && res.data.data) {
+          const { customers, totalPages, currentPage } =
+            res.data.data;
+          setCustomers(customers || []);
+          setTotalPages(totalPages || 1);
+          setPage(currentPage || 1);
         } else {
           setCustomers([]);
           setTotalPages(1);
-          setPage(1);
+          toast.error("Failed to load customers");
         }
       } catch (err) {
         console.error("Failed to fetch customer summary:", err);
-        toast.error("Could not load customers.");
+        toast.error("Could not load customers. Please try again.");
+        setCustomers([]);
       } finally {
         setLoading(false);
       }
-    };
+    },
+    [page, debouncedSearchTerm, filters, sorting]
+  );
 
+  useEffect(() => {
     fetchCustomers();
-  }, [page, debouncedSearchTerm, filters, sorting]);
+  }, [fetchCustomers]);
 
-  const handleFilterChange = (name, value) => {
+  const handleFilterChange = useCallback((name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
-  };
+    setPage(1); // Reset to first page when filter changes
+  }, []);
 
-  const handleSortByChange = (e) => {
+  const handleSortByChange = useCallback((e) => {
     setSorting((prev) => ({ ...prev, sortBy: e.target.value }));
-  };
+    setPage(1);
+  }, []);
 
-  const toggleSortOrder = () => {
+  const toggleSortOrder = useCallback(() => {
     setSorting((prev) => ({
       ...prev,
       sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
     }));
-  };
+    setPage(1);
+  }, []);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setFilters({ status: "", customerType: "" });
     setSearchTerm("");
     setSorting({ sortBy: "joinDate", sortOrder: "desc" });
     setShowFilters(false);
-  };
+    setPage(1);
+  }, []);
+
+  const handlePageChange = useCallback(
+    (newPage) => {
+      if (newPage >= 1 && newPage <= totalPages) {
+        setPage(newPage);
+      }
+    },
+    [totalPages]
+  );
 
   return (
-    <div className="">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-3xl font-semibold">Your Customers</h2>
-        <Link to="/customer-form">
-          <button className="flex items-center gap-x-2 rounded-lg bg-primary px-4 py-3 text-white transition-colors duration-300 hover:bg-primary-hover">
-            <Plus size={22} /> Add Customer
-          </button>
-        </Link>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Customers
+          </h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
+            Manage your customer relationships and track their purchases
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link to="/customer-form" className="flex-shrink-0">
+            <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium">
+              <Plus className="w-5 h-5" />
+              <span className="hidden sm:inline">Add Customer</span>
+              <span className="sm:hidden">Add</span>
+            </button>
+          </Link>
+        </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
-        <div className="relative md:col-span-2">
-          <Search
-            size={20}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            type="text"
-            placeholder="Search by name, phone, or ID..."
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-transparent focus:ring-2 focus:ring-primary sm:text-base"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="relative">
-          <select
-            value={sorting.sortBy}
-            onChange={handleSortByChange}
-            className="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-10 text-sm focus:border-transparent focus:ring-2 focus:ring-primary"
-          >
-            {sortOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                Sort by: {opt.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={16}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-        </div>
-        <div className="flex gap-2">
+      {/* Search and Filter Bar */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search Input */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name, phone, or ID..."
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="relative w-full md:w-48">
+            <select
+              value={sorting.sortBy}
+              onChange={handleSortByChange}
+              className="w-full appearance-none pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base bg-white"
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+          </div>
+
+          {/* Sort Order Button */}
           <button
             onClick={toggleSortOrder}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
+            className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full md:w-auto"
           >
             {sorting.sortOrder === "asc" ? (
-              <ArrowUp size={20} />
+              <>
+                <ArrowUp className="w-4 h-4" />
+                <span className="hidden sm:inline">Ascending</span>
+              </>
             ) : (
-              <ArrowDown size={20} />
+              <>
+                <ArrowDown className="w-4 h-4" />
+                <span className="hidden sm:inline">Descending</span>
+              </>
             )}
           </button>
+
+          {/* Filter Toggle Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
+            className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full md:w-auto"
           >
-            <Filter size={20} />
-            <span className="hidden sm:inline">Filter</span>
+            <Filter className="w-4 h-4" />
+            <span>Filters</span>
+            {(filters.status || filters.customerType) && (
+              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+            )}
           </button>
         </div>
-      </div>
 
-      {/* Filter Section */}
-      <AnimatePresence>
+        {/* Filter Panel */}
         {showFilters && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="mt-4 bg-gray-50 p-4 rounded-lg border overflow-hidden"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <select
-                value={filters.status}
-                onChange={(e) => handleFilterChange("status", e.target.value)}
-                className="w-full rounded-lg border-gray-300 text-sm"
-              >
-                <option value="">All Statuses</option>
-                {statusOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={filters.customerType}
-                onChange={(e) =>
-                  handleFilterChange("customerType", e.target.value)
-                }
-                className="w-full rounded-lg border-gray-300 text-sm"
-              >
-                <option value="">All Types</option>
-                {customerTypeOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+              <h3 className="text-sm font-semibold text-gray-700">
+                Filter Customers
+              </h3>
               <button
                 onClick={clearFilters}
-                className="flex items-center justify-center gap-2 text-sm text-red-600 hover:text-red-800"
+                className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 px-3 py-1.5 hover:bg-red-50 rounded-lg transition-colors"
               >
-                <X size={16} />
-                Clear Filters
+                <X className="w-4 h-4" />
+                Clear All Filters
               </button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      <div className="mt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Status
+                </label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => handleFilterChange("status", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                >
+                  {statusOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Customer Type
+                </label>
+                <select
+                  value={filters.customerType}
+                  onChange={(e) =>
+                    handleFilterChange("customerType", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                >
+                  {customerTypeOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Customer Grid */}
+      <div>
         {loading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -280,37 +381,47 @@ const Customers = () => {
             ))}
           </div>
         ) : customers.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {customers.map((customer) => (
-              <CustomerCard key={customer._id} customer={customer} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {customers.map((customer) => (
+                <CustomerCard key={customer._id} customer={customer} />
+              ))}
+            </div>
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              isLoading={loading}
+            />
+          </>
         ) : (
-          <div className="text-center py-16">
-            <h3 className="text-xl font-semibold text-gray-700">
+          <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">
               No Customers Found
             </h3>
-            <p className="text-gray-500 mt-2">
-              Try adjusting your search or filters.
+            <p className="text-gray-500 mb-6">
+              {searchTerm || filters.status || filters.customerType
+                ? "Try adjusting your search or filters."
+                : "Get started by adding your first customer."}
             </p>
-            <button
-              onClick={clearFilters}
-              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
-            >
-              Clear Filters
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Clear Filters
+              </button>
+              <Link to="/customer-form">
+                <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+                  Add Customer
+                </button>
+              </Link>
+            </div>
           </div>
         )}
       </div>
-
-      {!loading && customers.length > 0 && (
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          isLoading={loading}
-        />
-      )}
     </div>
   );
 };

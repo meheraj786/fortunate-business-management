@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useContext } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Package,
@@ -15,9 +15,7 @@ import {
   Ruler,
 } from "lucide-react";
 import api from "@/services/apiService";
-
 import toast from "react-hot-toast";
-
 import FormHeader from "@/components/ui/FormHeader";
 import FormActions from "@/components/ui/FormActions";
 import InputField from "@/components/ui/InputField";
@@ -30,30 +28,32 @@ const AddSales = ({
   editData = null,
   isOpen = false,
 }) => {
-
-
   const isEditMode = !!editData;
 
-  const initialFormData = {
-    warehouseId: "",
-    productId: "",
-    categoryId: "",
-    quantity: "",
-    unit: "",
-    pricePerUnit: "",
-    customerType: "existing",
-    customerName: "",
-    customerPhone: "",
-    customerAddress: "",
-    saleDate: new Date().toISOString().split("T")[0],
-    invoiceStatus: "Not-invoiced",
-    deliveryCharge: "",
-    otherCharges: [],
-    discount: "",
-    paymentStatus: "Due payment",
-    payments: [],
-    notes: "",
-  };
+  // Initial form state
+  const initialFormData = useMemo(
+    () => ({
+      warehouseId: "",
+      productId: "",
+      categoryId: "",
+      quantity: "",
+      unit: "",
+      pricePerUnit: "",
+      customerType: "existing",
+      customerName: "",
+      customerPhone: "",
+      customerAddress: "",
+      saleDate: new Date().toISOString().split("T")[0],
+      invoiceStatus: "Not-invoiced",
+      deliveryCharge: "",
+      otherCharges: [],
+      discount: "",
+      paymentStatus: "",
+      payments: [],
+      notes: "",
+    }),
+    []
+  );
 
   const [formData, setFormData] = useState(initialFormData);
   const [categories, setCategories] = useState([]);
@@ -62,207 +62,156 @@ const AddSales = ({
   const [warehouses, setWarehouses] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch initial data (warehouses, customers, categories, accounts)
-  useEffect(() => {
+  // Fetch all initial data
+  const fetchInitialData = useCallback(async () => {
     if (!isOpen) return;
 
-    const fetchData = async () => {
-      try {
-        const [
-          customersRes,
-          warehousesRes,
-          categoriesRes,
-          accountsRes,
-          unitsRes,
-        ] = await Promise.all([
-          api.get(`/customer/get-customers`),
-          api.get(`/warehouse/`),
-          api.get(`/category/get`),
-          api.get(`/account/get-all-accounts`),
-          api.get(`/unit/get`),
-        ]);
+    setLoading(true);
+    try {
+      const [
+        customersRes,
+        warehousesRes,
+        categoriesRes,
+        accountsRes,
+        unitsRes,
+      ] = await Promise.all([
+        api.get(`/customer/get-customers`),
+        api.get(`/warehouse/`),
+        api.get(`/category/get`),
+        api.get(`/account/get-all-accounts`),
+        api.get(`/unit/get`),
+      ]);
 
-        setCustomers(customersRes.data.data || []);
-        setWarehouses(warehousesRes.data.data || []);
-        setCategories(categoriesRes.data.data || []);
-        setAccounts(accountsRes.data.data || []);
-        setUnits(unitsRes.data.data || []);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Failed to load initial data");
-      }
-    };
-
-    fetchData();
+      setCustomers(customersRes.data.data || []);
+      setWarehouses(warehousesRes.data.data || []);
+      setCategories(categoriesRes.data.data || []);
+      setAccounts(accountsRes.data.data || []);
+      setUnits(unitsRes.data.data || []);
+    } catch (error) {
+      console.error("Error fetching initial data:", error);
+      toast.error("Failed to load initial data");
+    } finally {
+      setLoading(false);
+    }
   }, [isOpen]);
 
-  // Fetch products when warehouse changes
-  useEffect(() => {
-    if (formData.warehouseId) {
-      const fetchProducts = async () => {
-        try {
-          const res = await api.get(
-            `/warehouse/${formData.warehouseId}/products`
-          );
-          setProducts(res.data.data || []);
-        } catch (error) {
-          console.error("Error fetching products:", error);
-          toast.error("Failed to load products for the selected warehouse.");
-          setProducts([]);
-        }
-      };
-      fetchProducts();
-    } else {
+  // Fetch products for selected warehouse
+  const fetchProducts = useCallback(async (warehouseId) => {
+    if (!warehouseId) {
+      setProducts([]);
+      return;
+    }
+
+    try {
+      const res = await api.get(`/warehouse/${warehouseId}/products`);
+      setProducts(res.data.data || []);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      toast.error("Failed to load products");
       setProducts([]);
     }
-  }, [formData.warehouseId]);
+  }, []);
 
-  // Populate form with editData
+  // Initialize form data
+  useEffect(() => {
+    if (isOpen) {
+      fetchInitialData();
+    }
+  }, [isOpen, fetchInitialData]);
+
+  // Set edit data when in edit mode
   useEffect(() => {
     if (isEditMode && isOpen) {
-      setFormData({
-        warehouseId: editData.warehouse?._id || "",
-        productId: editData.product?._id || "",
-        categoryId: editData.category?._id || "",
-        quantity: editData.quantity || "",
-        unit: editData.unit?._id || editData.unit || "",
-        pricePerUnit: editData.pricePerUnit || "",
-        customerType: editData.customer?.customerId ? "existing" : "manual",
-        customerName: editData.customer?.name || "",
-        customerPhone: editData.customer?.phone || "",
-        customerAddress: editData.customer?.address || "",
-        saleDate: new Date(editData.saleDate).toISOString().split("T")[0],
-        invoiceStatus: editData.invoiceStatus || "Not-invoiced",
-        deliveryCharge: editData.deliveryCharge || "",
-        otherCharges: editData.otherCharges || [],
-        discount: editData.discount || "",
-        paymentStatus: editData.paymentStatus || "Due payment",
-        payments:
-          editData.payments?.map((p) => ({
-            ...p,
-            date: new Date(p.date).toISOString().split("T")[0],
-            account: p.account?._id || "",
-          })) || [],
-        notes: editData.notes || "",
-      });
-    } else if (!isEditMode) {
+      const populateFormData = async () => {
+        const editFormData = {
+          warehouseId: editData.warehouse?._id || "",
+          productId: editData.product?._id || "",
+          categoryId: editData.category?._id || "",
+          quantity: editData.quantity || "",
+          unit: editData.unit?._id || editData.unit || "",
+          pricePerUnit: editData.pricePerUnit || "",
+          customerType: editData.customer?.customerId ? "existing" : "manual",
+          customerName: editData.customer?.name || "",
+          customerPhone: editData.customer?.phone || "",
+          customerAddress: editData.customer?.address || "",
+          saleDate: new Date(editData.saleDate).toISOString().split("T")[0],
+          invoiceStatus: editData.invoiceStatus || "Not-invoiced",
+          deliveryCharge: editData.deliveryCharge || "",
+          otherCharges: editData.otherCharges || [],
+          discount: editData.discount || "",
+          paymentStatus: editData.paymentStatus || "",
+          payments:
+            editData.payments?.map((p) => ({
+              ...p,
+              date: new Date(p.date).toISOString().split("T")[0],
+              account: p.account?._id || "",
+            })) || [],
+          notes: editData.notes || "",
+        };
+
+        setFormData(editFormData);
+
+        // Fetch products for the warehouse in edit mode
+        if (editData.warehouse?._id) {
+          await fetchProducts(editData.warehouse._id);
+        }
+      };
+
+      populateFormData();
+    } else if (!isEditMode && isOpen) {
       setFormData(initialFormData);
     }
-  }, [editData, isOpen, isEditMode]);
+  }, [isEditMode, isOpen, editData, fetchProducts, initialFormData]);
 
-  // Filter products based on warehouse and category
-  const availableProducts = useMemo(() => {
-    if (!formData.warehouseId) return [];
-
-    let filtered = products; // Products are already filtered by warehouse
-
-    if (formData.categoryId) {
-      filtered = filtered.filter(
-        (p) => p.category?._id === formData.categoryId
-      );
-    }
-
-    return filtered;
-  }, [products, formData.categoryId]);
-
-  // Calculate amounts
-  const totalAmount = useMemo(() => {
-    const quantity = parseFloat(formData.quantity) || 0;
-    const price = parseFloat(formData.pricePerUnit) || 0;
-    return quantity * price;
-  }, [formData.quantity, formData.pricePerUnit]);
-
-  const totalAmountToBePaid = useMemo(() => {
-    const delivery = parseFloat(formData.deliveryCharge) || 0;
-    const others = formData.otherCharges.reduce(
-      (acc, charge) => acc + (parseFloat(charge.amount) || 0),
-      0
-    );
-    const discount = parseFloat(formData.discount) || 0;
-    return totalAmount + delivery + others - discount;
-  }, [
-    totalAmount,
-    formData.deliveryCharge,
-    formData.otherCharges,
-    formData.discount,
-  ]);
-
-  // Handle invoice status changes
-  useEffect(() => {
-    if (isEditMode) return;
-
-    if (formData.invoiceStatus === "Not-invoiced") {
+  // Handle warehouse change
+  const handleWarehouseChange = useCallback(
+    async (warehouseId) => {
       setFormData((prev) => ({
         ...prev,
-        paymentStatus: undefined,
-        payments: [],
+        warehouseId,
+        productId: "",
+        categoryId: "",
+        quantity: "",
+        unit: "",
+        pricePerUnit: "",
       }));
-    } else if (formData.invoiceStatus === "Invoiced") {
-      setFormData((prev) => ({ ...prev, paymentStatus: "Due payment" }));
-    }
-  }, [formData.invoiceStatus, isEditMode]);
 
-  // Handle payment status changes
-  useEffect(() => {
-    if (
-      (isEditMode && editData?.invoiceStatus === "Invoiced") ||
-      formData.invoiceStatus !== "Invoiced"
-    )
-      return;
+      await fetchProducts(warehouseId);
+    },
+    [fetchProducts]
+  );
 
-    if (formData.paymentStatus === "Paid payment") {
-      setFormData((prev) => ({
-        ...prev,
-        payments: [
-          {
-            amount: totalAmountToBePaid.toFixed(2),
-            date: new Date().toISOString().split("T")[0],
-            method: prev.payments[0]?.method || "",
-          },
-        ],
-      }));
-    } else if (formData.paymentStatus === "Due payment") {
-      setFormData((prev) => ({ ...prev, payments: [] }));
-    }
-  }, [
-    formData.paymentStatus,
-    formData.invoiceStatus,
-    totalAmountToBePaid,
-    isEditMode,
-    editData,
-  ]);
-
-  // Handle form input changes
-  const handleInputChange = (field, value) => {
-    // If product is changed, reset related fields and set new product info
-    if (field === "productId" && !isEditMode) {
-      const product = products.find((p) => p._id === value);
+  // Handle product change
+  const handleProductChange = useCallback(
+    (productId) => {
+      const product = products.find((p) => p._id === productId);
       if (product) {
         setFormData((prev) => ({
           ...prev,
-          productId: value,
-          unit: product.unit?._id,
-          pricePerUnit: product.unitPrice,
-          categoryId: product.category?._id,
+          productId,
+          unit: product.unit?._id || "",
+          pricePerUnit: product.unitPrice || "",
+          categoryId: product.category?._id || "",
         }));
       } else {
-        // Product not found or deselected
         setFormData((prev) => ({
           ...prev,
-          productId: value,
+          productId,
           unit: "",
           pricePerUnit: "",
         }));
       }
-      return; // Exit early
-    }
+    },
+    [products]
+  );
 
-    // If unit is changed, recalculate price
-    if (field === "unit" && !isEditMode) {
-      const selectedUnitId = value;
+  // Handle unit change
+  const handleUnitChange = useCallback(
+    (unitId) => {
       const product = products.find((p) => p._id === formData.productId);
-      const selectedUnit = units.find((u) => u._id === selectedUnitId);
+      const selectedUnit = units.find((u) => u._id === unitId);
 
       if (
         product &&
@@ -277,49 +226,162 @@ const AddSales = ({
 
         setFormData((prev) => ({
           ...prev,
-          unit: selectedUnitId,
+          unit: unitId,
           pricePerUnit: newPriceForSale.toFixed(2),
         }));
       } else {
-        // Fallback if something is missing, just update the unit
-        setFormData((prev) => ({ ...prev, unit: selectedUnitId }));
+        setFormData((prev) => ({ ...prev, unit: unitId }));
       }
-      return; // Exit early
+    },
+    [products, units, formData.productId]
+  );
+
+  // Calculate totals
+  const { totalAmount, totalAmountToBePaid } = useMemo(() => {
+    const quantity = parseFloat(formData.quantity) || 0;
+    const pricePerUnit = parseFloat(formData.pricePerUnit) || 0;
+    const total = quantity * pricePerUnit;
+
+    const delivery = parseFloat(formData.deliveryCharge) || 0;
+    const others = formData.otherCharges.reduce(
+      (acc, charge) => acc + (parseFloat(charge.amount) || 0),
+      0
+    );
+    const discount = parseFloat(formData.discount) || 0;
+
+    return {
+      totalAmount: total,
+      totalAmountToBePaid: total + delivery + others - discount,
+    };
+  }, [
+    formData.quantity,
+    formData.pricePerUnit,
+    formData.deliveryCharge,
+    formData.otherCharges,
+    formData.discount,
+  ]);
+
+  // Handle invoice status change
+  const handleInvoiceStatusChange = useCallback((status) => {
+    if (status === "Not-invoiced") {
+      setFormData((prev) => ({
+        ...prev,
+        invoiceStatus: status,
+        paymentStatus: "",
+        payments: [],
+      }));
+    } else if (status === "Invoiced") {
+      setFormData((prev) => ({
+        ...prev,
+        invoiceStatus: status,
+        paymentStatus: "Due payment",
+      }));
+    }
+  }, []);
+
+  // Handle payment status change
+  const handlePaymentStatusChange = useCallback(
+    (status) => {
+      if (status === "Paid payment") {
+        setFormData((prev) => ({
+          ...prev,
+          paymentStatus: status,
+          payments: [
+            {
+              amount: totalAmountToBePaid.toFixed(2),
+              date: new Date().toISOString().split("T")[0],
+              method: "",
+              account: "",
+            },
+          ],
+        }));
+      } else if (status === "Due payment") {
+        setFormData((prev) => ({
+          ...prev,
+          paymentStatus: status,
+          payments: [],
+        }));
+      }
+    },
+    [totalAmountToBePaid]
+  );
+
+  // Generic input change handler
+  const handleInputChange = useCallback(
+    (field, value) => {
+      switch (field) {
+        case "warehouseId":
+          handleWarehouseChange(value);
+          break;
+        case "productId":
+          handleProductChange(value);
+          break;
+        case "unit":
+          handleUnitChange(value);
+          break;
+        case "invoiceStatus":
+          handleInvoiceStatusChange(value);
+          break;
+        case "paymentStatus":
+          handlePaymentStatusChange(value);
+          break;
+        default:
+          setFormData((prev) => ({ ...prev, [field]: value }));
+      }
+    },
+    [
+      handleWarehouseChange,
+      handleProductChange,
+      handleUnitChange,
+      handleInvoiceStatusChange,
+      handlePaymentStatusChange,
+    ]
+  );
+
+  // Filter products based on warehouse and category
+  const availableProducts = useMemo(() => {
+    if (!formData.warehouseId) return [];
+
+    let filtered = products;
+    if (formData.categoryId) {
+      filtered = filtered.filter(
+        (p) => p.category?._id === formData.categoryId
+      );
     }
 
-    // For all other fields, just update the value
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+    return filtered;
+  }, [products, formData.warehouseId, formData.categoryId]);
 
-  const handleWarehouseChange = (value) => {
-    setFormData((prev) => ({
-      ...prev,
-      warehouseId: value,
-      productId: "",
-      categoryId: "",
-      quantity: "",
-      unit: "",
-      pricePerUnit: "",
-    }));
-  };
+  // Handle array operations
+  const handleArrayField = useCallback(
+    (field, action, index = null, updates = {}) => {
+      setFormData((prev) => {
+        const arrayField = [...prev[field]];
 
-  // Handle array field operations
-  const handleArrayField = (field, action, index = null, updates = {}) => {
-    setFormData((prev) => {
-      const arrayField = [...prev[field]];
-      if (action === "add") {
-        return { ...prev, [field]: [...arrayField, updates.newItem] };
-      }
-      if (action === "remove") {
-        return { ...prev, [field]: arrayField.filter((_, i) => i !== index) };
-      }
-      if (action === "update" && index !== null) {
-        arrayField[index] = { ...arrayField[index], ...updates };
-        return { ...prev, [field]: arrayField };
-      }
-      return prev;
-    });
-  };
+        switch (action) {
+          case "add":
+            return { ...prev, [field]: [...arrayField, updates.newItem] };
+
+          case "remove":
+            return {
+              ...prev,
+              [field]: arrayField.filter((_, i) => i !== index),
+            };
+
+          case "update":
+            if (index !== null) {
+              arrayField[index] = { ...arrayField[index], ...updates };
+              return { ...prev, [field]: arrayField };
+            }
+            return prev;
+
+          default:
+            return prev;
+        }
+      });
+    },
+    []
+  );
 
   // Submit handler
   const handleSubmit = async (e) => {
@@ -329,12 +391,29 @@ const AddSales = ({
       ? `/sales/update-sale/${editData._id}`
       : `/sales/create-sales`;
     const method = isEditMode ? "patch" : "post";
-    let loadingToast;
-    try {
-      loadingToast = toast.loading(
-        isEditMode ? "Updating sale..." : "Creating sale..."
-      );
 
+    // Validation
+    if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
+      toast.error("Please enter a valid quantity");
+      return;
+    }
+
+    if (!formData.pricePerUnit || parseFloat(formData.pricePerUnit) <= 0) {
+      toast.error("Please enter a valid price per unit");
+      return;
+    }
+
+    if (!formData.customerName) {
+      toast.error("Please enter customer name");
+      return;
+    }
+
+    const loadingToast = toast.loading(
+      isEditMode ? "Updating sale..." : "Creating sale..."
+    );
+
+    try {
+      // Prepare sales data
       const salesData = {
         quantity: parseFloat(formData.quantity),
         unit: formData.unit,
@@ -349,12 +428,14 @@ const AddSales = ({
         notes: formData.notes,
       };
 
+      // Add product, warehouse, and category for new sales
       if (!isEditMode) {
         salesData.product = formData.productId;
         salesData.warehouse = formData.warehouseId;
         salesData.category = formData.categoryId;
       }
 
+      // Handle customer data
       if (formData.customerType === "existing") {
         const selectedCustomer = customers.find(
           (c) => c.name === formData.customerName
@@ -366,6 +447,10 @@ const AddSales = ({
             phone: selectedCustomer.phone,
             address: selectedCustomer.address,
           };
+        } else {
+          toast.error("Selected customer not found");
+          toast.dismiss(loadingToast);
+          return;
         }
       } else {
         salesData.customer = {
@@ -376,35 +461,64 @@ const AddSales = ({
         };
       }
 
-      if (salesData.invoiceStatus === "Invoiced") {
+      // Handle invoiced sales
+      if (formData.invoiceStatus === "Invoiced") {
         salesData.paymentStatus = formData.paymentStatus;
-        for (const p of formData.payments) {
-          if (
-            (p.method === "bank" || p.method === "mobile-banking") &&
-            !p.account
-          ) {
-            toast.error(
-              `Please select an account for the ${p.method} payment.`
-            );
-            if (loadingToast) toast.dismiss(loadingToast);
+
+        if (formData.paymentStatus === "Paid payment") {
+          // Validate full payment
+          const payment = formData.payments[0];
+          if (!payment?.method) {
+            toast.error("Please select a payment method");
+            toast.dismiss(loadingToast);
             return;
           }
+
+          if (
+            (payment.method === "bank" ||
+              payment.method === "mobile-banking") &&
+            !payment.account
+          ) {
+            toast.error(
+              `Please select an account for ${payment.method} payment`
+            );
+            toast.dismiss(loadingToast);
+            return;
+          }
+
+          salesData.payments = [
+            {
+              amount: parseFloat(payment.amount) || totalAmountToBePaid,
+              date: new Date(payment.date),
+              method: payment.method,
+              ...(payment.method !== "cash" && { account: payment.account }),
+            },
+          ];
+        } else if (
+          formData.paymentStatus === "Due payment" &&
+          formData.payments.length > 0
+        ) {
+          // Validate partial payments
+          const invalidPayment = formData.payments.find(
+            (p) => !p.amount || !p.date || !p.method
+          );
+
+          if (invalidPayment) {
+            toast.error("Please fill all payment details");
+            toast.dismiss(loadingToast);
+            return;
+          }
+
+          salesData.payments = formData.payments.map((p) => ({
+            amount: parseFloat(p.amount) || 0,
+            date: new Date(p.date),
+            method: p.method,
+            ...(p.method !== "cash" && { account: p.account }),
+          }));
         }
-        salesData.payments = formData.payments
-          .filter((p) => p.amount && p.date && p.method)
-          .map((p) => {
-            const paymentPayload = {
-              amount: parseFloat(p.amount) || 0,
-              date: new Date(p.date),
-              method: p.method,
-            };
-            if (p.method === "bank" || p.method === "mobile-banking") {
-              paymentPayload.account = p.account;
-            }
-            return paymentPayload;
-          });
       }
 
+      // Make API call
       const response = await api({ method, url, data: salesData });
       toast.dismiss(loadingToast);
 
@@ -420,44 +534,53 @@ const AddSales = ({
           setFormData(initialFormData);
         }
         onClose();
+      } else {
+        throw new Error(response.data.message || "Operation failed");
       }
     } catch (error) {
-      if (loadingToast) {
-        toast.dismiss(loadingToast);
-      }
-      console.error(
-        isEditMode ? "Error updating sale:" : "Error creating sale:",
-        error
-      );
+      toast.dismiss(loadingToast);
+      console.error("Error submitting sale:", error);
+
       let errorMessage = isEditMode
         ? "Failed to update sale"
         : "Failed to create sale";
-      if (error.response?.data) {
-        if (
-          typeof error.response.data === "object" &&
-          error.response.data.message
-        ) {
-          errorMessage = error.response.data.message;
-        } else if (typeof error.response.data === "string") {
-          const match = error.response.data.match(/<pre>Error: (.*?)<br>/);
-          if (match && match[1]) {
-            errorMessage = match[1];
-          }
-        }
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
+
       toast.error(errorMessage);
     }
   };
 
+  // Payment method options
+  const paymentMethodOptions = useMemo(
+    () => [
+      { value: "cash", label: "Cash" },
+      { value: "bank", label: "Bank Transfer" },
+      { value: "mobile-banking", label: "Mobile Banking" },
+    ],
+    []
+  );
 
-
-  const paymentMethodOptions = [
-    { value: "cash", label: "Cash" },
-    { value: "bank", label: "Bank Transfer" },
-    { value: "mobile-banking", label: "Mobile Banking" },
-  ];
+  // Filtered accounts for payment methods
+  const getFilteredAccounts = useCallback(
+    (method) => {
+      return accounts
+        .filter((acc) =>
+          method === "bank"
+            ? acc.accountType === "Bank"
+            : acc.accountType === "Mobile Banking"
+        )
+        .map((acc) => ({
+          value: acc._id,
+          label: `${acc.accountName} (${acc.bankName || acc.serviceName})`,
+        }));
+    },
+    [accounts]
+  );
 
   if (!isOpen) return null;
 
@@ -467,40 +590,45 @@ const AddSales = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4 z-50"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
         onClick={onClose}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           <FormHeader
             title={isEditMode ? "Edit Sale" : "Add New Sale"}
-            subtitle="Enter the details of the sale."
+            subtitle="Enter the details of the sale"
             onClose={onClose}
           />
 
           <form
             onSubmit={handleSubmit}
-            className="p-6 space-y-6 overflow-y-auto"
+            className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-grow"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Warehouse, Category, Product */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <SelectField
                 label="Warehouse"
                 name="warehouseId"
                 value={formData.warehouseId}
-                onChange={(e) => handleWarehouseChange(e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("warehouseId", e.target.value)
+                }
                 options={warehouses.map((w) => ({
                   value: w._id,
                   label: w.name,
                 }))}
                 required
                 icon={Home}
-                disabled={isEditMode}
+                disabled={isEditMode || loading}
+                loading={loading && !warehouses.length}
               />
+
               <SelectField
                 label="Category"
                 name="categoryId"
@@ -513,10 +641,12 @@ const AddSales = ({
                   label: c.name,
                 }))}
                 icon={Tag}
-                disabled={isEditMode || !formData.warehouseId}
+                disabled={isEditMode || !formData.warehouseId || loading}
+                loading={loading && !categories.length}
               />
+
               <SelectField
-                label="Product Name"
+                label="Product"
                 name="productId"
                 value={formData.productId}
                 onChange={(e) => handleInputChange("productId", e.target.value)}
@@ -526,10 +656,13 @@ const AddSales = ({
                 }))}
                 required
                 icon={Package}
-                disabled={isEditMode || !formData.warehouseId}
+                disabled={isEditMode || !formData.warehouseId || loading}
+                loading={loading && !products.length && formData.warehouseId}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            {/* Quantity, Unit, Price, Total */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <InputField
                 label="Quantity"
                 name="quantity"
@@ -539,16 +672,22 @@ const AddSales = ({
                 required
                 placeholder="0"
                 icon={Hash}
+                min="0"
+                step="0.01"
               />
+
               <SelectField
-                label="Select Unit"
+                label="Unit"
                 name="unit"
                 value={formData.unit}
                 onChange={(e) => handleInputChange("unit", e.target.value)}
                 options={units.map((u) => ({ value: u._id, label: u.name }))}
                 required
                 icon={Ruler}
+                disabled={loading}
+                loading={loading && !units.length}
               />
+
               <InputField
                 label="Price Per Unit"
                 name="pricePerUnit"
@@ -560,20 +699,24 @@ const AddSales = ({
                 required
                 placeholder="0.00"
                 icon={DollarSign}
+                min="0"
                 step="0.01"
               />
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Total Amount
+                  Subtotal
                 </label>
-                <div className="p-2 bg-gray-50 rounded-lg border border-gray-200 h-10 flex items-center">
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                   <p className="text-lg font-semibold text-gray-900">
                     ${totalAmount.toFixed(2)}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* Customer Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SelectField
                 label="Customer Type"
                 name="customerType"
@@ -586,59 +729,9 @@ const AddSales = ({
                   { value: "manual", label: "Manual Input" },
                 ]}
                 required
+                disabled={loading}
               />
-              {formData.customerType === "existing" ? (
-                <SelectField
-                  label="Customer Name"
-                  name="customerName"
-                  value={formData.customerName}
-                  onChange={(e) =>
-                    handleInputChange("customerName", e.target.value)
-                  }
-                  options={customers.map((c) => ({
-                    value: c.name,
-                    label: `${c.name} - ${c.phone}`,
-                  }))}
-                  required
-                  icon={User}
-                />
-              ) : (
-                formData.customerType === "manual" && (
-                  <>
-                    <InputField
-                      label="Customer Name"
-                      name="customerName"
-                      value={formData.customerName}
-                      onChange={(e) =>
-                        handleInputChange("customerName", e.target.value)
-                      }
-                      required
-                      placeholder="Enter customer name"
-                      icon={User}
-                    />
-                    <InputField
-                      label="Phone Number"
-                      name="customerPhone"
-                      value={formData.customerPhone}
-                      onChange={(e) =>
-                        handleInputChange("customerPhone", e.target.value)
-                      }
-                      placeholder="Enter phone number"
-                      icon={User}
-                    />
-                    <InputField
-                      label="Address"
-                      name="customerAddress"
-                      value={formData.customerAddress}
-                      onChange={(e) =>
-                        handleInputChange("customerAddress", e.target.value)
-                      }
-                      placeholder="Enter address"
-                      icon={User}
-                    />
-                  </>
-                )
-              )}
+
               <InputField
                 label="Sale Date"
                 name="saleDate"
@@ -647,9 +740,71 @@ const AddSales = ({
                 onChange={(e) => handleInputChange("saleDate", e.target.value)}
                 required
                 icon={Calendar}
+                disabled={loading}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            {/* Customer Details */}
+            {formData.customerType === "existing" ? (
+              <SelectField
+                label="Select Customer"
+                name="customerName"
+                value={formData.customerName}
+                onChange={(e) =>
+                  handleInputChange("customerName", e.target.value)
+                }
+                options={customers.map((c) => ({
+                  value: c.name,
+                  label: `${c.name} - ${c.phone}`,
+                }))}
+                required
+                icon={User}
+                disabled={loading}
+                loading={loading && !customers.length}
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <InputField
+                  label="Customer Name"
+                  name="customerName"
+                  value={formData.customerName}
+                  onChange={(e) =>
+                    handleInputChange("customerName", e.target.value)
+                  }
+                  required
+                  placeholder="Enter customer name"
+                  icon={User}
+                  disabled={loading}
+                />
+
+                <InputField
+                  label="Phone Number"
+                  name="customerPhone"
+                  value={formData.customerPhone}
+                  onChange={(e) =>
+                    handleInputChange("customerPhone", e.target.value)
+                  }
+                  placeholder="Enter phone number"
+                  icon={User}
+                  disabled={loading}
+                />
+
+                <InputField
+                  label="Address"
+                  name="customerAddress"
+                  value={formData.customerAddress}
+                  onChange={(e) =>
+                    handleInputChange("customerAddress", e.target.value)
+                  }
+                  placeholder="Enter address"
+                  icon={User}
+                  disabled={loading}
+                />
+              </div>
+            )}
+
+            {/* Invoice Status and Delivery */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SelectField
                 label="Invoice Status"
                 name="invoiceStatus"
@@ -663,7 +818,9 @@ const AddSales = ({
                 ]}
                 required
                 icon={FileText}
+                disabled={loading}
               />
+
               <InputField
                 label="Delivery Charge"
                 name="deliveryCharge"
@@ -674,15 +831,22 @@ const AddSales = ({
                 }
                 placeholder="0.00"
                 icon={Truck}
+                min="0"
                 step="0.01"
+                disabled={loading}
               />
             </div>
+
+            {/* Other Charges */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Other Charges
               </label>
               {formData.otherCharges.map((charge, index) => (
-                <div key={index} className="flex items-center gap-4 mb-2">
+                <div
+                  key={index}
+                  className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 items-end"
+                >
                   <InputField
                     label={`Charge Name ${index + 1}`}
                     name={`otherCharges[${index}].name`}
@@ -693,7 +857,9 @@ const AddSales = ({
                       })
                     }
                     placeholder="e.g., Loading Charge"
+                    disabled={loading}
                   />
+
                   <InputField
                     label="Amount"
                     name={`otherCharges[${index}].amount`}
@@ -705,19 +871,25 @@ const AddSales = ({
                       })
                     }
                     placeholder="0.00"
+                    min="0"
                     step="0.01"
+                    disabled={loading}
                   />
+
                   <button
                     type="button"
                     onClick={() =>
                       handleArrayField("otherCharges", "remove", index)
                     }
-                    className="text-red-500 hover:text-red-700 mt-7"
+                    className="h-10 px-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
+                    disabled={loading}
                   >
                     <MinusCircle size={20} />
+                    <span className="ml-2 text-sm">Remove</span>
                   </button>
                 </div>
               ))}
+
               <button
                 type="button"
                 onClick={() =>
@@ -725,13 +897,16 @@ const AddSales = ({
                     newItem: { name: "", amount: "" },
                   })
                 }
-                className="flex items-center space-x-2 text-sm text-[#003b75] hover:text-blue-700"
+                className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                disabled={loading}
               >
                 <PlusCircle size={16} />
-                <span>Add More Charges</span>
+                <span>Add Charge</span>
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+
+            {/* Discount and Total */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputField
                 label="Discount"
                 name="discount"
@@ -740,31 +915,27 @@ const AddSales = ({
                 onChange={(e) => handleInputChange("discount", e.target.value)}
                 placeholder="0.00"
                 icon={DollarSign}
+                min="0"
                 step="0.01"
+                disabled={loading}
               />
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Total Amount to be Paid
                 </label>
-                <div className="p-2 bg-blue-50 rounded-lg border border-blue-200 h-10 flex items-center">
-                  <p className="text-xl font-bold text-[#003b75]">
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-xl font-bold text-blue-700">
                     ${totalAmountToBePaid.toFixed(2)}
                   </p>
                 </div>
               </div>
             </div>
+
+            {/* Invoice Payment Section */}
             {formData.invoiceStatus === "Invoiced" && (
-              <fieldset
-                disabled={
-                  isEditMode &&
-                  !(
-                    editData.invoiceStatus === "Not-invoiced" &&
-                    formData.invoiceStatus === "Invoiced"
-                  )
-                }
-                className="p-4 border-t border-gray-200"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="border-t border-gray-200 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <SelectField
                     label="Payment Status"
                     name="paymentStatus"
@@ -778,19 +949,24 @@ const AddSales = ({
                     ]}
                     required
                     icon={DollarSign}
+                    disabled={
+                      loading ||
+                      (isEditMode && editData.invoiceStatus === "Invoiced")
+                    }
                   />
+
                   {formData.paymentStatus === "Due payment" && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
                         Partial Payments
                       </label>
                       {formData.payments.map((payment, index) => (
                         <div
                           key={index}
-                          className="grid grid-cols-1 md:grid-cols-4 items-center gap-4 mb-2"
+                          className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-3 items-end"
                         >
                           <InputField
-                            label={`Payment ${index + 1}`}
+                            label="Amount"
                             name={`payments[${index}].amount`}
                             type="number"
                             value={payment.amount}
@@ -800,8 +976,11 @@ const AddSales = ({
                               })
                             }
                             placeholder="0.00"
+                            min="0"
                             step="0.01"
+                            disabled={loading}
                           />
+
                           <InputField
                             label="Date"
                             name={`payments[${index}].date`}
@@ -812,9 +991,11 @@ const AddSales = ({
                                 date: e.target.value,
                               })
                             }
+                            disabled={loading}
                           />
+
                           <SelectField
-                            label="Payment Method"
+                            label="Method"
                             name={`payments[${index}].method`}
                             value={payment.method}
                             onChange={(e) =>
@@ -824,7 +1005,9 @@ const AddSales = ({
                               })
                             }
                             options={paymentMethodOptions}
+                            disabled={loading}
                           />
+
                           {(payment.method === "bank" ||
                             payment.method === "mobile-banking") && (
                             <SelectField
@@ -836,32 +1019,26 @@ const AddSales = ({
                                   account: e.target.value,
                                 })
                               }
-                              options={accounts
-                                .filter((acc) =>
-                                  payment.method === "bank"
-                                    ? acc.accountType === "Bank"
-                                    : acc.accountType === "Mobile Banking"
-                                )
-                                .map((acc) => ({
-                                  value: acc._id,
-                                  label: `${acc.accountName} (${
-                                    acc.bankName || acc.serviceName
-                                  })`,
-                                }))}
+                              options={getFilteredAccounts(payment.method)}
                               required
+                              disabled={loading}
                             />
                           )}
+
                           <button
                             type="button"
                             onClick={() =>
                               handleArrayField("payments", "remove", index)
                             }
-                            className="text-red-500 hover:text-red-700 mt-7"
+                            className="h-10 px-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
+                            disabled={loading}
                           >
                             <MinusCircle size={20} />
+                            <span className="ml-2 text-sm">Remove</span>
                           </button>
                         </div>
                       ))}
+
                       <button
                         type="button"
                         onClick={() =>
@@ -874,13 +1051,15 @@ const AddSales = ({
                             },
                           })
                         }
-                        className="flex items-center space-x-2 text-sm text-[#003b75] hover:text-blue-700"
+                        className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                        disabled={loading}
                       >
                         <PlusCircle size={16} />
                         <span>Add Partial Payment</span>
                       </button>
                     </div>
                   )}
+
                   {formData.paymentStatus === "Paid payment" && (
                     <>
                       <SelectField
@@ -895,7 +1074,9 @@ const AddSales = ({
                         }
                         options={paymentMethodOptions}
                         required
+                        disabled={loading}
                       />
+
                       {(formData.payments[0]?.method === "bank" ||
                         formData.payments[0]?.method === "mobile-banking") && (
                         <SelectField
@@ -907,38 +1088,36 @@ const AddSales = ({
                               account: e.target.value,
                             })
                           }
-                          options={accounts
-                            .filter((acc) =>
-                              formData.payments[0]?.method === "bank"
-                                ? acc.accountType === "Bank"
-                                : acc.accountType === "Mobile Banking"
-                            )
-                            .map((acc) => ({
-                              value: acc._id,
-                              label: `${acc.accountName} (${
-                                acc.bankName || acc.serviceName
-                              })`,
-                            }))}
+                          options={getFilteredAccounts(
+                            formData.payments[0]?.method
+                          )}
                           required
+                          disabled={loading}
                         />
                       )}
                     </>
                   )}
                 </div>
-              </fieldset>
+              </div>
             )}
+
+            {/* Notes */}
             <TextAreaField
               label="Additional Notes (Optional)"
               name="notes"
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
               placeholder="Any additional information about this sale..."
-              rows={2}
+              rows={3}
+              disabled={loading}
             />
+
+            {/* Form Actions */}
             <FormActions
               onCancel={onClose}
               onSave={handleSubmit}
               saveText={isEditMode ? "Update Sale" : "Save Sale"}
+              isSaving={loading}
             />
           </form>
         </motion.div>
