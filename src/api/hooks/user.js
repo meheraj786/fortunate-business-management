@@ -42,7 +42,10 @@ export const useUpdateUser = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => updateUser(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
   });
 };
 
