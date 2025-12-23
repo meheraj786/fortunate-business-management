@@ -13,13 +13,15 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     if (userData) {
       localStorage.setItem("userData", JSON.stringify(userData));
+      // Directly set query data instead of invalidating
       queryClient.setQueryData(["profile"], userData);
     } else {
       localStorage.removeItem("userData");
-      queryClient.removeQueries(["profile"]);
+      queryClient.setQueryData(["profile"], null);
     }
   };
 
+  // Initial load from localStorage
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem("userData");
@@ -40,14 +42,16 @@ export const AuthProvider = ({ children }) => {
     }
   }, [queryClient]);
 
+  // Listen to profile query updates from anywhere in the app
   useEffect(() => {
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      if (
-        event.type === "updated" &&
-        event.query.queryKey[0] === "profile"
-      ) {
+      // Check if the profile query was updated
+      if (event?.query?.queryKey?.[0] === "profile" && event.type === "updated") {
         const profileData = event.query.state.data;
+        
+        // Only update if data actually changed
         if (profileData && JSON.stringify(profileData) !== JSON.stringify(user)) {
+          console.log("Profile updated from query cache:", profileData);
           setUser(profileData);
           localStorage.setItem("userData", JSON.stringify(profileData));
         }
@@ -86,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
-    updateUserData, 
+    updateUserData,
   };
 
   return (

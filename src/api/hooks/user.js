@@ -42,8 +42,18 @@ export const useUpdateUser = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => updateUser(id, data),
-    onSuccess: () => {
+    onSuccess: (response, variables) => {
+      const updatedUser = response.data;
+      
       qc.invalidateQueries({ queryKey: ["users"] });
+      
+      const currentProfile = qc.getQueryData(["profile"]);
+      
+      if (currentProfile && currentProfile.id === variables.id) {
+        console.log("Updating profile cache with:", updatedUser);
+        qc.setQueryData(["profile"], updatedUser);
+      }
+      
       qc.invalidateQueries({ queryKey: ["profile"] });
     },
   });
@@ -59,4 +69,3 @@ export const useCreateUser = () => {
     },
   });
 };
-

@@ -31,6 +31,7 @@ import CategorySettingsPage from "@/features/settings/CategorySettingsPage";
 import UnitsSettingsPage from "@/features/settings/UnitsSettingsPage";
 import PrivateRoute from "@/routes/PrivateRoutes";
 import AccountDetailsPage from "@/features/accounts/AccountDetailsPage";
+import { useAuth } from "./context/AuthContext";
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -158,6 +159,8 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
+  const { user } = useAuth();
+  console.log(user, "userrrrrrrrrrrr");
   return (
     <>
       <RouterProvider router={router} />
