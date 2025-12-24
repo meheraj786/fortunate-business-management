@@ -1,610 +1,302 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  memo,
-  useContext,
-} from "react";
-import PropTypes from "prop-types";
-import { useParams, useNavigate } from "react-router";
-import { motion } from "framer-motion";
+import React, { useState, useCallback, useEffect } from "react";
+import CustomerCard from "./components/CustomerCard";
 import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  DollarSign,
-  FileText,
-  Calendar,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Briefcase,
-  Star,
-  Download,
-  PieChart,
-  Edit,
-  Trash2,
-  Building,
-  Clock,
-  TrendingUp,
-  CreditCard,
+  Filter,
+  Plus,
+  Search,
+  ArrowUp,
+  ArrowDown,
+  X,
+  ChevronDown,
+  Users,
 } from "lucide-react";
+import { Link } from "react-router";
 import toast from "react-hot-toast";
-import api from "@/services/apiService";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useCustomerSummary } from "@/api/hooks/customer";
 
-// Components
-import CollapsibleCard from "@/components/ui/CollapsibleCard";
-import ConfirmationModal from "@/components/ui/ConfirmationModal";
-import StatusBadge from "@/components/ui/StatusBadge";
-import DataField from "@/components/ui/DataField";
-import Pagination from "@/components/ui/Pagination";
+/* -------------------- CONSTANTS -------------------- */
 
-// Custom Hooks
-import { useUrl } from "@/context/UrlProvider";
-import { useCustomerData, useSalesData } from "@/hooks/useCustomerOperations";
+const sortOptions = [
+  { value: "joinDate", label: "Join Date" },
+  { value: "totalSpent", label: "Total Spent" },
+  { value: "totalPurchases", label: "Total Purchases" },
+  { value: "lastPurchaseDate", label: "Last Purchase" },
+  { value: "creditLimit", label: "Credit Limit" },
+  { value: "totalDue", label: "Total Due" },
+  { value: "name", label: "Name" },
+];
 
-const CustomerDetails = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { baseUrl } = useUrl();
+const statusOptions = [
+  { value: "", label: "All Statuses" },
+  { value: "Active", label: "Active" },
+  { value: "Suspended", label: "Suspended" },
+];
 
-  // State
-  const [confirmModal, setConfirmModal] = useState({
-    isOpen: false,
-    title: "",
-    description: "",
-  });
+const customerTypeOptions = [
+  { value: "", label: "All Types" },
+  { value: "Retail", label: "Retail" },
+  { value: "Wholesale", label: "Wholesale" },
+];
 
-  // Custom Hooks
-  const {
-    customerData,
-    loading: loadingCustomer,
-    error: customerError,
-    refetch: refetchCustomer,
-  } = useCustomerData(id);
+/* -------------------- PAGINATION -------------------- */
 
-  const {
-    salesData,
-    pagination,
-    loading: loadingSales,
-    fetchSales,
-  } = useSalesData(id);
-
-  // Effects
-  useEffect(() => {
-    refetchCustomer();
-  }, [refetchCustomer]);
-
-  useEffect(() => {
-    fetchSales(pagination.currentPage);
-  }, [fetchSales, pagination.currentPage]);
-
-  // Helper function to construct document URLs
-  const getDocumentUrl = useCallback(
-    (documentName) => {
-      if (!baseUrl || !documentName) return "#";
-      return `${baseUrl}documents/${documentName}`;
-    },
-    [baseUrl]
-  );
-
-  // Handlers
-  const handleDelete = useCallback(async () => {
-    try {
-      await api.delete(`/customer/delete-customer/${id}`);
-      toast.success("Customer deleted successfully!");
-      navigate("/customers");
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to delete customer."
-      );
-    }
-  }, [id, navigate]);
-
-  const handleOpenDeleteModal = useCallback(() => {
-    setConfirmModal({
-      isOpen: true,
-      title: "Delete Customer",
-      description: `Are you sure you want to delete customer "${customerData?.name}"? This action cannot be undone.`,
-    });
-  }, [customerData?.name]);
-
-  const handleSalesPageChange = useCallback(
-    (page) => {
-      fetchSales(page);
-    },
-    [fetchSales]
-  );
-
-  const formatCurrency = useCallback((amount) => {
-    return `৳${parseFloat(amount || 0).toLocaleString("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  }, []);
-
-  // Memoized values
-  const customerStats = useMemo(
-    () => ({
-      totalPurchases: customerData?.stats?.totalPurchases || 0,
-      totalSpent: formatCurrency(customerData?.stats?.totalSpent),
-      notInvoiced: customerData?.stats?.notInvoiced || 0,
-      outstandingDues: formatCurrency(customerData?.stats?.outstandingDues),
-    }),
-    [customerData?.stats, formatCurrency]
-  );
-
-  // Loading and error states
-  if (loadingCustomer) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003b75]"></div>
-        <p className="mt-4 text-gray-600">Loading customer details...</p>
-      </div>
-    );
-  }
-
-  if (customerError) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full ">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-red-800 mb-2">
-            Error Loading Customer
-          </h3>
-          <p className="text-red-600 mb-4">{customerError}</p>
-          <div className="flex gap-3">
-            <button
-              onClick={refetchCustomer}
-              className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002855] transition-colors"
-            >
-              Retry
-            </button>
-            <button
-              onClick={() => navigate("/customers")}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Back to Customers
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!customerData) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-            Customer Not Found
-          </h3>
-          <p className="text-yellow-600 mb-4">
-            The requested customer could not be found.
-          </p>
-          <button
-            onClick={() => navigate("/customers")}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Back to Customers
-          </button>
-        </div>
-      </div>
-    );
-  }
+const Pagination = ({ currentPage, totalPages, onPageChange, isLoading }) => {
+  if (totalPages <= 1) return null;
 
   return (
-    <div>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div
-          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-xl shadow-sm border border-gray-100"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center flex-1 min-w-0">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
-                <User className="text-[#003b75] text-xl sm:text-2xl" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
-                  {customerData.name}
-                </h1>
-                <div className="flex items-center mt-1 flex-wrap gap-2">
-                  {customerData.customerId && (
-                    <span className="text-gray-600 text-sm sm:text-base">
-                      {customerData.customerId}
-                    </span>
-                  )}
-                  <StatusBadge status={customerData.customerStatus} />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => navigate(`/customer-form/${id}`)}
-                className="flex items-center px-3 sm:px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002855] active:bg-[#001c3a] transition-colors text-sm font-medium"
-                aria-label="Edit customer"
-              >
-                <Edit className="mr-2 w-4 h-4" aria-hidden="true" />
-                Edit
-              </button>
-              <button
-                onClick={handleOpenDeleteModal}
-                className="flex items-center px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors text-sm font-medium"
-                aria-label="Delete customer"
-              >
-                <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
-                Delete
-              </button>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Column 1 - General Info & Transaction Overview */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* General Info */}
-            <CollapsibleCard
-              title="General Information"
-              icon={<User className="text-[#003b75]" />}
-              defaultOpen={true}
-              ariaLabel="General Information Section"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <DataField
-                  label="Company Name"
-                  value={customerData.companyName}
-                  icon={Building}
-                />
-                <DataField
-                  label="Customer Type"
-                  value={customerData.customerType}
-                />
-                <DataField
-                  label="Email"
-                  value={customerData.email}
-                  icon={Mail}
-                  type="email"
-                />
-                <DataField
-                  label="Phone"
-                  value={customerData.phone}
-                  icon={Phone}
-                  type="tel"
-                />
-                <DataField
-                  label="Credit Limit"
-                  value={formatCurrency(customerData.creditLimit)}
-                  icon={CreditCard}
-                />
-                <DataField
-                  label="Join Date"
-                  value={new Date(customerData.joinDate).toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
-                  )}
-                  icon={Calendar}
-                />
-                <div className="sm:col-span-2">
-                  <DataField
-                    label="Billing Address"
-                    value={customerData.billingAddress}
-                    icon={MapPin}
-                  />
-                </div>
-                {customerData.customerNote && (
-                  <div className="sm:col-span-2">
-                    <DataField
-                      label="Notes"
-                      value={customerData.customerNote}
-                      icon={FileText}
-                    />
-                  </div>
-                )}
-              </div>
-            </CollapsibleCard>
-
-            {/* Transaction Overview */}
-            <CollapsibleCard
-              title="Transaction Overview"
-              icon={<PieChart className="text-[#003b75]" />}
-              defaultOpen={true}
-              ariaLabel="Transaction Overview Section"
-            >
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-blue-700">
-                    {customerStats.totalPurchases}
-                  </div>
-                  <div className="text-xs sm:text-sm text-[#003b75] mt-1">
-                    Total Purchases
-                  </div>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-green-700">
-                    {customerStats.totalSpent}
-                  </div>
-                  <div className="text-xs sm:text-sm text-green-600 mt-1">
-                    Total Spent
-                  </div>
-                </div>
-                <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-yellow-700">
-                    {customerStats.notInvoiced}
-                  </div>
-                  <div className="text-xs sm:text-sm text-yellow-600 mt-1">
-                    Not Invoiced
-                  </div>
-                </div>
-                <div className="bg-red-50 p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-red-700">
-                    {customerStats.outstandingDues}
-                  </div>
-                  <div className="text-xs sm:text-sm text-red-600 mt-1">
-                    Outstanding Dues
-                  </div>
-                </div>
-              </div>
-            </CollapsibleCard>
-          </div>
-
-          {/* Column 2 - Status & Documents */}
-          <div className="space-y-4 sm:space-y-6">
-            {/* Status Info */}
-            <CollapsibleCard
-              title="Status Information"
-              icon={<Star className="text-[#003b75]" />}
-              defaultOpen={true}
-              ariaLabel="Status Information Section"
-            >
-              <div className="space-y-3">
-                <DataField
-                  label="Customer Status"
-                  value={<StatusBadge status={customerData.customerStatus} />}
-                />
-                <DataField
-                  label="Customer Type"
-                  value={customerData.customerType}
-                />
-                <DataField
-                  label="Customer ID"
-                  value={customerData.customerId}
-                />
-                <DataField
-                  label="Join Date"
-                  value={new Date(customerData.joinDate).toLocaleDateString()}
-                  icon={Calendar}
-                />
-              </div>
-            </CollapsibleCard>
-
-            {/* Documents */}
-            <CollapsibleCard
-              title="Documents"
-              icon={<FileText className="text-[#003b75]" />}
-              defaultOpen={true}
-              ariaLabel="Documents Section"
-            >
-              <div className="space-y-3">
-                {customerData.documents?.length > 0 ? (
-                  customerData.documents.map((doc, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
-                    >
-                      <FileText className="text-gray-400 mr-3 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-700 truncate">
-                          {doc.name || doc.originalName}
-                        </div>
-                        {doc.size && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            {doc.size}
-                          </div>
-                        )}
-                      </div>
-                      <a
-                        href={getDocumentUrl(doc.storedName)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                        className="ml-2 text-[#003b75] hover:text-blue-800 transition-colors"
-                        aria-label={`Download ${doc.name || doc.originalName}`}
-                      >
-                        <Download className="w-4 h-4" />
-                      </a>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-6 text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                    <p className="text-sm">No documents uploaded</p>
-                  </div>
-                )}
-              </div>
-            </CollapsibleCard>
-          </div>
-        </div>
-
-        {/* Recent Purchases - Full Width */}
-        <div className="mt-4 sm:mt-6">
-          <CollapsibleCard
-            title="Recent Purchases"
-            icon={<DollarSign className="text-[#003b75]" />}
-            defaultOpen={true}
-            ariaLabel="Recent Purchases Section"
-          >
-            {loadingSales ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003b75]"></div>
-                <span className="ml-3 text-gray-600">Loading purchases...</span>
-              </div>
-            ) : salesData.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>No purchases found for this customer</p>
-              </div>
-            ) : (
-              <>
-                {/* Mobile View */}
-                <div className="block sm:hidden space-y-3">
-                  {salesData.map((sale) => (
-                    <div
-                      key={sale._id}
-                      className="border border-gray-200 rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
-                      onClick={() => navigate(`/sales/${sale._id}`)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          navigate(`/sales/${sale._id}`);
-                        }
-                      }}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 text-sm">
-                            {sale.product?.name || "N/A"}
-                          </h4>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(sale.saleDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-gray-900 text-sm">
-                            {formatCurrency(sale.totalAmountToBePaid)}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Qty: {sale.quantity} {sale.unit?.name || ""}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                        <StatusBadge status={sale.invoiceStatus} />
-                        <StatusBadge status={sale.paymentStatus} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Desktop View */}
-                <div className="hidden sm:block overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Date
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Product
-                        </th>
-                        <th className="px4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          LC Number
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Quantity
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Unit Price
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Total
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Invoice Status
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Payment Status
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {salesData.map((sale) => (
-                        <tr
-                          key={sale._id}
-                          className="hover:bg-gray-50 cursor-pointer"
-                          onClick={() => navigate(`/sales/${sale._id}`)}
-                        >
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(sale.saleDate).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-[#003b75]">
-                              {sale.product?.name || "N/A"}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {sale.product?.LC?.basicInfo?.lcNumber || "N/A"}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {sale.quantity} {sale.unit?.name || ""}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {formatCurrency(sale.pricePerUnit)}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {formatCurrency(sale.totalAmountToBePaid)}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <StatusBadge status={sale.invoiceStatus} />
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <StatusBadge status={sale.paymentStatus} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                {pagination.totalPages > 1 && (
-                  <div className="mt-4">
-                    <Pagination
-                      currentPage={pagination.currentPage}
-                      totalPages={pagination.totalPages}
-                      onPageChange={handleSalesPageChange}
-                      isLoading={loadingSales}
-                      totalItems={pagination.totalItems}
-                    />
-                  </div>
-                )}
-              </>
-            )}
-          </CollapsibleCard>
-        </div>
+    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pt-6 border-t border-gray-200">
+      <div className="text-sm text-gray-600">
+        Page <span className="font-semibold">{currentPage}</span> of{" "}
+        <span className="font-semibold">{totalPages}</span>
       </div>
 
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-        onConfirm={handleDelete}
-        title={confirmModal.title}
-        description={confirmModal.description}
-        confirmText="Delete"
-        cancelText="Cancel"
-        isConfirming={false}
-        icon={Trash2}
-        iconBgColor="bg-red-100"
-        iconTextColor="text-red-600"
-        confirmButtonBgColor="bg-red-600"
-        confirmButtonHoverBgColor="hover:bg-red-700"
-        size="md"
-      />
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1 || isLoading}
+          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+        >
+          Previous
+        </button>
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages || isLoading}
+          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };
 
-export default memo(CustomerDetails);
+/* -------------------- SKELETON -------------------- */
+
+const SkeletonCard = () => (
+  <div className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse">
+    <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
+    <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
+    <div className="h-24 bg-gray-200 rounded"></div>
+  </div>
+);
+
+/* ==================== MAIN COMPONENT ==================== */
+
+const Customers = () => {
+  const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  const [filters, setFilters] = useState({
+    status: "",
+    customerType: "",
+  });
+
+  const [sorting, setSorting] = useState({
+    sortBy: "joinDate",
+    sortOrder: "desc",
+  });
+
+  /* -------------------- QUERY PARAMS -------------------- */
+
+  const params = {
+    page,
+    limit: 12,
+    search: debouncedSearchTerm || undefined,
+    status: filters.status || undefined,
+    customerType: filters.customerType || undefined,
+    sortBy: sorting.sortBy,
+    sortOrder: sorting.sortOrder,
+  };
+
+  const { data, isLoading, isError } = useCustomerSummary(params);
+
+  const customers = data?.data?.customers || [];
+  const totalPages = data?.data?.totalPages || 1;
+
+  /* -------------------- ERROR HANDLING -------------------- */
+
+  useEffect(() => {
+    if (isError) {
+      toast.error("Could not load customers. Please try again.");
+    }
+  }, [isError]);
+
+  /* -------------------- HANDLERS -------------------- */
+
+  const handleFilterChange = useCallback((name, value) => {
+    setFilters((prev) => ({ ...prev, [name]: value }));
+    setPage(1);
+  }, []);
+
+  const handleSortByChange = useCallback((e) => {
+    setSorting((prev) => ({ ...prev, sortBy: e.target.value }));
+    setPage(1);
+  }, []);
+
+  const toggleSortOrder = useCallback(() => {
+    setSorting((prev) => ({
+      ...prev,
+      sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
+    }));
+    setPage(1);
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setFilters({ status: "", customerType: "" });
+    setSorting({ sortBy: "joinDate", sortOrder: "desc" });
+    setSearchTerm("");
+    setPage(1);
+    setShowFilters(false);
+  }, []);
+
+  const handlePageChange = useCallback(
+    (newPage) => {
+      if (newPage >= 1 && newPage <= totalPages) {
+        setPage(newPage);
+      }
+    },
+    [totalPages]
+  );
+
+  /* -------------------- RENDER -------------------- */
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Customers</h1>
+          <p className="text-gray-600">
+            Manage your customer relationships
+          </p>
+        </div>
+        <Link to="/customer-form">
+          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg">
+            <Plus size={18} /> Add Customer
+          </button>
+        </Link>
+      </div>
+
+      {/* Search & Controls */}
+      <div className="bg-white p-4 rounded-xl border space-y-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search customers..."
+              className="w-full pl-10 pr-4 py-2 border rounded-lg"
+            />
+          </div>
+
+          <select
+            value={sorting.sortBy}
+            onChange={handleSortByChange}
+            className="border rounded-lg px-3 py-2"
+          >
+            {sortOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={toggleSortOrder}
+            className="border rounded-lg px-4 py-2"
+          >
+            {sorting.sortOrder === "asc" ? (
+              <ArrowUp size={16} />
+            ) : (
+              <ArrowDown size={16} />
+            )}
+          </button>
+
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="border rounded-lg px-4 py-2 flex gap-2 items-center"
+          >
+            <Filter size={16} /> Filters
+          </button>
+        </div>
+
+        {showFilters && (
+          <div className="grid sm:grid-cols-2 gap-4">
+            <select
+              value={filters.status}
+              onChange={(e) =>
+                handleFilterChange("status", e.target.value)
+              }
+              className="border rounded-lg px-3 py-2"
+            >
+              {statusOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={filters.customerType}
+              onChange={(e) =>
+                handleFilterChange("customerType", e.target.value)
+              }
+              className="border rounded-lg px-3 py-2"
+            >
+              {customerTypeOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={clearFilters}
+              className="text-red-600 text-sm flex items-center gap-2"
+            >
+              <X size={14} /> Clear Filters
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Grid */}
+      {isLoading ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      ) : customers.length ? (
+        <>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {customers.map((c) => (
+              <CustomerCard key={c._id} customer={c} />
+            ))}
+          </div>
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            isLoading={isLoading}
+          />
+        </>
+      ) : (
+        <div className="text-center py-16 bg-white border rounded-xl">
+          <Users className="mx-auto text-gray-400 mb-4" size={48} />
+          <h3 className="text-lg font-semibold">No Customers Found</h3>
+          <p className="text-gray-500">Try adjusting filters</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Customers;

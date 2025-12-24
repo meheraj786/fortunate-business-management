@@ -20,11 +20,17 @@ export const useCustomerStats = () =>
     queryFn: async () => (await api.getCustomerStats()).data,
   });
 
-export const useCustomerSummary = () =>
-  useQuery({
-    queryKey: ["customers", "summary"],
-    queryFn: async () => (await api.getCustomerSummary()).data,
+export const useCustomerSummary = (params) => {
+  return useQuery({
+    queryKey: ["customers", "summary", params],
+    queryFn: async () => {
+      const res = await api.get("/customer/summary", { params });
+      return res.data;
+    },
+    keepPreviousData: true,
   });
+};
+
 
 export const useCreateCustomer = () => {
   const qc = useQueryClient();
