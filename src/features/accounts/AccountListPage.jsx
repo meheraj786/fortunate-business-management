@@ -15,7 +15,7 @@ import {
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 
-const AccountList = ({ onAddBank, onAddMobile, onAddCash, refresh }) => {
+const AccountList = ({ onAddAccount, refresh }) => {
   const [accounts, setAccounts] = useState([]);
   const [mobileBankingAccounts, setMobileBankingAccounts] = useState([]);
   const [cashAccounts, setCashAccounts] = useState([]);
@@ -70,7 +70,7 @@ const AccountList = ({ onAddBank, onAddMobile, onAddCash, refresh }) => {
             Bank Accounts
           </h2>
           <button
-            onClick={onAddBank} // Calls onAddBank prop
+            onClick={() => onAddAccount("Bank")} // Use the new prop
             className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
           >
             <Plus size={16} />
@@ -151,7 +151,7 @@ const AccountList = ({ onAddBank, onAddMobile, onAddCash, refresh }) => {
             Mobile Banking
           </h2>
           <button
-            onClick={onAddMobile} // Calls onAddMobile prop
+            onClick={() => onAddAccount("Mobile Banking")} // Use the new prop
             className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
           >
             <Plus size={16} />
@@ -229,7 +229,7 @@ const AccountList = ({ onAddBank, onAddMobile, onAddCash, refresh }) => {
             Cash Accounts
           </h2>
           <button
-            onClick={onAddCash}
+            onClick={() => onAddAccount("Cash")} // Use the new prop
             className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
           >
             <Plus size={16} />

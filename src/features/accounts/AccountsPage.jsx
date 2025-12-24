@@ -1,20 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Building, Smartphone, Receipt, Plus, DollarSign, Wallet } from "lucide-react";
+import { Building, Smartphone, Receipt, Plus, DollarSign } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
-import StatBox from "@/components/ui/StatBox"; // Using common StatBox
+import StatBox from "@/components/ui/StatBox";
 import AccountList from "./AccountListPage";
-import TransactionList from "./TransactionListPage"; // Corrected import path
-import AddBankAccountForm from "./AddBankAccountFormPage";
-import AddMobileAccountForm from "./AddMobileAccountFormPage";
-import AddCashAccountForm from "./AddCashAccountFormPage";
+import TransactionList from "./TransactionListPage";
+import AddAccountForm from "./AddAccountForm"; // New unified form
 import AddTransactionForm from "./AddTransactionFormPage";
 
 const Accounts = () => {
-  // Form states
-  const [isBankFormOpen, setIsBankFormOpen] = useState(false);
-  const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
-  const [isCashFormOpen, setIsCashFormOpen] = useState(false);
+  // Unified form state
+  const [isAccountFormOpen, setIsAccountFormOpen] = useState(false);
+  const [preselectedAccountType, setPreselectedAccountType] = useState("Bank");
+  
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [transactionStats, setTransactionStats] = useState(null);
@@ -46,45 +44,20 @@ const Accounts = () => {
     fetchTransactionStats();
   }, [fetchTransactionStats]);
 
-  // Handlers for Account Forms
+  // Handlers for Unified Account Form
   const handleEditClick = (account) => {
     setEditingAccount(account);
-    if (!account) {
-      // If account is null, it's an add operation
-      // The type is passed via onAddBank or onAddMobile from AccountList
-      // These functions are handled by handleOpenAddBankForm/handleOpenAddMobileForm
-      return;
-    }
-
-    // If account is not null, it's an edit operation
-    if (account.accountType === "Bank") {
-      setIsBankFormOpen(true);
-    } else if (account.accountType === "Mobile Banking") {
-      setIsMobileFormOpen(true);
-    } else {
-      setIsCashFormOpen(true);
-    }
+    setIsAccountFormOpen(true);
   };
-
-  const handleOpenAddBankForm = () => {
-    setEditingAccount(null); // Clear editing state for new account
-    setIsBankFormOpen(true);
-  };
-
-  const handleOpenAddMobileForm = () => {
-    setEditingAccount(null); // Clear editing state for new account
-    setIsMobileFormOpen(true);
-  };
-
-  const handleOpenAddCashForm = () => {
-    setEditingAccount(null); // Clear editing state for new account
-    setIsCashFormOpen(true);
+  
+  const handleOpenAddAccountForm = (accountType) => {
+    setEditingAccount(null);
+    setPreselectedAccountType(accountType);
+    setIsAccountFormOpen(true);
   };
 
   const handleAccountFormSuccess = () => {
-    setIsBankFormOpen(false);
-    setIsMobileFormOpen(false);
-    setIsCashFormOpen(false);
+    setIsAccountFormOpen(false);
     setEditingAccount(null);
     setRefreshAccountList((prev) => !prev); // Trigger refresh in AccountList
     fetchTransactionStats(); // Refresh stats after account changes
@@ -124,13 +97,13 @@ const Accounts = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
-          <StatBox // Using common StatBox
+          <StatBox
             title="Total Transactions"
             number={transactionStats?.totalTransactionsCount || 0}
             icon={Receipt}
             color="blue"
           />
-          <StatBox // Using common StatBox
+          <StatBox
             title="Total Amount"
             number={`৳${(
               transactionStats?.totalAmount || 0
@@ -138,13 +111,13 @@ const Accounts = () => {
             icon={DollarSign}
             color="green"
           />
-          <StatBox // Using common StatBox
+          <StatBox
             title="Bank Transfers"
             number={transactionStats?.totalBankTransactionCount || 0}
             icon={Building}
             color="blue"
           />
-          <StatBox // Using common StatBox
+          <StatBox
             title="Mobile Banking"
             number={transactionStats?.totalMobileBankingTransactionCount || 0}
             icon={Smartphone}
@@ -154,37 +127,20 @@ const Accounts = () => {
 
         <AccountList
           onEdit={handleEditClick}
-          onAddBank={handleOpenAddBankForm}
-          onAddMobile={handleOpenAddMobileForm}
-          onAddCash={handleOpenAddCashForm}
+          onAddAccount={handleOpenAddAccountForm}
           refresh={refreshAccountList}
         />
 
         <TransactionList refresh={refreshTransactionList} />
       </div>
 
-      {/* Add Bank Account Form */}
-      <AddBankAccountForm
-        isOpen={isBankFormOpen}
-        onClose={() => setIsBankFormOpen(false)}
+      {/* Unified Add/Edit Account Form */}
+      <AddAccountForm
+        isOpen={isAccountFormOpen}
+        onClose={() => setIsAccountFormOpen(false)}
         editingAccount={editingAccount}
         onSuccess={handleAccountFormSuccess}
-      />
-
-      {/* Add Mobile Banking Account Form */}
-      <AddMobileAccountForm
-        isOpen={isMobileFormOpen}
-        onClose={() => setIsMobileFormOpen(false)}
-        editingAccount={editingAccount}
-        onSuccess={handleAccountFormSuccess}
-      />
-
-      {/* Add Cash Account Form */}
-      <AddCashAccountForm
-        isOpen={isCashFormOpen}
-        onClose={() => setIsCashFormOpen(false)}
-        editingAccount={editingAccount}
-        onSuccess={handleAccountFormSuccess}
+        accountType={preselectedAccountType}
       />
 
       {/* Add Transaction Form */}
