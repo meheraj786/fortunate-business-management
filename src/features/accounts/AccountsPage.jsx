@@ -26,7 +26,7 @@ const Accounts = () => {
   // Fetch Transaction Stats
   const fetchTransactionStats = useCallback(async () => {
     try {
-      const response = await api.get(`/transactions/stats`);
+      const response = await api.get(`/transactions/get-transaction-stats`);
       if (response.data.success) {
         setTransactionStats(response.data.data);
       } else {
@@ -104,10 +104,10 @@ const Accounts = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
-                Accounts & Payment Information
+                Accounts & Transactions
               </h1>
               <p className="text-gray-600 text-sm sm:text-base">
-                Manage bank, mobile, and cash accounts, and track payment
+                Manage bank, mobile, and cash accounts, and track
                 transactions
               </p>
             </div>
@@ -126,27 +126,27 @@ const Accounts = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
           <StatBox // Using common StatBox
             title="Total Transactions"
-            number={transactionStats?.overall?.totalTransactions || 0}
+            number={transactionStats?.totalTransactionsCount || 0}
             icon={Receipt}
             color="blue"
           />
           <StatBox // Using common StatBox
             title="Total Amount"
             number={`৳${(
-              transactionStats?.overall?.totalCredit || 0
+              transactionStats?.totalAmount || 0
             ).toLocaleString()}`}
             icon={DollarSign}
             color="green"
           />
           <StatBox // Using common StatBox
             title="Bank Transfers"
-            number={transactionStats?.byType?.bank?.count || 0}
+            number={transactionStats?.totalBankTransactionCount || 0}
             icon={Building}
             color="blue"
           />
           <StatBox // Using common StatBox
             title="Mobile Banking"
-            number={transactionStats?.byType?.mobileBanking?.count || 0}
+            number={transactionStats?.totalMobileBankingTransactionCount || 0}
             icon={Smartphone}
             color="purple"
           />
