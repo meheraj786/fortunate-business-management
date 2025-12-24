@@ -10,23 +10,17 @@ import {
   User,
   Plus,
   Loader2,
-  Edit,
-  Trash2,
   Wallet,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
-import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
-const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => {
+const AccountList = ({ onAddAccount, refresh }) => {
   const [accounts, setAccounts] = useState([]);
   const [mobileBankingAccounts, setMobileBankingAccounts] = useState([]);
   const [cashAccounts, setCashAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copiedText, setCopiedText] = useState("");
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [accountToDelete, setAccountToDelete] = useState(null);
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -58,43 +52,6 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => 
     fetchAccounts();
   }, [fetchAccounts, refresh]); // Depend on refresh prop
 
-  const handleDeleteClick = (e, account) => {
-    e.preventDefault(); // Prevent navigation
-    e.stopPropagation(); // Stop event bubbling
-    setAccountToDelete(account);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleEditClick = (e, account) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onEdit(account);
-  };
-
-  const confirmDelete = async () => {
-    if (!accountToDelete) return;
-    setIsConfirmingDelete(true);
-    try {
-      const response = await api.delete(
-        `/account/delete-account/${accountToDelete._id}`
-      );
-      if (response.data.success) {
-        toast.success("Account deleted successfully!");
-        fetchAccounts(); // Refresh data
-        setIsDeleteModalOpen(false);
-        setAccountToDelete(null);
-      } else {
-        toast.error(response.data.message || "Failed to delete account.");
-      }
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "An unexpected error occurred."
-      );
-    } finally {
-      setIsConfirmingDelete(false);
-    }
-  };
-
   const copyToClipboard = (e, text, type) => {
     e.preventDefault();
     e.stopPropagation();
@@ -113,7 +70,7 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => 
             Bank Accounts
           </h2>
           <button
-            onClick={onAddBank} // Calls onAddBank prop
+            onClick={() => onAddAccount("Bank")} // Use the new prop
             className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
           >
             <Plus size={16} />
@@ -140,18 +97,6 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => 
                     <span className="font-bold text-lg text-green-600">
                       ৳{account.balance.toLocaleString()}
                     </span>
-                    <button
-                      onClick={(e) => handleEditClick(e, account)}
-                      className="text-gray-400 hover:text-blue-600 p-1"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={(e) => handleDeleteClick(e, account)}
-                      className="text-gray-400 hover:text-red-600 p-1"
-                    >
-                      <Trash2 size={16} />
-                    </button>
                   </div>
                 </div>
                 <div className="space-y-2 text-xs sm:text-sm text-gray-600">
@@ -206,7 +151,7 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => 
             Mobile Banking
           </h2>
           <button
-            onClick={onAddMobile} // Calls onAddMobile prop
+            onClick={() => onAddAccount("Mobile Banking")} // Use the new prop
             className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
           >
             <Plus size={16} />
@@ -246,18 +191,6 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => 
                       <p className="font-bold text-lg text-green-600">
                         ৳{account.balance.toLocaleString()}
                       </p>
-                      <button
-                        onClick={(e) => handleEditClick(e, account)}
-                        className="text-gray-400 hover:text-blue-600 p-1"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={(e) => handleDeleteClick(e, account)}
-                        className="text-gray-400 hover:text-red-600 p-1"
-                      >
-                        <Trash2 size={16} />
-                      </button>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <Phone className="w-3 h-3 text-gray-500" />
@@ -296,7 +229,7 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => 
             Cash Accounts
           </h2>
           <button
-            onClick={onAddCash}
+            onClick={() => onAddAccount("Cash")} // Use the new prop
             className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
           >
             <Plus size={16} />
@@ -336,18 +269,6 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => 
                       <p className="font-bold text-lg text-green-600">
                         ৳{account.balance.toLocaleString()}
                       </p>
-                      <button
-                        onClick={(e) => handleEditClick(e, account)}
-                        className="text-gray-400 hover:text-blue-600 p-1"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={(e) => handleDeleteClick(e, account)}
-                        className="text-gray-400 hover:text-red-600 p-1"
-                      >
-                        <Trash2 size={16} />
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -360,14 +281,6 @@ const AccountList = ({ onEdit, onAddBank, onAddMobile, onAddCash, refresh }) => 
           )}
         </div>
       </div>
-      <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={confirmDelete}
-        title="Delete Account"
-        description="Are you sure you want to delete this account? This action cannot be undone."
-        isConfirming={isConfirmingDelete}
-      />
     </div>
   );
 };

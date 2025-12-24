@@ -449,9 +449,6 @@ const LCdetails = () => {
 
               {shippingCustomsInfo.costs?.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                    Shipping Costs
-                  </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {shippingCustomsInfo.costs.map((cost) => (
                       <CostField key={cost._id} cost={cost} />
