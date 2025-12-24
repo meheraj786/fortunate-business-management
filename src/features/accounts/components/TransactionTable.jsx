@@ -4,15 +4,16 @@ import { Building, Smartphone, Wallet } from "lucide-react";
 const getAccountDisplayName = (account) => {
   if (!account) return "N/A";
 
-  // Construct the display name based on account type
-  const name =
-    account.accountType === "Bank"
-      ? account.bankName
-      : account.accountType === "Mobile Banking"
-      ? account.serviceName
-      : account.accountName;
-
-  return `${name} (${account.accountHolderName})`;
+  switch (account.accountType) {
+    case "Bank":
+      return `${account.bankName} (${account.accountHolderName})`;
+    case "Mobile Banking":
+      return `${account.serviceName} (${account.accountHolderName})`;
+    case "Cash":
+      return `${account.accountName} (${account.accountHolderName})`;
+    default:
+      return account.accountName || "N/A";
+  }
 };
 
 const TransactionTable = ({ transactions }) => {
