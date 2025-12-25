@@ -2,7 +2,6 @@ import React from "react";
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router";
 import LoginPage from "@/features/login/LoginPage";
-import DashboardPage from "@/features/dashboard/DashboardPage";
 import Layout from "@/components/layout/Layout";
 import LCPage from "@/features/lc-management/LCPage";
 import CustomersPage from "@/features/customers/CustomersPage";
@@ -44,10 +43,6 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
     children: [
-      {
-        index: true,
-        element: <DashboardPage />,
-      },
       {
         path: "lc-management",
         element: <LCPage />,
@@ -97,6 +92,10 @@ const router = createBrowserRouter([
       {
         path: "team/:id",
         element: <TeamDetailsPage />,
+      },
+      {
+        index: true,
+        element: <SalesDashboardPage />,
       },
       {
         path: "sales",
