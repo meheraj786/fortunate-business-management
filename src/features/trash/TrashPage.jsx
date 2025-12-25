@@ -2,7 +2,6 @@ import React from "react";
 import {
   useTrash,
   useRestoreFromTrash,
-  useDeleteTrashPermanently,
 } from "@/api/hooks/trash";
 import  Button  from "@/components/ui/Button";
 import { Loader2, RotateCcw, Trash2 } from "lucide-react";
@@ -10,7 +9,6 @@ import { Loader2, RotateCcw, Trash2 } from "lucide-react";
 const TrashPage = () => {
   const { data, isLoading } = useTrash();
   const restoreMutation = useRestoreFromTrash();
-  const deleteMutation = useDeleteTrashPermanently();
 
   const trashItems = data?.data?.trash || [];
 
@@ -80,17 +78,6 @@ const TrashPage = () => {
                       Restore
                     </Button>
 
-                    {/* PERMANENT DELETE */}
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() =>
-                        deleteMutation.mutate(item._id)
-                      }
-                      disabled={deleteMutation.isLoading}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
                   </td>
                 </tr>
               ))

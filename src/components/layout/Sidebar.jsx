@@ -72,7 +72,7 @@ const Sidebar = () => {
     { icon: MdPeopleAlt, label: "Team", path: "/team", module: "CUSTOMER" },
     { icon: MdPeopleAlt, label: "Customers", path: "/customers", module: "CUSTOMER" },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
-    { icon: Trash, label: "Trash", path: "/trash" },
+    { icon: Trash, label: "Trash", path: "/trash", module: "TRASH"  },
   ];
 
   const menuItems = user?.roleName === "ADMIN" || user?.roleName === "SUPER_ADMIN"
