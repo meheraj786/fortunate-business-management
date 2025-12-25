@@ -60,41 +60,132 @@ export const useLCData = (id) => {
   };
 };
 
-export const useExportLC = (id) => {
+export const useExportLC = (id, lcNumber) => {
   const [isExporting, setIsExporting] = useState(false);
 
   const exportLC = useCallback(async () => {
-    if (!id) return;
+    if (!id) {
+      toast.error("No LC ID provided");
+      return;
+    }
 
     setIsExporting(true);
     const toastId = toast.loading("Exporting LC...");
 
     try {
+      console.log('Requesting PDF export for LC:', id);
+      
       const response = await api.get(`/lc/export-lc/${id}`, {
         responseType: "blob",
       });
 
+      console.log('Response received:', {
+        status: response.status,
+        contentType: response.headers['content-type'],
+        dataType: response.data.constructor.name,
+        dataSize: response.data.size
+      });
+
+      // Check if the response is actually an error (JSON) instead of a PDF
+      const contentType = response.headers['content-type'] || '';
+      
+      if (contentType.includes('application/json')) {
+        console.log('Received JSON error response');
+        // It's a JSON error response
+        const text = await response.data.text();
+        console.log('Error response text:', text);
+        const errorData = JSON.parse(text);
+        toast.error(errorData.error || errorData.message || "Invalid LC data", { 
+          id: toastId,
+          duration: 5000
+        });
+        setIsExporting(false);
+        return;
+      }
+
+      // Check if blob size is suspiciously small (might be error JSON)
+      if (response.data.size < 1000) {
+        console.log('Warning: Very small blob received, might be an error');
+        try {
+          const text = await response.data.text();
+          const errorData = JSON.parse(text);
+          console.log('Small blob was actually error JSON:', errorData);
+          toast.error(errorData.error || errorData.message || "Invalid LC data", { 
+            id: toastId,
+            duration: 5000
+          });
+          setIsExporting(false);
+          return;
+        } catch (e) {
+          console.log('Small blob is valid PDF, proceeding...');
+          // Not JSON, proceed with download
+        }
+      }
+
+      // It's a PDF - proceed with download
+      console.log('Creating download link for PDF');
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `LC-Details-${id}.pdf`);
+      link.setAttribute("download", `LC-Details-${lcNumber || id}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
 
       toast.success("PDF exported successfully!", { id: toastId });
+      console.log('PDF download initiated successfully');
+      
     } catch (error) {
       console.error("Export error:", error);
-      toast.error(error.response?.data?.message || "Failed to export PDF.", {
-        id: toastId,
-        duration: 5000,
-      });
+      
+      // Handle axios errors
+      if (error.response) {
+        console.log('Error response status:', error.response.status);
+        console.log('Error response headers:', error.response.headers);
+        
+        // If it's a blob response type, we need to read it as text
+        if (error.response.data instanceof Blob) {
+          try {
+            const text = await error.response.data.text();
+            console.log('Error blob text:', text);
+            const errorData = JSON.parse(text);
+            toast.error(errorData.error || errorData.message || "Failed to export PDF.", { 
+              id: toastId,
+              duration: 5000
+            });
+          } catch (parseError) {
+            console.error('Failed to parse error blob:', parseError);
+            toast.error("Failed to export PDF. Check console for details.", { 
+              id: toastId,
+              duration: 5000
+            });
+          }
+        } else {
+          const errorMsg = error.response.data?.error || 
+                          error.response.data?.message || 
+                          "Failed to export PDF.";
+          console.log('Error message:', errorMsg);
+          toast.error(errorMsg, { id: toastId, duration: 5000 });
+        }
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+        toast.error("No response from server. Please check your connection.", { 
+          id: toastId,
+          duration: 5000
+        });
+      } else {
+        console.error('Request setup error:', error.message);
+        toast.error("Failed to export PDF. Please try again.", { 
+          id: toastId,
+          duration: 5000
+        });
+      }
     } finally {
       setIsExporting(false);
     }
-  }, [id]);
+  }, [id, lcNumber]);
 
   return { exportLC, isExporting };
 };
