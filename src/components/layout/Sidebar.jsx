@@ -62,7 +62,6 @@ const Sidebar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const allMenuItems = [
-    { icon: IoHome, label: "Dashboard", path: "/" },
     { icon: BsFillCreditCardFill, label: "LC management", path: "/lc-management", module: "LC" },
     { icon: MdInventory, label: "Stock Management", path: "/stock-management", module: "STOCK" },
     { icon: ChartColumnIncreasing, label: "Sales", path: "/sales", module: "SALE" },
