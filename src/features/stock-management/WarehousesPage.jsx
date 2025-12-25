@@ -270,6 +270,8 @@ const Warehouses = () => {
                 </Link>
 
                 {/* Actions */}
+                {
+                  isSuperAdmin && (
                 <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
                   <button
                     onClick={() => handleEditClick(warehouse)}
@@ -293,6 +295,9 @@ const Warehouses = () => {
                     )}
                   </button>
                 </div>
+                    
+                  )
+                }
               </div>
             ))}
           </div>
