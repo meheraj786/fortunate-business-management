@@ -6,7 +6,7 @@ import { BsFillCreditCardFill } from "react-icons/bs";
 import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings3Fill, RiMenuLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react";
-import { ChartColumnIncreasing, CreditCard, WalletMinimal } from "lucide-react";
+import { ChartColumnIncreasing, CreditCard, Trash, WalletMinimal } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useLogout } from "../../api/hooks/user";
 
@@ -72,6 +72,7 @@ const Sidebar = () => {
     { icon: MdPeopleAlt, label: "Team", path: "/team", module: "CUSTOMER" },
     { icon: MdPeopleAlt, label: "Customers", path: "/customers", module: "CUSTOMER" },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
+    { icon: Trash, label: "Trash", path: "/trash" },
   ];
 
   const menuItems = user?.roleName === "ADMIN" || user?.roleName === "SUPER_ADMIN"

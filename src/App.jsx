@@ -31,6 +31,7 @@ import UnitsSettingsPage from "@/features/settings/UnitsSettingsPage";
 import PrivateRoute from "@/routes/PrivateRoutes";
 import AccountDetailsPage from "@/features/accounts/AccountDetailsPage";
 import { useAuth } from "./context/AuthContext";
+import TrashPage from "./features/trash/TrashPage";
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -153,6 +154,10 @@ const router = createBrowserRouter([
         path: "customer-form/:id",
         element: <CustomerFormPage />,
       },
+      {
+        path: "trash",
+        element: <TrashPage />,
+      }
     ],
   },
 ]);
