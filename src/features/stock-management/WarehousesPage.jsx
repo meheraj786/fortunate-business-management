@@ -22,6 +22,7 @@ import toast from "react-hot-toast";
 
 const Warehouses = () => {
   const [warehouses, setWarehouses] = useState([]);
+  const [totalStats, setTotalStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -35,7 +36,8 @@ const Warehouses = () => {
       setLoading(true);
       setError(null);
       const response = await api.get(`/warehouse/`);
-      setWarehouses(response.data.data);
+      setWarehouses(response.data.data.warehouses);
+      setTotalStats(response.data.data.stats);
     } catch (err) {
       const errorMessage =
         err?.response?.data?.message || "Failed to fetch warehouses";
@@ -103,22 +105,6 @@ const Warehouses = () => {
     }
   };
 
-  const totalStats = warehouses.reduce(
-    (acc, warehouse) => {
-      acc.totalProducts += warehouse.stats?.totalProducts || 0;
-      acc.totalInStock += warehouse.stats?.totalInStock || 0;
-      acc.totalLowStock += warehouse.stats?.totalLowStock || 0;
-      acc.totalStockOut += warehouse.stats?.totalStockOut || 0;
-      return acc;
-    },
-    {
-      totalProducts: 0,
-      totalInStock: 0,
-      totalLowStock: 0,
-      totalStockOut: 0,
-    }
-  );
-
   // Loading state
   if (loading) {
     return (
@@ -182,25 +168,25 @@ const Warehouses = () => {
           <div className="my-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatBox
               title="Total Products"
-              number={totalStats.totalProducts}
+              number={totalStats?.totalproducts || 0}
               Icon={Package}
               textColor="blue"
             />
             <StatBox
               title="Total In-stock"
-              number={totalStats.totalInStock}
+              number={totalStats?.["Total In-stock"] || 0}
               Icon={CheckCircle}
               textColor="green"
             />
             <StatBox
               title="Total Low Stock"
-              number={totalStats.totalLowStock}
+              number={totalStats?.["total lowstock"] || 0}
               Icon={Box}
               textColor="orange"
             />
             <StatBox
               title="Total Out of Stock"
-              number={totalStats.totalStockOut}
+              number={totalStats?.["Total outofstock"] || 0}
               Icon={XCircle}
               textColor="red"
             />
@@ -330,5 +316,4 @@ const Warehouses = () => {
     </div>
   );
 };
-
 export default Warehouses;
