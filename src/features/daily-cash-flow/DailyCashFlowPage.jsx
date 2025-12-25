@@ -40,7 +40,7 @@ import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
-import TransactionDetailsModal from "./TransactionDetailsModal"; // New component for details
+import TransactionDetailsModal from "@/components/common/TransactionDetailsModal"; // New component for details
 
 // Custom hook for account fetching
 const useAccounts = () => {
