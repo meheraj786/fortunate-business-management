@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import CustomerCard from "./components/CustomerCard";
 import {
   Filter,
@@ -11,9 +11,9 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "react-router";
-import api from "@/services/apiService";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useCustomerSummary } from "../../api/hooks/customer";
 
 const sortOptions = [
   { value: "joinDate", label: "Join Date" },
@@ -103,12 +103,10 @@ const SkeletonCard = () => (
         <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
       </div>
     </div>
-
     <div className="space-y-2 mb-4">
       <div className="h-4 bg-gray-200 rounded w-full"></div>
       <div className="h-4 bg-gray-200 rounded w-5/6"></div>
     </div>
-
     <div className="border-t border-gray-200 pt-4">
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
@@ -126,77 +124,37 @@ const SkeletonCard = () => (
 );
 
 const Customers = () => {
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-  const [filters, setFilters] = useState({
-    status: "",
-    customerType: "",
-  });
-  const [sorting, setSorting] = useState({
-    sortBy: "joinDate",
-    sortOrder: "desc",
-  });
+  const [filters, setFilters] = useState({ status: "", customerType: "" });
+  const [sorting, setSorting] = useState({ sortBy: "joinDate", sortOrder: "desc" });
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchCustomers = useCallback(
-    async () => {
-      setLoading(true);
+  const queryParams = {
+    page,
+    limit: 12,
+    search: debouncedSearchTerm,
+    status: filters.status || undefined,
+    customerType: filters.customerType || undefined,
+    sortBy: sorting.sortBy,
+    sortOrder: sorting.sortOrder,
+  };
 
-      try {
-        const params = {
-          page,
-          limit: 12,
-          search: debouncedSearchTerm,
-          status: filters.status,
-          customerType: filters.customerType,
-          sortBy: sorting.sortBy,
-          sortOrder: sorting.sortOrder,
-        };
+  const { data: apiResponse, isLoading: loading, isError } = useCustomerSummary(queryParams);
 
-        // Remove empty params
-        Object.keys(params).forEach((key) => {
-          if (params[key] === "" || params[key] === null) {
-            delete params[key];
-          }
-        });
-
-        const res = await api.get(`/customer/summary`, { params });
-
-        if (res.data?.success && res.data.data) {
-          const { customers, totalPages, currentPage } =
-            res.data.data;
-          setCustomers(customers || []);
-          setTotalPages(totalPages || 1);
-          setPage(currentPage || 1);
-        } else {
-          setCustomers([]);
-          setTotalPages(1);
-          toast.error("Failed to load customers");
-        }
-      } catch (err) {
-        console.error("Failed to fetch customer summary:", err);
-        toast.error("Could not load customers. Please try again.");
-        setCustomers([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, debouncedSearchTerm, filters, sorting]
-  );
+  const customers = apiResponse?.data?.customers || apiResponse?.customers || [];
+  const totalPages = apiResponse?.data?.totalPages || apiResponse?.totalPages || 1;
 
   useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
+    if (isError) {
+      toast.error("Could not load customers. Please try again.");
+    }
+  }, [isError]);
 
   const handleFilterChange = useCallback((name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
-    setPage(1); // Reset to first page when filter changes
+    setPage(1);
   }, []);
 
   const handleSortByChange = useCallback((e) => {
@@ -220,28 +178,19 @@ const Customers = () => {
     setPage(1);
   }, []);
 
-  const handlePageChange = useCallback(
-    (newPage) => {
-      if (newPage >= 1 && newPage <= totalPages) {
-        setPage(newPage);
-      }
-    },
-    [totalPages]
-  );
+  const handlePageChange = useCallback((newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  }, [totalPages]);
 
   return (
     <div className="space-y-6">
-      {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Customers
-          </h1>
-          <p className="text-gray-600 mt-2 text-sm sm:text-base">
-            Manage your customer relationships and track their purchases
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Customers</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">Manage your customer relationships and track their purchases</p>
         </div>
-
         <div className="flex items-center gap-3">
           <Link to="/customer-form" className="flex-shrink-0">
             <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium">
@@ -253,10 +202,8 @@ const Customers = () => {
         </div>
       </div>
 
-      {/* Search and Filter Bar */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex flex-col md:flex-row gap-4">
-          {/* Search Input */}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -268,7 +215,6 @@ const Customers = () => {
             />
           </div>
 
-          {/* Sort Dropdown */}
           <div className="relative w-full md:w-48">
             <select
               value={sorting.sortBy}
@@ -276,33 +222,23 @@ const Customers = () => {
               className="w-full appearance-none pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base bg-white"
             >
               {sortOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
           </div>
 
-          {/* Sort Order Button */}
           <button
             onClick={toggleSortOrder}
             className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full md:w-auto"
           >
             {sorting.sortOrder === "asc" ? (
-              <>
-                <ArrowUp className="w-4 h-4" />
-                <span className="hidden sm:inline">Ascending</span>
-              </>
+              <><ArrowUp className="w-4 h-4" /><span className="hidden sm:inline">Ascending</span></>
             ) : (
-              <>
-                <ArrowDown className="w-4 h-4" />
-                <span className="hidden sm:inline">Descending</span>
-              </>
+              <><ArrowDown className="w-4 h-4" /><span className="hidden sm:inline">Descending</span></>
             )}
           </button>
 
-          {/* Filter Toggle Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full md:w-auto"
@@ -315,55 +251,39 @@ const Customers = () => {
           </button>
         </div>
 
-        {/* Filter Panel */}
         {showFilters && (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-              <h3 className="text-sm font-semibold text-gray-700">
-                Filter Customers
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-700">Filter Customers</h3>
               <button
                 onClick={clearFilters}
                 className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 px-3 py-1.5 hover:bg-red-50 rounded-lg transition-colors"
               >
-                <X className="w-4 h-4" />
-                Clear All Filters
+                <X className="w-4 h-4" /> Clear All Filters
               </button>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Status
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
                 <select
                   value={filters.status}
                   onChange={(e) => handleFilterChange("status", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                 >
                   {statusOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Customer Type
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Customer Type</label>
                 <select
                   value={filters.customerType}
-                  onChange={(e) =>
-                    handleFilterChange("customerType", e.target.value)
-                  }
+                  onChange={(e) => handleFilterChange("customerType", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                 >
                   {customerTypeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
               </div>
@@ -372,13 +292,10 @@ const Customers = () => {
         )}
       </div>
 
-      {/* Customer Grid */}
       <div>
         {loading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
+            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : customers.length > 0 ? (
           <>
@@ -387,7 +304,6 @@ const Customers = () => {
                 <CustomerCard key={customer._id} customer={customer} />
               ))}
             </div>
-
             <Pagination
               currentPage={page}
               totalPages={totalPages}
@@ -398,26 +314,15 @@ const Customers = () => {
         ) : (
           <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-              No Customers Found
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">No Customers Found</h3>
             <p className="text-gray-500 mb-6">
               {searchTerm || filters.status || filters.customerType
                 ? "Try adjusting your search or filters."
                 : "Get started by adding your first customer."}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button
-                onClick={clearFilters}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Clear Filters
-              </button>
-              <Link to="/customer-form">
-                <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
-                  Add Customer
-                </button>
-              </Link>
+              <button onClick={clearFilters} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Clear Filters</button>
+              <Link to="/customer-form"><button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">Add Customer</button></Link>
             </div>
           </div>
         )}

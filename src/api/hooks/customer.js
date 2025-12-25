@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/customer.api";
+import { getCustomersSummary } from "../customer.api";
 
 export const useCustomers = () =>
   useQuery({
@@ -24,7 +25,7 @@ export const useCustomerSummary = (params) => {
   return useQuery({
     queryKey: ["customers", "summary", params],
     queryFn: async () => {
-      const res = await api.get("/customer/summary", { params });
+      const res = await getCustomersSummary(params);
       return res.data;
     },
     keepPreviousData: true,

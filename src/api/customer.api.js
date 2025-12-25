@@ -18,5 +18,5 @@ export const deleteCustomer = (id) =>
 export const getCustomerStats = () =>
   api.get("/customer/get-customer-stats");
 
-export const getCustomersSummary = () =>
-  api.get("/customer/summary");
+export const getCustomersSummary = (params) =>
+  api.get("/customer/summary", {params} );
