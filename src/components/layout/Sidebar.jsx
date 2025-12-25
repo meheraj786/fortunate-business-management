@@ -65,7 +65,7 @@ const Sidebar = () => {
 
   const allMenuItems = [
     { icon: BsFillCreditCardFill, label: "LC management", path: "/lc-management", module: "LC" },
-    { icon: MdInventory, label: "Stock Management", path: "/stock-management", module: "STOCK" },
+    { icon: MdInventory, label: "Stock Management", path: "/stock-management" },
     { icon: ChartColumnIncreasing, label: "Sales", path: "/sales", module: "SALE" },
     { icon: WalletMinimal, label: "Daily Cash", path: "/daily-cash-flow", module: "CASH" },
     { icon: CreditCard, label: "Accounts", path: "/accounts", module: "ACCOUNTS" },
