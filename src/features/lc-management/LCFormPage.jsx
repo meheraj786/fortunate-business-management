@@ -10,6 +10,7 @@ import {
   User,
   Package,
   Clipboard,
+  FileIcon,
 } from "lucide-react";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
@@ -20,7 +21,6 @@ import {
   useFormData,
   useUnits,
   useAccounts,
-  useCostManagement,
 } from "@/hooks/formHooks";
 import { useSectionManager } from "@/hooks/useSectionManager";
 
@@ -71,7 +71,7 @@ const LCForm = ({ onSave }) => {
     resetForm,
   } = useFormData(isEditMode, id, accounts);
 
-  // Effects
+  // Effects for Auto-calculations
   useEffect(() => {
     if (
       formData.financialInfo.lcAmountUsd &&
@@ -101,7 +101,7 @@ const LCForm = ({ onSave }) => {
     }
   }, [formData.productInfo]);
 
-  // Event Handlers
+  // Event Handlers for Files
   const handleFileChange = useCallback((files) => {
     setUploadedFiles((prev) => [...prev, ...files]);
   }, []);
@@ -109,6 +109,15 @@ const LCForm = ({ onSave }) => {
   const handleFileRemove = useCallback((index) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
+
+  // New: Handle removal of files already on server
+  const handleExistingFileRemove = useCallback((fileId) => {
+    const updatedDocs = formData.documentsNotes.uploadedDocuments.filter(
+      (doc) => doc._id !== fileId
+    );
+    handleInputChange("documentsNotes", "uploadedDocuments", updatedDocs);
+    toast.success("Existing file marked for removal");
+  }, [formData.documentsNotes.uploadedDocuments, handleInputChange]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -121,7 +130,11 @@ const LCForm = ({ onSave }) => {
     try {
       const payloadData = formatFormDataForSubmit();
       const payload = new FormData();
+      
+      // formatFormDataForSubmit handles the current state of uploadedDocuments
       payload.append("lc_data", JSON.stringify(payloadData));
+      
+      // New files being uploaded
       uploadedFiles.forEach((file) => {
         payload.append("documents", file);
       });
@@ -150,7 +163,6 @@ const LCForm = ({ onSave }) => {
     }
   };
 
-  // Render helpers
   const renderProductFields = (product, index) => (
     <motion.div
       key={product.id}
@@ -164,7 +176,6 @@ const LCForm = ({ onSave }) => {
           type="button"
           onClick={() => removeProduct(product.id)}
           className="absolute top-4 right-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          aria-label={`Remove product ${index + 1}`}
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -174,45 +185,17 @@ const LCForm = ({ onSave }) => {
         <InputField
           label="Item Name"
           value={product.itemName}
-          onChange={(e) =>
-            handleProductChange(product.id, "itemName", e.target.value)
-          }
+          onChange={(e) => handleProductChange(product.id, "itemName", e.target.value)}
           required
         />
-        <InputField
-          label="Thickness"
-          value={product.thickness}
-          onChange={(e) =>
-            handleProductChange(product.id, "thickness", e.target.value)
-          }
-        />
-        <InputField
-          label="Width"
-          value={product.width}
-          onChange={(e) =>
-            handleProductChange(product.id, "width", e.target.value)
-          }
-        />
-        <InputField
-          label="Length"
-          value={product.length}
-          onChange={(e) =>
-            handleProductChange(product.id, "length", e.target.value)
-          }
-        />
-        <InputField
-          label="Grade"
-          value={product.grade}
-          onChange={(e) =>
-            handleProductChange(product.id, "grade", e.target.value)
-          }
-        />
+        <InputField label="Thickness" value={product.thickness} onChange={(e) => handleProductChange(product.id, "thickness", e.target.value)} />
+        <InputField label="Width" value={product.width} onChange={(e) => handleProductChange(product.id, "width", e.target.value)} />
+        <InputField label="Length" value={product.length} onChange={(e) => handleProductChange(product.id, "length", e.target.value)} />
+        <InputField label="Grade" value={product.grade} onChange={(e) => handleProductChange(product.id, "grade", e.target.value)} />
         <SelectField
           label="Quantity Unit"
           value={product.quantityUnit}
-          onChange={(e) =>
-            handleProductChange(product.id, "quantityUnit", e.target.value)
-          }
+          onChange={(e) => handleProductChange(product.id, "quantityUnit", e.target.value)}
           options={units}
           placeholder="Select Unit"
           required
@@ -222,42 +205,25 @@ const LCForm = ({ onSave }) => {
           label="Quantity"
           type="number"
           value={product.quantity}
-          onChange={(e) =>
-            handleProductChange(product.id, "quantity", e.target.value)
-          }
+          onChange={(e) => handleProductChange(product.id, "quantity", e.target.value)}
           required
-          min="0"
-          step="0.01"
         />
         <InputField
           label="Unit Price (USD)"
           type="number"
           value={product.unitPriceUsd}
-          onChange={(e) =>
-            handleProductChange(product.id, "unitPriceUsd", e.target.value)
-          }
+          onChange={(e) => handleProductChange(product.id, "unitPriceUsd", e.target.value)}
           required
-          min="0"
-          step="0.01"
         />
-        <InputField
-          label="Total Value (USD)"
-          type="number"
-          value={product.totalValueUsd}
-          disabled
-        />
+        <InputField label="Total Value (USD)" type="number" value={product.totalValueUsd} disabled />
       </div>
     </motion.div>
   );
 
   return (
     <FormPageLayout
-      title={
-        isEditMode ? "Edit Letter of Credit" : "Create New Letter of Credit"
-      }
-      subtitle={`Fill in the details below to ${
-        isEditMode ? "update" : "create"
-      } a new LC`}
+      title={isEditMode ? "Edit Letter of Credit" : "Create New Letter of Credit"}
+      subtitle={`Fill in the details below to ${isEditMode ? "update" : "create"} a new LC`}
       cancelLink={isEditMode ? `/lc-details/${id}` : "/lc-management"}
       onSubmit={handleSubmit}
       isEditMode={isEditMode}
@@ -273,139 +239,37 @@ const LCForm = ({ onSave }) => {
           isExpanded={expandedSections[section.id]}
           onToggle={() => toggleSection(section.id)}
           sectionRef={(el) => setSectionRef(section.id, el)}
-          ariaLabel={`${section.title} section`}
         >
           {section.id === "basicInfo" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <InputField
-                label="LC Number"
-                value={formData.basicInfo.lcNumber}
-                onChange={(e) =>
-                  handleInputChange("basicInfo", "lcNumber", e.target.value)
-                }
-                required
-                autoFocus
-              />
-              <InputField
-                label="LC Opening Date"
-                type="date"
-                value={formData.basicInfo.lcOpeningDate}
-                onChange={(e) =>
-                  handleInputChange(
-                    "basicInfo",
-                    "lcOpeningDate",
-                    e.target.value
-                  )
-                }
-                required
-              />
+              <InputField label="LC Number" value={formData.basicInfo.lcNumber} onChange={(e) => handleInputChange("basicInfo", "lcNumber", e.target.value)} required />
+              <InputField label="LC Opening Date" type="date" value={formData.basicInfo.lcOpeningDate} onChange={(e) => handleInputChange("basicInfo", "lcOpeningDate", e.target.value)} required />
               <SelectField
                 label="Status"
                 value={formData.basicInfo.status}
-                onChange={(e) =>
-                  handleInputChange("basicInfo", "status", e.target.value)
-                }
-                options={[
-                  { value: "Draft", label: "Draft" },
-                  { value: "Active", label: "Active" },
-                  { value: "Completed", label: "Completed" },
-                  { value: "Cancelled", label: "Cancelled" },
-                ]}
+                onChange={(e) => handleInputChange("basicInfo", "status", e.target.value)}
+                options={[{ value: "Draft", label: "Draft" }, { value: "Active", label: "Active" }, { value: "Completed", label: "Completed" }, { value: "Cancelled", label: "Cancelled" }]}
                 required
               />
               <SelectField
                 label="Choose an account"
                 value={formData.basicInfo.accountId}
-                onChange={(e) =>
-                  handleInputChange("basicInfo", "accountId", e.target.value)
-                }
-                options={accounts
-                  .filter((acc) => acc.accountType === "Bank")
-                  .map((acc) => ({
-                    value: acc._id,
-                    label: acc.accountName,
-                  }))}
+                onChange={(e) => handleInputChange("basicInfo", "accountId", e.target.value)}
+                options={accounts.filter((acc) => acc.accountType === "Bank").map((acc) => ({ value: acc._id, label: acc.accountName }))}
                 placeholder="Select Bank"
                 required
-                loading={accountsLoading}
               />
-              <InputField
-                label="Supplier Name"
-                value={formData.basicInfo.supplierName}
-                onChange={(e) =>
-                  handleInputChange("basicInfo", "supplierName", e.target.value)
-                }
-                required
-              />
-              <InputField
-                label="Supplier Country"
-                value={formData.basicInfo.supplierCountry}
-                onChange={(e) =>
-                  handleInputChange(
-                    "basicInfo",
-                    "supplierCountry",
-                    e.target.value
-                  )
-                }
-                required
-              />
+              <InputField label="Supplier Name" value={formData.basicInfo.supplierName} onChange={(e) => handleInputChange("basicInfo", "supplierName", e.target.value)} required />
+              <InputField label="Supplier Country" value={formData.basicInfo.supplierCountry} onChange={(e) => handleInputChange("basicInfo", "supplierCountry", e.target.value)} required />
             </div>
           )}
 
           {section.id === "financialInfo" && (
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                <InputField
-                  label="LC Amount (USD)"
-                  type="number"
-                  value={formData.financialInfo.lcAmountUsd}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "financialInfo",
-                      "lcAmountUsd",
-                      e.target.value
-                    )
-                  }
-                  required
-                  min="0"
-                  step="0.01"
-                />
-                <InputField
-                  label="Exchange Rate"
-                  type="number"
-                  value={formData.financialInfo.exchangeRate}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "financialInfo",
-                      "exchangeRate",
-                      e.target.value
-                    )
-                  }
-                  required
-                  min="0"
-                  step="0.0001"
-                />
-                <InputField
-                  label="LC Amount (BDT)"
-                  type="number"
-                  value={formData.financialInfo.lcAmountBdt}
-                  disabled
-                />
-                <InputField
-                  label="LC Margin Paid (BDT)"
-                  type="number"
-                  value={formData.financialInfo.lcMarginPaidBdt}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "financialInfo",
-                      "lcMarginPaidBdt",
-                      e.target.value
-                    )
-                  }
-                  required
-                  min="0"
-                  step="0.01"
-                />
+                <InputField label="LC Amount (USD)" type="number" value={formData.financialInfo.lcAmountUsd} onChange={(e) => handleInputChange("financialInfo", "lcAmountUsd", e.target.value)} required />
+                <InputField label="Exchange Rate" type="number" value={formData.financialInfo.exchangeRate} onChange={(e) => handleInputChange("financialInfo", "exchangeRate", e.target.value)} required />
+                <InputField label="LC Amount (BDT)" type="number" value={formData.financialInfo.lcAmountBdt} disabled />
               </div>
               <CostsSection
                 costs={formData.financialInfo.costs}
@@ -422,15 +286,9 @@ const LCForm = ({ onSave }) => {
           {section.id === "productInfo" && (
             <div className="space-y-4 sm:space-y-6">
               <AnimatePresence>
-                {formData.productInfo.map((product, index) =>
-                  renderProductFields(product, index)
-                )}
+                {formData.productInfo.map((product, index) => renderProductFields(product, index))}
               </AnimatePresence>
-              <button
-                type="button"
-                onClick={addProduct}
-                className="flex items-center justify-center space-x-2 w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-[#003b75] hover:text-[#003b75] transition-colors"
-              >
+              <button type="button" onClick={addProduct} className="flex items-center justify-center space-x-2 w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-[#003b75] hover:text-[#003b75] transition-colors">
                 <Plus className="w-5 h-5" />
                 <span>Add Another Product</span>
               </button>
@@ -440,38 +298,15 @@ const LCForm = ({ onSave }) => {
           {section.id === "shippingCustomsInfo" && (
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <InputField
-                  label="Port of Shipment"
-                  value={formData.shippingCustomsInfo.portOfShipment}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "shippingCustomsInfo",
-                      "portOfShipment",
-                      e.target.value
-                    )
-                  }
-                />
-                <InputField
-                  label="Expected Arrival Date"
-                  type="date"
-                  value={formData.shippingCustomsInfo.expectedArrivalDate}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "shippingCustomsInfo",
-                      "expectedArrivalDate",
-                      e.target.value
-                    )
-                  }
-                />
-              </div>{" "}
+                <InputField label="Port of Shipment" value={formData.shippingCustomsInfo.portOfShipment} onChange={(e) => handleInputChange("shippingCustomsInfo", "portOfShipment", e.target.value)} />
+                <InputField label="Expected Arrival Date" type="date" value={formData.shippingCustomsInfo.expectedArrivalDate} onChange={(e) => handleInputChange("shippingCustomsInfo", "expectedArrivalDate", e.target.value)} />
+              </div>
               <CostsSection
                 costs={formData.shippingCustomsInfo.costs}
                 section="shippingCustomsInfo"
                 onCostChange={handleCostChange}
                 onAddCost={() => addCost("shippingCustomsInfo")}
-                onRemoveCost={(costId) =>
-                  removeCost("shippingCustomsInfo", costId)
-                }
+                onRemoveCost={(costId) => removeCost("shippingCustomsInfo", costId)}
                 accounts={accounts}
                 paymentMethods={["Cash", "Bank", "Mobile Banking"]}
               />
@@ -480,15 +315,12 @@ const LCForm = ({ onSave }) => {
 
           {section.id === "agentTransportInfo" && (
             <div className="flex flex-col">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"></div>
               <CostsSection
                 costs={formData.agentTransportInfo.costs}
                 section="agentTransportInfo"
                 onCostChange={handleCostChange}
                 onAddCost={() => addCost("agentTransportInfo")}
-                onRemoveCost={(costId) =>
-                  removeCost("agentTransportInfo", costId)
-                }
+                onRemoveCost={(costId) => removeCost("agentTransportInfo", costId)}
                 accounts={accounts}
                 paymentMethods={["Cash", "Bank", "Mobile Banking"]}
               />
@@ -496,25 +328,96 @@ const LCForm = ({ onSave }) => {
           )}
 
           {section.id === "documentsNotes" && (
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-6">
               <TextAreaField
                 label="Note"
                 value={formData.documentsNotes.note}
-                onChange={(e) =>
-                  handleInputChange("documentsNotes", "note", e.target.value)
-                }
+                onChange={(e) => handleInputChange("documentsNotes", "note", e.target.value)}
                 rows={4}
-                autoResize
               />
-              <FileInput
-                files={uploadedFiles}
-                onFileChange={handleFileChange}
-                onFileRemove={handleFileRemove}
-                maxSize={10}
-                acceptedTypes="*/*"
-                label="Upload Documents"
-                required={!isEditMode}
+              
+              {/* --- EXISTING DOCUMENTS DISPLAY --- */}
+              {isEditMode && formData.documentsNotes.uploadedDocuments?.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-700">Existing Documents</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {formData.documentsNotes.uploadedDocuments.map((doc) => (
+                      <div key={doc._id} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                        <div className="flex items-center min-w-0">
+                          <FileIcon className="w-4 h-4 text-blue-500 mr-2 flex-shrink-0" />
+                          <span className="text-xs text-blue-900 truncate font-medium">{doc.originalName}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleExistingFileRemove(doc._id)}
+                          className="p-1.5 text-red-500 hover:bg-red-100 rounded-md transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* --- NEW FILE UPLOAD --- */}
+
+          {section.id === "documentsNotes" && (
+            <div className="space-y-6">
+              <TextAreaField
+                label="Note"
+                value={formData.documentsNotes?.note || ""}
+                onChange={(e) => handleInputChange("documentsNotes", "note", e.target.value)}
+                rows={4}
               />
+              
+              {/* বিদ্যমান ডকুমেন্টস ডিসপ্লে */}
+              {isEditMode && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-700">Existing Documents</h4>
+                  {formData.documentsNotes?.uploadedDocuments?.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {formData.documentsNotes.uploadedDocuments.map((doc) => (
+                        <div key={doc._id} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-lg group shadow-sm">
+                          <div className="flex items-center min-w-0">
+                            <FileIcon className="w-4 h-4 text-blue-500 mr-2 flex-shrink-0" />
+                            <span className="text-xs text-blue-900 truncate font-medium">
+                              {doc.originalName}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleExistingFileRemove(doc._id)}
+                            className="p-1.5 text-red-500 hover:bg-red-100 rounded-md transition-all"
+                            title="Delete file"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400 italic">No existing documents found.</p>
+                  )}
+                </div>
+              )}
+
+              {/* নতুন ফাইল আপলোড */}
+              <div className="pt-4 border-t border-gray-100">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                  {isEditMode ? "Upload New Documents" : "Upload Documents"}
+                </h4>
+                <FileInput
+                  files={uploadedFiles}
+                  onFileChange={(files) => setUploadedFiles(prev => [...prev, ...files])}
+                  onFileRemove={(index) => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
+                  maxSize={10}
+                  acceptedTypes="*/*"
+                  label="Drop files here or click to upload"
+                />
+              </div>
+            </div>
+          )}
             </div>
           )}
         </FormSection>

@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  memo,
-} from "react";
+import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import PropTypes from "prop-types";
 import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
@@ -66,7 +60,10 @@ const LCdetails = () => {
     refetch();
   }, [refetch]);
 
-const { exportLC, isExporting } = useExportLC(id, lcData?.basicInfo?.lcNumber);
+  const { exportLC, isExporting } = useExportLC(
+    id,
+    lcData?.basicInfo?.lcNumber
+  );
   const { deleteLC, isDeleting } = useDeleteLC(id);
 
   // Memoized values
@@ -146,6 +143,30 @@ const { exportLC, isExporting } = useExportLC(id, lcData?.basicInfo?.lcNumber);
   const handleAddCostSuccess = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  console.log(lcData, "lcData");
+
+const handleDownload = async (lcId, storedName, originalName) => {
+  try {
+    // ডাবল স্ল্যাশ এড়ানোর জন্য baseUrl থেকে ট্রেইলিং স্ল্যাশ বাদ দেওয়া হয়েছে
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const downloadUrl = `${cleanBaseUrl}/lc/${lcId}/documents/${storedName}`;
+
+    // ডাউনলোড শুরু করার প্রসেস
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.setAttribute("download", originalName);
+    link.setAttribute("target", "_blank");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    toast.success("Downloading started...");
+  } catch (error) {
+    console.error("Download error:", error);
+    toast.error("Failed to download file");
+  }
+};
 
   // Loading and error states
   if (loading) {
@@ -528,60 +549,55 @@ const { exportLC, isExporting } = useExportLC(id, lcData?.basicInfo?.lcNumber);
             </CollapsibleCard>
 
             {/* Documents & Notes */}
-            <CollapsibleCard
-              title="Documents & Notes"
-              icon={<Clipboard className="text-[#003b75]" />}
-              ariaLabel="Documents and Notes Section"
+<CollapsibleCard
+  title="Documents & Notes"
+  icon={<Clipboard className="text-[#003b75]" />}
+  ariaLabel="Documents and Notes Section"
+>
+  <div className="space-y-4">
+    {documentsNotes.uploadedDocuments?.length > 0 && (
+      <div>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">
+          Uploaded Documents
+        </h3>
+        <div className="space-y-2">
+          {documentsNotes.uploadedDocuments.map((doc) => (
+            <div
+              key={doc._id}
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
             >
-              <div className="space-y-4">
-                {documentsNotes.uploadedDocuments?.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                      Uploaded Documents
-                    </h3>
-                    <div className="space-y-2">
-                      {documentsNotes.uploadedDocuments.map((doc) => (
-                        <div
-                          key={doc._id}
-                          className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
-                        >
-                          <File className="text-gray-400 mr-3 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-700 truncate">
-                              {doc.originalName}
-                            </div>
-                          </div>
-                          <a
-                            href={getDocumentUrl(doc.storedName)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download
-                            className="ml-2 text-[#003b75] hover:text-blue-800 transition-colors"
-                            aria-label={`Download ${doc.originalName}`}
-                          >
-                            <Download className="w-4 h-4" />
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {documentsNotes.note &&
-                  documentsNotes.note !== "No notes given" && (
-                    <div className="pt-4 border-t border-gray-200">
-                      <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                        Notes
-                      </h3>
-                      <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
-                        <p className="text-sm text-gray-700 whitespace-pre-line">
-                          {documentsNotes.note}
-                        </p>
-                      </div>
-                    </div>
-                  )}
+              <div className="flex items-center min-w-0">
+                <File className="text-gray-400 mr-3 flex-shrink-0" />
+                <div className="text-sm font-medium text-gray-700 truncate">
+                  {doc.originalName}
+                </div>
               </div>
-            </CollapsibleCard>
+              
+              <button
+                onClick={() => handleDownload(lcData._id, doc.storedName, doc.originalName)}
+                className="p-2 text-[#003b75] hover:bg-blue-50 rounded-full transition-colors"
+                title="Download"
+              >
+                <Download size={18} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {documentsNotes.note && documentsNotes.note !== "No notes given" && (
+      <div className="pt-4 border-t border-gray-200">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Notes</h3>
+        <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
+          <p className="text-sm text-gray-700 whitespace-pre-line">
+            {documentsNotes.note}
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
+</CollapsibleCard>
 
             {/* Payment History */}
             <CollapsibleCard
