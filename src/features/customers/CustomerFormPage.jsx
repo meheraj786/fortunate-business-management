@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useForm } from "react-hook-form";
 import PropTypes from "prop-types";
-import api from "@/services/apiService";
 import toast from "react-hot-toast";
 
 // Components
@@ -27,6 +26,7 @@ import {
 
 // Custom Hooks
 import { useSectionManager } from "@/hooks/useSectionManager";
+import { useCreateCustomer, useCustomer, useDeleteCustomer, useUpdateCustomer } from "../../api/hooks/customer";
 
 const CustomerForm = ({ onSave }) => {
   const { id } = useParams();
@@ -60,6 +60,8 @@ const CustomerForm = ({ onSave }) => {
   // State
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const updateCustomerMutation=useUpdateCustomer()
+  const createCustomerMutation=useCreateCustomer()
 
   // Sections
   const SECTIONS = [
@@ -82,18 +84,17 @@ const CustomerForm = ({ onSave }) => {
     { value: "Suspended", label: "Suspended" },
   ];
 
+  const {data:customer}=useCustomer(id);
   // Effects
   useEffect(() => {
     if (id) {
       fetchCustomerData();
     }
   }, [id]);
-
+  
   const fetchCustomerData = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get(`/customer/get-customer/${id}`);
-      const customer = response.data.data;
 
       // Set form values
       Object.keys(customer).forEach((key) => {
@@ -140,10 +141,10 @@ const CustomerForm = ({ onSave }) => {
       };
 
       if (isEditMode) {
-        await api.patch(`/customer/update-customer/${id}`, payload);
+        await updateCustomerMutation.mutateAsync({id:id,...payload})
         toast.success("Customer updated successfully");
       } else {
-        await api.post(`/customer/create-customer`, payload);
+        await createCustomerMutation.mutateAsync(payload)
         toast.success("Customer created successfully");
       }
 

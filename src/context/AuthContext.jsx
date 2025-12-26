@@ -1,29 +1,18 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useContext } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import api from "@/services/apiService";
+import { useProfile } from "@/api/hooks/user";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("userData");
-
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error("User parse error:", error);
-      localStorage.removeItem("userData");
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const queryClient = useQueryClient();
+  
+  // Always fetch fresh data from API
+  const { data: profileData, isLoading: loading } = useProfile();
+  
+  // Extract user from profile response
+  const user = profileData?.data || profileData || null;
 
   const login = async (email, password) => {
     const res = await api.post("/auth/login", { email, password });
@@ -31,10 +20,12 @@ export const AuthProvider = ({ children }) => {
     const userData = res.data.data.user;
     const accessToken = res.data.data.token;
 
-    setUser(userData);
-    localStorage.setItem("userData", JSON.stringify(userData));
+    // Set cookie for authentication
     const cookieString = `accessToken=${accessToken}; path=/; SameSite=Lax`;
     document.cookie = cookieString;
+    
+    // Update profile cache with fresh data
+    queryClient.setQueryData(["profile"], userData);
 
     return userData;
   };
@@ -45,8 +36,11 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.log("Logout error:", err);
     } finally {
-      setUser(null);
-      localStorage.removeItem("userData");
+      // Clear profile cache
+      queryClient.setQueryData(["profile"], null);
+      queryClient.clear();
+      
+      // Remove auth cookie
       document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     }
   };

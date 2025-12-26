@@ -17,8 +17,10 @@ import api from "@/services/apiService";
 import { useAuth } from "../../context/AuthContext";
 import {motion} from "framer-motion";
 import InputField from "@/components/ui/InputField";
+import { useCreateUser } from "../../api/hooks/user";
 
 const AddTeamMemForm = ({ isOpen, onClose, editData = null }) => {
+  const createUserMutation=useCreateUser()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -35,14 +37,15 @@ const AddTeamMemForm = ({ isOpen, onClose, editData = null }) => {
   
 
   const roles = [
-    "Manager",
-    "Warehouse Keeper",
-    "Accountant",
-    "Sales Executive",
-    "Operations Coordinator",
-    "Logistics Officer",
-    "Quality Inspector",
-    "Customs Officer",
+      "MANAGER",
+      "Warehouse Keeper",
+      "Accountant",
+      "Sales Executive",
+      "Operations Coordinator",
+      "Logistics Officer",
+      "Quality Inspector",
+      "Customs Officer",
+      "No Role",
   ];
 
   const nameInputRef = useRef(null);
@@ -104,27 +107,29 @@ const AddTeamMemForm = ({ isOpen, onClose, editData = null }) => {
   };
 
   // ✅ Submit Handler
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+const handleSubmit = (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    const payload = {
-      ...formData,
-      avatar: formData.avatar || `https://i.pravatar.cc/150?u=${formData.name}`,
-    };
-
-  try {
-    const res = await api.post("/auth/create-user", payload);
-    toast.success("User Created Successfully!");
-    return res.data;
-  } catch (error) {
-    console.error("Create User Error:", error);
-    toast.error(
-      error.response?.data?.message || "User create failed"
-    );
-    throw error;
-  }
+  const payload = {
+    ...formData,
+    avatar:
+      formData.avatar || `https://i.pravatar.cc/150?u=${formData.name}`,
   };
+
+  createUserMutation.mutate(payload, {
+    onSuccess: () => {
+      toast.success("User Created Successfully!");
+      handleClose();
+    },
+    onError: (error) => {
+      toast.error(
+        error?.response?.data?.message || "User create failed"
+      );
+    },
+  });
+};
+
 
   // ✅ Close & Reset Form
   const handleClose = () => {

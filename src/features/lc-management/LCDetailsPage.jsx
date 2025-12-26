@@ -66,7 +66,7 @@ const LCdetails = () => {
     refetch();
   }, [refetch]);
 
-  const { exportLC, isExporting } = useExportLC(id);
+const { exportLC, isExporting } = useExportLC(id, lcData?.basicInfo?.lcNumber);
   const { deleteLC, isDeleting } = useDeleteLC(id);
 
   // Memoized values

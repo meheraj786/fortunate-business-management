@@ -32,7 +32,6 @@ import {
   CreditCard,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import api from "@/services/apiService";
 
 // Components
 import CollapsibleCard from "@/components/ui/CollapsibleCard";
@@ -44,11 +43,13 @@ import Pagination from "@/components/ui/Pagination";
 // Custom Hooks
 import { useUrl } from "@/context/UrlProvider";
 import { useCustomerData, useSalesData } from "@/hooks/useCustomerOperations";
+import { useDeleteCustomer } from "../../api/hooks/customer";
 
 const CustomerDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { baseUrl } = useUrl();
+  const deleteCustomerMutation=useDeleteCustomer()
 
   // State
   const [confirmModal, setConfirmModal] = useState({
@@ -93,7 +94,7 @@ const CustomerDetails = () => {
   // Handlers
   const handleDelete = useCallback(async () => {
     try {
-      await api.delete(`/customer/delete-customer/${id}`);
+      await deleteCustomerMutation.mutateAsync(id)
       toast.success("Customer deleted successfully!");
       navigate("/customers");
     } catch (error) {

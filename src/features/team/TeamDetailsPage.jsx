@@ -9,13 +9,14 @@ import {
   MapPin,
   CheckCheck,
   XSquare,
+  Warehouse as WarehouseIcon, 
 } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import toast from "react-hot-toast";
-import api from "@/services/apiService";
 import { useAuth } from "../../context/AuthContext";
+import { useUser, useUpdateUser } from "../../api/hooks/user";
+import { useWarehouses } from "../../api/hooks/warehouse";
 
-// Module and permission definitions
 const MODULES = [
   { name: "LC", label: "LC Management" },
   { name: "SALE", label: "Sales" },
@@ -30,59 +31,73 @@ const PERMISSIONS = ["CREATE", "GET", "UPDATE", "DELETE"];
 const TeamDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [member, setMember] = useState(null);
   const [accessPermissions, setAccessPermissions] = useState([]);
+  const [selectedWarehouses, setSelectedWarehouses] = useState([]); 
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const { data: warehousesData } = useWarehouses();
   const { user } = useAuth();
+
+  const { data: member, isLoading, isError } = useUser(id);
+  const updateUserMutation = useUpdateUser();
+
+  console.log(warehousesData , "warehousesData");
+  
+
   const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
 
-  useEffect(() => {
-    api
-      .get(`/auth/get-user/${id}`)
-      .then((res) => {
-        setMember(res.data.data);
-        setAccessPermissions(res.data.data.access || []);
-      })
-      .catch((err) => {
-        toast.error("Failed to load user data");
-        console.error(err);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [id]);
+  const normalizePermissions = (backendAccess) => {
+    if (!Array.isArray(backendAccess)) return [];
+    return backendAccess.map((item) => {
+      let permissions = item.permissions || [];
+      permissions = permissions.flat(Infinity);
+      permissions = [...new Set(permissions)];
+      permissions = permissions.filter((p) => PERMISSIONS.includes(p));
+      return {
+        module: item.module,
+        permissions: permissions,
+      };
+    }).filter((item) => item.permissions.length > 0);
+  };
 
+  useEffect(() => {
+    // Permission sync
+    if (member?.data?.access) {
+      const normalizedPermissions = normalizePermissions(member.data.access);
+      setAccessPermissions(normalizedPermissions);
+    } else {
+      setAccessPermissions([]);
+    }
+
+    // Warehouse sync (Extracting IDs if populated)
+    if (member?.data?.warehouse) {
+      const whIds = member.data.warehouse.map((wh) =>
+        typeof wh === "object" ? wh._id : wh
+      );
+      setSelectedWarehouses(whIds);
+    } else {
+      setSelectedWarehouses([]);
+    }
+  }, [member?.data]);
+
+  // Existing Permission Logic
   const handlePermissionToggle = (moduleName, permission) => {
     setAccessPermissions((prev) => {
       const moduleIndex = prev.findIndex((m) => m.module === moduleName);
-
       if (moduleIndex === -1) {
-        return [
-          ...prev,
-          {
-            module: moduleName,
-            permissions: [permission],
-          },
-        ];
+        return [...prev, { module: moduleName, permissions: [permission] }];
       } else {
         const updatedAccess = [...prev];
-        const module = updatedAccess[moduleIndex];
+        const module = { ...updatedAccess[moduleIndex] };
         const permissionIndex = module.permissions.indexOf(permission);
-
         if (permissionIndex === -1) {
           module.permissions = [...module.permissions, permission];
         } else {
-          module.permissions = module.permissions.filter(
-            (p) => p !== permission
-          );
+          module.permissions = module.permissions.filter((p) => p !== permission);
         }
-
         if (module.permissions.length === 0) {
           return updatedAccess.filter((m) => m.module !== moduleName);
         }
-
+        updatedAccess[moduleIndex] = module;
         return updatedAccess;
       }
     });
@@ -91,33 +106,44 @@ const TeamDetails = () => {
   const handleToggleAllPermissions = (moduleName) => {
     setAccessPermissions((prev) => {
       const moduleIndex = prev.findIndex((m) => m.module === moduleName);
-      
       const allPermissionsSet =
         moduleIndex !== -1 &&
-        PERMISSIONS.every(perm => prev[moduleIndex].permissions.includes(perm));
+        PERMISSIONS.every((perm) => prev[moduleIndex].permissions.includes(perm));
 
       if (allPermissionsSet) {
         return prev.filter((m) => m.module !== moduleName);
       } else {
         if (moduleIndex === -1) {
-          return [
-            ...prev,
-            {
-              module: moduleName,
-              permissions: [...PERMISSIONS],
-            },
-          ];
+          return [...prev, { module: moduleName, permissions: [...PERMISSIONS] }];
         } else {
           const updatedAccess = [...prev];
-          updatedAccess[moduleIndex] = {
-            ...updatedAccess[moduleIndex],
-            permissions: [...PERMISSIONS],
-          };
+          updatedAccess[moduleIndex] = { module: moduleName, permissions: [...PERMISSIONS] };
           return updatedAccess;
         }
       }
     });
   };
+
+  // --- New Warehouse Logic ---
+  const handleWarehouseToggle = (warehouseId) => {
+    if (!isEditing) return;
+    setSelectedWarehouses((prev) =>
+      prev.includes(warehouseId)
+        ? prev.filter((id) => id !== warehouseId)
+        : [...prev, warehouseId]
+    );
+  };
+
+const handleToggleAllWarehouses = () => {
+  const allWhs = warehousesData?.data?.warehouses || [];
+  
+  if (selectedWarehouses.length === allWhs.length) {
+    setSelectedWarehouses([]);
+  } else {
+    setSelectedWarehouses(allWhs.map((wh) => wh._id));
+  }
+};
+  // ----------------------------
 
   const hasPermission = (moduleName, permission) => {
     const module = accessPermissions.find((m) => m.module === moduleName);
@@ -126,9 +152,7 @@ const TeamDetails = () => {
 
   const hasAllPermissions = (moduleName) => {
     const module = accessPermissions.find((m) => m.module === moduleName);
-    return module 
-      ? PERMISSIONS.every(perm => module.permissions.includes(perm))
-      : false;
+    return module ? PERMISSIONS.every((perm) => module.permissions.includes(perm)) : false;
   };
 
   const getModulePermissionCount = (moduleName) => {
@@ -137,59 +161,47 @@ const TeamDetails = () => {
   };
 
   const handleSaveRoles = async () => {
-    if (!member) return;
+    if (!member?.data) return;
+    try {
+      const cleanedPermissions = accessPermissions.map((module) => ({
+        module: module.module,
+        permissions: [...new Set(module.permissions)],
+      }));
 
-    console.log("Saving permissions:", JSON.stringify(accessPermissions, null, 2));
+      await updateUserMutation.mutateAsync({
+        id: id,
+        data: { 
+          access: cleanedPermissions,
+          warehouse: selectedWarehouses 
+        },
+      });
 
-    setIsSaving(true);
-    toast.promise(
-      api.patch(`/auth/update-user/${id}`, {
-        access: accessPermissions,
-      }),
-      {
-        loading: "Saving permissions...",
-        success: (response) => {
-          setMember(response.data.data);
-          setIsEditing(false);
-          return <b>Permissions updated successfully!</b>;
-        },
-        error: (err) => {
-          console.error(err);
-          return (
-            <b>
-              {err.response?.data?.message || "Failed to update permissions"}
-            </b>
-          );
-        },
-      }
-    ).finally(() => {
-      setIsSaving(false);
-    });
+      toast.success("Permissions and Warehouse access updated!");
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error(error.response?.data?.message || "Failed to update");
+    }
   };
 
   const handleCancelEdit = () => {
-    setAccessPermissions(member?.access || []);
+    // Reset permissions
+    if (member?.data?.access) {
+      setAccessPermissions(normalizePermissions(member.data.access));
+    }
+    // Reset warehouses
+    if (member?.data?.warehouse) {
+      setSelectedWarehouses(member.data.warehouse.map(wh => typeof wh === 'object' ? wh._id : wh));
+    }
     setIsEditing(false);
     toast.success("Changes discarded");
   };
 
-  const handleEditStart = () => {
-    setIsEditing(true);
-    toast("You are now in edit mode. Check boxes to grant permissions.", {
-      icon: "✏️",
-      duration: 4000,
-    });
-  };
-
   const copyToClipboard = (text, type) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        toast.success(`${type} copied to clipboard!`);
-      })
-      .catch(() => {
-        toast.error("Failed to copy to clipboard");
-      });
+    if (!text) return;
+    navigator.clipboard.writeText(text)
+      .then(() => toast.success(`${type} copied!`))
+      .catch(() => toast.error("Failed to copy"));
   };
 
   if (isLoading) {
@@ -200,20 +212,12 @@ const TeamDetails = () => {
     );
   }
 
-  if (!member) {
+  if (isError || !member?.data) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Member Not Found
-          </h2>
-          <p className="text-gray-600 mb-6">
-            The team member you're looking for doesn't exist.
-          </p>
-          <button
-            onClick={() => navigate("/team")}
-            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-          >
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Member Not Found</h2>
+          <button onClick={() => navigate("/team")} className="px-6 py-2 bg-primary text-white rounded-lg">
             Back to Team
           </button>
         </div>
@@ -221,162 +225,140 @@ const TeamDetails = () => {
     );
   }
 
-  const breadcrumbItems = [
-    { label: "Team", path: "/team" },
-    { label: member?.name },
-  ];
-
-  const totalPermissions = accessPermissions.reduce(
-    (sum, module) => sum + module.permissions.length,
-    0
-  );
-  const maxPermissions = MODULES.length * PERMISSIONS.length;
+  const breadcrumbItems = [{ label: "Team", path: "/team" }, { label: member.data.name }];
+  const totalPermissions = accessPermissions.reduce((sum, module) => sum + module.permissions.length, 0);
 
   return (
     <div>
       <div className="max-w-6xl mx-auto">
         <Breadcrumb items={breadcrumbItems} />
 
-        {/* Header Section */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Member Details</h1>
-            <p className="text-gray-600 mt-1">
-              Manage roles and permissions for team members.
-            </p>
+            <p className="text-gray-600 mt-1">Manage roles, permissions and warehouses</p>
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
             {isSuperAdmin && isEditing ? (
               <>
-                <button
-                  onClick={handleSaveRoles}
-                  disabled={isSaving}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-                >
+                <button onClick={handleSaveRoles} disabled={updateUserMutation.isPending} className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
                   <Save size={18} className="mr-2" />
-                  Save Changes
+                  {updateUserMutation.isPending ? "Saving..." : "Save"}
                 </button>
-                <button
-                  onClick={handleCancelEdit}
-                  disabled={isSaving}
-                  className="flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 transition-colors"
-                >
+                <button onClick={handleCancelEdit} className="flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                   <X size={18} className="mr-2" />
                   Cancel
                 </button>
               </>
             ) : isSuperAdmin ? (
-              <button
-                onClick={handleEditStart}
-                className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-              >
+              <button onClick={() => setIsEditing(true)} className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">
                 <Edit3 size={18} className="mr-2" />
-                Edit Permissions
+                Edit Access
               </button>
             ) : null}
           </div>
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Card */}
+          {/* Profile Section */}
           <div className="lg:col-span-1">
             <div className="bg-white shadow-md rounded-lg p-6 sticky top-6">
               <div className="flex flex-col items-center mb-6">
-                <div className="relative mb-4">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                    <img
-                      src={member?.avatar}
-                      alt={member?.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.nextSibling.style.display = "flex";
-                      }}
-                    />
-                    <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                      {member?.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </div>
-                  </div>
-                  {member?.status === "Active" && (
-                    <div className="absolute bottom-2 right-2 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-                  )}
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center overflow-hidden mb-4 shadow-lg text-3xl font-bold text-white">
+                  {member.data.avatar ? <img src={member.data.avatar} alt="" className="w-full h-full object-cover" /> : member.data.name?.charAt(0).toUpperCase()}
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 text-center">
-                  {member?.name}
-                </h2>
-                <p className="text-gray-600">{member?.roleName}</p>
-                <span
-                  className={`mt-2 px-3 py-1 rounded-full text-xs font-medium ${
-                    member?.status === "Active"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {member?.status || "Active"}
-                </span>
+                <h2 className="text-2xl font-bold text-gray-900 text-center">{member.data.name}</h2>
+                <p className="text-gray-600 text-sm mt-1">{member.data.roleName}</p>
               </div>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
-                  Contact Information
-                </h3>
-                <div className="space-y-4">
-                  <div
-                    className="flex items-center text-gray-700 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                    onClick={() => copyToClipboard(member?.email, "Email")}
-                  >
-                    <Mail size={18} className="text-gray-400 mr-3" />
-                    <div className="flex-1">
-                      <p className="font-medium text-sm text-gray-500">Email</p>
-                      <p className="text-primary break-all">{member?.email}</p>
-                    </div>
+              <div className="space-y-3 pt-4 border-t">
+                <div onClick={() => copyToClipboard(member.data.email, "Email")} className="flex items-start p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                  <Mail size={18} className="text-gray-400 mr-3 mt-0.5" />
+                  <div className="overflow-hidden">
+                    <p className="text-xs text-gray-500">Email</p>
+                    <p className="text-sm text-gray-900 break-all">{member.data.email}</p>
                   </div>
-                  <div
-                    className="flex items-center text-gray-700 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                    onClick={() =>
-                      copyToClipboard(member?.phone, "Phone number")
-                    }
-                  >
-                    <Phone size={18} className="text-gray-400 mr-3" />
-                    <div className="flex-1">
-                      <p className="font-medium text-sm text-gray-500">Phone</p>
-                      <p className="text-primary">{member?.phone}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center text-gray-700">
-                    <MapPin size={18} className="text-gray-400 mr-3" />
-                    <div className="flex-1">
-                      <p className="font-medium text-sm text-gray-500">
-                        Location
-                      </p>
-                      <p>{member?.location}</p>
-                    </div>
+                </div>
+                <div onClick={() => copyToClipboard(member.data.phone, "Phone")} className="flex items-start p-3 hover:bg-gray-50 rounded-lg cursor-pointer">
+                  <Phone size={18} className="text-gray-400 mr-3 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500">Phone</p>
+                    <p className="text-sm text-gray-900">{member.data.phone}</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Roles & Permissions Card */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-8">
+            {/* Warehouse Access Section */}
+{/* Warehouse Access Section */}
+<div className="bg-white shadow-md rounded-lg p-6">
+  <div className="flex items-center justify-between mb-6 pb-4 border-b">
+    <div className="flex items-center gap-2">
+      <WarehouseIcon className="text-primary" size={24} />
+      <div>
+        <h2 className="text-xl font-bold text-gray-900">Warehouse Access</h2>
+        <p className="text-sm text-gray-500">Assign specific warehouses to this member</p>
+      </div>
+    </div>
+    {isEditing && (
+      <button
+        onClick={handleToggleAllWarehouses}
+        className="text-xs font-medium px-3 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100"
+      >
+        {selectedWarehouses.length === (warehousesData?.data?.warehouses?.length || 0) 
+          ? "Deselect All" 
+          : "Select All"}
+      </button>
+    )}
+  </div>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {warehousesData?.data?.warehouses?.map((wh) => (
+      <label
+        key={wh._id}
+        className={`flex items-center justify-between p-4 border-2 rounded-xl transition-all ${
+          isEditing ? "cursor-pointer" : "cursor-default"
+        } ${
+          selectedWarehouses.includes(wh._id)
+            ? "border-primary bg-primary/5 shadow-sm"
+            : "border-gray-100 bg-gray-50/30"
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg ${selectedWarehouses.includes(wh._id) ? "bg-primary text-white" : "bg-gray-200 text-gray-500"}`}>
+            <WarehouseIcon size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-800">{wh.name}</p>
+            <p className="text-xs text-gray-500">{wh.location || "No Location Provided"}</p>
+          </div>
+        </div>
+        {isEditing && (
+          <input
+            type="checkbox"
+            checked={selectedWarehouses.includes(wh._id)}
+            onChange={() => handleWarehouseToggle(wh._id)}
+            className="w-5 h-5 text-primary rounded focus:ring-primary cursor-pointer"
+          />
+        )}
+      </label>
+    ))}
+    
+    {warehousesData?.data?.warehouses?.length === 0 && (
+      <p className="col-span-full text-center py-4 text-gray-500 italic">No warehouses found.</p>
+    )}
+  </div>
+</div>
+
+            {/* Access Permissions Section */}
             <div className="bg-white shadow-md rounded-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Module Permissions
-                </h2>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b">
+                <h2 className="text-xl font-bold text-gray-900">Module Permissions</h2>
                 <div className="text-right">
-                  <span className="text-sm text-gray-500 block">
-                    {totalPermissions} of {maxPermissions} permissions granted
-                  </span>
-                  {isEditing && (
-                    <span className="text-xs text-orange-600 block mt-1">
-                      Editing mode active
-                    </span>
-                  )}
+                  <span className="text-xl font-bold text-primary">{totalPermissions}</span>
+                  <p className="text-xs text-gray-500">active</p>
                 </div>
               </div>
 
@@ -386,72 +368,32 @@ const TeamDetails = () => {
                   const allChecked = hasAllPermissions(module.name);
 
                   return (
-                    <div
-                      key={module.name}
-                      className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {module.label}
-                        </h3>
+                    <div key={module.name} className={`border rounded-lg p-5 ${permissionCount > 0 ? "border-green-200 bg-green-50/20" : "border-gray-200"}`}>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-md font-bold text-gray-800">{module.label}</h3>
                         {isEditing && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">
-                              {permissionCount}/{PERMISSIONS.length}
-                            </span>
-                            <button
-                              onClick={() =>
-                                handleToggleAllPermissions(module.name)
-                              }
-                              className={`flex items-center gap-1 px-3 py-1 rounded text-xs font-medium transition-colors ${
-                                allChecked
-                                  ? "bg-red-100 text-red-700 hover:bg-red-200"
-                                  : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                              }`}
-                            >
-                              {allChecked ? (
-                                <>
-                                  <XSquare size={14} />
-                                  Clear All
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCheck size={14} />
-                                  Select All
-                                </>
-                              )}
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleToggleAllPermissions(module.name)}
+                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${allChecked ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-600"}`}
+                          >
+                            {allChecked ? <XSquare size={14} /> : <CheckCheck size={14} />}
+                            {allChecked ? "Clear" : "All"}
+                          </button>
                         )}
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {PERMISSIONS.map((permission) => {
                           const isChecked = hasPermission(module.name, permission);
                           return (
-                            <label
-                              key={`${module.name}-${permission}`}
-                              className={`flex items-center gap-2 p-3 border rounded-lg transition-all ${
-                                isEditing
-                                  ? "cursor-pointer hover:bg-blue-50 hover:border-blue-200"
-                                  : "cursor-not-allowed opacity-60"
-                              } ${
-                                isChecked
-                                  ? "border-green-300 bg-green-50"
-                                  : "border-gray-200 bg-white"
-                              }`}
-                            >
+                            <label key={`${module.name}-${permission}`} className={`flex items-center gap-2 p-2 border rounded-md transition-all ${isEditing ? "cursor-pointer" : ""} ${isChecked ? "border-green-500 bg-green-50" : "border-gray-200 bg-white"}`}>
                               <input
                                 type="checkbox"
                                 checked={isChecked}
-                                onChange={() =>
-                                  handlePermissionToggle(module.name, permission)
-                                }
+                                onChange={() => handlePermissionToggle(module.name, permission)}
                                 disabled={!isEditing}
-                                className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                                className="w-4 h-4 text-green-600 cursor-pointer"
                               />
-                              <span className="text-sm font-medium text-gray-700 select-none">
-                                {permission}
-                              </span>
+                              <span className="text-xs font-semibold uppercase">{permission}</span>
                             </label>
                           );
                         })}
@@ -460,23 +402,6 @@ const TeamDetails = () => {
                   );
                 })}
               </div>
-
-              {!isEditing && totalPermissions === 0 && (
-                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-yellow-800 text-center">
-                    No permissions granted yet. Click "Edit Permissions" to add
-                    module access.
-                  </p>
-                </div>
-              )}
-
-              {isEditing && (
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-blue-800 text-center text-sm">
-                    💡 Check boxes to grant permissions. Use "Select All" / "Clear All" for quick setup.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>

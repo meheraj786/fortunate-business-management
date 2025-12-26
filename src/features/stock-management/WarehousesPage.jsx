@@ -19,6 +19,7 @@ import StatBox from "@/components/ui/StatBox"; // Import StatBox
 import AddWarehouseForm from "./AddWarehouseForm";
 
 import toast from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext";
 
 const Warehouses = () => {
   const [warehouses, setWarehouses] = useState([]);
@@ -30,6 +31,9 @@ const Warehouses = () => {
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [warehouseToDelete, setWarehouseToDelete] = useState(null);
+  const { user } = useAuth();
+
+  const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
 
   const fetchWarehouses = useCallback(async () => {
     try {
@@ -154,13 +158,15 @@ const Warehouses = () => {
                   } and their inventory.`}
             </p>
           </div>
-          <button
-            onClick={handleAddClick}
-            className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
-          >
-            <Plus size={20} />
-            Add Warehouse
-          </button>
+          {isSuperAdmin && (
+            <button
+              onClick={handleAddClick}
+              className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
+            >
+              <Plus size={20} />
+              Add Warehouse
+            </button>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -264,6 +270,8 @@ const Warehouses = () => {
                 </Link>
 
                 {/* Actions */}
+                {
+                  isSuperAdmin && (
                 <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
                   <button
                     onClick={() => handleEditClick(warehouse)}
@@ -287,6 +295,9 @@ const Warehouses = () => {
                     )}
                   </button>
                 </div>
+                    
+                  )
+                }
               </div>
             ))}
           </div>
