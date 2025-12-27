@@ -707,7 +707,17 @@ const AddSales = ({
                           <InputField label="Date" type="date" value={payment.date} onChange={(e) => handleArrayField("payments", "update", index, { date: e.target.value })} />
                           <SelectField label="Method" value={payment.method} onChange={(e) => handleArrayField("payments", "update", index, { method: e.target.value, account: "" })} options={paymentMethodOptions} />
                           {payment.method && (
-                            <SelectField label="Account" value={payment.account} onChange={(e) => handleArrayField("payments", "update", index, { account: e.target.value })} options={getFilteredAccounts(payment.method)} required />
+                            <SelectField label="Account" value={payment.account} onChange={(e) => handleArrayField("payments", "update", index, { account: e.target.value })} options={getFilteredAccounts(payment.method).map((acc) => {
+                            let label = "";
+                            if (acc.accountType === "Bank") {
+                              label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
+                            } else if (acc.accountType === "Mobile Banking") {
+                              label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
+                            } else if (acc.accountType === "Cash") {
+                              label = `${acc.accountName} (${acc.accountHolderName})`;
+                            }
+                            return { value: acc._id, label: label };
+                          })} required />
                           )}
                           <button type="button" onClick={() => handleArrayField("payments", "remove", index)} className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center">
                             <MinusCircle size={20} />
@@ -724,7 +734,17 @@ const AddSales = ({
                     <>
                       <SelectField label="Payment Method" value={formData.payments[0]?.method || ""} onChange={(e) => handleArrayField("payments", "update", 0, { method: e.target.value, account: "" })} options={paymentMethodOptions} required />
                       {formData.payments[0]?.method && (
-                        <SelectField label="Account" value={formData.payments[0]?.account || ""} onChange={(e) => handleArrayField("payments", "update", 0, { account: e.target.value })} options={getFilteredAccounts(formData.payments[0]?.method)} required />
+                        <SelectField label="Account" value={formData.payments[0]?.account || ""} onChange={(e) => handleArrayField("payments", "update", 0, { account: e.target.value })} options={getFilteredAccounts(formData.payments[0]?.method).map((acc) => {
+                        let label = "";
+                        if (acc.accountType === "Bank") {
+                          label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
+                        } else if (acc.accountType === "Mobile Banking") {
+                          label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
+                        } else if (acc.accountType === "Cash") {
+                          label = `${acc.accountName} (${acc.accountHolderName})`;
+                        }
+                        return { value: acc._id, label: label };
+                      })} required />
                       )}
                     </>
                   )}

@@ -105,7 +105,17 @@ const CostsSection = ({
                   }
                   options={accounts
                     .filter((acc) => acc.accountType === cost.paymentMethod)
-                    .map((acc) => ({ value: acc._id, label: acc.accountName }))}
+                    .map((acc) => {
+                      let label = "";
+                      if (acc.accountType === "Bank") {
+                        label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
+                      } else if (acc.accountType === "Mobile Banking") {
+                        label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
+                      } else if (acc.accountType === "Cash") {
+                        label = `${acc.accountName} (${acc.accountHolderName})`;
+                      }
+                      return { value: acc._id, label: label };
+                    })}
                   placeholder="Choose account"
                   required
                 />

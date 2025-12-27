@@ -214,7 +214,7 @@ const LCForm = ({ onSave }) => {
                 label="Choose an account"
                 value={formData.basicInfo.accountId}
                 onChange={(e) => handleInputChange("basicInfo", "accountId", e.target.value)}
-                options={accounts.filter((acc) => acc.accountType === "Bank").map((acc) => ({ value: acc._id, label: acc.accountName }))}
+                options={accounts.filter((acc) => acc.accountType === "Bank").map((acc) => ({ value: acc._id, label: `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}` }))}
                 placeholder="Select Bank"
                 required
               />
