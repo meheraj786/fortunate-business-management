@@ -25,7 +25,8 @@ import api from "@/services/apiService";
 import StatBox from "@/components/ui/StatBox";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import AddAccountForm from "./AddAccountForm"; // New unified form
-import TransactionTable from "./components/TransactionTable";
+import TransactionDetailsModal from "@/components/common/TransactionDetailsModal";
+import TransactionTable from "@/components/common/TransactionTable";
 import Pagination from "@/components/ui/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -87,6 +88,10 @@ const AccountDetails = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false); // Simplified state
+
+  // Transaction Modal State
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [selectedTransactionId, setSelectedTransactionId] = useState(null);
 
   const [pagination, setPagination] = useState({
     page: 1,
@@ -241,6 +246,16 @@ const AccountDetails = () => {
     setIsEditFormOpen(false); // Close the form
     fetchAccountDetails(); // Refresh account details
     fetchTransactions(1); // Refresh transactions
+  };
+
+  const handleTransactionClick = (transactionId) => {
+    setSelectedTransactionId(transactionId);
+    setIsTransactionModalOpen(true);
+  };
+
+  const handleCloseTransactionModal = () => {
+    setIsTransactionModalOpen(false);
+    setSelectedTransactionId(null);
   };
 
   if (loading) {
@@ -423,7 +438,7 @@ const AccountDetails = () => {
             </table>
           </div>
         ) : transactions.length > 0 ? (
-          <TransactionTable transactions={transactions} />
+          <TransactionTable transactions={transactions} onRowClick={handleTransactionClick} />
         ) : (
           <div className="text-center py-16">
             <CreditCard className="mx-auto h-12 w-12 text-gray-400" />
@@ -459,6 +474,13 @@ const AccountDetails = () => {
         onClose={() => setIsEditFormOpen(false)}
         editingAccount={account}
         onSuccess={handleFormSuccess}
+      />
+
+      {/* Transaction Details Modal */}
+      <TransactionDetailsModal
+        isOpen={isTransactionModalOpen}
+        onClose={handleCloseTransactionModal}
+        transactionId={selectedTransactionId}
       />
     </div>
   );
