@@ -100,7 +100,6 @@ const INITIAL_TRANSACTION_STATE = {
   accountId: "",
   lcId: "", // For LC transactions
   salesId: "", // For Sales transactions
-  costName: "", // For LC/Sales expense costs
 };
 
 // Icon mapping
@@ -287,7 +286,7 @@ const DailyCashFlow = () => {
       if (name === "category") {
         newState.lcId = "";
         newState.salesId = "";
-        newState.costName = ""; // Reset costName for expense
+        newState.name = ""; // Reset costName for expense
         // Auto-fill description for LC/Sales categories if empty
         if ((value === "LC" || value === "Sales") && !prev.description) {
           newState.description = `Auto-generated description for ${value}`;
@@ -327,7 +326,7 @@ const DailyCashFlow = () => {
       toast.error("Please select a Sale for this transaction");
       return;
     }
-    if (transactionType === "expense" && (newTransaction.category === "LC" || newTransaction.category === "Sales") && !newTransaction.costName) {
+    if (transactionType === "expense" && (newTransaction.category === "LC" || newTransaction.category === "Sales") && !newTransaction.name) {
         toast.error("Please enter a cost name");
         return;
     }
@@ -354,7 +353,7 @@ const DailyCashFlow = () => {
       payload.salesId = newTransaction.salesId;
     }
     if (transactionType === "expense" && (newTransaction.category === "LC" || newTransaction.category === "Sales")) {
-        payload.costName = newTransaction.costName;
+        payload.name = newTransaction.name;
     }
 
 
@@ -833,8 +832,8 @@ const DailyCashFlow = () => {
           {(newTransaction.category === "LC" || newTransaction.category === "Sales") && transactionType === "expense" && (
             <InputField
               label="Cost Name"
-              name="costName"
-              value={newTransaction.costName}
+              name="name"
+              value={newTransaction.name}
               onChange={handleNewTransactionChange}
               placeholder="e.g., Transport Cost"
               required
