@@ -493,7 +493,7 @@ const AddSales = ({
               amount: parseFloat(payment.amount) || totalAmountToBePaid,
               date: new Date(payment.date),
               method: payment.method,
-              ...(payment.method !== "cash" && { account: payment.account }),
+              ...(payment.method !== "Cash" && { account: payment.account }),
             },
           ];
         } else if (
@@ -515,7 +515,7 @@ const AddSales = ({
             amount: parseFloat(p.amount) || 0,
             date: new Date(p.date),
             method: p.method,
-            ...(p.method !== "cash" && { account: p.account }),
+            ...(p.method !== "Cash" && { account: p.account }),
           }));
         }
       }

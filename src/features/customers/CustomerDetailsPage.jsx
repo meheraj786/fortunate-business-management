@@ -138,6 +138,28 @@ const CustomerDetails = () => {
     [customerData?.stats, formatCurrency]
   );
 
+const handleDownload = async (customerId, fileName) => {
+  try {
+
+    
+
+    const downloadUrl = `${baseUrl}customers/${customerId}/documents/${encodeURIComponent(fileName)}`;
+
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.setAttribute("download", fileName);
+    link.setAttribute("target", "_blank");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    toast.error("Download trigger failed");
+  }
+};
+
+  console.log(customerData , "customerData");
+  
+
   // Loading and error states
   if (loadingCustomer) {
     return (
@@ -398,41 +420,28 @@ const CustomerDetails = () => {
               ariaLabel="Documents Section"
             >
               <div className="space-y-3">
-                {customerData.documents?.length > 0 ? (
-                  customerData.documents.map((doc, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
-                    >
-                      <FileText className="text-gray-400 mr-3 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-700 truncate">
-                          {doc.name || doc.originalName}
-                        </div>
-                        {doc.size && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            {doc.size}
-                          </div>
-                        )}
-                      </div>
-                      <a
-                        href={getDocumentUrl(doc.storedName)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                        className="ml-2 text-[#003b75] hover:text-blue-800 transition-colors"
-                        aria-label={`Download ${doc.name || doc.originalName}`}
-                      >
-                        <Download className="w-4 h-4" />
-                      </a>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-6 text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                    <p className="text-sm">No documents uploaded</p>
-                  </div>
-                )}
+{customerData.documents?.map((doc, index) => (
+  <div
+    key={index}
+    className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
+  >
+    <FileText className="text-gray-400 mr-3 flex-shrink-0" />
+    <div className="flex-1 min-w-0">
+      <div className="text-sm font-medium text-gray-700 truncate">
+        {doc.name}
+      </div>
+      <div className="text-xs text-gray-500 mt-1">
+        {(doc.size / 1024).toFixed(2)} KB
+      </div>
+    </div>
+    <button
+      onClick={() => handleDownload(customerData._id, doc.storedName || doc.name)}
+      className="ml-2 p-2 text-[#003b75] hover:bg-blue-100 rounded-full transition-colors"
+    >
+      <Download className="w-4 h-4" />
+    </button>
+  </div>
+))}
               </div>
             </CollapsibleCard>
           </div>
