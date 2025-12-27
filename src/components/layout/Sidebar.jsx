@@ -6,11 +6,24 @@ import { BsFillCreditCardFill } from "react-icons/bs";
 import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings3Fill, RiMenuLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react";
-import { ChartColumnIncreasing, CreditCard, Trash, WalletMinimal } from "lucide-react";
+import {
+  ChartColumnIncreasing,
+  CreditCard,
+  Trash,
+  WalletMinimal,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useLogout } from "../../api/hooks/user";
+import Button from "../ui/Button";
 
-const SidebarItem = ({ icon: Icon, label, active, onClick, index, collapsed }) => (
+const SidebarItem = ({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+  index,
+  collapsed,
+}) => (
   <motion.div
     className={`flex items-center p-3 rounded-lg cursor-pointer group relative ${
       collapsed ? "justify-center" : "justify-start"
@@ -56,30 +69,57 @@ const SidebarItem = ({ icon: Icon, label, active, onClick, index, collapsed }) =
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
-  const logoutMutation=useLogout()
+  const { user, logout } = useAuth();
+  const logoutMutation = useLogout();
 
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const allMenuItems = [
-    { icon: BsFillCreditCardFill, label: "LC management", path: "/lc-management", module: "LC" },
+    {
+      icon: BsFillCreditCardFill,
+      label: "LC management",
+      path: "/lc-management",
+      module: "LC",
+    },
     { icon: MdInventory, label: "Stock Management", path: "/stock-management" },
-    { icon: ChartColumnIncreasing, label: "Sales", path: "/sales", module: "SALE" },
-    { icon: WalletMinimal, label: "Daily Cash", path: "/daily-cash-flow", module: "CASH" },
-    { icon: CreditCard, label: "Accounts", path: "/accounts", module: "ACCOUNTS" },
+    {
+      icon: ChartColumnIncreasing,
+      label: "Sales",
+      path: "/sales",
+      module: "SALE",
+    },
+    {
+      icon: WalletMinimal,
+      label: "Daily Cash",
+      path: "/daily-cash-flow",
+      module: "CASH",
+    },
+    {
+      icon: CreditCard,
+      label: "Accounts",
+      path: "/accounts",
+      module: "ACCOUNTS",
+    },
     { icon: MdPeopleAlt, label: "Team", path: "/team", module: "CUSTOMER" },
-    { icon: MdPeopleAlt, label: "Customers", path: "/customers", module: "CUSTOMER" },
+    {
+      icon: MdPeopleAlt,
+      label: "Customers",
+      path: "/customers",
+      module: "CUSTOMER",
+    },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
-    { icon: Trash, label: "Trash", path: "/trash", module: "TRASH"  },
+    { icon: Trash, label: "Trash", path: "/trash", module: "TRASH" },
   ];
 
-  const menuItems = user?.roleName === "ADMIN" || user?.roleName === "SUPER_ADMIN"
-    ? allMenuItems
-    : allMenuItems.filter(
-        (item) => !item.module || user?.access?.some((a) => a.module === item.module)
-      );
+  const menuItems =
+    user?.roleName === "ADMIN" || user?.roleName === "SUPER_ADMIN"
+      ? allMenuItems
+      : allMenuItems.filter(
+          (item) =>
+            !item.module || user?.access?.some((a) => a.module === item.module)
+        );
 
   const getActive = () => {
     const path = location.pathname;
@@ -108,6 +148,16 @@ const Sidebar = () => {
   const handleClick = (path) => {
     navigate(path);
     if (isMobile) setMobileOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   // Mobile sidebar
@@ -220,7 +270,12 @@ const Sidebar = () => {
           ))}
         </div>
       </div>
-      <button className="absolute bottom-4 left-1/2 -translate-x-1/2" onClick={()=>logoutMutation.mutate()}>Logout</button>
+      <Button
+        className="absolute bottom-4 left-1/2 -translate-x-1/2"
+        onClick={handleLogout}
+      >
+        Logout
+      </Button>
     </motion.div>
   );
 };

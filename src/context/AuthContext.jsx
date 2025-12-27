@@ -36,11 +36,9 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.log("Logout error:", err);
     } finally {
-      // Clear profile cache
       queryClient.setQueryData(["profile"], null);
       queryClient.clear();
       
-      // Remove auth cookie
       document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     }
   };
