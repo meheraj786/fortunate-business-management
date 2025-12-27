@@ -19,108 +19,16 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-  Car,
-  Truck,
-  Users,
-  Fuel,
-  Wrench,
-  Coffee,
-  Building,
-  CreditCard,
-  Receipt,
-  PiggyBank,
-  Loader2,
-  Package,
 } from "lucide-react";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
 
 import CashFlowDetails from "./CashFlowDetails";
-import FormDialog from "@/components/ui/FormDialog";
-import InputField from "@/components/ui/InputField";
-import SelectField from "@/components/ui/SelectField";
-import TextAreaField from "@/components/ui/TextAreaField";
-import TransactionDetailsModal from "@/components/common/TransactionDetailsModal"; // New component for details
+import AddTransactionDialog from "./components/AddTransactionDialog";
+import TransactionDetailsModal from "@/components/common/TransactionDetailsModal";
+import useAccounts from "@/api/hooks/useAccounts";
+import { ICON_COMPONENTS, INCOME_CATEGORIES, EXPENSE_CATEGORIES, ITEMS_PER_PAGE } from "./constants";
 
-// Custom hook for account fetching
-const useAccounts = () => {
-  const [accounts, setAccounts] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchAccounts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get("/account/get-all-accounts");
-      if (response.data.success) {
-        setAccounts(response.data.data || []);
-      } else {
-        throw new Error("Failed to fetch accounts");
-      }
-    } catch (error) {
-      console.error("Failed to fetch accounts:", error);
-      toast.error("Failed to load accounts. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { accounts, loading, fetchAccounts };
-};
-
-// Constants
-const INCOME_CATEGORIES = [
-  "LC",
-  "Sales",
-  "Donation",
-  "Commission",
-  "Interest",
-  "Service Charge",
-  "Others",
-];
-const EXPENSE_CATEGORIES = [
-  "LC",
-  "Sales",
-  "Rent",
-  "Salary",
-  "Office Expense",
-  "Transport",
-  "Utility",
-  "Others",
-];
-
-const ITEMS_PER_PAGE = 10;
-
-// Initial state for new transaction
-const INITIAL_TRANSACTION_STATE = {
-  name: "", // For income/expense name
-  amount: "",
-  category: "",
-  description: "",
-  paymentMethod: "Cash",
-  accountId: "",
-  lcId: "", // For LC transactions
-  salesId: "", // For Sales transactions
-};
-
-// Icon mapping
-const ICON_COMPONENTS = {
-  Fuel,
-  Users,
-  Wrench,
-  Coffee,
-  Building,
-  Truck,
-  Car,
-  CreditCard,
-  Receipt,
-  PiggyBank,
-  Wallet,
-  Package, // For LC/Sales
-  User: Users,
-  Sale: DollarSign,
-  "Office Expense": Building,
-  Transportation: Truck,
-};
 
 const DailyCashFlow = () => {
   // State
@@ -140,18 +48,14 @@ const DailyCashFlow = () => {
   const [error, setError] = useState(null);
 
   const [showAddTransaction, setShowAddTransaction] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [transactionType, setTransactionType] = useState("income"); // 'income' or 'expense'
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeLc, setActiveLc] = useState([]); // For LC dropdown
-  const [activeSales, setActiveSales] = useState([]); // For Sales dropdown
-  const [newTransaction, setNewTransaction] = useState(
-    INITIAL_TRANSACTION_STATE
-  );
   const { accounts, loading: accountsLoading, fetchAccounts } = useAccounts();
+  const [activeLc, setActiveLc] = useState([]);
+  const [activeSales, setActiveSales] = useState([]);
 
   const [showTransactionDetailsModal, setShowTransactionDetailsModal] =
     useState(false);
@@ -242,7 +146,7 @@ const DailyCashFlow = () => {
       setLoading(false);
     }
   }, [selectedDate, dailyCashStatus]);
-
+  
   // Fetch active LCs and Sales for dropdowns
   const fetchReferences = useCallback(async () => {
     if (!showAddTransaction) return;
@@ -259,6 +163,7 @@ const DailyCashFlow = () => {
     }
   }, [showAddTransaction]);
 
+
   useEffect(() => {
     fetchDailyCashStatus();
     fetchAccounts(); // Fetch accounts once
@@ -270,116 +175,10 @@ const DailyCashFlow = () => {
 
   useEffect(() => {
     fetchReferences();
-  }, [fetchReferences]);
-
-  // Handle new transaction form changes
-  const handleNewTransactionChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setNewTransaction((prev) => {
-      let newState = { ...prev, [name]: value };
-
-      // Reset accountId if payment method changes
-      if (name === "paymentMethod") {
-        newState.accountId = "";
-      }
-      // Reset LC/Sales IDs if category changes
-      if (name === "category") {
-        newState.lcId = "";
-        newState.salesId = "";
-        newState.name = ""; // Reset costName for expense
-        // Auto-fill description for LC/Sales categories if empty
-        if ((value === "LC" || value === "Sales") && !prev.description) {
-          newState.description = `Auto-generated description for ${value}`;
-        } else if ((prev.category === "LC" || prev.category === "Sales") && prev.description.startsWith("Auto-generated")) {
-          // Clear auto-generated description if category changes from LC/Sales
-          newState.description = "";
-        }
-      }
-      return newState;
-    });
-  }, []);
-
-
-  const handleAddTransactionSubmit = async () => {
-    // Validation
-    if (!newTransaction.amount || parseFloat(newTransaction.amount) <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
-    if (!newTransaction.category) {
-      toast.error("Please select a category");
-      return;
-    }
-    if (!newTransaction.name && (newTransaction.category !== "LC" && newTransaction.category !== "Sales")) {
-        toast.error("Please enter a name for the transaction");
-        return;
-    }
-    if (!newTransaction.accountId) {
-      toast.error("Please select an account");
-      return;
-    }
-    if (newTransaction.category === "LC" && !newTransaction.lcId) {
-      toast.error("Please select an LC for this transaction");
-      return;
-    }
-    if (newTransaction.category === "Sales" && !newTransaction.salesId) {
-      toast.error("Please select a Sale for this transaction");
-      return;
-    }
-    if (transactionType === "expense" && (newTransaction.category === "LC" || newTransaction.category === "Sales") && !newTransaction.name) {
-        toast.error("Please enter a cost name");
-        return;
-    }
-
-
-    const endpoint = transactionType === "income" ? "income" : "expense";
-    const toastId = toast.loading(`Adding ${transactionType}...`);
-    setIsSubmitting(true);
-
-    const payload = {
-      date: selectedDate,
-      amount: parseFloat(newTransaction.amount),
-      category: newTransaction.category,
-      name: newTransaction.name, // The actual name of the income/expense
-      paymentMethod: newTransaction.paymentMethod,
-      accountId: newTransaction.accountId,
-      description: newTransaction.description || undefined, // Send only if provided
-    };
-
-    if (newTransaction.category === "LC") {
-      payload.lcId = newTransaction.lcId;
-    }
-    if (newTransaction.category === "Sales") {
-      payload.salesId = newTransaction.salesId;
-    }
-    if (transactionType === "expense" && (newTransaction.category === "LC" || newTransaction.category === "Sales")) {
-        payload.name = newTransaction.name;
-    }
-
-
-    try {
-      const response = await api.post(`/cash/${endpoint}`, payload);
-      toast.success(
-        `${
-          transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
-        } added successfully!`,
-        { id: toastId, duration: 3000 }
-      );
-      setShowAddTransaction(false);
-      setNewTransaction(INITIAL_TRANSACTION_STATE);
-      fetchDailyCashSummary(); // Refresh summary after transaction
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.message || `Failed to add ${transactionType}.`;
-      toast.error(errorMessage, { id: toastId, duration: 4000 });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  }, [fetchReferences, showAddTransaction]);
 
   const handleAddTransaction = (type) => {
     setTransactionType(type);
-    setNewTransaction(INITIAL_TRANSACTION_STATE); // Reset form
     setShowAddTransaction(true);
   };
 
@@ -442,8 +241,7 @@ const DailyCashFlow = () => {
     if (loading) {
       return (
         <div className="flex justify-center items-center h-64">
-          <Loader2 className="animate-spin h-12 w-12 text-blue-500" />
-          <span className="ml-3 text-gray-600">Loading cash flow data...</span>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       );
     }
@@ -477,7 +275,7 @@ const DailyCashFlow = () => {
     if (dailyCashStatus === "Open" && !dailyCashSummary) {
       return (
         <div className="flex justify-center items-center h-64">
-          <Loader2 className="animate-spin h-12 w-12 text-blue-500" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <span className="ml-3 text-gray-600">Loading daily summary...</span>
         </div>
       );
@@ -517,16 +315,6 @@ const DailyCashFlow = () => {
       </>
     );
   };
-
-  const getFilteredAccounts = useCallback(() => {
-    return accounts.filter((acc) => acc.accountType === newTransaction.paymentMethod);
-  }, [accounts, newTransaction.paymentMethod]);
-
-  const isDescriptionDisabled = useMemo(() => {
-    return (newTransaction.category === "LC" || newTransaction.category === "Sales");
-  }, [newTransaction.category]);
-
-  const transactionCategories = transactionType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   return (
     <div className="">
@@ -748,141 +536,22 @@ const DailyCashFlow = () => {
         {renderContent()}
       </div>
 
-      {/* Add Transaction Dialog */}
-      <FormDialog
-        open={showAddTransaction}
-        onClose={() => {
-          setShowAddTransaction(false);
-          setNewTransaction(INITIAL_TRANSACTION_STATE);
-        }}
-        title={`Add ${transactionType === "income" ? "Income" : "Expense"}`}
-        primaryButtonText={isSubmitting ? "Adding..." : "Add Transaction"}
-        secondaryButtonText="Cancel"
-        onSubmit={handleAddTransactionSubmit}
-        isPrimaryButtonDisabled={isSubmitting || accountsLoading}
-        size="md"
-      >
-        <div className="space-y-4">
-          <InputField
-            label="Amount"
-            name="amount"
-            type="number"
-            value={newTransaction.amount}
-            onChange={handleNewTransactionChange}
-            placeholder="Enter amount"
-            required
-            min="0"
-            step="0.01"
-          />
-
-          <SelectField
-            label="Category"
-            name="category"
-            value={newTransaction.category}
-            onChange={handleNewTransactionChange}
-            options={transactionCategories.map((item) => ({
-                value: item,
-                label: item.charAt(0).toUpperCase() + item.slice(1),
-            }))}
-            required
-            placeholder="Select category"
-          />
-
-          {newTransaction.category !== "LC" && newTransaction.category !== "Sales" && (
-            <InputField
-              label={`${transactionType === "income" ? "Income" : "Expense"} Name`}
-              name="name"
-              value={newTransaction.name}
-              onChange={handleNewTransactionChange}
-              placeholder={`e.g., ${transactionType === "income" ? "Donation from John" : "Office Rent"}`}
-              required
-            />
-          )}
-
-          {newTransaction.category === "LC" && (
-            <SelectField
-              label="Select LC"
-              name="lcId"
-              value={newTransaction.lcId}
-              onChange={handleNewTransactionChange}
-              options={activeLc.map((lc) => ({
-                value: lc._id,
-                label: lc.basicInfo?.lcNumber || `LC ${lc._id?.slice(-6)}`,
-              }))}
-              required
-              placeholder="Select an LC"
-            />
-          )}
-
-          {newTransaction.category === "Sales" && (
-            <SelectField
-              label="Select Sale"
-              name="salesId"
-              value={newTransaction.salesId}
-              onChange={handleNewTransactionChange}
-              options={activeSales.map((sale) => ({
-                value: sale._id,
-                label: sale.saleId || `Sale ${sale._id?.slice(-6)}`,
-              }))}
-              required
-              placeholder="Select a Sale"
-            />
-          )}
-
-          {(newTransaction.category === "LC" || newTransaction.category === "Sales") && transactionType === "expense" && (
-            <InputField
-              label="Cost Name"
-              name="name"
-              value={newTransaction.name}
-              onChange={handleNewTransactionChange}
-              placeholder="e.g., Transport Cost"
-              required
-            />
-          )}
-
-          <TextAreaField
-            label="Description (Auto-generated for LC/Sales)"
-            name="description"
-            value={newTransaction.description}
-            onChange={handleNewTransactionChange}
-            placeholder="Enter description (optional)"
-            rows="3"
-            disabled={isDescriptionDisabled}
-          />
-
-          <SelectField
-            label="Payment Method"
-            name="paymentMethod"
-            value={newTransaction.paymentMethod}
-            onChange={handleNewTransactionChange}
-            options={[
-              { value: "Cash", label: "💵 Cash" },
-              { value: "Bank", label: "🏦 Bank Transfer" },
-              { value: "Mobile Banking", label: "📱 Mobile Banking" },
-            ]}
-            required
-          />
-          {(newTransaction.paymentMethod === "Bank" ||
-            newTransaction.paymentMethod === "Mobile Banking" ||
-            newTransaction.paymentMethod === "Cash") && (
-            <SelectField
-              label="Select Account"
-              name="accountId"
-              value={newTransaction.accountId}
-              onChange={handleNewTransactionChange}
-              options={getFilteredAccounts().map((acc) => ({
-                value: acc._id,
-                label: `${acc.accountHolderName} - ${
-                  acc.accountNumber || acc.mobileNumber || acc.accountName || ""
-                }`.trim(),
-              }))}
-              placeholder="Select an account"
-              required
-              loading={accountsLoading}
-            />
-          )}
-        </div>
-      </FormDialog>
+      {showAddTransaction && (
+        <AddTransactionDialog
+          open={showAddTransaction}
+          onClose={() => setShowAddTransaction(false)}
+          onSuccess={() => {
+            setShowAddTransaction(false);
+            fetchDailyCashSummary();
+          }}
+          transactionType={transactionType}
+          accounts={accounts}
+          accountsLoading={accountsLoading}
+          activeLc={activeLc}
+          activeSales={activeSales}
+          selectedDate={selectedDate}
+        />
+      )}
 
       {selectedTransactionId && (
         <TransactionDetailsModal

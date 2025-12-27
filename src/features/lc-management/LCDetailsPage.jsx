@@ -208,6 +208,7 @@ const handleDownload = async (lcId, storedName, originalName) => {
     agentTransportInfo = {},
     productInfo = [],
     documentsNotes = {},
+    otherExpenses = {},
   } = lcData;
 
   // Helper component for Add Cost button
@@ -496,6 +497,27 @@ const handleDownload = async (lcId, storedName, originalName) => {
                 <div className="text-center py-6 text-gray-500">
                   <User className="w-12 h-12 mx-auto mb-2 text-gray-300" />
                   <p>No agent & transport costs added</p>
+                </div>
+              )}
+            </CollapsibleCard>
+
+            {/* Other Expenses */}
+            <CollapsibleCard
+              title="Other Expenses"
+              icon={<DollarSign className="text-[#003b75]" />}
+              headerActions={<AddCostButton category="otherExpenses" />}
+              ariaLabel="Other Expenses Section"
+            >
+              {lcData.otherExpenses?.costs?.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {lcData.otherExpenses.costs.map((cost) => (
+                    <CostField key={cost._id} cost={cost} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-gray-500">
+                  <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                  <p>No other expenses added</p>
                 </div>
               )}
             </CollapsibleCard>
