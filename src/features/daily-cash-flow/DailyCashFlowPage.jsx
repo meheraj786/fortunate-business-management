@@ -5,21 +5,8 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import {
-  Calendar,
-  Plus,
-  Wallet,
-  TrendingDown,
-  TrendingUp,
-  DollarSign,
-  Target,
-  X,
-  Search,
-  Filter,
-  Menu,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Calendar, Plus, Wallet, TrendingDown, TrendingUp, DollarSign, Target, X, Search, Filter, Menu, ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocation, useNavigate } from "react-router";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
 
@@ -30,22 +17,36 @@ import useAccounts from "@/api/hooks/useAccounts";
 import { ICON_COMPONENTS, INCOME_CATEGORIES, EXPENSE_CATEGORIES, ITEMS_PER_PAGE } from "./constants";
 
 
+const getLocalDateString = (date) => {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const DailyCashFlow = () => {
-  // State
-  const getLocalDateString = (date) => {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const day = date.getDate().toString().padStart(2, "0");
-    return `${year}-${month}-${day}`;
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const getInitialDate = () => {
+    const params = new URLSearchParams(location.search);
+    const dateFromUrl = params.get("date");
+    if (dateFromUrl && /^\d{4}-\d{2}-\d{2}$/.test(dateFromUrl)) {
+      const d = new Date(dateFromUrl);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (!isNaN(d.getTime()) && d <= today) {
+        return dateFromUrl;
+      }
+    }
+    return getLocalDateString(new Date());
   };
 
-  const [selectedDate, setSelectedDate] = useState(
-    getLocalDateString(new Date())
-  );
+  // State
+  const [selectedDate, setSelectedDate] = useState(getInitialDate);
   const [dailyCashSummary, setDailyCashSummary] = useState(null);
   const [dailyCashStatus, setDailyCashStatus] = useState(null); // 'Open', 'Closed', 'Not Opened Yet'
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [transactionType, setTransactionType] = useState("income"); // 'income' or 'expense'
@@ -60,6 +61,38 @@ const DailyCashFlow = () => {
   const [showTransactionDetailsModal, setShowTransactionDetailsModal] =
     useState(false);
   const [selectedTransactionId, setSelectedTransactionId] = useState(null);
+
+  const statusBanner = useMemo(() => {
+    const isToday = selectedDate === getLocalDateString(new Date());
+    if (dailyCashStatus === "Closed") {
+      return (
+        <div className="p-4 rounded-lg text-center mb-6 border bg-gray-100 text-gray-800 border-gray-300">
+          <p className="font-semibold text-sm">
+            📋 This day's account is closed
+          </p>
+        </div>
+      );
+    }
+    if (dailyCashStatus === "Open" && isToday) {
+      return (
+        <div className="p-4 rounded-lg text-center mb-6 border bg-blue-50 text-blue-800 border-blue-200">
+          <p className="font-semibold text-sm">
+            ✅ This day's account is active
+          </p>
+        </div>
+      );
+    }
+    if (dailyCashStatus === "Open" && !isToday) {
+      return (
+        <div className="p-4 rounded-lg text-center mb-6 border bg-yellow-50 text-yellow-800 border-yellow-300">
+          <p className="font-semibold text-sm">
+            ❗ This past day's account was not closed
+          </p>
+        </div>
+      );
+    }
+    return null;
+  }, [dailyCashStatus, selectedDate]);
 
   // Memoized filtered transactions for display
   const transactions = useMemo(() => {
@@ -113,7 +146,6 @@ const DailyCashFlow = () => {
   const fetchDailyCashStatus = useCallback(async () => {
     if (!selectedDate) return;
     setLoading(true);
-    setError(null);
     try {
       const response = await api.get(`/cash/status`, {
         params: { date: selectedDate },
@@ -121,7 +153,6 @@ const DailyCashFlow = () => {
       setDailyCashStatus(response.data.data.status);
     } catch (err) {
       console.error("Failed to fetch daily cash status:", err);
-      setError("Failed to fetch daily cash status.");
       setDailyCashStatus("Error");
     } finally {
       setLoading(false);
@@ -130,9 +161,8 @@ const DailyCashFlow = () => {
 
   // Fetch daily cash summary
   const fetchDailyCashSummary = useCallback(async () => {
-    if (!selectedDate || dailyCashStatus !== "Open") return; // Only fetch summary if cash is open
+    if (!selectedDate || (dailyCashStatus !== "Open" && dailyCashStatus !== "Closed")) return; // Only fetch summary if cash is open or closed
     setLoading(true);
-    setError(null);
     try {
       const response = await api.get(`/cash/summary`, {
         params: { date: selectedDate },
@@ -140,7 +170,6 @@ const DailyCashFlow = () => {
       setDailyCashSummary(response.data.data);
     } catch (err) {
       console.error("Failed to fetch daily cash summary:", err);
-      setError("Failed to fetch daily cash summary.");
       setDailyCashSummary(null);
     } finally {
       setLoading(false);
@@ -176,6 +205,10 @@ const DailyCashFlow = () => {
   useEffect(() => {
     fetchReferences();
   }, [fetchReferences, showAddTransaction]);
+
+  useEffect(() => {
+    navigate(`?date=${selectedDate}`, { replace: true });
+  }, [selectedDate, navigate]);
 
   const handleAddTransaction = (type) => {
     setTransactionType(type);
@@ -256,23 +289,17 @@ const DailyCashFlow = () => {
         );
     }
 
-    if (dailyCashStatus === "Not Opened Yet" || dailyCashStatus === "Closed") {
+    if (dailyCashStatus === "Not Opened Yet") {
       return (
         <div className="text-center p-8 bg-yellow-50 rounded-lg border border-yellow-200">
           <p className="text-lg font-semibold text-yellow-800 mb-4">
-            Cash for {selectedDate} is{" "}
-            {dailyCashStatus === "Closed" ? "closed" : "not opened yet"}.
+            Cash for {selectedDate} is not opened yet.
           </p>
-          {dailyCashStatus === "Closed" && (
-            <p className="text-sm text-gray-600 mt-4">
-              You cannot add transactions to a closed day.
-            </p>
-          )}
         </div>
       );
     }
 
-    if (dailyCashStatus === "Open" && !dailyCashSummary) {
+    if ((dailyCashStatus === "Open" || dailyCashStatus === "Closed") && !dailyCashSummary) {
       return (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -283,19 +310,7 @@ const DailyCashFlow = () => {
 
     return (
       <>
-        <div
-          className={`p-4 rounded-lg text-center mb-6 border ${
-            dailyCashSummary?.isClosed
-              ? "bg-gray-100 text-gray-800 border-gray-300"
-              : "bg-blue-50 text-blue-800 border-blue-200"
-          }`}
-        >
-          <p className="font-semibold text-sm">
-            {dailyCashSummary?.isClosed
-              ? "📋 This day's account is closed"
-              : "✅ This day's account is active"}
-          </p>
-        </div>
+        {statusBanner}
 
         {dailyCashSummary && (
           <CashFlowDetails
