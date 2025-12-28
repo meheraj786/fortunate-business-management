@@ -14,6 +14,7 @@ import { Link } from "react-router";
 import { exportToExcel } from "@/lib/exportXlsx";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useAuth } from "../../context/AuthContext";
 
 const LC_STATUS_OPTIONS = [
   { value: "", label: "All Statuses" },
@@ -35,6 +36,7 @@ const LC = () => {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const {isSuperAdmin}=useAuth();
 
   const [filterStatus, setFilterStatus] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
@@ -229,7 +231,12 @@ const LC = () => {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            {
+              isSuperAdmin && 
+                          <Link to="/trash/lc" className="sm:w-auto w-full" >LC Trash</Link>
+            }
+
             <button
               onClick={handleExport}
               disabled={loading || lcData.length === 0}

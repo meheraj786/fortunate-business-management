@@ -9,6 +9,9 @@ import {
   useUpdateUnit,
   useDeleteUnit,
 } from "@/api/hooks/unit";
+import { useAuth } from "../../context/AuthContext";
+import { Link } from "react-router";
+import { Trash } from "lucide-react";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -16,6 +19,7 @@ function classNames(...classes) {
 
 export default function UnitsSettings() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const {isSuperAdmin} = useAuth();
   const [editingUnit, setEditingUnit] = useState(null);
 
   /* Queries & Mutations */
@@ -150,6 +154,9 @@ export default function UnitsSettings() {
         >
           Create New
         </button>
+                    {
+                      isSuperAdmin && <Link className="text-xs flex items-center gap-2 text-blue-600" to="/trash/unit"> <Trash/> Units Trash</Link>
+                    }
       </div>
 
       {/* Table */}

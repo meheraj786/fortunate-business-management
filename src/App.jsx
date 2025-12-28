@@ -155,7 +155,7 @@ const router = createBrowserRouter([
         element: <CustomerFormPage />,
       },
       {
-        path: "trash",
+        path: "trash/:moduleName",
         element: <TrashPage />,
       }
     ],
