@@ -43,11 +43,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const isSuperAdmin= user?.roleName === "SUPER_ADMIN";
+
   const authInfo = {
     user,
     loading,
     login,
     logout,
+    isSuperAdmin
   };
 
   return (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Building, Smartphone, Receipt, Plus, DollarSign } from "lucide-react";
+import { Building, Smartphone, Receipt, Plus, DollarSign, Trash } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 import StatBox from "@/components/ui/StatBox";
@@ -7,8 +7,11 @@ import AccountList from "./AccountListPage";
 import TransactionList from "./TransactionListPage";
 import AddAccountForm from "./AddAccountForm"; // New unified form
 import AddTransactionForm from "./AddTransactionFormPage";
+import { useAuth } from "../../context/AuthContext";
+import { Link } from "react-router";
 
 const Accounts = () => {
+  const {isSuperAdmin} = useAuth();
   // Unified form state
   const [isAccountFormOpen, setIsAccountFormOpen] = useState(false);
   const [preselectedAccountType, setPreselectedAccountType] = useState("Bank");
@@ -92,6 +95,19 @@ const Accounts = () => {
                 <Plus className="w-4 h-4" />
                 Add Transaction
               </button>
+              {
+                isSuperAdmin && (
+                  <Link to="/trash/account">
+                  <button
+                    onClick={() => setIsAccountFormOpen(false)}
+                    className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors justify-center text-sm"
+                  >
+                    <Trash/>
+                    Trash Account
+                  </button>
+                  </Link>
+                )
+              }
             </div>
           </div>
         </div>

@@ -10,6 +10,9 @@ import {
   useDeleteCategory,
   useUpdateCategory,
 } from "../../api/hooks/category";
+import { useAuth } from "../../context/AuthContext";
+import { Link } from "react-router";
+import { Trash } from "lucide-react";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -24,6 +27,7 @@ export default function Category() {
   const createCatMutation = useCreateCategory();
   const updateCatMutation = useUpdateCategory();
   const deleteCatMutation = useDeleteCategory();
+  const {isSuperAdmin} = useAuth();
 
   console.log(category, "cat");
 
@@ -116,6 +120,7 @@ export default function Category() {
             >
               Create New
             </button>
+
           </div>
         </div>
         <div className="mt-8 flow-root">
@@ -167,7 +172,7 @@ export default function Category() {
             Categories
           </h1>
         </div>
-        <div className="sm:mt-0 sm:ml-16 sm:flex-none flex justify-center items-center">
+        <div className="sm:mt-0 sm:ml-16 sm:flex-none flex justify-center gap-6 items-center">
           <button
             type="button"
             onClick={() => {
@@ -178,6 +183,10 @@ export default function Category() {
           >
             Create New
           </button>
+
+            {
+              isSuperAdmin && <Link className="text-xs flex items-center gap-2 text-blue-600" to="/trash/category"> <Trash/> Trash Category</Link>
+            }
         </div>
       </div>
       <div className="-mx-4 mt-10 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg dark:ring-black/15">

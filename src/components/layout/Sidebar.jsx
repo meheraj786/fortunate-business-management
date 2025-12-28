@@ -160,7 +160,6 @@ const Sidebar = () => {
     }
   };
 
-  // Mobile sidebar
   if (isMobile) {
     return (
       <>

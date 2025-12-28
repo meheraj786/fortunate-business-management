@@ -6,6 +6,7 @@ import {
   FileCheck,
   FileX,
   Download,
+  Trash,
 } from "lucide-react";
 import AddSalesForm from "./AddSalesForm";
 import SalesTable from "./components/SalesTable";
@@ -15,6 +16,8 @@ import { exportToExcel } from "@/lib/exportXlsx";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import SearchBar from "@/components/ui/SearchBar";
+import { useAuth } from "../../context/AuthContext";
+import { Link } from "react-router";
 
 const Sales = () => {
   const [salesData, setSalesData] = useState([]);
@@ -37,6 +40,7 @@ const Sales = () => {
   const [sortBy, setSortBy] = useState("saleDate");
   const [sortOrder, setSortOrder] = useState("desc");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const {isSuperAdmin} = useAuth();
 
   const fetchSalesData = useCallback(async () => {
     setLoading(true);
@@ -214,6 +218,16 @@ const Sales = () => {
               <Plus className="w-4 h-4" aria-hidden="true" />
               Add Sale
             </button>
+                      {isSuperAdmin && (
+            <Link to="/trash/sale">
+            <button
+              className=" text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
+            >
+              <Trash size={20} />
+              Sale Trash
+            </button>
+            </Link>
+          )}
           </div>
         </div>
 

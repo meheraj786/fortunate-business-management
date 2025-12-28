@@ -9,11 +9,13 @@ import {
   X,
   ChevronDown,
   Users,
+  Trash,
 } from "lucide-react";
 import { Link } from "react-router";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCustomerSummary } from "../../api/hooks/customer";
+import { useAuth } from "../../context/AuthContext";
 
 const sortOptions = [
   { value: "joinDate", label: "Join Date" },
@@ -128,8 +130,12 @@ const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [filters, setFilters] = useState({ status: "", customerType: "" });
-  const [sorting, setSorting] = useState({ sortBy: "joinDate", sortOrder: "desc" });
+  const [sorting, setSorting] = useState({
+    sortBy: "joinDate",
+    sortOrder: "desc",
+  });
   const [showFilters, setShowFilters] = useState(false);
+  const { isSuperAdmin } = useAuth();
 
   const queryParams = {
     page,
@@ -141,10 +147,16 @@ const Customers = () => {
     sortOrder: sorting.sortOrder,
   };
 
-  const { data: apiResponse, isLoading: loading, isError } = useCustomerSummary(queryParams);
+  const {
+    data: apiResponse,
+    isLoading: loading,
+    isError,
+  } = useCustomerSummary(queryParams);
 
-  const customers = apiResponse?.data?.customers || apiResponse?.customers || [];
-  const totalPages = apiResponse?.data?.totalPages || apiResponse?.totalPages || 1;
+  const customers =
+    apiResponse?.data?.customers || apiResponse?.customers || [];
+  const totalPages =
+    apiResponse?.data?.totalPages || apiResponse?.totalPages || 1;
 
   useEffect(() => {
     if (isError) {
@@ -178,19 +190,36 @@ const Customers = () => {
     setPage(1);
   }, []);
 
-  const handlePageChange = useCallback((newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
-    }
-  }, [totalPages]);
+  const handlePageChange = useCallback(
+    (newPage) => {
+      if (newPage >= 1 && newPage <= totalPages) {
+        setPage(newPage);
+      }
+    },
+    [totalPages]
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Customers</h1>
-          <p className="text-gray-600 mt-2 text-sm sm:text-base">Manage your customer relationships and track their purchases</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Customers
+          </h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
+            Manage your customer relationships and track their purchases
+          </p>
         </div>
+        {isSuperAdmin && (
+          <Link
+            to="/trash/customer"
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors font-medium"
+          >
+            {" "}
+            <Trash className="w-5 h-5" /> Trash Customer
+          </Link>
+        )}
+
         <div className="flex items-center gap-3">
           <Link to="/customer-form" className="flex-shrink-0">
             <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium">
@@ -222,7 +251,9 @@ const Customers = () => {
               className="w-full appearance-none pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base bg-white"
             >
               {sortOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
@@ -233,9 +264,15 @@ const Customers = () => {
             className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full md:w-auto"
           >
             {sorting.sortOrder === "asc" ? (
-              <><ArrowUp className="w-4 h-4" /><span className="hidden sm:inline">Ascending</span></>
+              <>
+                <ArrowUp className="w-4 h-4" />
+                <span className="hidden sm:inline">Ascending</span>
+              </>
             ) : (
-              <><ArrowDown className="w-4 h-4" /><span className="hidden sm:inline">Descending</span></>
+              <>
+                <ArrowDown className="w-4 h-4" />
+                <span className="hidden sm:inline">Descending</span>
+              </>
             )}
           </button>
 
@@ -254,7 +291,9 @@ const Customers = () => {
         {showFilters && (
           <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-              <h3 className="text-sm font-semibold text-gray-700">Filter Customers</h3>
+              <h3 className="text-sm font-semibold text-gray-700">
+                Filter Customers
+              </h3>
               <button
                 onClick={clearFilters}
                 className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 px-3 py-1.5 hover:bg-red-50 rounded-lg transition-colors"
@@ -264,26 +303,36 @@ const Customers = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Status
+                </label>
                 <select
                   value={filters.status}
                   onChange={(e) => handleFilterChange("status", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                 >
                   {statusOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Customer Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Customer Type
+                </label>
                 <select
                   value={filters.customerType}
-                  onChange={(e) => handleFilterChange("customerType", e.target.value)}
+                  onChange={(e) =>
+                    handleFilterChange("customerType", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                 >
                   {customerTypeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -295,7 +344,9 @@ const Customers = () => {
       <div>
         {loading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : customers.length > 0 ? (
           <>
@@ -314,15 +365,26 @@ const Customers = () => {
         ) : (
           <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">No Customers Found</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              No Customers Found
+            </h3>
             <p className="text-gray-500 mb-6">
               {searchTerm || filters.status || filters.customerType
                 ? "Try adjusting your search or filters."
                 : "Get started by adding your first customer."}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button onClick={clearFilters} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Clear Filters</button>
-              <Link to="/customer-form"><button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">Add Customer</button></Link>
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Clear Filters
+              </button>
+              <Link to="/customer-form">
+                <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+                  Add Customer
+                </button>
+              </Link>
             </div>
           </div>
         )}
