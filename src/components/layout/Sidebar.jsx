@@ -110,7 +110,7 @@ const Sidebar = () => {
       module: "CUSTOMER",
     },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
-    { icon: Trash, label: "Trash", path: "/trash", module: "TRASH" },
+    // { icon: Trash, label: "Trash", path: "/trash", module: "TRASH" },
   ];
 
   const menuItems =
