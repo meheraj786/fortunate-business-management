@@ -1,18 +1,18 @@
 import React from "react";
 import { Building, Smartphone, Wallet } from "lucide-react";
 
-const getAccountDisplayName = (account) => {
-  if (!account) return "N/A";
+const getAccountDisplayName = (accountId) => {
+  if (!accountId) return "N/A";
 
-  switch (account.accountType) {
+  switch (accountId.accountType) {
     case "Bank":
-      return `${account.bankName} (${account.accountHolderName})`;
+      return `${accountId.bankName} (${accountId.accountHolderName})`;
     case "Mobile Banking":
-      return `${account.serviceName} (${account.accountHolderName})`;
+      return `${accountId.serviceName} (${accountId.accountHolderName})`;
     case "Cash":
-      return `${account.accountName} (${account.accountHolderName})`;
+      return `${accountId.accountName} (${accountId.accountHolderName})`;
     default:
-      return account.accountName || "N/A";
+      return accountId.accountName || "N/A";
   }
 };
 
@@ -100,7 +100,7 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {getAccountDisplayName(transaction.account)}
+                  {getAccountDisplayName(transaction.accountId)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(transaction.date).toLocaleDateString("en-GB")}

@@ -171,7 +171,7 @@ const Warehouses = () => {
           {isSuperAdmin && (
             <Link to="/trash/warehouse">
             <button
-              className=" text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
+              className="  px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
             >
               <Trash size={20} />
               Warehouse Trash
@@ -181,7 +181,7 @@ const Warehouses = () => {
           {isSuperAdmin && (
             <Link to="/trash/product">
             <button
-              className=" text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
+              className=" px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
             >
               <Trash size={20} />
               Product Trash
