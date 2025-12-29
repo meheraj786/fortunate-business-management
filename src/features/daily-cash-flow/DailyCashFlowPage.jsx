@@ -3,10 +3,9 @@ import React, {
   useMemo,
   useEffect,
   useCallback,
-  useRef,
 } from "react";
-import { Calendar, Plus, Wallet, TrendingDown, TrendingUp, DollarSign, Target, X, Search, Filter, Menu, ChevronLeft, ChevronRight } from "lucide-react";
-import { useLocation, useNavigate } from "react-router";
+import { Calendar, Plus, Wallet, TrendingDown, TrendingUp, DollarSign, Target, X, Search, Filter, Menu, ChevronLeft, ChevronRight, Trash } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
 
@@ -15,6 +14,7 @@ import AddTransactionDialog from "./components/AddTransactionDialog";
 import TransactionDetailsModal from "@/components/common/TransactionDetailsModal";
 import useAccounts from "@/api/hooks/useAccounts";
 import { ICON_COMPONENTS, INCOME_CATEGORIES, EXPENSE_CATEGORIES, ITEMS_PER_PAGE } from "./constants";
+import { useAuth } from "../../context/AuthContext";
 
 
 const getLocalDateString = (date) => {
@@ -27,6 +27,7 @@ const getLocalDateString = (date) => {
 const DailyCashFlow = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const {isSuperAdmin} = useAuth();
 
   const getInitialDate = () => {
     const params = new URLSearchParams(location.search);
@@ -245,8 +246,8 @@ const DailyCashFlow = () => {
           id: toastId,
           duration: 3000,
         });
-        fetchDailyCashStatus(); // Refresh status
-        fetchDailyCashSummary(); // Fetch summary again, status might change
+        fetchDailyCashStatus(); 
+        fetchDailyCashSummary();
       } catch (err) {
         const errorMessage =
           err.response?.data?.message || "Failed to close cash.";
@@ -260,8 +261,8 @@ const DailyCashFlow = () => {
     setCurrentPage(1);
     setSearchTerm("");
     setCategoryFilter("all");
-    setDailyCashSummary(null); // Clear summary when date changes
-    setDailyCashStatus(null); // Clear status when date changes
+    setDailyCashSummary(null); 
+    setDailyCashStatus(null); 
   };
 
   const handleTransactionClick = (transactionId) => {
@@ -375,7 +376,7 @@ const DailyCashFlow = () => {
                 Add Expense
               </button>
 
-              {dailyCashStatus === "Open" ? (
+              {dailyCashStatus === "Open" && isSuperAdmin ? (
                 <button
                   onClick={handleCloseDay}
                   className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm bg-blue-500 text-white hover:bg-blue-600`}
@@ -383,7 +384,7 @@ const DailyCashFlow = () => {
                   <Target className="w-4 h-4" />
                   Close Day
                 </button>
-              ) : (dailyCashStatus === "Closed" || dailyCashStatus === "Not Opened Yet") && (
+              ) : (dailyCashStatus === "Closed" || dailyCashStatus === "Not Opened Yet") && isSuperAdmin && (
                 <button
                   onClick={handleOpenDay}
                   className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm bg-green-500 text-white hover:bg-green-600`}
@@ -392,6 +393,11 @@ const DailyCashFlow = () => {
                   Open Day
                 </button>
               )}
+              {
+                isSuperAdmin && (
+                  <Link className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm" to="/trash/transaction"> <Trash className="w-4 h-4"/> Trash Transaction</Link>
+                )
+              }
             </div>
           </div>
         </div>

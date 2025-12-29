@@ -107,7 +107,6 @@ const SelectField = ({
             <ChevronDown className="w-4 h-4" />
           )}
         </div>
-
         {error && (
           <div
             id={errorId}
