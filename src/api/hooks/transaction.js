@@ -20,3 +20,11 @@ export const useCreateTransaction = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
   });
 };
+
+export const useDeleteTransaction = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.deleteTransaction,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
+  });
+};

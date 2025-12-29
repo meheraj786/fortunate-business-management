@@ -182,6 +182,8 @@ const CashFlowDetails = ({
     }
   };
 
+  console.log(transactions, "transactions");
+
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
