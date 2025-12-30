@@ -373,9 +373,9 @@ const AddSales = ({
   const normalizeMethod = (method) => {
     if (!method) return "";
     const map = {
-      "Cash": "cash",
-      "Bank": "bank",
-      "Mobile Banking": "mobile-banking"
+      Cash: "cash",
+      Bank: "bank",
+      "Mobile Banking": "mobile-banking",
     };
     return map[method] || method.toLowerCase();
   };
@@ -451,19 +451,19 @@ const AddSales = ({
       if (formData.invoiceStatus === "Invoiced") {
         salesData.paymentStatus = formData.paymentStatus;
 
-        // পেমেন্ট ডেটা প্রসেসিং (আইডি এবং মেথড ফিক্স)
         if (formData.payments && formData.payments.length > 0) {
-            salesData.payments = formData.payments.map((p) => {
-                if (!p.method) throw new Error("Payment method is required");
-                if (!p.account) throw new Error(`Account is required for ${p.method} payment`);
-                
-                return {
-                    amount: parseFloat(p.amount) || 0,
-                    date: new Date(p.date),
-                    method: normalizeMethod(p.method), // মেথড নরমাল করা হলো (e.g. "bank")
-                    accountId: p.account, // ব্যাকএন্ড expects accountId
-                };
-            });
+          salesData.payments = formData.payments.map((p) => {
+            if (!p.method) throw new Error("Payment method is required");
+            if (!p.account)
+              throw new Error(`Account is required for ${p.method} payment`);
+
+            return {
+              amount: parseFloat(p.amount) || 0,
+              date: new Date(p.date),
+              method: normalizeMethod(p.method),
+              accountId: p.account,
+            };
+          });
         }
       }
 
@@ -496,13 +496,24 @@ const AddSales = ({
     (method) => {
       return accounts
         .filter((acc) => acc.accountType === method)
-        .map((acc) => ({
-          value: acc._id,
-          label: `${acc.accountName} (${acc.bankName || acc.serviceName || 'Direct'})`,
-        }));
+        .map((acc) => {
+          console.log(acc, "acc");
+          let label = "";
+          if (acc.accountType === "Bank") {
+            label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
+          } else if (acc.accountType === "Mobile Banking") {
+            label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
+          } else if (acc.accountType === "Cash") {
+            label = `${acc.accountName} (${acc.accountHolderName})`;
+          }
+          console.log(acc._id, label, "valueeeeeeeeeee");
+          return { value: acc._id, label: label };
+        });
     },
     [accounts]
   );
+  console.log(accounts, "accounts");
+  console.log(getFilteredAccounts("Bank"), "getFilteredAccounts");
 
   if (!isOpen) return null;
 
@@ -537,8 +548,13 @@ const AddSales = ({
                 label="Warehouse"
                 name="warehouseId"
                 value={formData.warehouseId}
-                onChange={(e) => handleInputChange("warehouseId", e.target.value)}
-                options={warehouses.map((w) => ({ value: w._id, label: w.name }))}
+                onChange={(e) =>
+                  handleInputChange("warehouseId", e.target.value)
+                }
+                options={warehouses.map((w) => ({
+                  value: w._id,
+                  label: w.name,
+                }))}
                 required
                 icon={Home}
                 disabled={isEditMode || loading}
@@ -547,8 +563,13 @@ const AddSales = ({
                 label="Category"
                 name="categoryId"
                 value={formData.categoryId}
-                onChange={(e) => handleInputChange("categoryId", e.target.value)}
-                options={categories.map((c) => ({ value: c._id, label: c.name }))}
+                onChange={(e) =>
+                  handleInputChange("categoryId", e.target.value)
+                }
+                options={categories.map((c) => ({
+                  value: c._id,
+                  label: c.name,
+                }))}
                 icon={Tag}
                 disabled={isEditMode || !formData.warehouseId || loading}
               />
@@ -557,7 +578,10 @@ const AddSales = ({
                 name="productId"
                 value={formData.productId}
                 onChange={(e) => handleInputChange("productId", e.target.value)}
-                options={availableProducts.map((p) => ({ value: p._id, label: p.name }))}
+                options={availableProducts.map((p) => ({
+                  value: p._id,
+                  label: p.name,
+                }))}
                 required
                 icon={Package}
                 disabled={isEditMode || !formData.warehouseId || loading}
@@ -590,14 +614,18 @@ const AddSales = ({
                 name="pricePerUnit"
                 type="number"
                 value={formData.pricePerUnit}
-                onChange={(e) => handleInputChange("pricePerUnit", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("pricePerUnit", e.target.value)
+                }
                 required
                 icon={DollarSign}
                 min="0"
                 step="0.01"
               />
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Subtotal</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Subtotal
+                </label>
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-lg font-semibold text-gray-900">
                   ৳{totalAmount.toLocaleString()}
                 </div>
@@ -609,8 +637,13 @@ const AddSales = ({
                 label="Customer Type"
                 name="customerType"
                 value={formData.customerType}
-                onChange={(e) => handleInputChange("customerType", e.target.value)}
-                options={[{ value: "existing", label: "Existing Customer" }, { value: "manual", label: "Manual Input" }]}
+                onChange={(e) =>
+                  handleInputChange("customerType", e.target.value)
+                }
+                options={[
+                  { value: "existing", label: "Existing Customer" },
+                  { value: "manual", label: "Manual Input" },
+                ]}
                 required
               />
               <InputField
@@ -629,16 +662,43 @@ const AddSales = ({
                 label="Select Customer"
                 name="customerName"
                 value={formData.customerName}
-                onChange={(e) => handleInputChange("customerName", e.target.value)}
-                options={customers.map((c) => ({ value: c.name, label: `${c.name} - ${c.phone}` }))}
+                onChange={(e) =>
+                  handleInputChange("customerName", e.target.value)
+                }
+                options={customers.map((c) => ({
+                  value: c.name,
+                  label: `${c.name} - ${c.phone}`,
+                }))}
                 required
                 icon={User}
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Customer Name" value={formData.customerName} onChange={(e) => handleInputChange("customerName", e.target.value)} required icon={User} />
-                <InputField label="Phone Number" value={formData.customerPhone} onChange={(e) => handleInputChange("customerPhone", e.target.value)} icon={User} />
-                <InputField label="Address" value={formData.customerAddress} onChange={(e) => handleInputChange("customerAddress", e.target.value)} icon={User} />
+                <InputField
+                  label="Customer Name"
+                  value={formData.customerName}
+                  onChange={(e) =>
+                    handleInputChange("customerName", e.target.value)
+                  }
+                  required
+                  icon={User}
+                />
+                <InputField
+                  label="Phone Number"
+                  value={formData.customerPhone}
+                  onChange={(e) =>
+                    handleInputChange("customerPhone", e.target.value)
+                  }
+                  icon={User}
+                />
+                <InputField
+                  label="Address"
+                  value={formData.customerAddress}
+                  onChange={(e) =>
+                    handleInputChange("customerAddress", e.target.value)
+                  }
+                  icon={User}
+                />
               </div>
             )}
 
@@ -647,8 +707,13 @@ const AddSales = ({
                 label="Invoice Status"
                 name="invoiceStatus"
                 value={formData.invoiceStatus}
-                onChange={(e) => handleInputChange("invoiceStatus", e.target.value)}
-                options={[{ value: "Invoiced", label: "Invoiced" }, { value: "Not-invoiced", label: "Not Invoiced" }]}
+                onChange={(e) =>
+                  handleInputChange("invoiceStatus", e.target.value)
+                }
+                options={[
+                  { value: "Invoiced", label: "Invoiced" },
+                  { value: "Not-invoiced", label: "Not Invoiced" },
+                ]}
                 required
                 icon={FileText}
               />
@@ -656,31 +721,78 @@ const AddSales = ({
                 label="Delivery Charge"
                 type="number"
                 value={formData.deliveryCharge}
-                onChange={(e) => handleInputChange("deliveryCharge", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("deliveryCharge", e.target.value)
+                }
                 icon={Truck}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Other Charges</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Other Charges
+              </label>
               {formData.otherCharges.map((charge, index) => (
-                <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 items-end">
-                  <InputField label="Charge Name" value={charge.name} onChange={(e) => handleArrayField("otherCharges", "update", index, { name: e.target.value })} />
-                  <InputField label="Amount" type="number" value={charge.amount} onChange={(e) => handleArrayField("otherCharges", "update", index, { amount: e.target.value })} />
-                  <button type="button" onClick={() => handleArrayField("otherCharges", "remove", index)} className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center">
-                    <MinusCircle size={20} /> <span className="ml-2 text-sm">Remove</span>
+                <div
+                  key={index}
+                  className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 items-end"
+                >
+                  <InputField
+                    label="Charge Name"
+                    value={charge.name}
+                    onChange={(e) =>
+                      handleArrayField("otherCharges", "update", index, {
+                        name: e.target.value,
+                      })
+                    }
+                  />
+                  <InputField
+                    label="Amount"
+                    type="number"
+                    value={charge.amount}
+                    onChange={(e) =>
+                      handleArrayField("otherCharges", "update", index, {
+                        amount: e.target.value,
+                      })
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleArrayField("otherCharges", "remove", index)
+                    }
+                    className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
+                  >
+                    <MinusCircle size={20} />{" "}
+                    <span className="ml-2 text-sm">Remove</span>
                   </button>
                 </div>
               ))}
-              <button type="button" onClick={() => handleArrayField("otherCharges", "add", null, { newItem: { name: "", amount: "" } })} className="text-sm text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() =>
+                  handleArrayField("otherCharges", "add", null, {
+                    newItem: { name: "", amount: "" },
+                  })
+                }
+                className="text-sm text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-2"
+              >
                 <PlusCircle size={16} /> <span>Add Charge</span>
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField label="Discount" type="number" value={formData.discount} onChange={(e) => handleInputChange("discount", e.target.value)} icon={DollarSign} />
+              <InputField
+                label="Discount"
+                type="number"
+                value={formData.discount}
+                onChange={(e) => handleInputChange("discount", e.target.value)}
+                icon={DollarSign}
+              />
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Total to be Paid</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Total to be Paid
+                </label>
                 <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-xl font-bold text-blue-700">
                   ৳{totalAmountToBePaid.toLocaleString()}
                 </div>
@@ -693,21 +805,140 @@ const AddSales = ({
                   <SelectField
                     label="Payment Status"
                     value={formData.paymentStatus}
-                    onChange={(e) => handleInputChange("paymentStatus", e.target.value)}
-                    options={[{ value: "Due payment", label: "Due Payment" }, { value: "Paid payment", label: "Paid Payment" }]}
+                    onChange={(e) =>
+                      handleInputChange("paymentStatus", e.target.value)
+                    }
+                    options={[
+                      { value: "Due payment", label: "Due Payment" },
+                      { value: "Paid payment", label: "Paid Payment" },
+                    ]}
                     required
                   />
 
                   {formData.paymentStatus === "Due payment" && (
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Partial Payments</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Partial Payments
+                      </label>
                       {formData.payments.map((payment, index) => (
-                        <div key={index} className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-3 items-end">
-                          <InputField label="Amount" type="number" value={payment.amount} onChange={(e) => handleArrayField("payments", "update", index, { amount: e.target.value })} />
-                          <InputField label="Date" type="date" value={payment.date} onChange={(e) => handleArrayField("payments", "update", index, { date: e.target.value })} />
-                          <SelectField label="Method" value={payment.method} onChange={(e) => handleArrayField("payments", "update", index, { method: e.target.value, account: "" })} options={paymentMethodOptions} />
+                        <div
+                          key={index}
+                          className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-3 items-end"
+                        >
+                          <InputField
+                            label="Amount"
+                            type="number"
+                            value={payment.amount}
+                            onChange={(e) =>
+                              handleArrayField("payments", "update", index, {
+                                amount: e.target.value,
+                              })
+                            }
+                          />
+                          <InputField
+                            label="Date"
+                            type="date"
+                            value={payment.date}
+                            onChange={(e) =>
+                              handleArrayField("payments", "update", index, {
+                                date: e.target.value,
+                              })
+                            }
+                          />
+                          <SelectField
+                            label="Method"
+                            value={payment.method}
+                            onChange={(e) =>
+                              handleArrayField("payments", "update", index, {
+                                method: e.target.value,
+                                account: "",
+                              })
+                            }
+                            options={paymentMethodOptions}
+                          />
                           {payment.method && (
-                            <SelectField label="Account" value={payment.account} onChange={(e) => handleArrayField("payments", "update", index, { account: e.target.value })} options={getFilteredAccounts(payment.method).map((acc) => {
+                            <SelectField
+                              label="Account"
+                              value={payment.account}
+                              onChange={(e) =>
+                                handleArrayField("payments", "update", index, {
+                                  account: e.target.value,
+                                })
+                              }
+                              options={getFilteredAccounts(payment.method).map(
+                                (acc) => {
+                                  let label = "";
+                                  // if (acc.accountType === "Bank") {
+                                  //   label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
+                                  // } else if (acc.accountType === "Mobile Banking") {
+                                  //   label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
+                                  // } else if (acc.accountType === "Cash") {
+                                  //   label = `${acc.accountName} (${acc.accountHolderName})`;
+                                  // }
+                                  console.log(acc._id, label, "label");
+                                  return { value: acc._id, label: label };
+                                }
+                              )}
+                              required
+                            />
+                          )}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleArrayField("payments", "remove", index)
+                            }
+                            className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center"
+                          >
+                            <MinusCircle size={20} />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleArrayField("payments", "add", null, {
+                            newItem: {
+                              amount: "",
+                              date: new Date().toISOString().split("T")[0],
+                              method: "",
+                              account: "",
+                            },
+                          })
+                        }
+                        className="text-sm text-blue-600 flex items-center space-x-2"
+                      >
+                        <PlusCircle size={16} />{" "}
+                        <span>Add Partial Payment</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {formData.paymentStatus === "Paid payment" && (
+                    <>
+                      <SelectField
+                        label="Payment Method"
+                        value={formData.payments[0]?.method || ""}
+                        onChange={(e) =>
+                          handleArrayField("payments", "update", 0, {
+                            method: e.target.value,
+                            account: "",
+                          })
+                        }
+                        options={paymentMethodOptions}
+                        required
+                      />
+                      {formData.payments[0]?.method && (
+                        <SelectField
+                          label="Account"
+                          value={formData.payments[0]?.account || ""}
+                          onChange={(e) =>
+                            handleArrayField("payments", "update", 0, {
+                              account: e.target.value,
+                            })
+                          }
+                          options={getFilteredAccounts(
+                            formData.payments[0]?.method
+                          ).map((acc) => {
                             let label = "";
                             if (acc.accountType === "Bank") {
                               label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
@@ -717,34 +948,9 @@ const AddSales = ({
                               label = `${acc.accountName} (${acc.accountHolderName})`;
                             }
                             return { value: acc._id, label: label };
-                          })} required />
-                          )}
-                          <button type="button" onClick={() => handleArrayField("payments", "remove", index)} className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center">
-                            <MinusCircle size={20} />
-                          </button>
-                        </div>
-                      ))}
-                      <button type="button" onClick={() => handleArrayField("payments", "add", null, { newItem: { amount: "", date: new Date().toISOString().split("T")[0], method: "", account: "" } })} className="text-sm text-blue-600 flex items-center space-x-2">
-                        <PlusCircle size={16} /> <span>Add Partial Payment</span>
-                      </button>
-                    </div>
-                  )}
-
-                  {formData.paymentStatus === "Paid payment" && (
-                    <>
-                      <SelectField label="Payment Method" value={formData.payments[0]?.method || ""} onChange={(e) => handleArrayField("payments", "update", 0, { method: e.target.value, account: "" })} options={paymentMethodOptions} required />
-                      {formData.payments[0]?.method && (
-                        <SelectField label="Account" value={formData.payments[0]?.account || ""} onChange={(e) => handleArrayField("payments", "update", 0, { account: e.target.value })} options={getFilteredAccounts(formData.payments[0]?.method).map((acc) => {
-                        let label = "";
-                        if (acc.accountType === "Bank") {
-                          label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
-                        } else if (acc.accountType === "Mobile Banking") {
-                          label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
-                        } else if (acc.accountType === "Cash") {
-                          label = `${acc.accountName} (${acc.accountHolderName})`;
-                        }
-                        return { value: acc._id, label: label };
-                      })} required />
+                          })}
+                          required
+                        />
                       )}
                     </>
                   )}
@@ -752,7 +958,12 @@ const AddSales = ({
               </div>
             )}
 
-            <TextAreaField label="Notes" value={formData.notes} onChange={(e) => handleInputChange("notes", e.target.value)} rows={3} />
+            <TextAreaField
+              label="Notes"
+              value={formData.notes}
+              onChange={(e) => handleInputChange("notes", e.target.value)}
+              rows={3}
+            />
 
             <FormActions
               onCancel={onClose}
