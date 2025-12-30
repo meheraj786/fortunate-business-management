@@ -14,3 +14,7 @@ export const restoreFromTrash = (id) =>
 
 export const deleteTrashPermanently = (id) =>
   api.delete(`/trash/delete/${id}`);
+
+
+export const getTrashDetailById = (id) =>
+  api.get(`/trash/get-detail/${id}`);
