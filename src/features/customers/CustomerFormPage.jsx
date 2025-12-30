@@ -268,7 +268,6 @@ const CustomerForm = ({ onSave }) => {
                 name="email"
                 register={register}
                 type="email"
-                required
                 placeholder="ahmed.hassan@email.com"
                 icon={Mail}
                 error={errors.email?.message}

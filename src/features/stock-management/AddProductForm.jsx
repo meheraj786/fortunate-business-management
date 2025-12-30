@@ -9,7 +9,6 @@ import {
   Palette,
   Hash,
   DollarSign,
-  MapPin,
   Layers,
   FileText,
   Truck,
@@ -141,10 +140,6 @@ const AddProductForm = ({
       "name",
       "category",
       "LC",
-      "thickness",
-      "width",
-      "length",
-      "grade",
       "quantity",
       "unit",
       "unitPrice",
@@ -160,9 +155,6 @@ const AddProductForm = ({
 
     const quantity = parseFloat(formData.quantity);
     const unitPrice = parseFloat(formData.unitPrice);
-    const thickness = parseFloat(formData.thickness);
-    const width = parseFloat(formData.width);
-    const length = parseFloat(formData.length);
 
     if (isNaN(quantity) || quantity < 0) {
       toast.error("Quantity must be a non-negative number");
@@ -171,21 +163,6 @@ const AddProductForm = ({
 
     if (isNaN(unitPrice) || unitPrice <= 0) {
       toast.error("Unit price must be greater than 0");
-      return false;
-    }
-
-    if (isNaN(thickness) || thickness <= 0) {
-      toast.error("Thickness must be greater than 0");
-      return false;
-    }
-
-    if (isNaN(width) || width <= 0) {
-      toast.error("Width must be greater than 0");
-      return false;
-    }
-
-    if (isNaN(length) || length <= 0) {
-      toast.error("Length must be greater than 0");
       return false;
     }
 
@@ -204,9 +181,6 @@ const AddProductForm = ({
         ...formData,
         quantity: Number(formData.quantity),
         unitPrice: Number(formData.unitPrice),
-        thickness: Number(formData.thickness),
-        width: Number(formData.width),
-        length: Number(formData.length),
       };
 
       if (isEditMode) {
@@ -274,7 +248,10 @@ const AddProductForm = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-700 to-blue-800 text-white p-4 sm:p-6">
+          <div
+            style={{ backgroundColor: "rgb(0, 51, 102)" }}
+            className="text-white p-4 sm:p-6"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white/20 rounded-lg">
@@ -284,7 +261,7 @@ const AddProductForm = ({
                   <h2 className="text-xl font-bold">
                     {isEditMode ? "Edit Product" : "Add New Product"}
                   </h2>
-                  <p className="text-blue-100 text-sm mt-1">
+                  <p className="opacity-80 text-sm mt-1">
                     {isEditMode
                       ? "Update product information"
                       : "Enter details of the new product"}
@@ -306,7 +283,10 @@ const AddProductForm = ({
           <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                <Loader2
+                  className="w-8 h-8 animate-spin"
+                  style={{ color: "rgb(0, 51, 102)" }}
+                />
                 <span className="ml-3 text-gray-600">Loading form data...</span>
               </div>
             ) : (
@@ -314,7 +294,10 @@ const AddProductForm = ({
                 {/* Section 1: Basic Information */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-blue-600" />
+                    <Layers
+                      className="w-5 h-5"
+                      style={{ color: "rgb(0, 51, 102)" }}
+                    />
                     <h3 className="text-lg font-semibold text-gray-900">
                       Basic Information
                     </h3>
@@ -322,7 +305,7 @@ const AddProductForm = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <InputField
-                      label="Product Name *"
+                      label="Product Name"
                       value={formData.name}
                       onChange={(e) =>
                         handleInputChange("name", e.target.value)
@@ -334,7 +317,7 @@ const AddProductForm = ({
                     />
 
                     <SelectField
-                      label="Category *"
+                      label="Category"
                       value={formData.category}
                       onChange={(e) =>
                         handleInputChange("category", e.target.value)
@@ -347,7 +330,7 @@ const AddProductForm = ({
                     />
 
                     <SelectField
-                      label="LC *"
+                      label="LC"
                       value={formData.LC}
                       onChange={(e) => handleInputChange("LC", e.target.value)}
                       options={getLCOptions()}
@@ -374,7 +357,10 @@ const AddProductForm = ({
                 {/* Section 2: Specifications */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <Ruler className="w-5 h-5 text-blue-600" />
+                    <Ruler
+                      className="w-5 h-5"
+                      style={{ color: "rgb(0, 51, 102)" }}
+                    />
                     <h3 className="text-lg font-semibold text-gray-900">
                       Specifications
                     </h3>
@@ -382,58 +368,48 @@ const AddProductForm = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <InputField
-                      label="Thickness (mm) *"
-                      type="number"
+                      label="Thickness"
+                      type="text"
                       value={formData.thickness}
                       onChange={(e) =>
                         handleInputChange("thickness", e.target.value)
                       }
-                      placeholder="12"
-                      required
+                      placeholder="e.g., 12mm"
                       icon={Ruler}
-                      min="0.01"
-                      step="0.01"
                       disabled={submitting}
                     />
 
                     <InputField
-                      label="Width (mm) *"
-                      type="number"
+                      label="Width"
+                      type="text"
                       value={formData.width}
                       onChange={(e) =>
                         handleInputChange("width", e.target.value)
                       }
-                      placeholder="1200"
-                      required
+                      placeholder="e.g., 1.2m"
                       icon={Ruler}
-                      min="0.01"
-                      step="0.01"
                       disabled={submitting}
                     />
 
                     <InputField
-                      label="Length (mm) *"
-                      type="number"
+                      label="Length"
+                      type="text"
                       value={formData.length}
                       onChange={(e) =>
                         handleInputChange("length", e.target.value)
                       }
-                      placeholder="2400"
-                      required
+                      placeholder="e.g., 2.4m"
                       icon={Ruler}
-                      min="0.01"
-                      step="0.01"
                       disabled={submitting}
                     />
 
                     <InputField
-                      label="Grade *"
+                      label="Grade"
                       value={formData.grade}
                       onChange={(e) =>
                         handleInputChange("grade", e.target.value)
                       }
                       placeholder="ASTM A36"
-                      required
                       icon={Tag}
                       disabled={submitting}
                     />
@@ -456,7 +432,10 @@ const AddProductForm = ({
                 {/* Section 3: Inventory Details */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <Hash className="w-5 h-5 text-blue-600" />
+                    <Hash
+                      className="w-5 h-5"
+                      style={{ color: "rgb(0, 51, 102)" }}
+                    />
                     <h3 className="text-lg font-semibold text-gray-900">
                       Inventory Details
                     </h3>
@@ -464,7 +443,7 @@ const AddProductForm = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <InputField
-                      label="Quantity *"
+                      label="Quantity"
                       type="number"
                       value={formData.quantity}
                       onChange={(e) =>
@@ -479,7 +458,7 @@ const AddProductForm = ({
                     />
 
                     <SelectField
-                      label="Unit *"
+                      label="Unit"
                       value={formData.unit}
                       onChange={(e) =>
                         handleInputChange("unit", e.target.value)
@@ -492,7 +471,7 @@ const AddProductForm = ({
                     />
 
                     <InputField
-                      label="Unit Price ($) *"
+                      label="Unit Price (BDT)"
                       type="number"
                       value={formData.unitPrice}
                       onChange={(e) =>
@@ -508,38 +487,13 @@ const AddProductForm = ({
                   </div>
                 </div>
 
-                {/* Section 4: Storage Information */}
+                {/* Section 4: Additional Information */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Storage Information
-                    </h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
-                    <InputField
-                      label="Warehouse"
-                      value={warehouse?.name || "Not specified"}
-                      onChange={() => {}}
-                      disabled
-                      icon={MapPin}
-                      required
+                    <FileText
+                      className="w-5 h-5"
+                      style={{ color: "rgb(0, 51, 102)" }}
                     />
-
-                    {warehouse?.location && (
-                      <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                        <span className="font-medium">Location: </span>
-                        {warehouse.location}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Section 5: Additional Information */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-blue-600" />
                     <h3 className="text-lg font-semibold text-gray-900">
                       Additional Information (Optional)
                     </h3>
@@ -558,9 +512,17 @@ const AddProductForm = ({
                 </div>
 
                 {/* Required Fields Note */}
-                <div className="flex items-start gap-2 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <span>Fields marked with * are required</span>
+                <div
+                  className="flex items-start gap-2 text-sm p-3 rounded-lg"
+                  style={{ backgroundColor: "rgba(0, 51, 102, 0.1)" }}
+                >
+                  <AlertCircle
+                    className="w-4 h-4 mt-0.5 flex-shrink-0"
+                    style={{ color: "rgb(0, 51, 102)" }}
+                  />
+                  <span style={{ color: "rgb(0, 51, 102)" }}>
+                    Fields marked with * are required
+                  </span>
                 </div>
 
                 {/* Form Actions */}
@@ -578,7 +540,8 @@ const AddProductForm = ({
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center justify-center gap-2"
+                    style={{ backgroundColor: "rgb(0, 51, 102)" }}
+                    className="px-6 py-2.5 text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center justify-center gap-2"
                   >
                     {submitting ? (
                       <>
