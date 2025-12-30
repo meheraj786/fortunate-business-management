@@ -52,8 +52,6 @@ const AccountDetails = () => {
       const res = await api.get(`/account/get-account-details/${accountId}`);
       
       if (res.data.success) {
-        // আপনার JSON অনুযায়ী সরাসরি ডাটা সেট করা
-        // res.data.data সরাসরি একাউন্ট অবজেক্ট এবং ক্যালকুলেটেড ডাটা ধারণ করে
         setAccount(res.data.data);
       }
     } catch (error) {
@@ -85,7 +83,6 @@ const AccountDetails = () => {
 
       const res = await api.get(`/transactions/get-transactions-by-account/${accountId}?${params.toString()}`);
       if (res.data.success) {
-        // ট্রানজেকশন ডাটা হ্যান্ডলিং
         const transData = res.data.data.transactions || res.data.data;
         setTransactions(transData.docs || []);
         setPagination({
@@ -215,7 +212,6 @@ const AccountDetails = () => {
         </div>
       </div>
 
-      {/* STATS SECTION - আপনার JSON ফিল্ড অনুযায়ী */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <StatBox title="Current Balance" number={`৳${(account.balance || 0).toLocaleString()}`} Icon={Wallet} textColor="blue" />
         <StatBox title="Total Inflow" number={`৳${(account.totalIncome || 0).toLocaleString()}`} Icon={ArrowUp} textColor="green" />

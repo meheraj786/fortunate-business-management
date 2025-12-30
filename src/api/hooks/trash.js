@@ -44,3 +44,11 @@ export const useDeleteTrashPermanently = () => {
     },
   });
 };
+
+
+export const useGetDetailById = (id) =>
+  useQuery({
+    queryKey: ["trash", id],
+    queryFn: async () => (await api.getTrashDetailById(id)).data,
+    keepPreviousData: true,
+  });
