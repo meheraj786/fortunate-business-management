@@ -9,12 +9,13 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   ChartColumnIncreasing,
   CreditCard,
+  LogOut,
   Trash,
   WalletMinimal,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useLogout } from "../../api/hooks/user";
-import Button from "../ui/Button";
+import ConfirmationModal from "../ui/ConfirmationModal";
 
 const SidebarItem = ({
   icon: Icon,
@@ -75,6 +76,7 @@ const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const allMenuItems = [
     {
@@ -199,7 +201,7 @@ const Sidebar = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="flex-grow space-y-2">
                   {menuItems.map((item, i) => (
                     <SidebarItem
                       key={i}
@@ -212,70 +214,116 @@ const Sidebar = () => {
                     />
                   ))}
                 </div>
+                <div className="mt-auto">
+                  <SidebarItem
+                    icon={LogOut}
+                    label="Logout"
+                    onClick={() => setIsLogoutModalOpen(true)}
+                    collapsed={false}
+                    index={menuItems.length}
+                    active={false}
+                  />
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+        <ConfirmationModal
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={handleLogout}
+          title="Confirm Logout"
+          description="Are you sure you want to log out?"
+          isConfirming={logoutMutation.isPending}
+          confirmingText="Logging out..."
+          icon={LogOut}
+          iconBgColor="bg-sky-100"
+          iconTextColor="text-sky-600"
+          confirmButtonBgColor="bg-sky-600"
+          confirmButtonHoverBgColor="hover:bg-sky-700"
+        />
       </>
     );
   }
 
   // Desktop sidebar
   return (
-    <motion.div
-      className="bg-[#f8f9fa] h-screen sticky top-0 z-20"
-      animate={{ width: collapsed ? 80 : 256 }}
-      transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-    >
-      <div className="border-r border-gray-300 h-full p-4 flex flex-col">
-        <div
-          className={`flex items-center border-b border-gray-200 pb-4 mb-6 ${
-            collapsed ? "justify-center" : "justify-between"
-          }`}
-        >
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div
-                className="font-inter text-lg font-bold"
-                initial={{ opacity: 0, x: -15 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -15 }}
-                transition={{ duration: 0.25, ease: "easeInOut" }}
-              >
-                BUSINESS MANAGEMENT <br /> SYSTEM
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <button
-            onClick={toggleSidebar}
-            className="p-1 rounded-full hover:bg-gray-200 cursor-pointer"
-          >
-            <RiMenuLine size={20} />
-          </button>
-        </div>
-
-        <div className="space-y-2">
-          {menuItems.map((item, i) => (
-            <SidebarItem
-              key={i}
-              icon={item.icon}
-              label={item.label}
-              active={getActive() === item.label}
-              onClick={() => handleClick(item.path)}
-              index={i}
-              collapsed={collapsed}
-            />
-          ))}
-        </div>
-      </div>
-      <Button
-        className="absolute bottom-4 left-1/2 -translate-x-1/2"
-        onClick={handleLogout}
+    <>
+      <motion.div
+        className="bg-[#f8f9fa] h-screen sticky top-0 z-20"
+        animate={{ width: collapsed ? 80 : 256 }}
+        transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        Logout
-      </Button>
-    </motion.div>
+        <div className="border-r border-gray-300 h-full p-4 flex flex-col">
+          <div>
+            <div
+              className={`flex items-center border-b border-gray-200 pb-4 mb-6 ${
+                collapsed ? "justify-center" : "justify-between"
+              }`}
+            >
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.div
+                    className="font-inter text-lg font-bold"
+                    initial={{ opacity: 0, x: -15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -15 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                  >
+                    BUSINESS MANAGEMENT <br /> SYSTEM
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <button
+                onClick={toggleSidebar}
+                className="p-1 rounded-full hover:bg-gray-200 cursor-pointer"
+              >
+                <RiMenuLine size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {menuItems.map((item, i) => (
+                <SidebarItem
+                  key={i}
+                  icon={item.icon}
+                  label={item.label}
+                  active={getActive() === item.label}
+                  onClick={() => handleClick(item.path)}
+                  index={i}
+                  collapsed={collapsed}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="mt-auto">
+            <SidebarItem
+              icon={LogOut}
+              label="Logout"
+              onClick={() => setIsLogoutModalOpen(true)}
+              collapsed={collapsed}
+              index={menuItems.length}
+              active={false}
+            />
+          </div>
+        </div>
+      </motion.div>
+      <ConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="Confirm Logout"
+        description="Are you sure you want to log out?"
+        isConfirming={logoutMutation.isPending}
+        confirmingText="Logging out..."
+        icon={LogOut}
+        iconBgColor="bg-sky-100"
+        iconTextColor="text-sky-600"
+        confirmButtonBgColor="bg-sky-600"
+        confirmButtonHoverBgColor="hover:bg-sky-700"
+      />
+    </>
   );
 };
 
