@@ -22,6 +22,30 @@ const CostsSection = ({
     transition: { duration: 0.2 },
   };
 
+  const getCostNamePlaceholder = (section, index) => {
+    const placeholders = {
+      financialInfo: {
+        first: "e.g., Bank Commission",
+        other: "e.g., Swift Fees, Insurance",
+      },
+      shippingCustomsInfo: {
+        first: "e.g., Customs Duty",
+        other: "e.g., Port Fees, Freight Charges",
+      },
+      agentTransportInfo: {
+        first: "e.g., C&F Agent Bill",
+        other: "e.g., Local Transport, Labor Cost",
+      },
+    };
+
+    const sectionPlaceholders = placeholders[section];
+    if (!sectionPlaceholders) {
+      return "Enter cost name"; // Fallback
+    }
+
+    return index === 0 ? sectionPlaceholders.first : sectionPlaceholders.other;
+  };
+
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
@@ -45,7 +69,7 @@ const CostsSection = ({
                 onChange={(e) =>
                   onCostChange(section, cost.id, "name", e.target.value)
                 }
-                placeholder="e.g., Port Fees"
+                placeholder={getCostNamePlaceholder(section, index)}
                 required
               />
             </div>
