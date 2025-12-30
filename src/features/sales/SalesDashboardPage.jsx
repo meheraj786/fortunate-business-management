@@ -12,7 +12,6 @@ import AddSalesForm from "./AddSalesForm";
 import SalesTable from "./components/SalesTable";
 import SalesStatCard from "./components/SalesStatCard";
 import api from "@/services/apiService";
-import { exportToExcel } from "@/lib/exportXlsx";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import SearchBar from "@/components/ui/SearchBar";
@@ -40,7 +39,7 @@ const Sales = () => {
   const [sortBy, setSortBy] = useState("saleDate");
   const [sortOrder, setSortOrder] = useState("desc");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  const {isSuperAdmin} = useAuth();
+  const {isSuperAdmin}=useAuth();
 
   const fetchSalesData = useCallback(async () => {
     setLoading(true);
@@ -118,49 +117,6 @@ const Sales = () => {
     [sortBy]
   );
 
-  const handleExport = async () => {
-    const toastId = toast.loading("Exporting sales data...");
-    try {
-      const response = await api.get(`/sales/sales-summary-table`, {
-        params: { limit: 10000 },
-      });
-
-      if (response.data.success) {
-        const allSales = response.data.data.sales;
-        const formattedSales = allSales.map((sale) => ({
-          Product: sale.product?.name || "N/A",
-          LC_Number: sale.lc?.number || "N/A",
-          Quantity: `${sale.quantity?.toLocaleString() || 0} ${
-            sale.unit?.name || ""
-          }`,
-          Unit_Price: `$${sale.pricePerUnit?.toFixed(2) || "0.00"}`,
-          Total_Amount: `$${(sale.totalAmountToBePaid || 0).toFixed(2)}`,
-          Customer: sale.customer?.name || "N/A",
-          Invoice_Status: sale.invoiceStatus || "N/A",
-          Payment_Status: sale.paymentStatus || "N/A",
-          Sale_Date: sale.saleDate
-            ? new Date(sale.saleDate).toLocaleDateString("en-GB")
-            : "N/A",
-        }));
-
-        const today = new Date().toISOString().split("T")[0];
-        exportToExcel(
-          formattedSales,
-          `Sales_Report_${today}.xlsx`,
-          `Sales Data ${today}`
-        );
-        toast.success("Sales Data Exported Successfully", { id: toastId });
-      } else {
-        throw new Error("Failed to fetch data for export");
-      }
-    } catch (error) {
-      console.error("Error exporting sales data:", error);
-      toast.error(error.message || "Could not export sales data", {
-        id: toastId,
-      });
-    }
-  };
-
   if (error && !loading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
@@ -201,15 +157,6 @@ const Sales = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={handleExport}
-              disabled={loading || salesData.length === 0}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 touch-manipulation"
-              aria-label="Export sales data to Excel"
-            >
-              <Download className="w-4 h-4" aria-hidden="true" />
-              Export XLSX
-            </button>
             <button
               onClick={() => setShowAddSale(true)}
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors active:scale-95 touch-manipulation"
@@ -361,3 +308,4 @@ const Sales = () => {
 };
 
 export default Sales;
+

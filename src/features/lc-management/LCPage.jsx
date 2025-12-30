@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import api from "@/services/apiService";
 import { Link } from "react-router";
-import { exportToExcel } from "@/lib/exportXlsx";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "../../context/AuthContext";
@@ -142,61 +141,6 @@ const LC = () => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
-  const handleExport = async () => {
-    const toastId = toast.loading("Preparing data for export...");
-
-    try {
-      const isSearchOrFilter = searchQuery || filterStatus;
-      const endpoint = isSearchOrFilter ? `/lc/summary/search` : `/lc/summary`;
-      const params = {
-        limit: pagination.totalDocuments,
-        sortBy,
-        sortOrder,
-      };
-
-      if (searchQuery) params.searchQuery = searchQuery;
-      if (filterStatus) params.status = filterStatus;
-
-      const response = await api.get(endpoint, { params });
-
-      if (!response.data?.data?.data) {
-        throw new Error("No data available for export");
-      }
-
-      const formattedData = response.data.data.data.map((lc) => ({
-        LC_Number: lc.lcNumber || "N/A",
-        Status: lc.status || "N/A",
-        Supplier: lc.supplierName || "N/A",
-        Opening_Date: lc.lcOpeningDate
-          ? new Date(lc.lcOpeningDate).toLocaleDateString()
-          : "N/A",
-        Arrival_Date: lc.dueDate
-          ? new Date(lc.dueDate).toLocaleDateString()
-          : "N/A",
-        Products:
-          lc.products
-            ?.map((p) => `${p.itemName} (${p.quantity} ${p.unit})`)
-            .join(", ") || "No products",
-        Total_Quantity:
-          lc.products?.reduce((acc, item) => acc + (item.quantity || 0), 0) ||
-          0,
-        Total_Cost_BDT: lc.totalCost || 0,
-      }));
-
-      const today = new Date().toISOString().split("T")[0];
-      exportToExcel(
-        formattedData,
-        `LC_Report_${today}.xlsx`,
-        `LC Data ${today}`
-      );
-
-      toast.success("LC Table Exported Successfully", { id: toastId });
-    } catch (error) {
-      console.error("Export error:", error);
-      toast.error(error.message || "Failed to export data", { id: toastId });
-    }
-  };
-
   if (error && !loading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
@@ -237,15 +181,6 @@ const LC = () => {
                           <Link to="/trash/lc" className="sm:w-auto w-full" >LC Trash</Link>
             }
 
-            <button
-              onClick={handleExport}
-              disabled={loading || lcData.length === 0}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 touch-manipulation"
-              aria-label="Export LC data to Excel"
-            >
-              <Grid2x2Check size={20} aria-hidden="true" />
-              <span>Export XLSX</span>
-            </button>
             <Link to="/lc-form" className="sm:w-auto w-full">
               <button className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors w-full active:scale-95 touch-manipulation">
                 <Plus size={20} aria-hidden="true" />
