@@ -1,0 +1,243 @@
+import React from "react";
+import { Calendar, Plus, Target, Menu, X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { useHover } from "@/hooks/useHover";
+
+const MotionButton = ({ children, ...props }) => {
+  const canHover = useHover();
+  return (
+    <motion.button
+      whileHover={canHover ? { scale: 1.05 } : {}}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      {...props}
+    >
+      {children}
+    </motion.button>
+  );
+};
+const DailyCashHeader = ({
+  onAddTransaction,
+  selectedDate,
+  handleDateChange,
+  dailyCashStatus,
+  openDay,
+  closeDay,
+  isOpeningDay,
+  isClosingDay,
+  getLocalDateString,
+  isToday,
+}) => {
+  const { isSuperAdmin } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  const handleOpenDay = () => openDay(selectedDate);
+  const handleCloseDay = () => {
+    if (window.confirm("Are you sure you want to close the cash for the day? This cannot be undone.")) {
+      closeDay(selectedDate);
+    }
+  };
+
+  const statusBanner = () => {
+    if (dailyCashStatus === "Closed") {
+      return (
+        <div className="p-3 rounded-lg text-center bg-gray-100 text-gray-800 border border-gray-300 text-sm font-semibold">
+          📋 This day's account is closed
+        </div>
+      );
+    }
+    if (dailyCashStatus === "Open" && isToday) {
+      return (
+        <div className="p-3 rounded-lg text-center bg-blue-50 text-blue-800 border border-blue-200 text-sm font-semibold">
+          ✅ This day's account is active
+        </div>
+      );
+    }
+    if (dailyCashStatus === "Open" && !isToday) {
+      return (
+        <div className="p-3 rounded-lg text-center bg-yellow-50 text-yellow-800 border border-yellow-300 text-sm font-semibold">
+          ❗ This past day's account was not closed
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const MobileActionsMenu = () => (
+    <AnimatePresence>
+      {isMobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="md:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: "0%" }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Actions</h3>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-full hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {/* Buttons inside mobile menu */}
+              <MotionButton
+                onClick={() => { onAddTransaction("income"); setIsMobileMenuOpen(false); }}
+                disabled={dailyCashStatus !== "Open"}
+                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors font-medium text-sm disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Income</span>
+              </MotionButton>
+              <MotionButton
+                onClick={() => { onAddTransaction("expense"); setIsMobileMenuOpen(false); }}
+                disabled={dailyCashStatus !== "Open"}
+                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium text-sm disabled:opacity-50"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Expense</span>
+              </MotionButton>
+              {isSuperAdmin && dailyCashStatus === "Open" && (
+                <MotionButton
+                  onClick={() => { handleCloseDay(); setIsMobileMenuOpen(false); }}
+                  disabled={isClosingDay}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl bg-primary text-white hover:bg-primary-hover font-medium text-sm disabled:opacity-50"
+                >
+                  <Target className="w-4 h-4" />
+                  <span>{isClosingDay ? "Closing..." : "Close Day"}</span>
+                </MotionButton>
+              )}
+              {isSuperAdmin && (dailyCashStatus === "Closed" || dailyCashStatus === "Not Opened Yet") && (
+                <MotionButton
+                  onClick={() => { handleOpenDay(); setIsMobileMenuOpen(false); }}
+                  disabled={isOpeningDay}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl bg-primary text-white hover:bg-primary-hover font-medium text-sm disabled:opacity-50"
+                >
+                  <Target className="w-4 h-4" />
+                  <span>{isOpeningDay ? "Opening..." : "Open Day"}</span>
+                </MotionButton>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 space-y-6">
+        {/* Top Row: Title and Actions */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+              Daily Cash Flow
+            </h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+              Track daily cash flow and business expenses in real-time
+            </p>
+          </div>
+          
+          {/* Desktop Actions */}
+          <div className="hidden md:flex flex-shrink-0 flex-wrap gap-3">
+            <MotionButton
+              onClick={() => onAddTransaction("income")}
+              disabled={dailyCashStatus !== "Open"}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium text-sm disabled:opacity-50 shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Income</span>
+            </MotionButton>
+            <MotionButton
+              onClick={() => onAddTransaction("expense")}
+              disabled={dailyCashStatus !== "Open"}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium text-sm disabled:opacity-50 shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Expense</span>
+            </MotionButton>
+            {isSuperAdmin && dailyCashStatus === "Open" && (
+              <MotionButton
+                onClick={handleCloseDay}
+                disabled={isClosingDay}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white hover:bg-primary-hover font-medium text-sm shadow-sm disabled:opacity-50"
+              >
+                <Target className="w-4 h-4" />
+                <span>{isClosingDay ? "Closing..." : "Close Day"}</span>
+              </MotionButton>
+            )}
+            {isSuperAdmin && (dailyCashStatus === "Closed" || dailyCashStatus === "Not Opened Yet") && (
+              <MotionButton
+                onClick={handleOpenDay}
+                disabled={isOpeningDay}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white hover:bg-primary-hover font-medium text-sm shadow-sm disabled:opacity-50"
+              >
+                <Target className="w-4 h-4" />
+                <span>{isOpeningDay ? "Opening..." : "Open Day"}</span>
+              </MotionButton>
+            )}
+          </div>
+          
+          {/* Mobile Actions Button */}
+          <MotionButton
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="md:hidden w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover font-medium text-base shadow-sm"
+          >
+            <Menu className="w-5 h-5" />
+            <span>Actions</span>
+          </MotionButton>
+        </div>
+
+        {/* Second Row: Date Selection and Status */}
+        <div className="space-y-4 pt-6 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/10 rounded-xl">
+                <Calendar className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <span className="text-base font-medium text-gray-700">
+                  Selected Date
+                </span>
+                <div className="text-sm text-gray-500 mt-1">
+                  {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </div>
+              </div>
+            </div>
+            
+            <div className="w-full sm:w-auto sm:min-w-[240px]">
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => handleDateChange(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                max={getLocalDateString(new Date())}
+              />
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            {statusBanner()}
+          </div>
+        </div>
+      </div>
+      
+      <MobileActionsMenu />
+    </>
+  );
+};
+
+export default DailyCashHeader;

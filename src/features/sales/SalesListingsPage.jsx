@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "@/services/apiService";
 import SalesTable from "./components/SalesTable";
+import SalesTableSkeleton from "./components/SalesTableSkeleton"; // Import the skeleton component
 import SearchBar from "@/components/ui/SearchBar";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import toast from "react-hot-toast";
@@ -139,13 +140,16 @@ const SalesListPage = ({
             </div>
 
             <div className="min-h-[400px]">
-              <SalesTable
-                sales={sales}
-                isLoading={loading}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-              />
+              {loading ? (
+                <SalesTableSkeleton />
+              ) : (
+                <SalesTable
+                  sales={sales}
+                  sortBy={sortBy}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+              )}
             </div>
 
             {pagination.totalPages > 1 && (

@@ -190,7 +190,7 @@ const TransactionList = ({ refresh }) => {
   return (
     <>
       <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-4 sm:p-6 border-b">
+        <div className="p-4 sm:p-6 border-gray-200 border-b">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-gray-700" />
             All Transactions
@@ -200,7 +200,7 @@ const TransactionList = ({ refresh }) => {
           </p>
         </div>
 
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-gray-200 space-y-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />

@@ -31,8 +31,6 @@ export default function Category() {
   const deleteCatMutation = useDeleteCategory();
   const {isSuperAdmin} = useAuth();
 
-  console.log(category, "cat");
-
   const {
     register,
     handleSubmit,
