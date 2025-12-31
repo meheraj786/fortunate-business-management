@@ -148,13 +148,14 @@ const AddSales = ({
             editData.payments?.map((p) => ({
               ...p,
               date: new Date(p.date).toISOString().split("T")[0],
-              account: p.accountId?._id || p.accountId || "",
+              account: p.account?._id || "",
             })) || [],
           notes: editData.notes || "",
         };
 
         setFormData(editFormData);
 
+        // Fetch products for the warehouse in edit mode
         if (editData.warehouse?._id) {
           await fetchProducts(editData.warehouse._id);
         }
@@ -166,6 +167,7 @@ const AddSales = ({
     }
   }, [isEditMode, isOpen, editData, fetchProducts, initialFormData]);
 
+  // Handle warehouse change
   const handleWarehouseChange = useCallback(
     async (warehouseId) => {
       setFormData((prev) => ({
@@ -183,6 +185,7 @@ const AddSales = ({
     [fetchProducts]
   );
 
+  // Handle product change
   const handleProductChange = useCallback(
     (productId) => {
       const product = products.find((p) => p._id === productId);
@@ -206,6 +209,7 @@ const AddSales = ({
     [products]
   );
 
+  // Handle unit change
   const handleUnitChange = useCallback(
     (unitId) => {
       const product = products.find((p) => p._id === formData.productId);
@@ -234,6 +238,7 @@ const AddSales = ({
     [products, units, formData.productId]
   );
 
+  // Calculate totals
   const { totalAmount, totalAmountToBePaid } = useMemo(() => {
     const quantity = parseFloat(formData.quantity) || 0;
     const pricePerUnit = parseFloat(formData.pricePerUnit) || 0;
@@ -258,6 +263,7 @@ const AddSales = ({
     formData.discount,
   ]);
 
+  // Handle invoice status change
   const handleInvoiceStatusChange = useCallback((status) => {
     if (status === "Not-invoiced") {
       setFormData((prev) => ({
@@ -275,6 +281,7 @@ const AddSales = ({
     }
   }, []);
 
+  // Handle payment status change
   const handlePaymentStatusChange = useCallback(
     (status) => {
       if (status === "Paid payment") {
@@ -301,6 +308,7 @@ const AddSales = ({
     [totalAmountToBePaid]
   );
 
+  // Generic input change handler
   const handleInputChange = useCallback(
     (field, value) => {
       switch (field) {
@@ -332,35 +340,43 @@ const AddSales = ({
     ]
   );
 
+  // Filter products based on warehouse and category
   const availableProducts = useMemo(() => {
     if (!formData.warehouseId) return [];
+
     let filtered = products;
     if (formData.categoryId) {
       filtered = filtered.filter(
         (p) => p.category?._id === formData.categoryId
       );
     }
+
     return filtered;
   }, [products, formData.warehouseId, formData.categoryId]);
 
+  // Handle array operations
   const handleArrayField = useCallback(
     (field, action, index = null, updates = {}) => {
       setFormData((prev) => {
         const arrayField = [...prev[field]];
+
         switch (action) {
           case "add":
             return { ...prev, [field]: [...arrayField, updates.newItem] };
+
           case "remove":
             return {
               ...prev,
               [field]: arrayField.filter((_, i) => i !== index),
             };
+
           case "update":
             if (index !== null) {
               arrayField[index] = { ...arrayField[index], ...updates };
               return { ...prev, [field]: arrayField };
             }
             return prev;
+
           default:
             return prev;
         }
@@ -369,17 +385,7 @@ const AddSales = ({
     []
   );
 
-  // Helper to map UI methods to Backend expected methods
-  const normalizeMethod = (method) => {
-    if (!method) return "";
-    const map = {
-      Cash: "cash",
-      Bank: "bank",
-      "Mobile Banking": "mobile-banking",
-    };
-    return map[method] || method.toLowerCase();
-  };
-
+  // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -388,8 +394,14 @@ const AddSales = ({
       : `/sales/create-sales`;
     const method = isEditMode ? "patch" : "post";
 
+    // Validation
     if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
       toast.error("Please enter a valid quantity");
+      return;
+    }
+
+    if (!formData.pricePerUnit || parseFloat(formData.pricePerUnit) <= 0) {
+      toast.error("Please enter a valid price per unit");
       return;
     }
 
@@ -403,6 +415,7 @@ const AddSales = ({
     );
 
     try {
+      // Prepare sales data
       const salesData = {
         quantity: parseFloat(formData.quantity),
         unit: formData.unit,
@@ -417,12 +430,14 @@ const AddSales = ({
         notes: formData.notes,
       };
 
+      // Add product, warehouse, and category for new sales
       if (!isEditMode) {
         salesData.product = formData.productId;
         salesData.warehouse = formData.warehouseId;
         salesData.category = formData.categoryId;
       }
 
+      // Handle customer data
       if (formData.customerType === "existing") {
         const selectedCustomer = customers.find(
           (c) => c.name === formData.customerName
@@ -448,72 +463,122 @@ const AddSales = ({
         };
       }
 
+      // Handle invoiced sales
       if (formData.invoiceStatus === "Invoiced") {
         salesData.paymentStatus = formData.paymentStatus;
 
-        if (formData.payments && formData.payments.length > 0) {
-          salesData.payments = formData.payments.map((p) => {
-            if (!p.method) throw new Error("Payment method is required");
-            if (!p.account)
-              throw new Error(`Account is required for ${p.method} payment`);
+        if (formData.paymentStatus === "Paid payment") {
+          // Validate full payment
+          const payment = formData.payments[0];
+          if (!payment?.method) {
+            toast.error("Please select a payment method");
+            toast.dismiss(loadingToast);
+            return;
+          }
 
-            return {
-              amount: parseFloat(p.amount) || 0,
-              date: new Date(p.date),
-              method: normalizeMethod(p.method),
-              accountId: p.account,
-            };
-          });
+          if (
+            (payment.method === "bank" ||
+              payment.method === "mobile-banking") &&
+            !payment.account
+          ) {
+            toast.error(
+              `Please select an account for ${payment.method} payment`
+            );
+            toast.dismiss(loadingToast);
+            return;
+          }
+
+          salesData.payments = [
+            {
+              amount: parseFloat(payment.amount) || totalAmountToBePaid,
+              date: new Date(payment.date),
+              method: payment.method,
+              ...(payment.method !== "cash" && { account: payment.account }),
+            },
+          ];
+        } else if (
+          formData.paymentStatus === "Due payment" &&
+          formData.payments.length > 0
+        ) {
+          // Validate partial payments
+          const invalidPayment = formData.payments.find(
+            (p) => !p.amount || !p.date || !p.method
+          );
+
+          if (invalidPayment) {
+            toast.error("Please fill all payment details");
+            toast.dismiss(loadingToast);
+            return;
+          }
+
+          salesData.payments = formData.payments.map((p) => ({
+            amount: parseFloat(p.amount) || 0,
+            date: new Date(p.date),
+            method: p.method,
+            ...(p.method !== "cash" && { account: p.account }),
+          }));
         }
       }
 
+      // Make API call
       const response = await api({ method, url, data: salesData });
       toast.dismiss(loadingToast);
 
       if (response.data.success) {
-        toast.success(response.data.message || "Success");
+        toast.success(
+          response.data.message ||
+            (isEditMode
+              ? "Sale updated successfully!"
+              : "Sale created successfully!")
+        );
         onSaleAdded(response.data.data || response.data);
-        if (!isEditMode) setFormData(initialFormData);
+        if (!isEditMode) {
+          setFormData(initialFormData);
+        }
         onClose();
+      } else {
+        throw new Error(response.data.message || "Operation failed");
       }
     } catch (error) {
       toast.dismiss(loadingToast);
       console.error("Error submitting sale:", error);
-      toast.error(error.response?.data?.message || error.message || "Failed");
+
+      let errorMessage = isEditMode
+        ? "Failed to update sale"
+        : "Failed to create sale";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     }
   };
 
+  // Payment method options
   const paymentMethodOptions = useMemo(
     () => [
-      { value: "cash", label: "Cash" },
+      { value: "Cash", label: "Cash" },
       { value: "Bank", label: "Bank Transfer" },
       { value: "Mobile Banking", label: "Mobile Banking" },
     ],
     []
   );
 
+  // Filtered accounts for payment methods
   const getFilteredAccounts = useCallback(
     (method) => {
       return accounts
         .filter((acc) => acc.accountType === method)
-        .map((acc) => {
-          console.log(acc, "acc");
-          let label = "";
-          if (acc.accountType === "Bank") {
-            label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
-          } else if (acc.accountType === "Mobile Banking") {
-            label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
-          } else if (acc.accountType === "Cash") {
-            label = `${acc.accountName} (${acc.accountHolderName})`;
-          }
-          console.log(acc._id, label, "valueeeeeeeeeee");
-          return { value: acc._id, label: label };
-        });
+        .map((acc) => ({
+          value: acc._id,
+          label: `${acc.accountName} (${acc.bankName || acc.serviceName})`,
+        }));
     },
     [accounts]
   );
-  console.log(accounts, "accounts");
-  console.log(getFilteredAccounts("Bank"), "getFilteredAccounts");
 
   if (!isOpen) return null;
 
@@ -543,6 +608,7 @@ const AddSales = ({
             onSubmit={handleSubmit}
             className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-grow"
           >
+            {/* Warehouse, Category, Product */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <SelectField
                 label="Warehouse"
@@ -558,7 +624,9 @@ const AddSales = ({
                 required
                 icon={Home}
                 disabled={isEditMode || loading}
+                loading={loading && !warehouses.length}
               />
+
               <SelectField
                 label="Category"
                 name="categoryId"
@@ -572,7 +640,9 @@ const AddSales = ({
                 }))}
                 icon={Tag}
                 disabled={isEditMode || !formData.warehouseId || loading}
+                loading={loading && !categories.length}
               />
+
               <SelectField
                 label="Product"
                 name="productId"
@@ -585,9 +655,11 @@ const AddSales = ({
                 required
                 icon={Package}
                 disabled={isEditMode || !formData.warehouseId || loading}
+                loading={loading && !products.length && formData.warehouseId}
               />
             </div>
 
+            {/* Quantity, Unit, Price, Total */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <InputField
                 label="Quantity"
@@ -596,10 +668,12 @@ const AddSales = ({
                 value={formData.quantity}
                 onChange={(e) => handleInputChange("quantity", e.target.value)}
                 required
+                placeholder="0"
                 icon={Hash}
                 min="0"
                 step="0.01"
               />
+
               <SelectField
                 label="Unit"
                 name="unit"
@@ -608,7 +682,10 @@ const AddSales = ({
                 options={units.map((u) => ({ value: u._id, label: u.name }))}
                 required
                 icon={Ruler}
+                disabled={loading}
+                loading={loading && !units.length}
               />
+
               <InputField
                 label="Price Per Unit"
                 name="pricePerUnit"
@@ -618,20 +695,25 @@ const AddSales = ({
                   handleInputChange("pricePerUnit", e.target.value)
                 }
                 required
+                placeholder="0.00"
                 icon={DollarSign}
                 min="0"
                 step="0.01"
               />
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Subtotal
                 </label>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-lg font-semibold text-gray-900">
-                  ৳{totalAmount.toLocaleString()}
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-lg font-semibold text-gray-900">
+                    ${totalAmount.toFixed(2)}
+                  </p>
                 </div>
               </div>
             </div>
 
+            {/* Customer Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SelectField
                 label="Customer Type"
@@ -645,7 +727,9 @@ const AddSales = ({
                   { value: "manual", label: "Manual Input" },
                 ]}
                 required
+                disabled={loading}
               />
+
               <InputField
                 label="Sale Date"
                 name="saleDate"
@@ -654,9 +738,11 @@ const AddSales = ({
                 onChange={(e) => handleInputChange("saleDate", e.target.value)}
                 required
                 icon={Calendar}
+                disabled={loading}
               />
             </div>
 
+            {/* Customer Details */}
             {formData.customerType === "existing" ? (
               <SelectField
                 label="Select Customer"
@@ -671,37 +757,51 @@ const AddSales = ({
                 }))}
                 required
                 icon={User}
+                disabled={loading}
+                loading={loading && !customers.length}
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <InputField
                   label="Customer Name"
+                  name="customerName"
                   value={formData.customerName}
                   onChange={(e) =>
                     handleInputChange("customerName", e.target.value)
                   }
                   required
+                  placeholder="Enter customer name"
                   icon={User}
+                  disabled={loading}
                 />
+
                 <InputField
                   label="Phone Number"
+                  name="customerPhone"
                   value={formData.customerPhone}
                   onChange={(e) =>
                     handleInputChange("customerPhone", e.target.value)
                   }
+                  placeholder="Enter phone number"
                   icon={User}
+                  disabled={loading}
                 />
+
                 <InputField
                   label="Address"
+                  name="customerAddress"
                   value={formData.customerAddress}
                   onChange={(e) =>
                     handleInputChange("customerAddress", e.target.value)
                   }
+                  placeholder="Enter address"
                   icon={User}
+                  disabled={loading}
                 />
               </div>
             )}
 
+            {/* Invoice Status and Delivery */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SelectField
                 label="Invoice Status"
@@ -716,18 +816,26 @@ const AddSales = ({
                 ]}
                 required
                 icon={FileText}
+                disabled={loading}
               />
+
               <InputField
                 label="Delivery Charge"
+                name="deliveryCharge"
                 type="number"
                 value={formData.deliveryCharge}
                 onChange={(e) =>
                   handleInputChange("deliveryCharge", e.target.value)
                 }
+                placeholder="0.00"
                 icon={Truck}
+                min="0"
+                step="0.01"
+                disabled={loading}
               />
             </div>
 
+            {/* Other Charges */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Other Charges
@@ -738,16 +846,21 @@ const AddSales = ({
                   className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 items-end"
                 >
                   <InputField
-                    label="Charge Name"
+                    label={`Charge Name ${index + 1}`}
+                    name={`otherCharges[${index}].name`}
                     value={charge.name}
                     onChange={(e) =>
                       handleArrayField("otherCharges", "update", index, {
                         name: e.target.value,
                       })
                     }
+                    placeholder="e.g., Loading Charge"
+                    disabled={loading}
                   />
+
                   <InputField
                     label="Amount"
+                    name={`otherCharges[${index}].amount`}
                     type="number"
                     value={charge.amount}
                     onChange={(e) =>
@@ -755,19 +868,26 @@ const AddSales = ({
                         amount: e.target.value,
                       })
                     }
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    disabled={loading}
                   />
+
                   <button
                     type="button"
                     onClick={() =>
                       handleArrayField("otherCharges", "remove", index)
                     }
-                    className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
+                    className="h-10 px-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
+                    disabled={loading}
                   >
-                    <MinusCircle size={20} />{" "}
+                    <MinusCircle size={20} />
                     <span className="ml-2 text-sm">Remove</span>
                   </button>
                 </div>
               ))}
+
               <button
                 type="button"
                 onClick={() =>
@@ -775,35 +895,48 @@ const AddSales = ({
                     newItem: { name: "", amount: "" },
                   })
                 }
-                className="text-sm text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg flex items-center space-x-2"
+                className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                disabled={loading}
               >
-                <PlusCircle size={16} /> <span>Add Charge</span>
+                <PlusCircle size={16} />
+                <span>Add Charge</span>
               </button>
             </div>
 
+            {/* Discount and Total */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputField
                 label="Discount"
+                name="discount"
                 type="number"
                 value={formData.discount}
                 onChange={(e) => handleInputChange("discount", e.target.value)}
+                placeholder="0.00"
                 icon={DollarSign}
+                min="0"
+                step="0.01"
+                disabled={loading}
               />
+
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Total to be Paid
+                  Total Amount to be Paid
                 </label>
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-xl font-bold text-blue-700">
-                  ৳{totalAmountToBePaid.toLocaleString()}
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-xl font-bold text-blue-700">
+                    ${totalAmountToBePaid.toFixed(2)}
+                  </p>
                 </div>
               </div>
             </div>
 
+            {/* Invoice Payment Section */}
             {formData.invoiceStatus === "Invoiced" && (
               <div className="border-t border-gray-200 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <SelectField
                     label="Payment Status"
+                    name="paymentStatus"
                     value={formData.paymentStatus}
                     onChange={(e) =>
                       handleInputChange("paymentStatus", e.target.value)
@@ -813,6 +946,11 @@ const AddSales = ({
                       { value: "Paid payment", label: "Paid Payment" },
                     ]}
                     required
+                    icon={DollarSign}
+                    disabled={
+                      loading ||
+                      (isEditMode && editData.invoiceStatus === "Invoiced")
+                    }
                   />
 
                   {formData.paymentStatus === "Due payment" && (
@@ -827,6 +965,7 @@ const AddSales = ({
                         >
                           <InputField
                             label="Amount"
+                            name={`payments[${index}].amount`}
                             type="number"
                             value={payment.amount}
                             onChange={(e) =>
@@ -834,9 +973,15 @@ const AddSales = ({
                                 amount: e.target.value,
                               })
                             }
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                            disabled={loading}
                           />
+
                           <InputField
                             label="Date"
+                            name={`payments[${index}].date`}
                             type="date"
                             value={payment.date}
                             onChange={(e) =>
@@ -844,9 +989,12 @@ const AddSales = ({
                                 date: e.target.value,
                               })
                             }
+                            disabled={loading}
                           />
+
                           <SelectField
                             label="Method"
+                            name={`payments[${index}].method`}
                             value={payment.method}
                             onChange={(e) =>
                               handleArrayField("payments", "update", index, {
@@ -855,44 +1003,41 @@ const AddSales = ({
                               })
                             }
                             options={paymentMethodOptions}
+                            disabled={loading}
                           />
-                          {payment.method && (
+
+                          {(payment.method === "Bank" ||
+                            payment.method === "Mobile Banking" ||
+                            payment.method === "Cash") && (
                             <SelectField
                               label="Account"
+                              name={`payments[${index}].account`}
                               value={payment.account}
                               onChange={(e) =>
                                 handleArrayField("payments", "update", index, {
                                   account: e.target.value,
                                 })
                               }
-                              options={getFilteredAccounts(payment.method).map(
-                                (acc) => {
-                                  let label = "";
-                                  // if (acc.accountType === "Bank") {
-                                  //   label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
-                                  // } else if (acc.accountType === "Mobile Banking") {
-                                  //   label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
-                                  // } else if (acc.accountType === "Cash") {
-                                  //   label = `${acc.accountName} (${acc.accountHolderName})`;
-                                  // }
-                                  console.log(acc._id, label, "label");
-                                  return { value: acc._id, label: label };
-                                }
-                              )}
+                              options={getFilteredAccounts(payment.method)}
                               required
+                              disabled={loading}
                             />
                           )}
+
                           <button
                             type="button"
                             onClick={() =>
                               handleArrayField("payments", "remove", index)
                             }
-                            className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center"
+                            className="h-10 px-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
+                            disabled={loading}
                           >
                             <MinusCircle size={20} />
+                            <span className="ml-2 text-sm">Remove</span>
                           </button>
                         </div>
                       ))}
+
                       <button
                         type="button"
                         onClick={() =>
@@ -905,9 +1050,10 @@ const AddSales = ({
                             },
                           })
                         }
-                        className="text-sm text-blue-600 flex items-center space-x-2"
+                        className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors"
+                        disabled={loading}
                       >
-                        <PlusCircle size={16} />{" "}
+                        <PlusCircle size={16} />
                         <span>Add Partial Payment</span>
                       </button>
                     </div>
@@ -917,6 +1063,7 @@ const AddSales = ({
                     <>
                       <SelectField
                         label="Payment Method"
+                        name="payments[0].method"
                         value={formData.payments[0]?.method || ""}
                         onChange={(e) =>
                           handleArrayField("payments", "update", 0, {
@@ -926,10 +1073,15 @@ const AddSales = ({
                         }
                         options={paymentMethodOptions}
                         required
+                        disabled={loading}
                       />
-                      {formData.payments[0]?.method && (
+
+                      {(formData.payments[0]?.method === "Bank" ||
+                        formData.payments[0]?.method === "Mobile Banking" ||
+                        formData.payments[0]?.method === "Cash") && (
                         <SelectField
                           label="Account"
+                          name="payments[0].account"
                           value={formData.payments[0]?.account || ""}
                           onChange={(e) =>
                             handleArrayField("payments", "update", 0, {
@@ -938,18 +1090,9 @@ const AddSales = ({
                           }
                           options={getFilteredAccounts(
                             formData.payments[0]?.method
-                          ).map((acc) => {
-                            let label = "";
-                            if (acc.accountType === "Bank") {
-                              label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
-                            } else if (acc.accountType === "Mobile Banking") {
-                              label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
-                            } else if (acc.accountType === "Cash") {
-                              label = `${acc.accountName} (${acc.accountHolderName})`;
-                            }
-                            return { value: acc._id, label: label };
-                          })}
+                          )}
                           required
+                          disabled={loading}
                         />
                       )}
                     </>
@@ -958,13 +1101,18 @@ const AddSales = ({
               </div>
             )}
 
+            {/* Notes */}
             <TextAreaField
-              label="Notes"
+              label="Additional Notes (Optional)"
+              name="notes"
               value={formData.notes}
               onChange={(e) => handleInputChange("notes", e.target.value)}
+              placeholder="Any additional information about this sale..."
               rows={3}
+              disabled={loading}
             />
 
+            {/* Form Actions */}
             <FormActions
               onCancel={onClose}
               onSave={handleSubmit}
