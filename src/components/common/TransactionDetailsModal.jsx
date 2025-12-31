@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import FormDialog from "@/components/ui/FormDialog";
 import {
@@ -14,49 +14,21 @@ import {
   RefreshCw,
   User,
   Hash,
-  ExternalLink,
   XCircle,
   Trash,
 } from "lucide-react";
-import api from "@/services/apiService";
 import toast from "react-hot-toast";
 import Button from "../ui/Button";
-import { useDeleteTransaction } from "../../api/hooks/transaction";
+import { useDeleteTransaction, useTransaction } from "@/api/hooks/transaction";
 
 const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
-  const [transaction, setTransaction] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Use react-query hook to fetch transaction details
+  const { data: response, isLoading, isError } = useTransaction(transactionId);
+  const transaction = response?.data;
 
   const deleteMutation = useDeleteTransaction();
-
-  useEffect(() => {
-    if (isOpen && transactionId) {
-      fetchTransactionDetails();
-    } else {
-      setTransaction(null);
-    }
-  }, [isOpen, transactionId]);
-
-  const fetchTransactionDetails = async () => {
-    if (!transactionId) return;
-
-    setLoading(true);
-    try {
-      const response = await api.get(
-        `/transactions/get-transaction-details/${transactionId}`
-      );
-      if (response.data.success) {
-        setTransaction(response.data.data);
-      } else {
-        toast.error("Failed to fetch transaction details");
-      }
-    } catch (error) {
-      toast.error("Failed to load transaction details");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("en-US", {
@@ -65,7 +37,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
       year: "numeric",
     });
 
-  const formatCurrency = (amount) => `৳${amount.toLocaleString("en-BD")}`;
+  const formatCurrency = (amount) => `৳${amount?.toLocaleString("en-BD") || 0}`;
 
   const getPaymentMethodIcon = (method) => {
     switch (method) {
@@ -93,14 +65,21 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
     >
       <div className="space-y-4">
         {/* Loading */}
-        {loading && (
+        {isLoading && (
           <div className="flex justify-center py-8">
             <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
           </div>
         )}
 
+        {/* Error */}
+        {isError && !isLoading && (
+            <div className="text-center py-8 text-red-500">
+                Failed to load transaction details.
+            </div>
+        )}
+
         {/* Details */}
-        {transaction && !loading && (
+        {transaction && !isLoading && !isError && (
           <div className="space-y-4">
             {/* Amount Banner */}
             <div
@@ -222,12 +201,13 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
                         onClose();
                       },
                       onError: () => {
-                        toast.error("Delete failed");
+                        // The hook's default onError should already show a toast
                       },
                     });
                   }}
+                  disabled={deleteMutation.isLoading}
                 >
-                  Confirm Delete
+                  {deleteMutation.isLoading ? "Deleting..." : "Confirm Delete"}
                 </Button>
               </div>
             </div>
@@ -244,7 +224,7 @@ const Info = ({ label, icon, value }) => (
       {icon}
       {label}
     </div>
-    <div className="font-medium text-gray-900 truncate">{value}</div>
+    <div className="font-medium text-gray-900 truncate">{value || 'N/A'}</div>
   </div>
 );
 

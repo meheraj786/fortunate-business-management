@@ -3,17 +3,17 @@ import api from "./axios";
 export const createTransaction = (data) =>
   api.post("/transactions/create", data);
 
-export const getAllTransactions = () =>
-  api.get("/transactions/get-all");
+export const getAllTransactions = (params) =>
+  api.get("/transactions/get-all-transactions", { params });
 
 export const getTransactionById = (id) =>
-  api.get(`/transactions/get/${id}`);
+  api.get(`/transactions/get-transaction-details/${id}`);
 
-export const getTransactionsByAccount = (accountId) =>
-  api.get(`/transactions/get-by-account/${accountId}`);
+export const getTransactionsByAccount = (accountId, params) =>
+  api.get(`/transactions/get-transactions-by-account/${accountId}`, { params });
 
 export const deleteTransaction = (id) =>
   api.delete(`/transactions/delete/${id}`);
 
 export const getTransactionStats = () =>
-  api.get("/transactions/get-stats");
+  api.get("/transactions/get-transaction-stats");

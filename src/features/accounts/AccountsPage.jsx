@@ -1,51 +1,28 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Building, Smartphone, Receipt, Plus, DollarSign, Trash } from "lucide-react";
-import { handleError } from "@/utils/handle-error";
-import api from "@/services/apiService";
+import React, { useState } from "react";
+import { Building, Smartphone, Receipt, Plus, DollarSign, Trash, Wallet, ArrowUp, ArrowDown } from "lucide-react"; // Import necessary icons for StatBox
+import { useTransactionStats } from "@/api/hooks/transaction";
 import StatBox from "@/components/ui/StatBox";
 import AccountList from "./AccountListPage";
 import TransactionList from "./TransactionListPage";
-import AddAccountForm from "./AddAccountForm"; // New unified form
+import AddAccountForm from "./AddAccountForm";
 import AddTransactionForm from "./AddTransactionFormPage";
 import { useAuth } from "../../context/AuthContext";
 import { Link } from "react-router";
+import Skeleton from "react-loading-skeleton";
+
 
 const Accounts = () => {
-  const {isSuperAdmin} = useAuth();
-  // Unified form state
+  const { isSuperAdmin } = useAuth();
+  const { data: transactionStatsResponse, isLoading: isLoadingStats } = useTransactionStats();
+  const transactionStats = transactionStatsResponse?.data;
+
+  // State for controlling modals
   const [isAccountFormOpen, setIsAccountFormOpen] = useState(false);
   const [preselectedAccountType, setPreselectedAccountType] = useState("Bank");
-  
-  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
-  const [transactionStats, setTransactionStats] = useState(null);
+  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
 
-  // States for refreshing child components
-  const [refreshAccountList, setRefreshAccountList] = useState(false);
-  const [refreshTransactionList, setRefreshTransactionList] = useState(false);
-
-  // Fetch Transaction Stats
-  const fetchTransactionStats = useCallback(async () => {
-    try {
-      const response = await api.get(`/transactions/get-transaction-stats`);
-      if (response.data.success) {
-        setTransactionStats(response.data.data);
-      } else {
-        handleError({ response });
-      }
-    } catch (error) {
-      handleError(
-        error,
-        "An unexpected error occurred while fetching transaction stats."
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTransactionStats();
-  }, [fetchTransactionStats]);
-
-  // Handlers for Unified Account Form
+  // Handlers for Add/Edit Account Form
   const handleEditClick = (account) => {
     setEditingAccount(account);
     setIsAccountFormOpen(true);
@@ -60,16 +37,52 @@ const Accounts = () => {
   const handleAccountFormSuccess = () => {
     setIsAccountFormOpen(false);
     setEditingAccount(null);
-    setRefreshAccountList((prev) => !prev); // Trigger refresh in AccountList
-    setRefreshTransactionList((prev) => !prev); // Also trigger refresh for transactions
-    fetchTransactionStats(); // Refresh stats after account changes
   };
 
   // Handler for Transaction Form
   const handleTransactionFormSuccess = () => {
     setIsTransactionFormOpen(false);
-    setRefreshTransactionList((prev) => !prev); // Trigger refresh in TransactionList
-    fetchTransactionStats(); // Refresh stats after new transaction
+  };
+
+  const renderTransactionStats = () => {
+    if (isLoadingStats) {
+      return (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} height={100} borderRadius="0.5rem" />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
+        <StatBox
+          title="Total Transactions"
+          number={transactionStats?.totalTransactionsCount || 0}
+          Icon={Receipt}
+          textColor="blue"
+        />
+        <StatBox
+          title="Total Amount"
+          number={`৳${(transactionStats?.totalAmount || 0).toLocaleString()}`}
+          Icon={DollarSign}
+          textColor="green"
+        />
+        <StatBox
+          title="Bank Transfers"
+          number={transactionStats?.totalBankTransactionCount || 0}
+          Icon={Building}
+          textColor="blue"
+        />
+        <StatBox
+          title="Mobile Banking"
+          number={transactionStats?.totalMobileBankingTransactionCount || 0}
+          Icon={Smartphone}
+          textColor="purple"
+        />
+      </div>
+    );
   };
 
   return (
@@ -94,59 +107,28 @@ const Accounts = () => {
                 <Plus className="w-4 h-4" />
                 Add Transaction
               </button>
-              {
-                isSuperAdmin && (
-                  <Link to="/trash/account">
+              {isSuperAdmin && (
+                <Link to="/trash/account">
                   <button
-                    onClick={() => setIsAccountFormOpen(false)}
                     className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors justify-center text-sm"
                   >
                     <Trash/>
                     Trash Account
                   </button>
-                  </Link>
-                )
-              }
+                </Link>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
-          <StatBox
-            title="Total Transactions"
-            number={transactionStats?.totalTransactionsCount || 0}
-            icon={Receipt}
-            color="blue"
-          />
-          <StatBox
-            title="Total Amount"
-            number={`৳${(
-              transactionStats?.totalAmount || 0
-            ).toLocaleString()}`}
-            icon={DollarSign}
-            color="green"
-          />
-          <StatBox
-            title="Bank Transfers"
-            number={transactionStats?.totalBankTransactionCount || 0}
-            icon={Building}
-            color="blue"
-          />
-          <StatBox
-            title="Mobile Banking"
-            number={transactionStats?.totalMobileBankingTransactionCount || 0}
-            icon={Smartphone}
-            color="purple"
-          />
-        </div>
+        {renderTransactionStats()}
 
         <AccountList
           onEdit={handleEditClick}
           onAddAccount={handleOpenAddAccountForm}
-          refresh={refreshAccountList}
         />
 
-        <TransactionList refresh={refreshTransactionList} />
+        <TransactionList />
       </div>
 
       {/* Unified Add/Edit Account Form */}

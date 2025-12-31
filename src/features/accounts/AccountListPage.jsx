@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router";
+import React, { useState, useMemo } from "react";
+import { Link } from "react-router"; // Corrected import
 import {
   Building,
   Smartphone,
@@ -12,59 +12,53 @@ import {
   Loader2,
   Wallet,
 } from "lucide-react";
-import { handleError } from "@/utils/handle-error";
-import api from "@/services/apiService";
+import { useAccounts } from "@/api/hooks/account"; // Using react-query hook
+import { handleError } from "@/utils/handle-error"; // For clipboard error
 
-const AccountList = ({ onAddAccount, refresh }) => {
-  const [accounts, setAccounts] = useState([]);
-  const [mobileBankingAccounts, setMobileBankingAccounts] = useState([]);
-  const [cashAccounts, setCashAccounts] = useState([]);
-  const [loading, setLoading] = useState(true);
+const AccountList = ({ onAddAccount }) => {
+  const { data: allAccounts, isLoading, isError, error } = useAccounts();
   const [copiedText, setCopiedText] = useState("");
 
-  const fetchAccounts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/account/get-all-accounts`);
-      if (response.data.success) {
-        const allAccounts = response.data.data;
-        setAccounts(
-          allAccounts.filter((acc) => acc.accountType === "Bank")
-        );
-        setMobileBankingAccounts(
-          allAccounts.filter((acc) => acc.accountType === "Mobile Banking")
-        );
-        setCashAccounts(
-          allAccounts.filter((acc) => acc.accountType === "Cash")
-        );
-      } else {
-        handleError({ response });
-      }
-    } catch (error) {
-      handleError(error, "An unexpected error occurred while fetching accounts.");
-    } finally {
-      setLoading(false);
+  const { bankAccounts, mobileBankingAccounts, cashAccounts } = useMemo(() => {
+    const bank = [];
+    const mobile = [];
+    const cash = [];
+    if (allAccounts?.data) {
+      allAccounts.data.forEach((acc) => {
+        if (acc.accountType === "Bank") bank.push(acc);
+        else if (acc.accountType === "Mobile Banking") mobile.push(acc);
+        else if (acc.accountType === "Cash") cash.push(acc);
+      });
     }
-  }, []);
-
-  useEffect(() => {
-    fetchAccounts();
-  }, [fetchAccounts, refresh]); // Depend on refresh prop
+    return { 
+      bankAccounts: bank, 
+      mobileBankingAccounts: mobile, 
+      cashAccounts: cash 
+    };
+  }, [allAccounts]);
 
   const copyToClipboard = (e, text, type) => {
     e.preventDefault();
     e.stopPropagation();
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedText(`${type}_${text}`);
-      setTimeout(() => setCopiedText(""), 2000);
-    });
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopiedText(`${type}_${text}`);
+        setTimeout(() => setCopiedText(""), 2000);
+      },
+      (err) => {
+        handleError(err, "Failed to copy text.");
+      }
+    );
   };
-
-  console.log(accounts, "accounts");
   
+  if (isError) {
+    // You can use the error object to display a more specific message if needed
+    return <div className="text-center text-red-500 py-10">Failed to load accounts.</div>
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+      {/* Bank Accounts */}
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
@@ -72,20 +66,20 @@ const AccountList = ({ onAddAccount, refresh }) => {
             Bank Accounts
           </h2>
           <button
-            onClick={() => onAddAccount("Bank")} // Use the new prop
-            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
+            onClick={() => onAddAccount("Bank")}
+            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           >
             <Plus size={16} />
             Add Account
           </button>
         </div>
         <div className="space-y-4">
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center items-center p-8">
               <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
             </div>
-          ) : accounts.length > 0 ? (
-            accounts.map((account) => (
+          ) : bankAccounts.length > 0 ? (
+            bankAccounts.map((account) => (
               <Link
                 to={`/accounts/${account._id}`}
                 key={account._id}
@@ -146,6 +140,7 @@ const AccountList = ({ onAddAccount, refresh }) => {
         </div>
       </div>
 
+      {/* Mobile Banking Accounts */}
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
@@ -153,15 +148,15 @@ const AccountList = ({ onAddAccount, refresh }) => {
             Mobile Banking
           </h2>
           <button
-            onClick={() => onAddAccount("Mobile Banking")} // Use the new prop
-            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
+            onClick={() => onAddAccount("Mobile Banking")}
+            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           >
             <Plus size={16} />
             Add Account
           </button>
         </div>
         <div className="space-y-4">
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center items-center p-8">
               <Loader2 className="animate-spin h-8 w-8 text-purple-500" />
             </div>
@@ -224,6 +219,7 @@ const AccountList = ({ onAddAccount, refresh }) => {
         </div>
       </div>
 
+      {/* Cash Accounts */}
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
@@ -231,15 +227,15 @@ const AccountList = ({ onAddAccount, refresh }) => {
             Cash Accounts
           </h2>
           <button
-            onClick={() => onAddAccount("Cash")} // Use the new prop
-            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-[#003b75] text-white rounded-lg hover:bg-[#002a5c] transition-colors"
+            onClick={() => onAddAccount("Cash")}
+            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-xs sm:text-sm bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
           >
             <Plus size={16} />
             Add Account
           </button>
         </div>
         <div className="space-y-4">
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center items-center p-8">
               <Loader2 className="animate-spin h-8 w-8 text-green-500" />
             </div>

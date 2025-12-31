@@ -14,6 +14,13 @@ export const useAccount = (id) =>
     queryFn: async () => (await api.getAccountById(id)).data,
     enabled: !!id,
   });
+  
+export const useAccountDetails = (id) =>
+  useQuery({
+    queryKey: ["accounts", "details", id],
+    queryFn: async () => (await api.getAccountDetails(id)).data,
+    enabled: !!id,
+  });
 
 export const useCreateAccount = () => {
   const qc = useQueryClient();
@@ -28,7 +35,10 @@ export const useUpdateAccount = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => api.updateAccount(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["accounts"] }),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["accounts"] });
+      qc.invalidateQueries({ queryKey: ["accounts", "details", id] });
+    },
     onError: (error) => handleError(error, "Failed to update account."),
   });
 };

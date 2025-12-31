@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import { handleError } from "@/utils/handle-error";
-import api from "@/services/apiService";
 import toast from "react-hot-toast";
+import { useCreateAccount, useUpdateAccount } from "@/api/hooks/account";
 
 const initialFormData = {
   accountName: "",
@@ -20,10 +20,13 @@ const initialFormData = {
 
 const AddAccountForm = ({ isOpen, onClose, editingAccount, onSuccess, accountType }) => {
   const [formData, setFormData] = useState(initialFormData);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
+  const createAccountMutation = useCreateAccount();
+  const updateAccountMutation = useUpdateAccount();
+
   const isEditing = !!editingAccount;
   const currentAccountType = isEditing ? editingAccount.accountType : accountType;
+  const isSubmitting = createAccountMutation.isLoading || updateAccountMutation.isLoading;
 
   useEffect(() => {
     if (isOpen) {
@@ -52,42 +55,35 @@ const AddAccountForm = ({ isOpen, onClose, editingAccount, onSuccess, accountTyp
   };
 
   const handleSaveAccount = async () => {
-    setIsSubmitting(true);
-    try {
-      const url = isEditing
-        ? `/account/update-account/${editingAccount._id}`
-        : `/account/create-account`;
-      const method = isEditing ? "patch" : "post";
-
-      const { accountName, initialBalance, accountHolderName } = formData;
-      let payload = { accountType: currentAccountType, accountName, accountHolderName };
-      
-      if (isEditing) {
-        payload.balance = Number(formData.initialBalance) || 0;
-      } else {
-        payload.initialBalance = Number(initialBalance) || 0;
-      }
-
-      if (currentAccountType === "Bank") {
-        payload = { ...payload, bankName: formData.bankName, branchName: formData.branchName, accountNumber: formData.accountNumber, swiftCode: formData.swiftCode, routingNumber: formData.routingNumber };
-      } else if (currentAccountType === "Mobile Banking") {
-        payload = { ...payload, serviceName: formData.serviceName, mobileNumber: formData.mobileNumber };
-      }
-      
-      const response = await api[method](url, payload);
-
-      if (response.data.success) {
-        toast.success(response.data.message || `Account ${isEditing ? "updated" : "created"} successfully!`);
-        onSuccess();
-        onClose();
-      } else {
-        handleError(response, `Failed to ${isEditing ? "update" : "create"} account.`);
-      }
-    } catch (error) {
-      handleError(error, "An unexpected error occurred.");
-    } finally {
-      setIsSubmitting(false);
+    const { accountName, initialBalance, accountHolderName } = formData;
+    let payload = { accountType: currentAccountType, accountName, accountHolderName };
+    
+    if (isEditing) {
+      payload.balance = Number(formData.initialBalance) || 0;
+    } else {
+      payload.initialBalance = Number(initialBalance) || 0;
     }
+
+    if (currentAccountType === "Bank") {
+      payload = { ...payload, bankName: formData.bankName, branchName: formData.branchName, accountNumber: formData.accountNumber, swiftCode: formData.swiftCode, routingNumber: formData.routingNumber };
+    } else if (currentAccountType === "Mobile Banking") {
+      payload = { ...payload, serviceName: formData.serviceName, mobileNumber: formData.mobileNumber };
+    }
+    
+    const mutation = isEditing ? updateAccountMutation : createAccountMutation;
+    const mutationPayload = isEditing ? { id: editingAccount._id, data: payload } : payload;
+
+    mutation.mutate(mutationPayload, {
+      onSuccess: (response) => {
+        toast.success(response.data.message || `Account ${isEditing ? "updated" : "created"} successfully!`);
+        onSuccess(); // This will trigger parent component logic (e.g., refresh lists)
+        onClose();
+      },
+      onError: (error) => {
+        // The hook's onError will handle the toast, but you can add more logic here if needed
+        handleError(error, `Failed to ${isEditing ? "update" : "create"} account.`);
+      }
+    });
   };
 
   const getTitle = () => {

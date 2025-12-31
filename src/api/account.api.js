@@ -8,6 +8,9 @@ export const getAllAccounts = () =>
 
 export const getAccountById = (id) =>
   api.get(`/account/get-account/${id}`);
+  
+export const getAccountDetails = (id) =>
+  api.get(`/account/get-account-details/${id}`);
 
 export const updateAccount = (id, data) =>
   api.patch(`/account/update-account/${id}`, data);

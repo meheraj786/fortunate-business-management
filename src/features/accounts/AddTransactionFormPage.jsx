@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import { handleError } from "@/utils/handle-error";
-import api from "@/services/apiService";
 import toast from "react-hot-toast";
+import { useAccounts } from "@/api/hooks/account";
+import { useCreateTransaction } from "@/api/hooks/transaction";
 
 const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   const initialTransactionData = {
@@ -15,26 +16,14 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
     amount: "",
   };
 
-  const [transactionFormData, setTransactionFormData] = useState(
-    initialTransactionData
-  );
-  const [accounts, setAccounts] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [transactionFormData, setTransactionFormData] = useState(initialTransactionData);
+  
+  // Fetch accounts using react-query hook
+  const { data: accountsData, isLoading: areAccountsLoading } = useAccounts();
+  const accounts = accountsData?.data || [];
 
-  useEffect(() => {
-    if (isOpen) {
-      api
-        .get(`/account/get-all-accounts`)
-        .then((res) => {
-          if (res.data.success) {
-            setAccounts(res.data.data);
-          }
-        })
-        .catch((err) => {
-          handleError(err, "Failed to load accounts for the form.");
-        });
-    }
-  }, [isOpen]);
+  // Mutation for creating a transaction
+  const createTransactionMutation = useCreateTransaction();
 
   const handleTransactionFormChange = (e) => {
     const { name, value } = e.target;
@@ -42,36 +31,24 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleAddTransaction = async () => {
-    setIsSubmitting(true);
-    try {
-      const { account, date, description, type, amount } =
-        transactionFormData;
-      if (!account || !description || !type || !amount) {
-        toast.error("Please fill all required fields.");
-        setIsSubmitting(false);
-        return;
-      }
-
-      const payload = {
-        ...transactionFormData,
-        amount: Number(amount),
-      };
-
-      const response = await api.post(`/transaction`, payload);
-
-      if (response.data.success) {
-        toast.success(
-          response.data.message || "Transaction created successfully!"
-        );
-        onSuccess();
-      } else {
-        handleError(response, "Failed to create transaction.");
-      }
-    } catch (error) {
-      handleError(error, "An unexpected error occurred.");
-    } finally {
-      setIsSubmitting(false);
+    const { account, date, description, type, amount } = transactionFormData;
+    if (!account || !description || !type || !amount) {
+      toast.error("Please fill all required fields.");
+      return;
     }
+
+    const payload = {
+      ...transactionFormData,
+      amount: Number(amount),
+    };
+    
+    createTransactionMutation.mutate(payload, {
+      onSuccess: (response) => {
+        toast.success(response.data.message || "Transaction created successfully!");
+        onSuccess();
+      },
+      // onError is handled by the hook definition
+    });
   };
 
   return (
@@ -79,10 +56,10 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
       open={isOpen}
       onClose={onClose}
       title="Add New Transaction"
-      primaryButtonText={isSubmitting ? "Adding..." : "Add Transaction"}
+      primaryButtonText={createTransactionMutation.isLoading ? "Adding..." : "Add Transaction"}
       secondaryButtonText="Cancel"
       onSubmit={handleAddTransaction}
-      isPrimaryButtonDisabled={isSubmitting}
+      isPrimaryButtonDisabled={createTransactionMutation.isLoading || areAccountsLoading}
     >
       <div className="space-y-4">
         <SelectField
@@ -92,9 +69,11 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
           onChange={handleTransactionFormChange}
           options={accounts.map((acc) => ({
             value: acc._id,
-            label: `${acc.accountName} (${acc.bankName || acc.serviceName})`,
+            label: `${acc.accountName} (${acc.bankName || acc.serviceName || 'Cash'})`,
           }))}
           required
+          loading={areAccountsLoading}
+          placeholder="Select an account"
         />
         <SelectField
           label="Transaction Type"

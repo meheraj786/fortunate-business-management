@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Search,
   Filter,
@@ -8,8 +8,7 @@ import {
   X,
   ChevronDown,
 } from "lucide-react";
-import { handleError } from "@/utils/handle-error";
-import api from "@/services/apiService";
+import { useTransactions, useTransaction } from "@/api/hooks/transaction"; // Updated import
 import TransactionDetailsModal from "@/components/common/TransactionDetailsModal";
 import TransactionTable from "@/components/common/TransactionTable";
 import Pagination from "@/components/ui/Pagination";
@@ -58,20 +57,10 @@ const SkeletonRow = () => (
   </tr>
 );
 
-const TransactionList = ({ refresh }) => {
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    totalPages: 1,
-    totalDocs: 0,
-  });
-  const [categories, setCategories] = useState([]);
-
+const TransactionList = () => {
+  // State for UI controls
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
   const [filters, setFilters] = useState({
     transactionType: "all",
     paymentMethod: "all",
@@ -82,79 +71,50 @@ const TransactionList = ({ refresh }) => {
     sortOrder: "desc",
   });
   const [showFilters, setShowFilters] = useState(false);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // Transaction Modal State
+  // State for Modals
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [selectedTransactionId, setSelectedTransactionId] = useState(null);
 
-  const fetchTransactions = useCallback(
-    async (page = 1) => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          page,
-          limit: pagination.limit,
-          sortBy: sorting.sortBy,
-          sortOrder: sorting.sortOrder,
-        });
+  // Constructing params for the react-query hook
+  const queryParams = useMemo(() => {
+    const params = {
+      page,
+      limit: 10,
+      sortBy: sorting.sortBy,
+      sortOrder: sorting.sortOrder,
+    };
+    if (debouncedSearchTerm) params.search = debouncedSearchTerm;
+    if (filters.transactionType !== "all") params.transactionType = filters.transactionType;
+    if (filters.paymentMethod !== "all") params.paymentMethod = filters.paymentMethod;
+    if (filters.category !== "all") params.category = filters.category;
+    return params;
+  }, [page, sorting, filters, debouncedSearchTerm]);
 
-        if (debouncedSearchTerm) params.append("search", debouncedSearchTerm);
-        if (filters.transactionType !== "all")
-          params.append("transactionType", filters.transactionType);
-        if (filters.paymentMethod !== "all")
-          params.append("paymentMethod", filters.paymentMethod);
-        if (filters.category !== "all")
-          params.append("category", filters.category);
+  // Using the react-query hook for data fetching
+  const { data: response, isLoading, isError } = useTransactions(queryParams);
+  
+  // Derived state from the hook's response
+  const transactions = response?.data?.transactions?.docs || [];
+  const pagination = response?.data?.transactions || {};
+  const categories = response?.data?.categories || [];
 
-        const response = await api.get(
-          `/transactions/get-all-transactions?${params.toString()}`
-        );
-
-        if (response.data.success) {
-          const { transactions: transData, categories: catData } =
-            response.data.data;
-          setTransactions(transData.docs);
-          setPagination({
-            page: transData.page,
-            limit: transData.limit,
-            totalPages: transData.totalPages,
-            totalDocs: transData.totalDocs,
-          });
-          setCategories(catData || []);
-        } else {
-          handleError(response, "Failed to fetch transactions.");
-        }
-      } catch (error) {
-        handleError(
-          error,
-          "An unexpected error occurred while fetching transactions."
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-    [pagination.limit, sorting, filters, debouncedSearchTerm]
-  );
-
-  useEffect(() => {
-    fetchTransactions(pagination.page);
-  }, [fetchTransactions, refresh]);
-
+  // Handlers
   const handlePageChange = (newPage) => {
     if (newPage > 0 && newPage <= pagination.totalPages) {
-      setPagination((p) => ({ ...p, page: newPage }));
-      fetchTransactions(newPage);
+      setPage(newPage);
     }
   };
 
   const handleFilterChange = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
-    setPagination((p) => ({ ...p, page: 1 })); // Reset page
+    setPage(1); // Reset page on filter change
   };
 
   const handleSortByChange = (e) => {
     setSorting((prev) => ({ ...prev, sortBy: e.target.value }));
-    setPagination((p) => ({ ...p, page: 1 }));
+    setPage(1);
   };
 
   const toggleSortOrder = () => {
@@ -162,26 +122,22 @@ const TransactionList = ({ refresh }) => {
       ...prev,
       sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
     }));
-    setPagination((p) => ({ ...p, page: 1 }));
+    setPage(1);
   };
 
   const clearFilters = () => {
-    setFilters({
-      transactionType: "all",
-      paymentMethod: "all",
-      category: "all",
-    });
+    setFilters({ transactionType: "all", paymentMethod: "all", category: "all" });
     setSearchTerm("");
     setSorting({ sortBy: "date", sortOrder: "desc" });
     setShowFilters(false);
-    setPagination((p) => ({ ...p, page: 1 }));
+    setPage(1);
   };
 
   const handleTransactionClick = (transactionId) => {
     setSelectedTransactionId(transactionId);
     setIsTransactionModalOpen(true);
   };
-
+  
   const handleCloseTransactionModal = () => {
     setIsTransactionModalOpen(false);
     setSelectedTransactionId(null);
@@ -189,7 +145,7 @@ const TransactionList = ({ refresh }) => {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white rounded-lg shadow-sm mt-6">
         <div className="p-4 sm:p-6 border-gray-200 border-b">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-gray-700" />
@@ -230,11 +186,7 @@ const TransactionList = ({ refresh }) => {
               onClick={toggleSortOrder}
               className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
             >
-              {sorting.sortOrder === "asc" ? (
-                <ArrowUp className="w-4 h-4" />
-              ) : (
-                <ArrowDown className="w-4 h-4" />
-              )}
+              {sorting.sortOrder === "asc" ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -260,29 +212,21 @@ const TransactionList = ({ refresh }) => {
                 <select
                   name="transactionType"
                   value={filters.transactionType}
-                  onChange={(e) =>
-                    handleFilterChange("transactionType", e.target.value)
-                  }
+                  onChange={(e) => handleFilterChange("transactionType", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-lg bg-white"
                 >
                   {transactionTypeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
                 <select
                   name="paymentMethod"
                   value={filters.paymentMethod}
-                  onChange={(e) =>
-                    handleFilterChange("paymentMethod", e.target.value)
-                  }
+                  onChange={(e) => handleFilterChange("paymentMethod", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-lg bg-white"
                 >
                   {paymentMethodOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
                 <select
@@ -294,9 +238,7 @@ const TransactionList = ({ refresh }) => {
                 >
                   <option value="all">All Categories</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
+                    <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
               </div>
@@ -305,28 +247,17 @@ const TransactionList = ({ refresh }) => {
         </div>
 
         <div className="overflow-x-auto">
-          {loading ? (
+          {isLoading ? (
             <table className="w-full">
               <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Description / Source
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                    Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Payment Method
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Account
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Date
-                  </th>
+                 {/* Header for skeleton, matches TransactionTable */}
+                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description / Source</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Method</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Account</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -335,6 +266,8 @@ const TransactionList = ({ refresh }) => {
                 ))}
               </tbody>
             </table>
+          ) : isError ? (
+             <div className="text-center py-16 text-red-500">Failed to load transactions.</div>
           ) : transactions.length > 0 ? (
             <TransactionTable
               transactions={transactions}
@@ -347,14 +280,10 @@ const TransactionList = ({ refresh }) => {
                 No transactions found
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Try adjusting your search or filter to find what you're looking
-                for.
+                Try adjusting your search or filter to find what you're looking for.
               </p>
               <div className="mt-6">
-                <button
-                  onClick={clearFilters}
-                  className="text-sm font-medium text-primary hover:text-primary-hover"
-                >
+                <button onClick={clearFilters} className="text-sm font-medium text-primary hover:text-primary-hover">
                   Clear all filters
                 </button>
               </div>
@@ -362,7 +291,7 @@ const TransactionList = ({ refresh }) => {
           )}
         </div>
 
-        {!loading && pagination.totalPages > 1 && (
+        {!isLoading && pagination.totalPages > 1 && (
           <div className="p-4 border-t">
             <Pagination
               currentPage={pagination.page}
