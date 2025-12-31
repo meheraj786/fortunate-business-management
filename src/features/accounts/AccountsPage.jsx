@@ -63,6 +63,7 @@ const Accounts = () => {
     setIsAccountFormOpen(false);
     setEditingAccount(null);
     setRefreshAccountList((prev) => !prev); // Trigger refresh in AccountList
+    setRefreshTransactionList((prev) => !prev); // Also trigger refresh for transactions
     fetchTransactionStats(); // Refresh stats after account changes
   };
 
