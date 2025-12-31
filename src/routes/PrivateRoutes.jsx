@@ -1,16 +1,14 @@
 import { Navigate, useLocation } from "react-router";
 import { useAuth } from "@/context/AuthContext";
+import LayoutSkeleton from "@/components/layout/LayoutSkeleton"; // Import the layout skeleton
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    // Show a full-page layout skeleton while auth state is loading
+    return <LayoutSkeleton />;
   }
 
   if (!user) {
