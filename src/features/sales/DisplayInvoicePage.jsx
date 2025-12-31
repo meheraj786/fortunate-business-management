@@ -8,8 +8,8 @@ import {
   Share2,
   Loader2,
 } from "lucide-react";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
-import toast from "react-hot-toast";
 
 const DisplayInvoice = () => {
   const navigate = useNavigate();
@@ -30,12 +30,11 @@ const DisplayInvoice = () => {
           setInvoice(response.data.data);
         } else {
           setError(response.data.message || "Failed to fetch invoice data.");
-          toast.error(response.data.message || "Failed to fetch invoice data.");
+          handleError(response, "Failed to fetch invoice data.");
         }
       } catch (err) {
         setError("An unexpected error occurred.");
-        toast.error("An unexpected error occurred while fetching the invoice.");
-        console.error(err);
+        handleError(err, "An unexpected error occurred while fetching the invoice.");
       } finally {
         setLoading(false);
       }

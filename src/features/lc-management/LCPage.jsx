@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import api from "@/services/apiService";
 import { Link } from "react-router";
-import toast from "react-hot-toast";
+import { handleError } from "@/utils/handle-error";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "../../context/AuthContext";
 
@@ -75,9 +75,8 @@ const LC = () => {
         throw new Error(response.data?.message || "Failed to load LC data");
       }
     } catch (error) {
-      console.error("Error fetching LC data:", error);
       setError(error.message || "Could not fetch LC data.");
-      toast.error("Could not fetch LC data.");
+      handleError(error, "Could not fetch LC data.");
     } finally {
       setLoading(false);
     }
@@ -102,8 +101,7 @@ const LC = () => {
         });
       }
     } catch (error) {
-      console.error("Error fetching LC counts:", error);
-      // Don't show toast for this as it's secondary data
+      handleError(error, "Error fetching LC counts");
     }
   }, []);
 

@@ -25,6 +25,7 @@ import StatBox from "@/components/ui/StatBox";
 import AddProductForm from "./AddProductForm";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import api from "@/services/apiService";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/hooks/useDebounce";
 import Pagination from "@/components/ui/Pagination";
@@ -80,9 +81,8 @@ const WarehouseStock = () => {
       const response = await api.get(`/warehouse/${warehouseId}`);
       setWarehouse(response.data.data);
     } catch (err) {
-      console.error("Error fetching warehouse details:", err);
       setError("Failed to load warehouse details");
-      toast.error("Failed to load warehouse details");
+      handleError(err, "Failed to load warehouse details");
     } finally {
       setLoading((prev) => ({ ...prev, warehouse: false }));
     }
@@ -120,12 +120,11 @@ const WarehouseStock = () => {
       } else {
         setProducts([]);
         setTotalPages(1);
-        toast.error("Failed to load products");
+        handleError(res, "Failed to load products");
       }
     } catch (err) {
-      console.error("Failed to fetch products:", err);
-      toast.error("Could not load products. Please try again.");
       setProducts([]);
+      handleError(err, "Could not load products. Please try again.");
     } finally {
       setLoading((prev) => ({ ...prev, products: false }));
     }

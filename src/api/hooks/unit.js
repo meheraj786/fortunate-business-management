@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/utils/handle-error";
 import * as api from "@/api/unit.api";
 
 export const useUnits = () =>
@@ -20,6 +21,7 @@ export const useCreateUnit = () => {
     mutationFn: api.createUnit,
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["units"] }),
+    onError: (error) => handleError(error, "Failed to create unit."),
   });
 };
 
@@ -29,6 +31,7 @@ export const useUpdateUnit = () => {
     mutationFn: ({ id, data }) => api.updateUnit(id, data),
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["units"] }),
+    onError: (error) => handleError(error, "Failed to update unit."),
   });
 };
 
@@ -38,5 +41,6 @@ export const useDeleteUnit = () => {
     mutationFn: api.deleteUnit,
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["units"] }),
+    onError: (error) => handleError(error, "Failed to delete unit."),
   });
 };

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/utils/handle-error";
 import * as api from "@/api/product.api";
 
 // Products by warehouse
@@ -38,6 +39,7 @@ export const useCreateProduct = (warehouseId) => {
       qc.invalidateQueries({
         queryKey: ["products", warehouseId],
       }),
+    onError: (error) => handleError(error, "Failed to create product."),
   });
 };
 
@@ -51,6 +53,7 @@ export const useUpdateProduct = (warehouseId) => {
       qc.invalidateQueries({
         queryKey: ["products", warehouseId],
       }),
+    onError: (error) => handleError(error, "Failed to update product."),
   });
 };
 
@@ -64,5 +67,6 @@ export const useDeleteProduct = (warehouseId) => {
       qc.invalidateQueries({
         queryKey: ["products", warehouseId],
       }),
+    onError: (error) => handleError(error, "Failed to delete product."),
   });
 };

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/utils/handle-error";
 import * as api from "@/api/lc.api";
 
 export const useLCs = () =>
@@ -18,5 +19,6 @@ export const useCreateLC = () => {
   return useMutation({
     mutationFn: api.createLC,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["lcs"] }),
+    onError: (error) => handleError(error, "Failed to create LC."),
   });
 };

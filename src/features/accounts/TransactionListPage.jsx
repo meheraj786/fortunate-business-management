@@ -8,7 +8,7 @@ import {
   X,
   ChevronDown,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
 import TransactionDetailsModal from "@/components/common/TransactionDetailsModal";
 import TransactionTable from "@/components/common/TransactionTable";
@@ -122,12 +122,11 @@ const TransactionList = ({ refresh }) => {
           });
           setCategories(catData || []);
         } else {
-          toast.error(
-            response.data.message || "Failed to fetch transactions."
-          );
+          handleError(response, "Failed to fetch transactions.");
         }
       } catch (error) {
-        toast.error(
+        handleError(
+          error,
           "An unexpected error occurred while fetching transactions."
         );
       } finally {

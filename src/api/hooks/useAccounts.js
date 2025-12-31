@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
+import { handleError } from "@/utils/handle-error";
 import api from '@/services/apiService';
-import toast from 'react-hot-toast';
 
 const useAccounts = () => {
   const [accounts, setAccounts] = useState([]);
@@ -16,8 +16,7 @@ const useAccounts = () => {
         throw new Error("Failed to fetch accounts");
       }
     } catch (error) {
-      console.error("Failed to fetch accounts:", error);
-      toast.error("Failed to load accounts. Please try again.");
+      handleError(error, "Failed to load accounts. Please try again.");
     } finally {
       setLoading(false);
     }

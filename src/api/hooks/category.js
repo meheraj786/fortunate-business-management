@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/utils/handle-error";
 import * as api from "@/api/category.api";
 
 export const useCategories = () =>
@@ -19,6 +20,7 @@ export const useCreateCategory = () => {
   return useMutation({
     mutationFn: api.createCategory,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+    onError: (error) => handleError(error, "Failed to create category."),
   });
 };
 
@@ -27,6 +29,7 @@ export const useUpdateCategory = () => {
   return useMutation({
     mutationFn: ({ id, data }) => api.updateCategory(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+    onError: (error) => handleError(error, "Failed to update category."),
   });
 };
 
@@ -35,5 +38,6 @@ export const useDeleteCategory = () => {
   return useMutation({
     mutationFn: api.deleteCategory,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
+    onError: (error) => handleError(error, "Failed to delete category."),
   });
 };

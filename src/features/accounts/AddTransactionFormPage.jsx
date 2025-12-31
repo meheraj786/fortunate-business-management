@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
 
@@ -30,7 +31,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
           }
         })
         .catch((err) => {
-          toast.error("Failed to load accounts for the form.");
+          handleError(err, "Failed to load accounts for the form.");
         });
     }
   }, [isOpen]);
@@ -47,6 +48,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
         transactionFormData;
       if (!account || !description || !type || !amount) {
         toast.error("Please fill all required fields.");
+        setIsSubmitting(false);
         return;
       }
 
@@ -63,12 +65,10 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
         );
         onSuccess();
       } else {
-        toast.error(response.data.message || "Failed to create transaction.");
+        handleError(response, "Failed to create transaction.");
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "An unexpected error occurred."
-      );
+      handleError(error, "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
     }

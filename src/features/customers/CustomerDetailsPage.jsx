@@ -31,6 +31,7 @@ import {
   TrendingUp,
   CreditCard,
 } from "lucide-react";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 
 // Components
@@ -93,16 +94,9 @@ const CustomerDetails = () => {
 
   // Handlers
   const handleDelete = useCallback(async () => {
-    try {
-      await deleteCustomerMutation.mutateAsync(id)
-      toast.success("Customer deleted successfully!");
-      navigate("/customers");
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to delete customer."
-      );
-    }
+    await deleteCustomerMutation.mutateAsync(id)
+    toast.success("Customer deleted successfully!");
+    navigate("/customers");
   }, [id, navigate]);
 
   const handleOpenDeleteModal = useCallback(() => {
@@ -153,7 +147,7 @@ const handleDownload = async (customerId, fileName) => {
     link.click();
     link.remove();
   } catch (error) {
-    toast.error("Download trigger failed");
+    handleError(error, "Download trigger failed");
   }
 };
 

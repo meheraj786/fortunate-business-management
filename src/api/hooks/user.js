@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/utils/handle-error";
 import {
   loginUser,
   logoutUser,
@@ -33,11 +34,13 @@ export const useProfile = () =>
 export const useLogin = () =>
   useMutation({
     mutationFn: loginUser,
+    onError: (error) => handleError(error, "Login failed."),
   });
 
 export const useLogout = () =>
   useMutation({
     mutationFn: logoutUser,
+    onError: (error) => handleError(error, "Logout failed."),
   });
 
 export const useUsers = () =>
@@ -93,6 +96,7 @@ export const useUpdateUser = () => {
         }
       }
     },
+    onError: (error) => handleError(error, "Failed to update user."),
   });
 };
 
@@ -104,5 +108,6 @@ export const useCreateUser = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
     },
+    onError: (error) => handleError(error, "Failed to create user."),
   });
 };

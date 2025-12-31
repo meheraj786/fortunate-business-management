@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Building, Smartphone, Receipt, Plus, DollarSign, Trash } from "lucide-react";
-import toast from "react-hot-toast";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
 import StatBox from "@/components/ui/StatBox";
 import AccountList from "./AccountListPage";
@@ -31,15 +31,13 @@ const Accounts = () => {
       if (response.data.success) {
         setTransactionStats(response.data.data);
       } else {
-        toast.error(
-          response.data.message || "Failed to fetch transaction stats."
-        );
+        handleError({ response });
       }
     } catch (error) {
-      toast.error(
+      handleError(
+        error,
         "An unexpected error occurred while fetching transaction stats."
       );
-      console.error(error);
     }
   }, []);
 

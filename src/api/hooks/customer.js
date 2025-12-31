@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/utils/handle-error";
 import * as api from "@/api/customer.api";
 import { getCustomersSummary } from "../customer.api";
 
@@ -38,6 +39,7 @@ export const useCreateCustomer = () => {
   return useMutation({
     mutationFn: api.createCustomer,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onError: (error) => handleError(error, "Failed to create customer."),
   });
 };
 
@@ -46,6 +48,7 @@ export const useUpdateCustomer = () => {
   return useMutation({
     mutationFn: ({ id, data }) => api.updateCustomer(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onError: (error) => handleError(error, "Failed to update customer."),
   });
 };
 
@@ -54,5 +57,6 @@ export const useDeleteCustomer = () => {
   return useMutation({
     mutationFn: api.deleteCustomer,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onError: (error) => handleError(error, "Failed to delete customer."),
   });
 };

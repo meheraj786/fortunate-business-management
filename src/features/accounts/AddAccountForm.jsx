@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
 
@@ -80,10 +81,10 @@ const AddAccountForm = ({ isOpen, onClose, editingAccount, onSuccess, accountTyp
         onSuccess();
         onClose();
       } else {
-        toast.error(response.data.message || `Failed to ${isEditing ? "update" : "create"} account.`);
+        handleError(response, `Failed to ${isEditing ? "update" : "create"} account.`);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "An unexpected error occurred.");
+      handleError(error, "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
     }

@@ -12,7 +12,7 @@ import {
   Trash,
 } from "lucide-react";
 import { Link } from "react-router";
-import toast from "react-hot-toast";
+import { handleError } from "@/utils/handle-error";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCustomerSummary } from "../../api/hooks/customer";
 import { useAuth } from "../../context/AuthContext";
@@ -160,7 +160,7 @@ const Customers = () => {
 
   useEffect(() => {
     if (isError) {
-      toast.error("Could not load customers. Please try again.");
+      handleError(isError, "Could not load customers. Please try again.");
     }
   }, [isError]);
 

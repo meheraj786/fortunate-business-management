@@ -7,6 +7,7 @@ import React, {
 import { Calendar, Plus, Wallet, TrendingDown, TrendingUp, DollarSign, Target, X, Search, Filter, Menu, ChevronLeft, ChevronRight, Trash } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router";
 import api from "@/services/apiService";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 
 import CashFlowDetails from "./CashFlowDetails";
@@ -153,7 +154,7 @@ const DailyCashFlow = () => {
       });
       setDailyCashStatus(response.data.data.status);
     } catch (err) {
-      console.error("Failed to fetch daily cash status:", err);
+      handleError(err, "Failed to fetch daily cash status.");
       setDailyCashStatus("Error");
     } finally {
       setLoading(false);
@@ -170,7 +171,7 @@ const DailyCashFlow = () => {
       });
       setDailyCashSummary(response.data.data);
     } catch (err) {
-      console.error("Failed to fetch daily cash summary:", err);
+      handleError(err, "Failed to fetch daily cash summary.");
       setDailyCashSummary(null);
     } finally {
       setLoading(false);
@@ -188,8 +189,7 @@ const DailyCashFlow = () => {
       setActiveLc(lcRes.data.data || []);
       setActiveSales(salesRes.data.data || []);
     } catch (error) {
-      console.error("Failed to fetch references:", error);
-      toast.error("Failed to load LCs or Sales for transaction linking.");
+      handleError(error, "Failed to load LCs or Sales for transaction linking.");
     }
   }, [showAddTransaction]);
 
@@ -227,9 +227,8 @@ const DailyCashFlow = () => {
       fetchDailyCashStatus(); // Refresh status
       fetchDailyCashSummary(); // Fetch summary as it's now open
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message || "Failed to open cash.";
-      toast.error(errorMessage, { id: toastId, duration: 4000 });
+      handleError(err, "Failed to open cash.");
+      toast.dismiss(toastId);
     }
   };
 
@@ -249,9 +248,8 @@ const DailyCashFlow = () => {
         fetchDailyCashStatus(); 
         fetchDailyCashSummary();
       } catch (err) {
-        const errorMessage =
-          err.response?.data?.message || "Failed to close cash.";
-        toast.error(errorMessage, { id: toastId, duration: 4000 });
+        handleError(err, "Failed to close cash.");
+        toast.dismiss(toastId);
       }
     }
   };

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
-import toast from "react-hot-toast";
 
 // Hook for managing form data
 export const useFormData = (isEditMode, id, accounts = []) => {
@@ -75,8 +75,7 @@ export const useFormData = (isEditMode, id, accounts = []) => {
       const lcData = response.data.data;
       processLCData(lcData);
     } catch (error) {
-      console.error("Failed to fetch LC data:", error);
-      toast.error("Failed to load LC data for editing");
+      handleError(error, "Failed to load LC data for editing");
     }
   };
 
@@ -323,8 +322,7 @@ export const useUnits = () => {
       const response = await api.get("/unit/get");
       setUnits(response.data.data || []);
     } catch (error) {
-      console.error("Failed to fetch units:", error);
-      toast.error("Failed to load units");
+      handleError(error, "Failed to load units");
     } finally {
       setIsLoading(false);
     }
@@ -348,8 +346,7 @@ export const useAccounts = () => {
       const response = await api.get("/account/get-all-accounts");
       setAccounts(response.data.data || []);
     } catch (error) {
-      console.error("Failed to fetch accounts:", error);
-      toast.error("Failed to load accounts");
+      handleError(error, "Failed to load accounts");
     } finally {
       setIsLoading(false);
     }

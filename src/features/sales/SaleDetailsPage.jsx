@@ -18,6 +18,7 @@ import {
   ExternalLink,
   CreditCard,
 } from "lucide-react";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -112,6 +113,7 @@ const SaleDetails = () => {
 
         setSale(saleData);
       } else {
+        handleError(saleResponse, "Failed to fetch sale details");
         throw new Error(
           saleResponse.data.message || "Failed to fetch sale details"
         );
@@ -127,13 +129,12 @@ const SaleDetails = () => {
         setAccounts(accountsResponse.data.data || []);
       }
     } catch (err) {
-      console.error("Error fetching sale details:", err);
       setError(
         err.response?.data?.message ||
           err.message ||
           "Failed to fetch sale details"
       );
-      toast.error("Failed to load sale details");
+      handleError(err, "Failed to fetch sale details");
     } finally {
       setLoading(false);
     }
@@ -173,6 +174,7 @@ const SaleDetails = () => {
           toast.success("Sale deleted successfully", { id: toastId });
           navigate("/sales");
         } else {
+          handleError(response, "Failed to delete sale");
           throw new Error(response.data.message);
         }
       } else if (type === "cancel") {
@@ -181,14 +183,12 @@ const SaleDetails = () => {
           toast.success("Sale cancelled successfully", { id: toastId });
           setSale(response.data.data);
         } else {
+          handleError(response, "Failed to cancel sale");
           throw new Error(response.data.message);
         }
       }
     } catch (err) {
-      toast.error(
-        err.response?.data?.message || err.message || "Action failed",
-        { id: toastId }
-      );
+      handleError(err, "Action failed");
     } finally {
       setIsSubmittingConfirm(false);
       setIsConfirmModalOpen(false);
@@ -218,14 +218,11 @@ const SaleDetails = () => {
         toast.success("Invoice generated successfully!");
         navigate(`/sales/${id}/invoice/${response.data.data._id}`);
       } else {
+        handleError(response, "Failed to generate invoice");
         throw new Error(response.data.message);
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to generate invoice"
-      );
+      handleError(error, "Failed to generate invoice");
     } finally {
       setIsGenerating(false);
     }
@@ -299,14 +296,11 @@ const SaleDetails = () => {
         });
         await fetchAllData();
       } else {
+        handleError(response, "Failed to add payment");
         throw new Error(response.data.message);
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to add payment"
-      );
+      handleError(error, "Failed to add payment");
     } finally {
       setIsSubmittingPayment(false);
     }

@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import "@/styles/Login.css";
+import { handleError } from "@/utils/handle-error";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from 'react-router';
-import toast from 'react-hot-toast'; // Import toast
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -68,8 +68,7 @@ const Login = () => {
         await login(email, password);
         navigate('/');
       } catch (error) {
-        console.error("Login failed:", error);
-        toast.error(error.response?.data?.message || error.message || "Login failed. Please check your credentials.");
+        handleError(error, "Login failed. Please check your credentials.");
       } finally {
         setIsLoading(false); // End loading
       }

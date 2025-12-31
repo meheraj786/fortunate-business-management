@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import FormDialog from "@/components/ui/FormDialog";
 import FormDialogInput from "@/components/ui/FormDialogInput";
 import FormDialogTextarea from "@/components/ui/FormDialogTextarea";
 
+import { handleError } from "@/utils/handle-error";
+import toast from "react-hot-toast";
 import {
   useCategories,
   useCreateCategory,
@@ -58,49 +60,41 @@ export default function Category() {
   };
 
   const handleCreateCategory = async (data) => {
-    const previousCategories = categories;
-    try {
-      const categoryData = { name: data.name };
-      if (data.description) {
-        categoryData.description = data.description;
-      }
-      createCatMutation.mutate(categoryData);
-      closeModal();
-    } catch (error) {
-      console.error("Error creating category:", error);
-      setCategories(previousCategories);
-      setError(error.message);
+    const categoryData = { name: data.name };
+    if (data.description) {
+      categoryData.description = data.description;
     }
+    createCatMutation.mutate(categoryData, {
+      onSuccess: () => {
+        toast.success("Category created successfully!");
+        closeModal();
+      },
+    });
   };
 
   const handleUpdateCategory = async (data) => {
     if (!editingCategory) return;
-    console.log(editingCategory._id._id, data);
 
-    const previousCategories = categories;
-    try {
-      updateCatMutation.mutate({
+    updateCatMutation.mutate(
+      {
         id: editingCategory._id,
         data,
-      });
-
-      closeModal();
-    } catch (error) {
-      console.error("Error updating category:", error);
-      setCategories(previousCategories);
-      setError(error.message);
-    }
+      },
+      {
+        onSuccess: () => {
+          toast.success("Category updated successfully!");
+          closeModal();
+        },
+      }
+    );
   };
 
   const handleDeleteCategory = async (id) => {
-    const previousCategories = categories;
-    try {
-      deleteCatMutation.mutate(id);
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      setCategories(previousCategories);
-      setError(error.message);
-    }
+    deleteCatMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success("Category deleted successfully!");
+      },
+    });
   };
 
   if (isLoading) {

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { X, Save, Warehouse, MapPin } from "lucide-react";
 
 import api from "@/services/apiService";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 
 import InputField from "@/components/ui/InputField";
@@ -68,8 +69,7 @@ const AddWarehouseForm = ({
         onWarehouseAdded();
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "An error occurred");
-      console.error("Form submission error:", error);
+      handleError(error, "An error occurred");
     }
   };
 

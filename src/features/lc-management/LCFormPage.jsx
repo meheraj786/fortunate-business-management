@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import api from "@/services/apiService";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 import PropTypes from "prop-types";
 
@@ -136,8 +137,7 @@ const LCForm = ({ onSave }) => {
       if (onSave) onSave(formData);
       resetForm();
     } catch (error) {
-      console.error("Submission error:", error);
-      toast.error(`Failed to ${isEditMode ? "update" : "create"} LC.`);
+      handleError(error, `Failed to ${isEditMode ? "update" : "create"} LC.`);
     }
   };
 

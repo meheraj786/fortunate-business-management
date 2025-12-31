@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
 import InputField from "@/components/ui/InputField";
@@ -92,8 +93,7 @@ const AddProductForm = ({
         setCompletedLc(lcRes.data.data || []);
         setUnits(unitsRes.data.data || []);
       } catch (error) {
-        console.error("Failed to fetch initial data:", error);
-        toast.error("Failed to load necessary data");
+        handleError(error, "Failed to load necessary data");
       } finally {
         setLoading(false);
       }
@@ -198,8 +198,7 @@ const AddProductForm = ({
 
       onClose();
     } catch (error) {
-      console.error("Error saving product:", error);
-      toast.error(error?.response?.data?.message || "Failed to save product");
+      handleError(error, "Failed to save product");
     } finally {
       setSubmitting(false);
     }

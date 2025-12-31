@@ -15,6 +15,7 @@ import {
   Trash2,
   User,
 } from "lucide-react";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 
 import api from "@/services/apiService";
@@ -82,8 +83,7 @@ const ProductDetails = () => {
       const errorMessage =
         err?.response?.data?.message || "Failed to fetch product details";
       setError(errorMessage);
-      toast.error(errorMessage);
-      console.error("Fetch error:", err);
+      handleError(err, errorMessage);
     } finally {
       setLoading(false);
     }
@@ -100,9 +100,7 @@ const ProductDetails = () => {
       toast.success("Product deleted successfully");
       navigate(`/stock/${warehouseId}`);
     } catch (err) {
-      const errorMessage =
-        err?.response?.data?.message || "Failed to delete product";
-      toast.error(errorMessage);
+      handleError(err, "Failed to delete product");
     } finally {
       setDeleting(false);
       setShowDeleteModal(false);

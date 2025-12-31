@@ -3,6 +3,7 @@ import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, INITIAL_TRANSACTION_STATE } from "../constants";
@@ -103,9 +104,8 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
       onSuccess();
       onClose();
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message || `Failed to add ${transactionType}.`;
-      toast.error(errorMessage, { id: toastId, duration: 4000 });
+      handleError(err, `Failed to add ${transactionType}.`);
+      toast.dismiss(toastId);
     } finally {
       setIsSubmitting(false);
     }

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/utils/handle-error";
 import * as api from "@/api/trash.api";
 
 
@@ -18,6 +19,7 @@ export const useMoveToTrash = () => {
       qc.invalidateQueries({ queryKey: ["trash"] });
       qc.invalidateQueries(); 
     },
+    onError: (error) => handleError(error, "Failed to move to trash."),
   });
 };
 
@@ -31,6 +33,7 @@ export const useRestoreFromTrash = () => {
       qc.invalidateQueries({ queryKey: ["trash"] });
       qc.invalidateQueries();
     },
+    onError: (error) => handleError(error, "Failed to restore from trash."),
   });
 };
 
@@ -42,6 +45,7 @@ export const useDeleteTrashPermanently = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["trash"] });
     },
+    onError: (error) => handleError(error, "Failed to delete permanently."),
   });
 };
 

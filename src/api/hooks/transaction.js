@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/utils/handle-error";
 import * as api from "@/api/transaction.api";
 
 export const useTransactions = () =>
@@ -18,6 +19,7 @@ export const useCreateTransaction = () => {
   return useMutation({
     mutationFn: api.createTransaction,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
+    onError: (error) => handleError(error, "Failed to create transaction."),
   });
 };
 
@@ -26,5 +28,6 @@ export const useDeleteTransaction = () => {
   return useMutation({
     mutationFn: api.deleteTransaction,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
+    onError: (error) => handleError(error, "Failed to delete transaction."),
   });
 };

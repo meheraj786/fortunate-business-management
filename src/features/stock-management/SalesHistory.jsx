@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import api from "@/services/apiService";
 import { Loader2 } from "lucide-react";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 
 const formatNumber = (num) => {
@@ -179,8 +180,7 @@ const SalesHistory = ({ warehouseId, productId }) => {
         const errorMessage =
           err?.response?.data?.message || "Failed to fetch sales history";
         setError(errorMessage);
-        toast.error(errorMessage);
-        console.error("Fetch error:", err);
+        handleError(err, errorMessage);
       } finally {
         setLoading(false);
       }

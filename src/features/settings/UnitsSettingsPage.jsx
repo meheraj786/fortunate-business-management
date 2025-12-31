@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import FormDialog from "@/components/ui/FormDialog";
 import FormDialogInput from "@/components/ui/FormDialogInput";
 
+import { handleError } from "@/utils/handle-error";
 import {
   useUnits,
   useCreateUnit,
@@ -83,7 +84,10 @@ export default function UnitsSettings() {
     };
 
     createUnitMutation.mutate(payload, {
-      onSuccess: closeModal,
+      onSuccess: () => {
+        closeModal();
+        toast.success("Unit created successfully!");
+      },
     });
   };
 
@@ -106,7 +110,10 @@ export default function UnitsSettings() {
         data: payload,
       },
       {
-        onSuccess: closeModal,
+        onSuccess: () => {
+          closeModal();
+          toast.success("Unit updated successfully!");
+        },
       }
     );
   };
@@ -114,7 +121,11 @@ export default function UnitsSettings() {
   /* DELETE */
   const handleDeleteUnit = (id) => {
     if (!window.confirm("Are you sure you want to delete this unit?")) return;
-    deleteUnitMutation.mutate(id);
+    deleteUnitMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success("Unit deleted successfully!");
+      },
+    });
   };
 
   /* UI states */
@@ -127,13 +138,8 @@ export default function UnitsSettings() {
   }
 
   if (isError) {
-    return (
-      <div className="flex items-center justify-center h-32">
-        <p className="text-red-600">
-          {error?.message || "Failed to load units"}
-        </p>
-      </div>
-    );
+    handleError(error, "Failed to load units");
+    return null;
   }
 
   return (

@@ -12,7 +12,7 @@ import {
   Loader2,
   Wallet,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
 
 const AccountList = ({ onAddAccount, refresh }) => {
@@ -38,11 +38,10 @@ const AccountList = ({ onAddAccount, refresh }) => {
           allAccounts.filter((acc) => acc.accountType === "Cash")
         );
       } else {
-        toast.error(response.data.message || "Failed to fetch accounts.");
+        handleError({ response });
       }
     } catch (error) {
-      toast.error("An unexpected error occurred while fetching accounts.");
-      console.error(error);
+      handleError(error, "An unexpected error occurred while fetching accounts.");
     } finally {
       setLoading(false);
     }

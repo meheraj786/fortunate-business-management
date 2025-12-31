@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
 import PropTypes from "prop-types";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 import FormDialog from "@/components/ui/FormDialog";
@@ -22,8 +23,7 @@ const useAccounts = () => {
         throw new Error("Failed to fetch accounts");
       }
     } catch (error) {
-      console.error("Failed to fetch accounts:", error);
-      toast.error("Failed to load accounts. Please try again.");
+      handleError(error, "Failed to load accounts. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -150,12 +150,8 @@ const AddCostForm = ({
 
       handleClose();
     } catch (error) {
-      console.error("Failed to add cost:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Failed to add cost. Please try again.";
-      toast.error(errorMessage, { id: toastId, duration: 5000 });
+      handleError(error, "Failed to add cost. Please try again.");
+      toast.dismiss(toastId);
     } finally {
       setIsSubmitting(false);
     }

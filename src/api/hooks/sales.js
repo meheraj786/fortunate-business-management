@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { handleError } from "@/utils/handle-error";
 import * as api from "@/api/sales.api";
 
 export const useSales = () =>
@@ -32,6 +33,7 @@ export const useCreateSale = () => {
   return useMutation({
     mutationFn: api.createSale,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["sales"] }),
+    onError: (error) => handleError(error, "Failed to create sale."),
   });
 };
 
@@ -40,5 +42,6 @@ export const useCancelSale = () => {
   return useMutation({
     mutationFn: api.cancelSale,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["sales"] }),
+    onError: (error) => handleError(error, "Failed to cancel sale."),
   });
 };

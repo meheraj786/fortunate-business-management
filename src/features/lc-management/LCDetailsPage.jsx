@@ -20,6 +20,7 @@ import {
   Building,
   File,
 } from "lucide-react";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 
@@ -123,12 +124,8 @@ const LCdetails = () => {
 
   const handleConfirm = useCallback(async () => {
     if (confirmModal.action === "delete") {
-      try {
-        await deleteLC();
-        navigate("/lc-management");
-      } catch (error) {
-        // Error handled in hook
-      }
+      await deleteLC();
+      navigate("/lc-management");
     } else if (confirmModal.action === "export") {
       await exportLC();
     }
@@ -163,8 +160,7 @@ const handleDownload = async (lcId, storedName, originalName) => {
 
     toast.success("Downloading started...");
   } catch (error) {
-    console.error("Download error:", error);
-    toast.error("Failed to download file");
+    handleError(error, "Failed to download file");
   }
 };
 

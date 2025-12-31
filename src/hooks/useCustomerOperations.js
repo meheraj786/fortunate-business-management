@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import toast from "react-hot-toast";
+import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
 
 export const useCustomerData = (id) => {
@@ -23,9 +23,8 @@ export const useCustomerData = (id) => {
         );
       }
     } catch (error) {
-      console.error("Failed to fetch customer:", error);
       setError("Failed to load customer details. Please try again.");
-      toast.error("Failed to load customer details.");
+      handleError(error, "Failed to load customer details.");
     } finally {
       setLoading(false);
     }
@@ -76,8 +75,7 @@ export const useSalesData = (customerId) => {
           );
         }
       } catch (error) {
-        console.error("Failed to fetch sales:", error);
-        toast.error("Failed to load sales data.");
+        handleError(error, "Failed to load sales data.");
       } finally {
         setLoading(false);
       }

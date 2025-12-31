@@ -20,6 +20,7 @@ import {
   X,
   ChevronDown,
 } from "lucide-react";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 import StatBox from "@/components/ui/StatBox";
@@ -122,13 +123,12 @@ const AccountDetails = () => {
         setAccount(accountRes.data.data.account);
         setAccountStats(accountRes.data.data.stats);
       } else {
-        toast.error(accountRes.data.message);
+        handleError(accountRes, "Failed to load account details.");
         setAccount(null);
         setAccountStats(null);
       }
     } catch (error) {
-      toast.error("Failed to load account details.");
-      console.error(error);
+      handleError(error, "Failed to load account details.");
     } finally {
       setLoading(false);
     }
@@ -163,9 +163,11 @@ const AccountDetails = () => {
             totalPages: transData.totalPages,
           });
           setCategories(catData || []);
+        } else {
+            handleError(transRes, "Failed to load account transactions.");
         }
       } catch (error) {
-        toast.error("Failed to load account transactions.");
+        handleError(error, "Failed to load account transactions.");
       } finally {
         setLoadingTransactions(false);
       }
@@ -232,11 +234,11 @@ const AccountDetails = () => {
         toast.success("Account deleted successfully!");
         navigate("/accounts");
       } else {
-        toast.error(response.data.message || "Failed to delete account.");
+        handleError(response, "Failed to delete account.");
         setIsDeleteModalOpen(false);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "An unexpected error occurred.");
+      handleError(error, "An unexpected error occurred while deleting the account.");
     } finally {
       setIsConfirmingDelete(false);
     }

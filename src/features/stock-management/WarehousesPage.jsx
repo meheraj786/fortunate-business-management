@@ -19,6 +19,7 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatBox from "@/components/ui/StatBox"; // Import StatBox
 import AddWarehouseForm from "./AddWarehouseForm";
 
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 
@@ -47,8 +48,7 @@ const Warehouses = () => {
       const errorMessage =
         err?.response?.data?.message || "Failed to fetch warehouses";
       setError(errorMessage);
-      toast.error(errorMessage);
-      console.error("Fetch error:", err);
+      handleError(err, errorMessage);
     } finally {
       setLoading(false);
     }
@@ -100,10 +100,7 @@ const Warehouses = () => {
       toast.success("Warehouse deleted successfully");
       fetchWarehouses();
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Failed to delete warehouse"
-      );
-      console.error("Delete error:", error);
+      handleError(error, "Failed to delete warehouse");
     } finally {
       setDeletingId(null);
       setWarehouseToDelete(null);

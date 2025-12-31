@@ -15,6 +15,7 @@ import {
   Ruler,
 } from "lucide-react";
 import api from "@/services/apiService";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 import FormHeader from "@/components/ui/FormHeader";
 import FormActions from "@/components/ui/FormActions";
@@ -90,8 +91,7 @@ const AddSales = ({
       setAccounts(accountsRes.data.data || []);
       setUnits(unitsRes.data.data || []);
     } catch (error) {
-      console.error("Error fetching initial data:", error);
-      toast.error("Failed to load initial data");
+      handleError(error, "Failed to load initial data");
     } finally {
       setLoading(false);
     }
@@ -110,8 +110,7 @@ const AddSales = ({
       });
       setProducts(res.data.data.docs || []);
     } catch (error) {
-      console.error("Error fetching products:", error);
-      toast.error("Failed to load products");
+      handleError(error, "Failed to load products");
       setProducts([]);
     }
   }, []);
@@ -540,20 +539,8 @@ const AddSales = ({
         throw new Error(response.data.message || "Operation failed");
       }
     } catch (error) {
+      handleError(error, isEditMode ? "Failed to update sale" : "Failed to create sale");
       toast.dismiss(loadingToast);
-      console.error("Error submitting sale:", error);
-
-      let errorMessage = isEditMode
-        ? "Failed to update sale"
-        : "Failed to create sale";
-
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      toast.error(errorMessage);
     }
   };
 

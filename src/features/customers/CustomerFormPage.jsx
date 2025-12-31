@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useForm } from "react-hook-form";
 import PropTypes from "prop-types";
+import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 
 // Components
@@ -111,8 +112,7 @@ const CustomerForm = ({ onSave }) => {
         setUploadedFiles(customer.documents);
       }
     } catch (error) {
-      console.error("Failed to fetch customer:", error);
-      toast.error("Failed to load customer data");
+      handleError(error, "Failed to load customer data");
     } finally {
       setIsLoading(false);
     }
@@ -128,32 +128,27 @@ const CustomerForm = ({ onSave }) => {
   }, []);
 
   const onSubmit = async (data) => {
-    try {
-      const payload = {
-        ...data,
-        creditLimit: parseFloat(data.creditLimit) || 0,
-        documents: uploadedFiles.map((file) => ({
-          name: file.name || file.file?.name,
-          type: file.type || file.file?.type,
-          size: file.size,
-          uploadDate: file.uploadDate || new Date().toISOString().split("T")[0],
-        })),
-      };
+    const payload = {
+      ...data,
+      creditLimit: parseFloat(data.creditLimit) || 0,
+      documents: uploadedFiles.map((file) => ({
+        name: file.name || file.file?.name,
+        type: file.type || file.file?.type,
+        size: file.size,
+        uploadDate: file.uploadDate || new Date().toISOString().split("T")[0],
+      })),
+    };
 
-      if (isEditMode) {
-        await updateCustomerMutation.mutateAsync({id:id,...payload})
-        toast.success("Customer updated successfully");
-      } else {
-        await createCustomerMutation.mutateAsync(payload)
-        toast.success("Customer created successfully");
-      }
-
-      if (onSave) onSave(payload);
-      navigate("/customers");
-    } catch (error) {
-      console.error("Submission error:", error);
-      toast.error(`Failed to ${isEditMode ? "update" : "create"} customer`);
+    if (isEditMode) {
+      await updateCustomerMutation.mutateAsync({id:id,...payload})
+      toast.success("Customer updated successfully");
+    } else {
+      await createCustomerMutation.mutateAsync(payload)
+      toast.success("Customer created successfully");
     }
+
+    if (onSave) onSave(payload);
+    navigate("/customers");
   };
 
   return (
