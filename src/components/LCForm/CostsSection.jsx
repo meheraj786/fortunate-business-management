@@ -73,7 +73,7 @@ const CostsSection = ({
                 required
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <InputField
                 label="Amount (BDT)"
                 type="number"
@@ -87,18 +87,7 @@ const CostsSection = ({
                 step="0.01"
               />
             </div>
-            <div className="sm:col-span-2">
-              <InputField
-                label="Date"
-                type="date"
-                value={cost.date}
-                onChange={(e) =>
-                  onCostChange(section, cost.id, "date", e.target.value)
-                }
-                required
-              />
-            </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <SelectField
                 label="Payment Method"
                 value={cost.paymentMethod}
@@ -172,8 +161,6 @@ const CostsSection = ({
 };
 
 CostsSection.propTypes = {
-  costs: PropTypes.array.isRequired,
-  section: PropTypes.string.isRequired,
   onCostChange: PropTypes.func.isRequired,
   onAddCost: PropTypes.func.isRequired,
   onRemoveCost: PropTypes.func.isRequired,

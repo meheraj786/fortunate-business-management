@@ -237,7 +237,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
           onChange={(e) =>
             handleProductChange(product.id, "quantityUnit", e.target.value)
           }
-          options={units?.data.map((u) => ({ value: u._id, label: u.name }))}
+          options={units?.data?.map((u) => ({ value: u._id, label: u.name })) || []}
           required
         />
         <InputField
@@ -311,6 +311,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                   handleInputChange("basicInfo", "lcNumber", e.target.value)
                 }
                 required
+                disabled={isEditMode}
               />
               <InputField
                 label="LC Opening Date"
@@ -345,7 +346,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                 onChange={(e) =>
                   handleInputChange("basicInfo", "accountId", e.target.value)
                 }
-                options={accounts?.data
+                options={(accounts?.data || [])
                   ?.filter((acc) => acc.accountType === "Bank")
                   .map((acc) => ({
                     value: acc._id,
@@ -412,15 +413,15 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                   disabled
                 />
               </div>
-              <CostsSection
+              {!isEditMode && <CostsSection
                 costs={formData.financialInfo.costs}
                 section="financialInfo"
                 onCostChange={handleCostChange}
                 onAddCost={() => addCost("financialInfo")}
                 onRemoveCost={(costId) => removeCost("financialInfo", costId)}
-                accounts={accounts?.data}
+                accounts={accounts?.data || []}
                 paymentMethods={["Cash", "Bank", "Mobile Banking"]}
-              />
+              />}
             </div>
           )}
           {section.id === "productInfo" && (
@@ -467,7 +468,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                   }
                 />
               </div>
-              <CostsSection
+              {!isEditMode && <CostsSection
                 costs={formData.shippingCustomsInfo.costs}
                 section="shippingCustomsInfo"
                 onCostChange={handleCostChange}
@@ -475,34 +476,38 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                 onRemoveCost={(costId) =>
                   removeCost("shippingCustomsInfo", costId)
                 }
-                accounts={accounts?.data}
+                accounts={accounts?.data || []}
                 paymentMethods={["Cash", "Bank", "Mobile Banking"]}
-              />
+              />}
             </div>
           )}
           {section.id === "agentTransportInfo" && (
-            <CostsSection
-              costs={formData.agentTransportInfo.costs}
-              section="agentTransportInfo"
-              onCostChange={handleCostChange}
-              onAddCost={() => addCost("agentTransportInfo")}
-              onRemoveCost={(costId) =>
-                removeCost("agentTransportInfo", costId)
-              }
-              accounts={accounts?.data}
-              paymentMethods={["Cash", "Bank", "Mobile Banking"]}
-            />
+            !isEditMode && (
+              <CostsSection
+                costs={formData.agentTransportInfo.costs}
+                section="agentTransportInfo"
+                onCostChange={handleCostChange}
+                onAddCost={() => addCost("agentTransportInfo")}
+                onRemoveCost={(costId) =>
+                  removeCost("agentTransportInfo", costId)
+                }
+                accounts={accounts?.data || []}
+                paymentMethods={["Cash", "Bank", "Mobile Banking"]}
+              />
+            )
           )}
           {section.id === "otherExpenses" && (
-            <CostsSection
-              costs={formData.otherExpenses.costs}
-              section="otherExpenses"
-              onCostChange={handleCostChange}
-              onAddCost={() => addCost("otherExpenses")}
-              onRemoveCost={(costId) => removeCost("otherExpenses", costId)}
-              accounts={accounts?.data}
-              paymentMethods={["Cash", "Bank", "Mobile Banking"]}
-            />
+            !isEditMode && (
+              <CostsSection
+                costs={formData.otherExpenses.costs}
+                section="otherExpenses"
+                onCostChange={handleCostChange}
+                onAddCost={() => addCost("otherExpenses")}
+                onRemoveCost={(costId) => removeCost("otherExpenses", costId)}
+                accounts={accounts?.data || []}
+                paymentMethods={["Cash", "Bank", "Mobile Banking"]}
+              />
+            )
           )}
           {section.id === "documentsNotes" && (
             <div className="space-y-6">

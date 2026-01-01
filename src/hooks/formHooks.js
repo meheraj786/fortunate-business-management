@@ -22,7 +22,6 @@ export const useFormData = (initialData) => {
     id: costIdCounter.current++,
     name: "",
     amount: "",
-    date: new Date().toISOString().split("T")[0],
     paymentMethod: "Cash",
     accountId: "",
   });
@@ -115,7 +114,6 @@ export const useFormData = (initialData) => {
     return costs.map((cost) => ({
       ...cost,
       id: costIdCounter.current++,
-      date: formatDateForInput(cost.date),
       accountId: cost.accountId?._id || cost.accountId,
     }));
   };
@@ -197,7 +195,7 @@ export const useFormData = (initialData) => {
   const formatFormDataForSubmit = useCallback(() => {
     const dataToSend = JSON.parse(JSON.stringify(formData));
 
-    const cleanCosts = (costs) => costs.map(({ id, ...c }) => c);
+    const cleanCosts = (costs) => costs.map(({ id, date, ...c }) => c);
 
     if (dataToSend.financialInfo?.costs) {
       dataToSend.financialInfo.costs = cleanCosts(dataToSend.financialInfo.costs);
@@ -249,7 +247,6 @@ export const useCostManagement = () => {
       id: costIdCounter.current++,
       name: "",
       amount: "",
-      date: new Date().toISOString().split("T")[0],
       paymentMethod: "Cash",
       accountId: "",
     }),

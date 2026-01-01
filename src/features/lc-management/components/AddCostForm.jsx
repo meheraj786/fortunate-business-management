@@ -12,7 +12,6 @@ import { useAddExpenseToLC } from "@/api/hooks/lc";
 const INITIAL_EXPENSE_STATE = {
   name: "",
   amount: "",
-  date: new Date().toISOString().split("T")[0],
   paymentMethod: "Cash",
   accountId: "",
 };
@@ -55,7 +54,6 @@ const AddCostForm = ({
     if (!expense.amount) newErrors.amount = "Amount is required";
     else if (parseFloat(expense.amount) <= 0)
       newErrors.amount = "Amount must be greater than 0";
-    if (!expense.date) newErrors.date = "Date is required";
     if (
       (expense.paymentMethod === "Bank" ||
         expense.paymentMethod === "Mobile Banking" ||
@@ -97,7 +95,7 @@ const AddCostForm = ({
       expense: {
         ...expense,
         amount: parseFloat(expense.amount),
-        date: new Date(expense.date).toISOString(),
+        date: new Date().toISOString(),
       },
     };
 
@@ -140,7 +138,7 @@ const AddCostForm = ({
           autoFocus
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-4">
           <InputField
             label="Amount (BDT)"
             name="amount"
@@ -154,20 +152,7 @@ const AddCostForm = ({
             min="0.01"
             step="0.01"
           />
-
-          <InputField
-            label="Date"
-            name="date"
-            type="date"
-            value={expense.date}
-            onChange={handleInputChange}
-            required
-            icon={Calendar}
-            error={errors.date}
-            max={new Date().toISOString().split("T")[0]}
-          />
         </div>
-
         <SelectField
           label="Payment Method"
           name="paymentMethod"
@@ -221,7 +206,6 @@ AddCostForm.propTypes = {
   initialData: PropTypes.shape({
     name: PropTypes.string,
     amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    date: PropTypes.string,
     paymentMethod: PropTypes.string,
     accountId: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),
