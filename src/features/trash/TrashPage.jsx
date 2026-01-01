@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useParams, useLocation } from "react-router";
 import { useTrash, useRestoreFromTrash } from "@/api/hooks/trash";
 import Button from "@/components/ui/Button";
 import {
@@ -12,11 +12,14 @@ import {
   Calendar,
   Archive,
   FileText,
-  Trash2
+  Trash2,
 } from "lucide-react";
 
 const TrashPage = () => {
   const { moduleName } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const warehouseId = queryParams.get("warehouseId");
 
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -36,6 +39,7 @@ const TrashPage = () => {
     module: moduleName ? currentModule : "",
     page,
     limit,
+    warehouseId,
   });
 
   const restoreMutation = useRestoreFromTrash();
@@ -45,7 +49,7 @@ const TrashPage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [moduleName]);
+  }, [moduleName, warehouseId]);
 
   const renderDocInfo = (item) => {
     const doc = item.docId;

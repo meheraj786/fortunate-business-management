@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import {
   Search,
   Plus,
@@ -13,9 +13,11 @@ import {
   ArrowDown,
   X,
   ChevronDown,
+  Trash,
 } from "lucide-react";
 import { useWarehouse } from "@/api/hooks/warehouse";
 import { useProducts as useProductsFromProductHook } from "@/api/hooks/products";
+import { useAuth } from "@/context/AuthContext";
 
 import ProductCard from "./components/ProductCard";
 import StatBox from "@/components/ui/StatBox";
@@ -43,6 +45,8 @@ const stockStatusOptions = [
 const WarehouseStock = () => {
   const { warehouseId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
 
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -176,12 +180,21 @@ const WarehouseStock = () => {
                 </div>
               )}
             </div>
-            <button
-              onClick={() => setShowAddProductForm(true)}
-              className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start"
-            >
-              <Plus size={20} /> Add Product
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowAddProductForm(true)}
+                className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start"
+              >
+                <Plus size={20} /> Add Product
+              </button>
+              {isSuperAdmin && (
+                <Link to={`/trash/product?warehouseId=${warehouseId}`}>
+                  <button className="bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start border border-gray-300">
+                    <Trash size={20} /> Product Trash
+                  </button>
+                </Link>
+              )}
+            </div>
           </div>
 
           <div className="my-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

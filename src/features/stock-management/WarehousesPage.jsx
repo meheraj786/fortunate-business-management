@@ -135,25 +135,25 @@ const Warehouses = () => {
           <div className="my-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatBox
               title="Total Products"
-              number={totalStats?.totalproducts || 0}
+              number={totalStats?.totalProducts || 0}
               Icon={Package}
               textColor="blue"
             />
             <StatBox
               title="Total In-stock"
-              number={totalStats?.["Total In-stock"] || 0}
+              number={totalStats?.totalInStock || 0}
               Icon={CheckCircle}
               textColor="green"
             />
             <StatBox
               title="Total Low Stock"
-              number={totalStats?.["total lowstock"] || 0}
+              number={totalStats?.totalLowStock || 0}
               Icon={Box}
               textColor="orange"
             />
             <StatBox
               title="Total Out of Stock"
-              number={totalStats?.["Total outofstock"] || 0}
+              number={totalStats?.totalOutOfStock || 0}
               Icon={XCircle}
               textColor="red"
             />
