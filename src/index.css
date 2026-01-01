@@ -6,6 +6,7 @@
   --font-inter: "Inter", sans-serif;
   --color-primary: #003366;
   --color-primary-hover: #003b75;
+  --color-primary-light: rgb(230, 242, 255);
 }
 
 body {

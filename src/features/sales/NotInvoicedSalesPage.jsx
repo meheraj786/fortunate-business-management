@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import SalesListingsPage from "./SalesListingsPage";
 
 const NotInvoicedSales = () => {
@@ -7,11 +7,13 @@ const NotInvoicedSales = () => {
     { label: "Not Invoiced Sales" },
   ];
 
+  const initialFilters = useMemo(() => ({ invoiceStatus: "Not-invoiced" }), []);
+
   return (
     <SalesListingsPage
       title="Not Invoiced Sales"
       description="Sales that have not been invoiced yet."
-      initialFilters={{ invoiceStatus: "Not-invoiced" }}
+      initialFilters={initialFilters}
       breadcrumbItems={breadcrumbItems}
     />
   );

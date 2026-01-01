@@ -23,8 +23,8 @@ const SalesStatCard = ({ title, count, linkTo, icon, color }) => {
       text: "text-red-600",
     },
     blue: {
-      bg: "bg-blue-100",
-      text: "text-blue-600",
+      bg: "bg-primary-light",
+      text: "text-primary",
     },
   };
 

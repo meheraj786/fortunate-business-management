@@ -23,4 +23,5 @@ export const handleError = (error, defaultMessage = "An unexpected error occurre
 
   // Log the full error for debugging purposes
   console.error("API Error caught by handleError:", error);
+  console.log("Attempting to show toast error:", message, error); // Diagnostic line
 };

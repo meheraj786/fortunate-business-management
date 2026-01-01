@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import SalesListingsPage from './SalesListingsPage';
 
 const CancelledSales = () => {
@@ -7,11 +7,13 @@ const CancelledSales = () => {
     { label: "Cancelled Sales" },
   ];
 
+  const initialFilters = useMemo(() => ({ invoiceStatus: "Cancelled" }), []);
+
   return (
     <SalesListingsPage
       title="Cancelled Sales"
       description="Sales that have been cancelled."
-      initialFilters={{ invoiceStatus: "Cancelled" }}
+      initialFilters={initialFilters}
       breadcrumbItems={breadcrumbItems}
     />
   );

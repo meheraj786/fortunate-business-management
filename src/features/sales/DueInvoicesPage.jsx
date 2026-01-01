@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import SalesListingsPage from "./SalesListingsPage";
 
 const DueInvoices = () => {
@@ -7,11 +7,13 @@ const DueInvoices = () => {
     { label: "Due Invoices" },
   ];
 
+  const initialFilters = useMemo(() => ({ paymentStatus: "Due payment" }), []);
+
   return (
     <SalesListingsPage
       title="Due Invoices"
       description="Sales with due payments."
-      initialFilters={{ paymentStatus: "Due payment" }}
+      initialFilters={initialFilters}
       breadcrumbItems={breadcrumbItems}
     />
   );

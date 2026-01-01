@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import SalesListingsPage from "./SalesListingsPage";
 
 const PaidInvoices = () => {
@@ -7,11 +7,13 @@ const PaidInvoices = () => {
     { label: "Paid Invoices" },
   ];
 
+  const initialFilters = useMemo(() => ({ paymentStatus: "Paid payment" }), []);
+
   return (
     <SalesListingsPage
       title="Paid Invoices"
       description="Sales that have been fully paid."
-      initialFilters={{ paymentStatus: "Paid payment" }}
+      initialFilters={initialFilters}
       breadcrumbItems={breadcrumbItems}
     />
   );
