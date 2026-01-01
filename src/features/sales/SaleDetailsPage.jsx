@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -62,7 +62,6 @@ const SaleDetails = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [paymentData, setPaymentData] = useState({
     amount: "",
-    date: new Date().toISOString().split("T")[0],
     method: "Cash",
     account: "",
   });
@@ -137,40 +136,49 @@ const SaleDetails = () => {
   };
 
   const handleAddPayment = async () => {
-    const totalPayments =
-      sale?.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-    const balanceDue = (sale?.totalAmountToBePaid || 0) - totalPayments;
     const amount = Number(paymentData.amount);
-
-    if (!amount || amount <= 0)
-      return toast.error("Please enter a valid payment amount");
-    if (amount > balanceDue)
-      return toast.error(
-        `Payment cannot exceed balance due of ${formatCurrency(balanceDue)}`
-      );
-    if (!paymentData.account)
-      return toast.error("Please select an account for this payment method");
 
     addPaymentMutation.mutate(
       {
         amount,
-        date: paymentData.date,
-        method: paymentData.method,
+        date: new Date().toISOString(),
+        paymentMethod: paymentData.method,
         accountId: paymentData.account,
       },
       {
         onSuccess: () => {
+          toast.success("Payment added successfully");
+          refetch();
           setIsPaymentDialogOpen(false);
           setPaymentData({
             amount: "",
-            date: new Date().toISOString().split("T")[0],
             method: "Cash",
             account: "",
           });
         },
+        onError: (error) => {
+          const errorMessage =
+            error.response?.data?.message || "Failed to add payment.";
+          toast.error(errorMessage);
+        },
       }
     );
   };
+
+  useEffect(() => {
+    // When the payment dialog opens, pre-select the first available account if none is selected
+    if (isPaymentDialogOpen) {
+      const availableAccounts = accounts.filter(
+        (acc) => acc.accountType === paymentData.method
+      );
+      if (availableAccounts.length > 0 && !paymentData.account) {
+        setPaymentData((p) => ({
+          ...p,
+          account: availableAccounts[0]._id,
+        }));
+      }
+    }
+  }, [isPaymentDialogOpen, accounts, paymentData.method, paymentData.account]);
 
   const breadcrumbItems = useMemo(
     () => [
@@ -690,27 +698,24 @@ const SaleDetails = () => {
               max={balanceDue}
               required
             />
-            <InputField
-              label="Date"
-              name="date"
-              type="date"
-              value={paymentData.date}
-              onChange={(e) =>
-                setPaymentData((p) => ({ ...p, date: e.target.value }))
-              }
-              required
-            />
             <SelectField
               label="Payment Method"
               name="method"
               value={paymentData.method}
-              onChange={(e) =>
+              onChange={(e) => {
+                const newMethod = e.target.value;
+                const availableAccounts = accounts.filter(
+                  (acc) => acc.accountType === newMethod
+                );
                 setPaymentData((p) => ({
                   ...p,
-                  method: e.target.value,
-                  account: "",
-                }))
-              }
+                  method: newMethod,
+                  account:
+                    availableAccounts.length > 0
+                      ? availableAccounts[0]._id
+                      : "",
+                }));
+              }}
               options={[
                 { value: "Cash", label: "Cash" },
                 { value: "Bank", label: "Bank Transfer" },
