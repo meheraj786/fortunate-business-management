@@ -156,10 +156,16 @@ const DisplayInvoice = () => {
                   <span className="text-gray-600">Subtotal:</span>
                   <span>${paymentAndAmountInfo.totalAmount.toFixed(2)}</span>
                 </div>
-                {paymentAndAmountInfo.otherCharges.map((charge, i) => (
+                {paymentAndAmountInfo.charges?.map((charge, i) => (
                   <div key={i} className="flex justify-between">
                     <span className="text-gray-600">{charge.name}:</span>
                     <span>${charge.amount.toFixed(2)}</span>
+                  </div>
+                ))}
+                {paymentAndAmountInfo.costs?.map((cost, i) => (
+                  <div key={i} className="flex justify-between">
+                    <span className="text-gray-600">{cost.name}:</span>
+                    <span>${cost.amount.toFixed(2)}</span>
                   </div>
                 ))}
                 <div className="flex justify-between">

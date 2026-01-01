@@ -200,6 +200,8 @@ const SaleDetails = () => {
     !isCancelled && sale.paymentStatus === "Due payment" && balanceDue > 0;
     const isRegisteredCustomer = !!sale.customer?.customerId?._id;
   
+    const validPayments = sale.payments?.filter(p => p.amount) || [];
+  
     const MobileActionsMenu = () => (
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -483,6 +485,20 @@ const SaleDetails = () => {
                         {formatCurrency(sale.totalAmount)}
                       </span>
                     </div>
+                    {sale.charges?.map((charge, i) => (
+                      <div
+                        key={`charge-${i}`}
+                        className="flex justify-between items-center py-2"
+                      >
+                        <span className="text-gray-600 flex items-center">
+                          <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
+                          {charge.name}
+                        </span>
+                        <span className="font-medium">
+                          {formatCurrency(charge.amount)}
+                        </span>
+                      </div>
+                    ))}
                     {sale.costs?.map((cost, i) => (
                       <div
                         key={i}
@@ -578,13 +594,13 @@ const SaleDetails = () => {
                     Additional Details
                   </h3>
                   <div className="space-y-4">
-                    {sale.payments?.length > 0 && (
+                    {validPayments.length > 0 && (
                       <div>
                         <h4 className="text-sm font-medium text-gray-700 mb-2">
                           Payment History
                         </h4>
                         <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                          {sale.payments.map((p, i) => (
+                          {validPayments.map((p, i) => (
                             <div
                               key={i}
                               className="flex justify-between items-center p-2 bg-gray-50 rounded"

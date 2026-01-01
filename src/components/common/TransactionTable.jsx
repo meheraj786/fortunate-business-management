@@ -162,8 +162,15 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                 
                 {/* Date Column - Always visible */}
                 <td className="px-4 py-3">
-                  <div className="text-sm text-gray-500 whitespace-nowrap">
-                    {new Date(transaction.date).toLocaleDateString("en-GB")}
+                  <div className="flex flex-col text-sm text-gray-500 whitespace-nowrap">
+                    <span>{new Date(transaction.date).toLocaleDateString("en-GB")}</span>
+                    <span className="text-xs text-gray-400">
+                      {new Date(transaction.date).toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </span>
                   </div>
                   {/* Show category on small screens when category column is hidden */}
                   <div className="text-xs text-gray-600 sm:hidden mt-1">

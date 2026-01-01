@@ -21,11 +21,17 @@ import FormSkeleton from "./components/AddSaleFormSkeleton";
 const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => {
   const isEditMode = !!editData;
 
-  const initialFormData = useMemo(() => ({
-    warehouseId: "", productId: "", categoryId: "", quantity: "", unit: "", pricePerUnit: "", customerType: "existing", customerName: "",
-    customerPhone: "", customerAddress: "", saleDate: new Date().toISOString().split("T")[0], invoiceStatus: "Not-invoiced",
-    costs: [], discount: "", payments: [], notes: "",
-  }), []);
+  const initialFormData = useMemo(() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const saleDate = now.toISOString().slice(0, 16);
+
+    return {
+      warehouseId: "", productId: "", categoryId: "", quantity: "", unit: "", pricePerUnit: "", customerType: "existing", customerName: "",
+      customerPhone: "", customerAddress: "", saleDate, invoiceStatus: "Not-invoiced",
+      charges: [], costs: [], discount: "", payments: [], notes: "",
+    };
+  }, []);
 
   const [formData, setFormData] = useState(initialFormData);
 
@@ -51,6 +57,9 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
   useEffect(() => {
     if (isOpen) {
       if (isEditMode && editData) {
+        const saleDate = new Date(editData.saleDate);
+        saleDate.setMinutes(saleDate.getMinutes() - saleDate.getTimezoneOffset());
+        
         setFormData({
           warehouseId: editData.warehouse?._id || "",
           productId: editData.product?._id || "",
@@ -62,15 +71,19 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
           customerName: editData.customer?.name || "",
           customerPhone: editData.customer?.phone || "",
           customerAddress: editData.customer?.address || "",
-          saleDate: new Date(editData.saleDate).toISOString().split("T")[0],
+          saleDate: saleDate.toISOString().slice(0, 16),
           invoiceStatus: editData.invoiceStatus || "Not-invoiced",
+          charges: editData.charges || [],
           costs: editData.costs || [],
           discount: editData.discount || "",
           payments: editData.payments?.map(p => {
-            const date = p.date ? new Date(p.date) : null;
+            const paymentDate = p.date ? new Date(p.date) : null;
+            if (paymentDate) {
+              paymentDate.setMinutes(paymentDate.getMinutes() - paymentDate.getTimezoneOffset());
+            }
             return {
               ...p,
-              date: date && !isNaN(date) ? date.toISOString().split("T")[0] : "",
+              date: paymentDate ? paymentDate.toISOString().slice(0, 16) : "",
               accountId: p.accountId?._id || p.accountId
             };
           }) || [],
@@ -87,10 +100,11 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
     const quantity = parseFloat(formData.quantity) || 0;
     const pricePerUnit = parseFloat(formData.pricePerUnit) || 0;
     const total = quantity * pricePerUnit;
-    const costsTotal = formData.costs.reduce((acc, charge) => acc + (parseFloat(charge.amount) || 0), 0);
+    const chargesTotal = formData.charges.reduce((acc, charge) => acc + (parseFloat(charge.amount) || 0), 0);
+    const costsTotal = formData.costs.reduce((acc, cost) => acc + (parseFloat(cost.amount) || 0), 0);
     const discount = parseFloat(formData.discount) || 0;
-    return { totalAmount: total, totalAmountToBePaid: total + costsTotal - discount };
-  }, [formData.quantity, formData.pricePerUnit, formData.costs, formData.discount]);
+    return { totalAmount: total, totalAmountToBePaid: total + chargesTotal + costsTotal - discount };
+  }, [formData.quantity, formData.pricePerUnit, formData.charges, formData.costs, formData.discount]);
 
   // Handlers
   const handleWarehouseChange = useCallback((warehouseId) => {
@@ -125,8 +139,11 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
   }, []);
 
   const handlePaymentStatusChange = useCallback((status) => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const paymentDate = now.toISOString().slice(0, 16);
     if (status === "Paid payment") {
-      setFormData(prev => ({ ...prev, paymentStatus: status, payments: [{ amount: totalAmountToBePaid.toFixed(2), date: new Date().toISOString().split("T")[0], method: "", accountId: "" }] }));
+      setFormData(prev => ({ ...prev, paymentStatus: status, payments: [{ amount: totalAmountToBePaid.toFixed(2), date: paymentDate, method: "", accountId: "" }] }));
     } else if (status === "Due payment") {
       setFormData(prev => ({ ...prev, paymentStatus: status, payments: [] }));
     }
@@ -161,27 +178,19 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
       return;
     }
 
-    const submissionTimestamp = new Date(); // Capture exact time of submission
-
-    // Helper to combine form date with submission time
-    const combineDateWithTime = (dateString, timeRef) => {
-      const date = new Date(dateString);
-      date.setHours(
-        timeRef.getHours(),
-        timeRef.getMinutes(),
-        timeRef.getSeconds(),
-        timeRef.getMilliseconds()
-      );
-      return date;
-    };
-
     const salesData = {
       quantity: parseFloat(formData.quantity),
       unit: formData.unit,
       pricePerUnit: parseFloat(formData.pricePerUnit),
-      saleDate: combineDateWithTime(formData.saleDate, submissionTimestamp), // Use combined date/time
+      saleDate: formData.saleDate,
       invoiceStatus: formData.invoiceStatus,
-      costs: formData.costs.filter(c => c.name && c.amount).map(c => ({ ...c, amount: parseFloat(c.amount) })),
+      charges: formData.charges.filter(c => c.name && c.amount).map(c => ({ ...c, amount: parseFloat(c.amount) })),
+      costs: formData.costs.filter(c => c.name && c.amount && c.accountId).map(c => ({
+        name: c.name,
+        amount: parseFloat(c.amount),
+        accountId: c.accountId,
+        paymentMethod: c.method
+      })),
       discount: parseFloat(formData.discount) || 0,
       notes: formData.notes,
       product: formData.productId,
@@ -193,17 +202,15 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
       paymentStatus: formData.paymentStatus,
       payments: formData.payments.map(p => ({
         amount: parseFloat(p.amount) || 0,
-        date: combineDateWithTime(p.date, submissionTimestamp), // Use combined date/time
+        date: p.date,
         method: p.method,
         accountId: p.accountId
       })).filter(p => p.amount > 0 && p.method && p.accountId),
     };
     
     if (isEditMode) {
-      delete salesData.product;
-      delete salesData.warehouse;
-      delete salesData.category;
-      updateSaleMutation.mutate(salesData, { onSuccess: () => { onSaleAdded(); onClose(); } });
+      const { customer, costs, payments, product, warehouse, category, ...updatableData } = salesData;
+      updateSaleMutation.mutate(updatableData, { onSuccess: () => { onSaleAdded(); onClose(); } });
     } else {
       createSaleMutation.mutate(salesData, { onSuccess: () => { onSaleAdded(); onClose(); setFormData(initialFormData); } });
     }
@@ -246,8 +253,8 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200"><p className="text-sm font-medium text-gray-700">Subtotal</p><p className="text-lg font-semibold text-gray-900">${totalAmount.toFixed(2)}</p></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SelectField label="Customer Type" value={formData.customerType} onChange={e => handleInputChange("customerType", e.target.value)} options={[{ value: "existing", label: "Existing Customer" }, { value: "manual", label: "Manual Input" }]} required />
-                <InputField label="Sale Date" type="date" value={formData.saleDate} onChange={e => handleInputChange("saleDate", e.target.value)} required icon={Calendar} />
+                <SelectField label="Customer Type" value={formData.customerType} onChange={e => handleInputChange("customerType", e.target.value)} options={[{ value: "existing", label: "Existing Customer" }, { value: "manual", label: "Manual Input" }]} required disabled={isEditMode} />
+                <InputField label="Sale Date" type="datetime-local" value={formData.saleDate} onChange={e => handleInputChange("saleDate", e.target.value)} required icon={Calendar} />
               </div>
               {formData.customerType === 'existing' ? (
                 <SelectField 
@@ -268,27 +275,54 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
                   options={customers.map(c => ({ value: c._id, label: `${c.name} - ${c.phone}` }))} 
                   required 
                   icon={User} 
-                  disabled={isLoading} 
+                  disabled={isEditMode || isLoading} 
                 />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <InputField label="Customer Name" value={formData.customerName} onChange={e => handleInputChange("customerName", e.target.value)} required icon={User} />
-                  <InputField label="Phone Number" value={formData.customerPhone} onChange={e => handleInputChange("customerPhone", e.target.value)} icon={User} />
-                  <InputField label="Address" value={formData.customerAddress} onChange={e => handleInputChange("customerAddress", e.target.value)} icon={User} />
+                  <InputField label="Customer Name" value={formData.customerName} onChange={e => handleInputChange("customerName", e.target.value)} required icon={User} disabled={isEditMode} />
+                  <InputField label="Phone Number" value={formData.customerPhone} onChange={e => handleInputChange("customerPhone", e.target.value)} icon={User} disabled={isEditMode} />
+                  <InputField label="Address" value={formData.customerAddress} onChange={e => handleInputChange("customerAddress", e.target.value)} icon={User} disabled={isEditMode} />
                 </div>
               )}
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Other Charges</label>
-                {formData.costs.map((charge, index) => (
+                <label className="block text-sm font-medium text-gray-700 mb-3">Charges</label>
+                {formData.charges.map((charge, index) => (
                   <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 items-end">
-                    <InputField label={`Charge Name ${index + 1}`} value={charge.name} onChange={e => handleArrayField("costs", "update", index, { name: e.target.value })} />
-                    <InputField label="Amount" type="number" value={charge.amount} onChange={e => handleArrayField("costs", "update", index, { amount: e.target.value })} min="0" step="0.01" />
+                    <InputField label={`Charge Name ${index + 1}`} value={charge.name} onChange={e => handleArrayField("charges", "update", index, { name: e.target.value })} />
+                    <InputField label="Amount" type="number" value={charge.amount} onChange={e => handleArrayField("charges", "update", index, { amount: e.target.value })} min="0" step="0.01" />
+                    <button type="button" onClick={() => handleArrayField("charges", "remove", index)} className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center"><MinusCircle size={20} /><span className="ml-2 text-sm">Remove</span></button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => handleArrayField("charges", "add", null, { newItem: { name: "", amount: "" } })} className="flex items-center space-x-2 text-sm text-primary hover:bg-primary-light px-3 py-2 rounded-lg"><PlusCircle size={16} /><span>Add Charge</span></button>
+              </div>
+              
+              {!isEditMode && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Costs</label>
+                {formData.costs.map((cost, index) => (
+                  <div key={index} className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-3 items-end">
+                    <InputField label={`Cost Name ${index + 1}`} value={cost.name} onChange={e => handleArrayField("costs", "update", index, { name: e.target.value })} />
+                    <InputField label="Amount" type="number" value={cost.amount} onChange={e => handleArrayField("costs", "update", index, { amount: e.target.value })} min="0" step="0.01" />
+                    <SelectField
+                      label="Payment Method"
+                      value={cost.method}
+                      onChange={e => handleArrayField("costs", "update", index, { method: e.target.value, accountId: "" })}
+                      options={[{ value: "Cash", label: "Cash" }, { value: "Bank", label: "Bank Transfer" }, { value: "Mobile Banking", label: "Mobile Banking" }]}
+                    />
+                    <SelectField
+                      label="Account"
+                      value={cost.accountId}
+                      onChange={e => handleArrayField("costs", "update", index, { accountId: e.target.value })}
+                      options={getFilteredAccounts(cost.method)}
+                      required
+                    />
                     <button type="button" onClick={() => handleArrayField("costs", "remove", index)} className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center"><MinusCircle size={20} /><span className="ml-2 text-sm">Remove</span></button>
                   </div>
                 ))}
-                <button type="button" onClick={() => handleArrayField("costs", "add", null, { newItem: { name: "", amount: "" } })} className="flex items-center space-x-2 text-sm text-primary hover:bg-primary-light px-3 py-2 rounded-lg"><PlusCircle size={16} /><span>Add Charge</span></button>
+                <button type="button" onClick={() => handleArrayField("costs", "add", null, { newItem: { name: "", amount: "", method: "Cash", accountId: "" } })} className="flex items-center space-x-2 text-sm text-primary hover:bg-primary-light px-3 py-2 rounded-lg"><PlusCircle size={16} /><span>Add Cost</span></button>
               </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField label="Discount" type="number" value={formData.discount} onChange={e => handleInputChange("discount", e.target.value)} icon={DollarSign} min="0" step="0.01" />
@@ -297,7 +331,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
               
               <SelectField label="Invoice Status" value={formData.invoiceStatus} onChange={e => handleInputChange("invoiceStatus", e.target.value)} options={[{ value: "Invoiced", label: "Invoiced" }, { value: "Not-invoiced", label: "Not Invoiced" }]} required icon={FileText} />
 
-              {formData.invoiceStatus === "Invoiced" && (
+              {!isEditMode && formData.invoiceStatus === "Invoiced" && (
               <div className="border-t border-gray-200 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <SelectField
@@ -383,7 +417,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
                           <InputField
                             label="Date"
-                            type="date"
+                            type="datetime-local"
                             value={payment.date}
                             onChange={(e) =>
                               handleArrayField("payments", "update", index, {
@@ -439,16 +473,19 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
 
                       <button
                         type="button"
-                        onClick={() =>
-                          handleArrayField("payments", "add", null, {
-                            newItem: {
-                              amount: "",
-                              date: new Date().toISOString().split("T")[0],
-                              method: "",
-                              accountId: "",
-                            },
-                          })
-                        }
+                        onClick={() => {
+                            const now = new Date();
+                            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                            const newPaymentDate = now.toISOString().slice(0, 16);
+                            handleArrayField("payments", "add", null, {
+                                newItem: {
+                                amount: "",
+                                date: newPaymentDate,
+                                method: "",
+                                accountId: "",
+                                },
+                            })
+                        }}
                         className="flex items-center space-x-2 text-sm text-primary hover:text-primary-hover hover:bg-primary-light px-3 py-2 rounded-lg transition-colors"
                         disabled={isLoading}
                       >
