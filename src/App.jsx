@@ -89,8 +89,6 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
-  const { user } = useAuth();
-  console.log(user, "userrrrrrrrrrrr");
   return (
     <>
       <RouterProvider router={router} />

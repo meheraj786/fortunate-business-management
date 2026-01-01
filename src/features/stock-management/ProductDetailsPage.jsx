@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   Calendar,
@@ -15,10 +15,7 @@ import {
   Trash2,
   User,
 } from "lucide-react";
-import { handleError } from "@/utils/handle-error";
-import toast from "react-hot-toast";
-
-import api from "@/services/apiService";
+import { useProduct, useDeleteProduct } from "@/api/hooks/products";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatBox from "@/components/ui/StatBox";
@@ -26,10 +23,7 @@ import AddProductForm from "./AddProductForm";
 import SalesHistory from "./SalesHistory";
 
 const formatNumber = (num) => {
-  if (typeof num !== "number") {
-    return num;
-  }
-  // Return number with a maximum of 3 decimal places
+  if (typeof num !== "number") return num;
   return parseFloat(num.toFixed(3));
 };
 
@@ -39,7 +33,7 @@ const getStockStatusBadgeStyle = (status) => {
       return "bg-green-100 text-green-800 border-green-200";
     case "Low":
       return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    case "No Stock": // Consistent with backend
+    case "No Stock":
       return "bg-red-100 text-red-800 border-red-200";
     default:
       return "bg-gray-100 text-gray-800 border-gray-200";
@@ -64,59 +58,28 @@ const ProductDetails = () => {
   const { warehouseId, productId } = useParams();
   const navigate = useNavigate();
 
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
-  const fetchProductDetails = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.get(
-        `/warehouse/${warehouseId}/products/${productId}`
-      );
-      setProduct(response.data.data);
-    } catch (err) {
-      const errorMessage =
-        err?.response?.data?.message || "Failed to fetch product details";
-      setError(errorMessage);
-      handleError(err, errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [warehouseId, productId]);
+  const {
+    data: productData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useProduct(warehouseId, productId);
+  const product = productData?.data;
 
-  useEffect(() => {
-    fetchProductDetails();
-  }, [fetchProductDetails]);
+  const deleteProductMutation = useDeleteProduct(warehouseId, productId);
 
   const handleDelete = async () => {
-    setDeleting(true);
-    try {
-      await api.delete(`/warehouse/${warehouseId}/products/${productId}`);
-      toast.success("Product deleted successfully");
-      navigate(`/stock/${warehouseId}`);
-    } catch (err) {
-      handleError(err, "Failed to delete product");
-    } finally {
-      setDeleting(false);
-      setShowDeleteModal(false);
-    }
+    deleteProductMutation.mutate(undefined, {
+      onSuccess: () => {
+        setShowDeleteModal(false);
+        navigate(`/stock/${warehouseId}`);
+      },
+    });
   };
-
-  const handleEditClick = () => setShowEditForm(true);
-  const handleFormClose = () => setShowEditForm(false);
-
-  const handleProductUpdated = () => {
-    fetchProductDetails();
-    handleFormClose();
-  };
-
-  const openDeleteModal = () => setShowDeleteModal(true);
-  const closeDeleteModal = () => setShowDeleteModal(false);
 
   const breadcrumbItems = useMemo(
     () => [
@@ -130,7 +93,7 @@ const ProductDetails = () => {
     [product]
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="flex items-center gap-3">
@@ -141,13 +104,15 @@ const ProductDetails = () => {
     );
   }
 
-  if (error && !product) {
+  if (isError) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-600 mb-4">Error loading product details</div>
+          <div className="text-red-600 mb-4">
+            {error.message || "Error loading product details"}
+          </div>
           <button
-            onClick={fetchProductDetails}
+            onClick={() => refetch()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Try Again
@@ -177,8 +142,6 @@ const ProductDetails = () => {
     <div className="">
       <div className="max-w-7xl mx-auto">
         <Breadcrumb items={breadcrumbItems} />
-
-        {/* Product Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="flex items-center gap-4">
@@ -203,14 +166,14 @@ const ProductDetails = () => {
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               <button
-                onClick={handleEditClick}
+                onClick={() => setShowEditForm(true)}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Edit size={16} />
                 <span>Edit</span>
               </button>
               <button
-                onClick={openDeleteModal}
+                onClick={() => setShowDeleteModal(true)}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
               >
                 <Trash2 size={16} />
@@ -221,9 +184,7 @@ const ProductDetails = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Product Details & Specifications */}
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6 space-y-6">
-            {/* General Information Section */}
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
                 General Information
@@ -251,8 +212,6 @@ const ProductDetails = () => {
                 />
               </div>
             </div>
-
-            {/* Specifications Section */}
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
                 Specifications
@@ -270,8 +229,6 @@ const ProductDetails = () => {
                   ))}
               </div>
             </div>
-
-            {/* Inventory & Pricing Section */}
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
                 Inventory & Pricing
@@ -296,8 +253,6 @@ const ProductDetails = () => {
               </div>
             </div>
           </div>
-
-          {/* Sales Overview */}
           <div className="bg-white rounded-lg shadow-sm p-6 min-w-[320px]">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Sales Overview
@@ -331,32 +286,29 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
-
-        {/* Sales History */}
         <SalesHistory warehouseId={warehouseId} productId={productId} />
       </div>
-
-      {/* Edit Form Modal */}
       {showEditForm && (
         <AddProductForm
           isOpen={showEditForm}
-          onClose={handleFormClose}
-          onProductUpdated={handleProductUpdated}
+          onClose={() => setShowEditForm(false)}
+          onProductUpdated={() => {
+            refetch();
+            setShowEditForm(false);
+          }}
           editingProduct={product}
           warehouse={product.warehouse}
         />
       )}
-
-      {/* Delete Confirmation Modal */}
       <ConfirmationModal
         isOpen={showDeleteModal}
-        onClose={closeDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
         title="Delete Product"
         description="Are you sure you want to delete this product? This action cannot be undone."
         confirmText="Delete Product"
         confirmingText="Deleting..."
-        isConfirming={deleting}
+        isConfirming={deleteProductMutation.isLoading}
       />
     </div>
   );

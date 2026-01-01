@@ -1,17 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import api from "@/services/apiService";
+import { useProductSalesHistory } from "@/api/hooks/products";
 import { Loader2 } from "lucide-react";
-import { handleError } from "@/utils/handle-error";
-import toast from "react-hot-toast";
 
 const formatNumber = (num) => {
-  if (typeof num !== "number") {
-    return num;
-  }
-  // Return number with a maximum of 3 decimal places
-  const formatted = parseFloat(num.toFixed(3));
-  return formatted;
+  if (typeof num !== "number") return num;
+  return parseFloat(num.toFixed(3));
 };
 
 const getStatusBadge = (status, type) => {
@@ -26,7 +20,6 @@ const getStatusBadge = (status, type) => {
       "N/A": "bg-gray-100 text-gray-800 border border-gray-200",
     },
   };
-
   const styleMap = type === "invoice" ? styles.invoice : styles.payment;
   return `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
     styleMap[status] || styleMap["N/A"]
@@ -90,7 +83,9 @@ const MobileSalesCard = ({ sale }) => {
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
-          <span className="text-gray-600">Qty: {formatNumber(sale.quantity)}</span>
+          <span className="text-gray-600">
+            Qty: {formatNumber(sale.quantity)}
+          </span>
           <span className="text-gray-600">
             Price: ${formatNumber(sale.pricePerUnit || 0)}
           </span>
@@ -122,10 +117,7 @@ const PaginationControls = ({
   onPageChange,
   isLoading,
 }) => {
-  if (totalPages <= 1) {
-    return null;
-  }
-
+  if (totalPages <= 1) return null;
   return (
     <div className="flex justify-between items-center p-4">
       <button
@@ -150,51 +142,19 @@ const PaginationControls = ({
 };
 
 const SalesHistory = ({ warehouseId, productId }) => {
-  const [sales, setSales] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalItems, setTotalItems] = useState(0);
+  const {
+    data: salesData,
+    isLoading,
+    isError,
+  } = useProductSalesHistory(warehouseId, productId, {
+    page: currentPage,
+    limit: 10,
+  });
 
-  const fetchSalesHistory = useCallback(
-    async (page) => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await api.get(
-          `/warehouse/${warehouseId}/products/${productId}/sales?page=${page}&limit=10`
-        );
-        const {
-          sales,
-          totalPages: newTotalPages,
-          currentPage: newCurrentPage,
-          totalItems: newTotalItems,
-        } = response.data.data;
+  const { sales = [], totalPages = 0, totalItems = 0 } = salesData?.data || {};
 
-        setSales(sales);
-        setTotalPages(newTotalPages);
-        setCurrentPage(newCurrentPage);
-        setTotalItems(newTotalItems);
-      } catch (err) {
-        const errorMessage =
-          err?.response?.data?.message || "Failed to fetch sales history";
-        setError(errorMessage);
-        handleError(err, errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [warehouseId, productId]
-  );
-
-  useEffect(() => {
-    if (warehouseId && productId) {
-      fetchSalesHistory(currentPage);
-    }
-  }, [fetchSalesHistory, warehouseId, productId, currentPage]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
@@ -203,7 +163,7 @@ const SalesHistory = ({ warehouseId, productId }) => {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="text-center py-8 text-red-500">
         Error loading sales history.
@@ -262,13 +222,12 @@ const SalesHistory = ({ warehouseId, productId }) => {
           <NoDataMessage />
         )}
       </div>
-
       {totalItems > 0 && (
         <PaginationControls
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          isLoading={loading}
+          isLoading={isLoading}
         />
       )}
     </div>

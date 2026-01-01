@@ -1,11 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Save, Warehouse, MapPin } from "lucide-react";
-
-import api from "@/services/apiService";
-import { handleError } from "@/utils/handle-error";
+import { X, Save, Warehouse, MapPin, Loader2 } from "lucide-react";
+import { useCreateWarehouse, useUpdateWarehouse } from "@/api/hooks/warehouse";
 import toast from "react-hot-toast";
-
 import InputField from "@/components/ui/InputField";
 
 const AddWarehouseForm = ({
@@ -15,12 +12,11 @@ const AddWarehouseForm = ({
   editingWarehouse,
   onWarehouseUpdated,
 }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    address: "",
-  });
-
+  const [formData, setFormData] = useState({ name: "", address: "" });
   const isEditMode = !!editingWarehouse;
+
+  const createWarehouseMutation = useCreateWarehouse();
+  const updateWarehouseMutation = useUpdateWarehouse();
 
   useEffect(() => {
     if (isOpen) {
@@ -30,24 +26,17 @@ const AddWarehouseForm = ({
           address: editingWarehouse.location,
         });
       } else {
-        setFormData({
-          name: "",
-          address: "",
-        });
+        setFormData({ name: "", address: "" });
       }
     }
-  }, [editingWarehouse, isOpen]);
+  }, [editingWarehouse, isOpen, isEditMode]);
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.name || !formData.address) {
       toast.error("Please fill in all required fields");
       return;
@@ -58,20 +47,27 @@ const AddWarehouseForm = ({
       location: formData.address,
     };
 
-    try {
-      if (isEditMode) {
-        await api.patch(`/warehouse/${editingWarehouse._id}`, payload);
-        toast.success("Warehouse Updated");
-        onWarehouseUpdated();
-      } else {
-        await api.post(`/warehouse/`, payload);
-        toast.success("Warehouse Created");
-        onWarehouseAdded();
-      }
-    } catch (error) {
-      handleError(error, "An error occurred");
+    if (isEditMode) {
+      updateWarehouseMutation.mutate(
+        { id: editingWarehouse._id, data: payload },
+        {
+          onSuccess: () => {
+            onWarehouseUpdated();
+            onClose();
+          },
+        }
+      );
+    } else {
+      createWarehouseMutation.mutate(payload, {
+        onSuccess: () => {
+          onWarehouseAdded();
+          onClose();
+        },
+      });
     }
   };
+
+  const isSubmitting = createWarehouseMutation.isLoading || updateWarehouseMutation.isLoading;
 
   return (
     <AnimatePresence>
@@ -110,6 +106,7 @@ const AddWarehouseForm = ({
                   onClick={onClose}
                   className="p-2 hover:bg-blue-700 rounded-lg transition-colors duration-200"
                   aria-label="Close"
+                  disabled={isSubmitting}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -125,6 +122,7 @@ const AddWarehouseForm = ({
                   required
                   placeholder="e.g., Main Warehouse"
                   icon={Warehouse}
+                  disabled={isSubmitting}
                 />
                 <InputField
                   label="Warehouse Address"
@@ -133,23 +131,30 @@ const AddWarehouseForm = ({
                   required
                   placeholder="e.g., 123 Industrial Park, Dhaka"
                   icon={MapPin}
+                  disabled={isSubmitting}
                 />
                 <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium flex items-center justify-center space-x-2"
+                    disabled={isSubmitting}
+                    className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 disabled:opacity-50"
                   >
                     <X className="w-4 h-4" />
                     <span>Cancel</span>
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 font-medium flex items-center justify-center space-x-2"
+                    disabled={isSubmitting}
+                    className="px-6 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 font-medium flex items-center justify-center space-x-2 disabled:opacity-50"
                   >
-                    <Save className="w-4 h-4" />
+                    {isSubmitting ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
                     <span>
-                      {isEditMode ? "Update Warehouse" : "Save Warehouse"}
+                      {isSubmitting ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update Warehouse" : "Save Warehouse")}
                     </span>
                   </button>
                 </div>

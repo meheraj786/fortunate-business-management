@@ -26,6 +26,13 @@ export const useLC = (id) =>
     enabled: !!id,
   });
 
+// Fetch all completed LCs
+export const useCompletedLCs = () =>
+  useQuery({
+    queryKey: ["lcs", "completed"],
+    queryFn: async () => (await api.getCompletedLCs()).data,
+  });
+
 // Create a new LC
 export const useCreateLC = () => {
   const qc = useQueryClient();
