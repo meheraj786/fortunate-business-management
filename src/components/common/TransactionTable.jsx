@@ -1,5 +1,13 @@
 import React from "react";
-import { Building, Smartphone, Wallet } from "lucide-react";
+import { 
+  Building, 
+  Smartphone, 
+  Wallet, 
+  CreditCard,
+  Landmark,
+  Smartphone as Mobile,
+  Banknote
+} from "lucide-react";
 
 const getAccountDisplayName = (accountId) => {
   if (!accountId) return "N/A";
@@ -16,6 +24,21 @@ const getAccountDisplayName = (accountId) => {
   }
 };
 
+const getPaymentIcon = (paymentMethod) => {
+  switch (paymentMethod) {
+    case "Bank":
+      return <Landmark className="w-4 h-4" />;
+    case "Mobile Banking":
+      return <Mobile className="w-4 h-4" />;
+    case "Cash":
+      return <Banknote className="w-4 h-4" />;
+    case "Credit Card":
+      return <CreditCard className="w-4 h-4" />;
+    default:
+      return <Wallet className="w-4 h-4" />;
+  }
+};
+
 const TransactionTable = ({ transactions, onRowClick }) => {
   const handleRowClick = (transactionId) => {
     if (onRowClick) {
@@ -25,25 +48,36 @@ const TransactionTable = ({ transactions, onRowClick }) => {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
+      <table className="w-full min-w-[700px] lg:min-w-full">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Description / Source
+            {/* Description/Source - Always visible */}
+            <th className="px-4 pr-0 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
+              Description
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            
+            {/* Category - Hidden on small screens, visible on medium+ */}
+            <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Category
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            
+            {/* Amount - Always visible */}
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Amount
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Payment Method
+            
+            {/* Payment Method - Always visible */}
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+              Payment
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            
+            {/* Account - Hidden on extra small, visible on small+ */}
+            <th className="hidden xs:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
               Account
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            
+            {/* Date - Always visible but compact */}
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Date
             </th>
           </tr>
@@ -56,19 +90,31 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                 className="hover:bg-gray-50 cursor-pointer"
                 onClick={() => handleRowClick(transaction._id)}
               >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {transaction.description}
+                {/* Description/Source Column */}
+                <td className="px-4 pr-0 py-3">
+                  <div className="flex flex-col">
+                    <div className="text-sm font-medium text-gray-900 line-clamp-2">
+                      {transaction.description}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {transaction.source}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500">
+                </td>
+                
+                {/* Category Column - Hidden on small screens */}
+                <td className="hidden sm:table-cell px-4 py-3">
+                  <span className="text-sm text-gray-700 whitespace-nowrap">
+                    {transaction.category}
+                  </span>
+                  <div className="text-xs text-gray-500 mt-1 sm:hidden">
                     {transaction.source}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {transaction.category}
-                </td>
+                
+                {/* Amount Column */}
                 <td
-                  className={`px-6 py-4 whitespace-nowrap text-sm font-semibold text-right ${
+                  className={`px-4 py-3 text-sm font-semibold text-right whitespace-nowrap ${
                     transaction.transactionType === "Income"
                       ? "text-green-600"
                       : "text-red-600"
@@ -77,33 +123,52 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                   {transaction.transactionType === "Income" ? "+ " : "- "}৳
                   {transaction.amount.toLocaleString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      transaction.paymentMethod === "Bank"
-                        ? "bg-blue-100 text-blue-800"
-                        : transaction.paymentMethod === "Mobile Banking"
-                        ? "bg-purple-100 text-purple-800"
-                        : "bg-green-100 text-green-800"
-                    }`}
-                  >
-                    {transaction.paymentMethod === "Bank" && (
-                      <Building className="w-3 h-3 mr-1" />
-                    )}
-                    {transaction.paymentMethod === "Mobile Banking" && (
-                      <Smartphone className="w-3 h-3 mr-1" />
-                    )}
-                    {transaction.paymentMethod === "Cash" && (
-                      <Wallet className="w-3 h-3 mr-1" />
-                    )}
-                    {transaction.paymentMethod}
-                  </span>
+                
+                {/* Payment Method Column */}
+                <td className="px-4 py-3">
+                  <div className="flex flex-col gap-2">
+                    {/* Payment method with icon */}
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-md ${
+                        transaction.paymentMethod === "Bank"
+                          ? "bg-blue-50 text-blue-600"
+                          : transaction.paymentMethod === "Mobile Banking"
+                          ? "bg-purple-50 text-purple-600"
+                          : transaction.paymentMethod === "Cash"
+                          ? "bg-green-50 text-green-600"
+                          : "bg-gray-50 text-gray-600"
+                      }`}>
+                        {getPaymentIcon(transaction.paymentMethod)}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900">
+                          {transaction.paymentMethod}
+                        </span>
+                        {/* Show account on extra small screens when account column is hidden */}
+                        <div className="text-xs text-gray-600 xs:hidden line-clamp-1 mt-0.5">
+                          {getAccountDisplayName(transaction.accountId)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {getAccountDisplayName(transaction.accountId)}
+                
+                {/* Account Column - Hidden on extra small screens */}
+                <td className="hidden xs:table-cell px-4 py-3">
+                  <div className="text-sm text-gray-700 line-clamp-2 min-h-[40px]">
+                    {getAccountDisplayName(transaction.accountId)}
+                  </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(transaction.date).toLocaleDateString("en-GB")}
+                
+                {/* Date Column - Always visible */}
+                <td className="px-4 py-3">
+                  <div className="text-sm text-gray-500 whitespace-nowrap">
+                    {new Date(transaction.date).toLocaleDateString("en-GB")}
+                  </div>
+                  {/* Show category on small screens when category column is hidden */}
+                  <div className="text-xs text-gray-600 sm:hidden mt-1">
+                    {transaction.category}
+                  </div>
                 </td>
               </tr>
             ))

@@ -9,7 +9,7 @@ const CustomerCard = ({ customer }) => {
     ? new Date(customer.lastPurchaseDate).toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "short",
-        year: "numeric"
+        year: "numeric",
       })
     : "Never purchased";
 
@@ -25,11 +25,9 @@ const CustomerCard = ({ customer }) => {
     }
   };
 
-
-
   return (
     <Link to={`/customer-details/${customer._id}`} className="block">
-      <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.99] h-full">
+      <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.99] h-full">
         {/* Header with name and badges */}
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1 min-w-0">
@@ -40,14 +38,17 @@ const CustomerCard = ({ customer }) => {
               ID: {customer.customerId || customer._id?.slice(-6)}
             </p>
           </div>
-          
+
           <div className="flex flex-col gap-1 ml-2">
             {customer.status && (
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(customer.status)}`}>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                  customer.status
+                )}`}
+              >
                 {customer.status}
               </span>
             )}
-
           </div>
         </div>
 
@@ -61,7 +62,10 @@ const CustomerCard = ({ customer }) => {
           </div>
           {customer.billingAddress && (
             <div className="flex items-center gap-2 text-gray-600">
-              <MapPin size={14} className="flex-shrink-0 text-gray-400 mt-0.5" />
+              <MapPin
+                size={14}
+                className="flex-shrink-0 text-gray-400 mt-0.5"
+              />
               <span className="text-sm line-clamp-2">
                 {customer.billingAddress}
               </span>
@@ -81,7 +85,7 @@ const CustomerCard = ({ customer }) => {
                 ${totalPurchased.toLocaleString()}
               </p>
             </div>
-            
+
             <div className="space-y-1">
               <div className="flex items-center gap-1 text-red-600">
                 <DollarSign size={14} />
@@ -99,7 +103,7 @@ const CustomerCard = ({ customer }) => {
               <Calendar size={12} />
               <span>Last: {lastPurchaseDate}</span>
             </div>
-            
+
             {customer.creditLimit > 0 && (
               <div className="text-xs bg-gray-100 px-2 py-1 rounded">
                 Limit: ${customer.creditLimit?.toLocaleString()}

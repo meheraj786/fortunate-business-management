@@ -8,6 +8,7 @@ import {
   MonitorDot,
   Plus,
   Grid2x2Check,
+  Trash,
 } from "lucide-react";
 import api from "@/services/apiService";
 import { Link } from "react-router";
@@ -176,7 +177,12 @@ const LC = () => {
           <div className="flex flex-col sm:flex-row items-center gap-3">
             {
               isSuperAdmin && 
-                          <Link to="/trash/lc" className="sm:w-auto w-full" >LC Trash</Link>
+                          <Link to="/trash/lc" className="sm:w-auto w-full">
+                <button className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors w-full active:scale-95 touch-manipulation">
+                  <Trash size={20} aria-hidden="true" />
+                  <span>View LC Trash</span>
+                </button>
+              </Link>
             }
 
             <Link to="/lc-form" className="sm:w-auto w-full">

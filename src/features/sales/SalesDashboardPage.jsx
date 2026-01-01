@@ -39,7 +39,7 @@ const Sales = () => {
   const [sortBy, setSortBy] = useState("saleDate");
   const [sortOrder, setSortOrder] = useState("desc");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  const {isSuperAdmin}=useAuth();
+  const { isSuperAdmin } = useAuth();
 
   const fetchSalesData = useCallback(async () => {
     setLoading(true);
@@ -165,16 +165,14 @@ const Sales = () => {
               <Plus className="w-4 h-4" aria-hidden="true" />
               Add Sale
             </button>
-                      {isSuperAdmin && (
-            <Link to="/trash/sale">
-            <button
-              className="  px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
-            >
-              <Trash color="red" size={20} />
-              Sale Trash
-            </button>
-            </Link>
-          )}
+            {isSuperAdmin && (
+              <Link to="/trash/sale">
+                <button className="  px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95">
+                  <Trash color="red" size={20} />
+                  Sale Trash
+                </button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -212,7 +210,7 @@ const Sales = () => {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="p-4 sm:p-6">
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -308,4 +306,3 @@ const Sales = () => {
 };
 
 export default Sales;
-

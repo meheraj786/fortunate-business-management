@@ -50,7 +50,7 @@ const CustomerDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { baseUrl } = useUrl();
-  const deleteCustomerMutation=useDeleteCustomer()
+  const deleteCustomerMutation = useDeleteCustomer();
 
   // State
   const [confirmModal, setConfirmModal] = useState({
@@ -94,7 +94,7 @@ const CustomerDetails = () => {
 
   // Handlers
   const handleDelete = useCallback(async () => {
-    await deleteCustomerMutation.mutateAsync(id)
+    await deleteCustomerMutation.mutateAsync(id);
     toast.success("Customer deleted successfully!");
     navigate("/customers");
   }, [id, navigate]);
@@ -132,27 +132,25 @@ const CustomerDetails = () => {
     [customerData?.stats, formatCurrency]
   );
 
-const handleDownload = async (customerId, fileName) => {
-  try {
+  const handleDownload = async (customerId, fileName) => {
+    try {
+      const downloadUrl = `${baseUrl}customers/${customerId}/documents/${encodeURIComponent(
+        fileName
+      )}`;
 
-    
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", fileName);
+      link.setAttribute("target", "_blank");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      handleError(error, "Download trigger failed");
+    }
+  };
 
-    const downloadUrl = `${baseUrl}customers/${customerId}/documents/${encodeURIComponent(fileName)}`;
-
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.setAttribute("download", fileName);
-    link.setAttribute("target", "_blank");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  } catch (error) {
-    handleError(error, "Download trigger failed");
-  }
-};
-
-  console.log(customerData , "customerData");
-  
+  console.log(customerData, "customerData");
 
   // Loading and error states
   if (loadingCustomer) {
@@ -217,7 +215,7 @@ const handleDownload = async (customerId, fileName) => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
-          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-xl shadow-sm border border-gray-100"
+          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-100"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -414,28 +412,33 @@ const handleDownload = async (customerId, fileName) => {
               ariaLabel="Documents Section"
             >
               <div className="space-y-3">
-{customerData.documents?.map((doc, index) => (
-  <div
-    key={index}
-    className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
-  >
-    <FileText className="text-gray-400 mr-3 flex-shrink-0" />
-    <div className="flex-1 min-w-0">
-      <div className="text-sm font-medium text-gray-700 truncate">
-        {doc.name}
-      </div>
-      <div className="text-xs text-gray-500 mt-1">
-        {(doc.size / 1024).toFixed(2)} KB
-      </div>
-    </div>
-    <button
-      onClick={() => handleDownload(customerData._id, doc.storedName || doc.name)}
-      className="ml-2 p-2 text-[#003b75] hover:bg-blue-100 rounded-full transition-colors"
-    >
-      <Download className="w-4 h-4" />
-    </button>
-  </div>
-))}
+                {customerData.documents?.map((doc, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
+                  >
+                    <FileText className="text-gray-400 mr-3 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-gray-700 truncate">
+                        {doc.name}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {(doc.size / 1024).toFixed(2)} KB
+                      </div>
+                    </div>
+                    <button
+                      onClick={() =>
+                        handleDownload(
+                          customerData._id,
+                          doc.storedName || doc.name
+                        )
+                      }
+                      className="ml-2 p-2 text-[#003b75] hover:bg-blue-100 rounded-full transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </CollapsibleCard>
           </div>

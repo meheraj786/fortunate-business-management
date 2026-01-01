@@ -23,7 +23,7 @@ import { useDeleteTransaction, useTransaction } from "@/api/hooks/transaction";
 
 const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+
   // Use react-query hook to fetch transaction details
   const { data: response, isLoading, isError } = useTransaction(transactionId);
   const transaction = response?.data;
@@ -73,9 +73,9 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
 
         {/* Error */}
         {isError && !isLoading && (
-            <div className="text-center py-8 text-red-500">
-                Failed to load transaction details.
-            </div>
+          <div className="text-center py-8 text-red-500">
+            Failed to load transaction details.
+          </div>
         )}
 
         {/* Details */}
@@ -83,7 +83,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
           <div className="space-y-4">
             {/* Amount Banner */}
             <div
-              className={`p-4 rounded-xl border ${
+              className={`p-4 rounded-lg border ${
                 transaction.transactionType === "Income"
                   ? "bg-green-50 border-green-200"
                   : "bg-red-50 border-red-200"
@@ -106,9 +106,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Transaction Type</p>
-                    <p className="font-bold">
-                      {transaction.transactionType}
-                    </p>
+                    <p className="font-bold">{transaction.transactionType}</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -122,13 +120,21 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
 
             {/* Info Grid */}
             <div className="grid grid-cols-2 gap-3">
-              <Info label="Date" icon={<Calendar />} value={formatDate(transaction.date)} />
+              <Info
+                label="Date"
+                icon={<Calendar />}
+                value={formatDate(transaction.date)}
+              />
               <Info
                 label="Payment Method"
                 icon={getPaymentMethodIcon(transaction.paymentMethod)}
                 value={transaction.paymentMethod}
               />
-              <Info label="Category" icon={<CircleDashed />} value={transaction.category} />
+              <Info
+                label="Category"
+                icon={<CircleDashed />}
+                value={transaction.category}
+              />
               <Info
                 label="Account"
                 icon={<User />}
@@ -137,7 +143,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
             </div>
 
             {/* Description */}
-            <div className="border rounded-xl p-4">
+            <div className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="w-5 h-5 text-blue-600" />
                 <h3 className="font-semibold">Description</h3>
@@ -155,7 +161,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
             </div>
 
             {/* Footer */}
-            <div className="pt-3 border-t flex justify-between items-center text-xs text-gray-500">
+            <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500">
               <div className="flex items-center gap-1">
                 <Hash className="w-3 h-3" />
                 <span className="font-mono">{transaction._id}</span>
@@ -175,13 +181,11 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
         {/* Delete Confirm Popup */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-xl w-full max-w-sm p-5">
-              <h3 className="text-lg font-semibold mb-2">
-                Confirm Delete
-              </h3>
+            <div className="bg-white rounded-lg w-full max-w-sm p-5">
+              <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Are you sure you want to delete this transaction?
-                This action cannot be undone.
+                Are you sure you want to delete this transaction? This action
+                cannot be undone.
               </p>
 
               <div className="flex justify-end gap-3">
@@ -224,7 +228,7 @@ const Info = ({ label, icon, value }) => (
       {icon}
       {label}
     </div>
-    <div className="font-medium text-gray-900 truncate">{value || 'N/A'}</div>
+    <div className="font-medium text-gray-900 truncate">{value || "N/A"}</div>
   </div>
 );
 

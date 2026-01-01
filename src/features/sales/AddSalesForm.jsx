@@ -539,7 +539,10 @@ const AddSales = ({
         throw new Error(response.data.message || "Operation failed");
       }
     } catch (error) {
-      handleError(error, isEditMode ? "Failed to update sale" : "Failed to create sale");
+      handleError(
+        error,
+        isEditMode ? "Failed to update sale" : "Failed to create sale"
+      );
       toast.dismiss(loadingToast);
     }
   };
@@ -582,7 +585,7 @@ const AddSales = ({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+          className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           <FormHeader

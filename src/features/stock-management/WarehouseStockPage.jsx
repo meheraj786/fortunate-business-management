@@ -1,9 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
   Search,
@@ -106,10 +101,9 @@ const WarehouseStock = () => {
         }
       });
 
-      const res = await api.get(
-        `/warehouse/${warehouseId}/products`,
-        { params }
-      );
+      const res = await api.get(`/warehouse/${warehouseId}/products`, {
+        params,
+      });
 
       if (res.data?.success && res.data.data) {
         const { docs, totalPages, page, totalDocs } = res.data.data;
@@ -280,7 +274,7 @@ const WarehouseStock = () => {
             />
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -373,12 +367,15 @@ const WarehouseStock = () => {
         {isLoading ? (
           <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+              <div
+                key={i}
+                className="bg-white rounded-lg border border-gray-200 p-4 animate-pulse"
+              >
                 <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
                 <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
                 <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-full"></div>
-                    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
                 </div>
               </div>
             ))}
@@ -405,7 +402,7 @@ const WarehouseStock = () => {
             />
           </>
         ) : (
-          <div className="text-center py-8 sm:py-12 bg-white rounded-xl border border-gray-200">
+          <div className="text-center py-8 sm:py-12 bg-white rounded-lg border border-gray-200">
             <Package size={48} className="text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600 text-lg mb-2">
               {searchTerm || filters.stockStatus

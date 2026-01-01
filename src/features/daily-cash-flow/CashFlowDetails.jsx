@@ -20,8 +20,8 @@ const EmptyTransactions = () => (
       No transactions found
     </h3>
     <p className="text-gray-500 max-w-md mx-auto">
-      There are no transactions for this day. Try adding some income or
-      expenses to get started.
+      There are no transactions for this day. Try adding some income or expenses
+      to get started.
     </p>
   </div>
 );
@@ -46,10 +46,16 @@ const CashFlowDetails = ({
 
   if (!summary) {
     // Render a loading state or nothing if summary is not available
-    return null; 
+    return null;
   }
-  
-  const { openingBalance, totalIncome, totalExpenses, runningBalance, totalTransactions } = summary;
+
+  const {
+    openingBalance,
+    totalIncome,
+    totalExpenses,
+    runningBalance,
+    totalTransactions,
+  } = summary;
 
   return (
     <div className="space-y-6">
@@ -86,7 +92,7 @@ const CashFlowDetails = ({
       </div>
 
       {/* Transactions Section */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">
             Today's Transactions
@@ -95,7 +101,7 @@ const CashFlowDetails = ({
             {totalTransactions || 0} total transactions
           </p>
         </div>
-        
+
         {transactions.length === 0 ? (
           <EmptyTransactions />
         ) : (
@@ -124,4 +130,3 @@ StatCard.propTypes = {
 };
 
 export default CashFlowDetails;
-

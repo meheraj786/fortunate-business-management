@@ -119,7 +119,7 @@ const SalesListPage = ({
     <div className="space-y-4 sm:space-y-6">
       <Breadcrumb items={breadcrumbItems} />
 
-      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
         <div className="space-y-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">

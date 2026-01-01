@@ -212,7 +212,7 @@ const LCTable = ({
   }, [lcData, loading, getStatusColor]);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
       <div className="p-4 sm:p-6 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1 relative">

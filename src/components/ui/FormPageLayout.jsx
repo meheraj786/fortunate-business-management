@@ -29,7 +29,7 @@ const FormPageLayout = ({
     >
       <form onSubmit={onSubmit}>
         {/* Header Section */}
-        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
@@ -85,7 +85,7 @@ const FormPageLayout = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className="flex flex-col sm:flex-row justify-between items-center bg-white rounded-xl shadow-lg p-4 sm:p-6 space-y-4 sm:space-y-0 mt-6"
+          className="flex flex-col sm:flex-row justify-between items-center bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-4 sm:space-y-0 mt-6"
         >
           <Link
             to={cancelLink}

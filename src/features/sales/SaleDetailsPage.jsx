@@ -396,7 +396,7 @@ const SaleDetails = () => {
         {/* Main Content */}
         <div className="mt-6 space-y-6">
           {/* Header Card */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-blue-100 rounded-lg">
@@ -472,7 +472,7 @@ const SaleDetails = () => {
             {/* Left Column - Sale Info */}
             <div className="lg:col-span-2 space-y-6">
               {/* Sale Information */}
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <Info className="h-5 w-5 mr-2 text-blue-500" />
                   Sale Information
@@ -540,7 +540,7 @@ const SaleDetails = () => {
               </div>
 
               {/* Financial Summary */}
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                   <h2 className="text-lg font-semibold text-gray-900">
                     Financial Summary
@@ -630,7 +630,7 @@ const SaleDetails = () => {
             <div className="space-y-6">
               {/* Customer Information */}
               {sale.customer && (
-                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <User className="h-5 w-5 mr-2 text-blue-500" />
                     Customer Information
@@ -674,7 +674,7 @@ const SaleDetails = () => {
               )}
 
               {/* Additional Details */}
-              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Additional Details
                 </h3>
@@ -750,7 +750,7 @@ const SaleDetails = () => {
 
           {/* Invoice Section */}
           {sale.invoiceStatus === "Invoiced" && !isCancelled && (
-            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Invoice History

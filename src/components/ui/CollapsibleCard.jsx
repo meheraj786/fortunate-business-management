@@ -43,7 +43,7 @@ const CollapsibleCard = ({
 
   return (
     <motion.div
-      className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden touch-manipulation ${className}`}
+      className={`bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden touch-manipulation ${className}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}

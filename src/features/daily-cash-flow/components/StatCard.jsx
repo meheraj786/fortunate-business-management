@@ -30,7 +30,7 @@ const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-sm p-5 border-l-4 ${selectedColor.border} hover:shadow-md transition-shadow`}
+      className={`bg-white rounded-lg shadow-sm p-5 border-l-4 ${selectedColor.border} hover:shadow-md transition-shadow`}
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">
@@ -44,7 +44,7 @@ const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
             <p className="text-xs text-gray-500 truncate">{subtitle}</p>
           )}
         </div>
-        <div className={`p-3 ${selectedColor.bg} rounded-xl`}>
+        <div className={`p-3 ${selectedColor.bg} rounded-lg`}>
           {Icon && <Icon className={`w-6 h-6 ${selectedColor.text}`} />}
         </div>
       </div>

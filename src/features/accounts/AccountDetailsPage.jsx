@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router";
 import {
   ArrowLeft, Building, Smartphone, CreditCard, DollarSign, Hash, User,
   Calendar, Info, Edit, Trash2, Wallet, Search, Filter, ArrowUp, ArrowDown, X, ChevronDown,

@@ -167,22 +167,18 @@ const Warehouses = () => {
           )}
           {isSuperAdmin && (
             <Link to="/trash/warehouse">
-            <button
-              className="  px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
-            >
-              <Trash size={20} />
-              Warehouse Trash
-            </button>
+              <button className="  px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95">
+                <Trash size={20} />
+                Warehouse Trash
+              </button>
             </Link>
           )}
           {isSuperAdmin && (
             <Link to="/trash/product">
-            <button
-              className=" px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
-            >
-              <Trash size={20} />
-              Product Trash
-            </button>
+              <button className=" px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95">
+                <Trash size={20} />
+                Product Trash
+              </button>
             </Link>
           )}
         </div>
@@ -219,7 +215,7 @@ const Warehouses = () => {
 
         {/* Empty state */}
         {warehouses.length === 0 && !loading && (
-          <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="text-center py-16 bg-white rounded-lg shadow-sm border border-gray-100">
             <div className="bg-blue-50 rounded-full p-4 w-16 h-16 flex items-center justify-center mx-auto mb-4">
               <Warehouse className="text-blue-600" size={32} />
             </div>
@@ -246,7 +242,7 @@ const Warehouses = () => {
             {warehouses.map((warehouse) => (
               <div
                 key={warehouse._id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col border border-gray-200/60 hover:border-gray-300 group"
+                className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col border border-gray-200/60 hover:border-gray-300 group"
               >
                 {/* Card Content */}
                 <Link
@@ -254,7 +250,7 @@ const Warehouses = () => {
                   className="p-6 flex-grow block hover:bg-gray-50/50 transition-colors duration-200"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-xl group-hover:scale-105 transition-transform duration-200">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg group-hover:scale-105 transition-transform duration-200">
                       <Warehouse className="text-blue-600" size={24} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -288,34 +284,31 @@ const Warehouses = () => {
                 </Link>
 
                 {/* Actions */}
-                {
-                  isSuperAdmin && (
-                <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
-                  <button
-                    onClick={() => handleEditClick(warehouse)}
-                    className="cursor-pointer p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:scale-105"
-                    aria-label={`Edit ${warehouse.name}`}
-                    title="Edit Warehouse"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClick(warehouse)}
-                    disabled={deletingId === warehouse._id}
-                    className="cursor-pointer p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                    aria-label={`Delete ${warehouse.name}`}
-                    title="Delete Warehouse"
-                  >
-                    {deletingId === warehouse._id ? (
-                      <Loader className="animate-spin" size={16} />
-                    ) : (
-                      <Trash2 size={16} />
-                    )}
-                  </button>
-                </div>
-                    
-                  )
-                }
+                {isSuperAdmin && (
+                  <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
+                    <button
+                      onClick={() => handleEditClick(warehouse)}
+                      className="cursor-pointer p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:scale-105"
+                      aria-label={`Edit ${warehouse.name}`}
+                      title="Edit Warehouse"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(warehouse)}
+                      disabled={deletingId === warehouse._id}
+                      className="cursor-pointer p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      aria-label={`Delete ${warehouse.name}`}
+                      title="Delete Warehouse"
+                    >
+                      {deletingId === warehouse._id ? (
+                        <Loader className="animate-spin" size={16} />
+                      ) : (
+                        <Trash2 size={16} />
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

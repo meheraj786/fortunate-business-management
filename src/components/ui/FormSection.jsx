@@ -23,7 +23,7 @@ const FormSection = ({
   return (
     <section
       ref={sectionRef}
-      className={`bg-white rounded-xl shadow-md/5 overflow-hidden scroll-mt-16 touch-manipulation ${className}`}
+      className={`bg-white rounded-lg shadow-md/5 overflow-hidden scroll-mt-16 touch-manipulation ${className}`}
       aria-label={ariaLabel || title}
     >
       <div

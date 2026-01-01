@@ -94,7 +94,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, isLoading }) => {
 };
 
 const SkeletonCard = () => (
-  <div className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse">
+  <div className="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
     <div className="flex justify-between items-start mb-4">
       <div className="flex-1">
         <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -231,7 +231,7 @@ const Customers = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -363,7 +363,7 @@ const Customers = () => {
             />
           </>
         ) : (
-          <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-700 mb-2">
               No Customers Found

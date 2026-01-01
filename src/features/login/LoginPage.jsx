@@ -4,7 +4,7 @@ import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import "@/styles/Login.css";
 import { handleError } from "@/utils/handle-error";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from 'react-router';
+import { useNavigate } from "react-router";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -66,7 +66,7 @@ const Login = () => {
       setIsLoading(true); // Start loading
       try {
         await login(email, password);
-        navigate('/');
+        navigate("/");
       } catch (error) {
         handleError(error, "Login failed. Please check your credentials.");
       } finally {
@@ -92,7 +92,7 @@ const Login = () => {
           >
             <form
               onSubmit={handleSubmit}
-              className="bg-[#f7f8ff] rounded-xl shadow-xl p-6 space-y-5 border border-gray-100"
+              className="bg-[#f7f8ff] rounded-lg shadow-xl p-6 space-y-5 border border-gray-100"
             >
               <div className="text-center">
                 <motion.h1

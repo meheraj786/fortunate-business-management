@@ -143,26 +143,28 @@ const LCdetails = () => {
 
   console.log(lcData, "lcData");
 
-const handleDownload = async (lcId, storedName, originalName) => {
-  try {
-    // ডাবল স্ল্যাশ এড়ানোর জন্য baseUrl থেকে ট্রেইলিং স্ল্যাশ বাদ দেওয়া হয়েছে
-    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const downloadUrl = `${cleanBaseUrl}/lc/${lcId}/documents/${storedName}`;
+  const handleDownload = async (lcId, storedName, originalName) => {
+    try {
+      // ডাবল স্ল্যাশ এড়ানোর জন্য baseUrl থেকে ট্রেইলিং স্ল্যাশ বাদ দেওয়া হয়েছে
+      const cleanBaseUrl = baseUrl.endsWith("/")
+        ? baseUrl.slice(0, -1)
+        : baseUrl;
+      const downloadUrl = `${cleanBaseUrl}/lc/${lcId}/documents/${storedName}`;
 
-    // ডাউনলোড শুরু করার প্রসেস
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.setAttribute("download", originalName);
-    link.setAttribute("target", "_blank");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+      // ডাউনলোড শুরু করার প্রসেস
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", originalName);
+      link.setAttribute("target", "_blank");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
 
-    toast.success("Downloading started...");
-  } catch (error) {
-    handleError(error, "Failed to download file");
-  }
-};
+      toast.success("Downloading started...");
+    } catch (error) {
+      handleError(error, "Failed to download file");
+    }
+  };
 
   // Loading and error states
   if (loading) {
@@ -224,7 +226,7 @@ const handleDownload = async (lcId, storedName, originalName) => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
-          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-xl shadow-sm border border-gray-100"
+          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-100"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -567,55 +569,64 @@ const handleDownload = async (lcId, storedName, originalName) => {
             </CollapsibleCard>
 
             {/* Documents & Notes */}
-<CollapsibleCard
-  title="Documents & Notes"
-  icon={<Clipboard className="text-[#003b75]" />}
-  ariaLabel="Documents and Notes Section"
->
-  <div className="space-y-4">
-    {documentsNotes.uploadedDocuments?.length > 0 && (
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">
-          Uploaded Documents
-        </h3>
-        <div className="space-y-2">
-          {documentsNotes.uploadedDocuments.map((doc) => (
-            <div
-              key={doc._id}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
+            <CollapsibleCard
+              title="Documents & Notes"
+              icon={<Clipboard className="text-[#003b75]" />}
+              ariaLabel="Documents and Notes Section"
             >
-              <div className="flex items-center min-w-0">
-                <File className="text-gray-400 mr-3 flex-shrink-0" />
-                <div className="text-sm font-medium text-gray-700 truncate">
-                  {doc.originalName}
-                </div>
-              </div>
-              
-              <button
-                onClick={() => handleDownload(lcData._id, doc.storedName, doc.originalName)}
-                className="p-2 text-[#003b75] hover:bg-blue-50 rounded-full transition-colors"
-                title="Download"
-              >
-                <Download size={18} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
+              <div className="space-y-4">
+                {documentsNotes.uploadedDocuments?.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                      Uploaded Documents
+                    </h3>
+                    <div className="space-y-2">
+                      {documentsNotes.uploadedDocuments.map((doc) => (
+                        <div
+                          key={doc._id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
+                        >
+                          <div className="flex items-center min-w-0">
+                            <File className="text-gray-400 mr-3 flex-shrink-0" />
+                            <div className="text-sm font-medium text-gray-700 truncate">
+                              {doc.originalName}
+                            </div>
+                          </div>
 
-    {documentsNotes.note && documentsNotes.note !== "No notes given" && (
-      <div className="pt-4 border-t border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Notes</h3>
-        <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
-          <p className="text-sm text-gray-700 whitespace-pre-line">
-            {documentsNotes.note}
-          </p>
-        </div>
-      </div>
-    )}
-  </div>
-</CollapsibleCard>
+                          <button
+                            onClick={() =>
+                              handleDownload(
+                                lcData._id,
+                                doc.storedName,
+                                doc.originalName
+                              )
+                            }
+                            className="p-2 text-[#003b75] hover:bg-blue-50 rounded-full transition-colors"
+                            title="Download"
+                          >
+                            <Download size={18} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {documentsNotes.note &&
+                  documentsNotes.note !== "No notes given" && (
+                    <div className="pt-4 border-t border-gray-200">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                        Notes
+                      </h3>
+                      <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
+                        <p className="text-sm text-gray-700 whitespace-pre-line">
+                          {documentsNotes.note}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+              </div>
+            </CollapsibleCard>
 
             {/* Payment History */}
             <CollapsibleCard

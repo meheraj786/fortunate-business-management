@@ -46,7 +46,8 @@ const DailyCashFlow = () => {
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [transactionType, setTransactionType] = useState("income");
   const [selectedTransactionId, setSelectedTransactionId] = useState(null);
-  const [showTransactionDetailsModal, setShowTransactionDetailsModal] = useState(false);
+  const [showTransactionDetailsModal, setShowTransactionDetailsModal] =
+    useState(false);
 
   useEffect(() => {
     if (showAddTransaction) {
@@ -58,7 +59,7 @@ const DailyCashFlow = () => {
     setTransactionType(type);
     setShowAddTransaction(true);
   };
-  
+
   const handleTransactionClick = (transactionId) => {
     setSelectedTransactionId(transactionId);
     setShowTransactionDetailsModal(true);
@@ -75,7 +76,7 @@ const DailyCashFlow = () => {
         </div>
       );
     }
-    
+
     if (dailyCashStatus === "Not Opened Yet") {
       return (
         <div className="text-center p-8 bg-yellow-50 rounded-lg border border-yellow-200">
@@ -88,10 +89,10 @@ const DailyCashFlow = () => {
         </div>
       );
     }
-    
+
     if (isInitialLoading) {
       return (
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
           <Skeleton height={30} width={200} />
           <Skeleton height={20} width={150} className="mt-2" />
           <div className="mt-4">
@@ -104,9 +105,13 @@ const DailyCashFlow = () => {
 
     if (transactions.length === 0 && filteredTransactionsCount === 0) {
       return (
-        <div className="text-center py-12 px-4 bg-white rounded-xl shadow-sm">
+        <div className="text-center py-12 px-4 bg-white rounded-lg shadow-sm">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-            <img src="/favicon.jpg" alt="No transactions" className="w-8 h-8 opacity-50 rounded-full" />
+            <img
+              src="/favicon.jpg"
+              alt="No transactions"
+              className="w-8 h-8 opacity-50 rounded-full"
+            />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             No transactions found
@@ -119,9 +124,9 @@ const DailyCashFlow = () => {
     }
 
     return (
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="p-4 sm:p-6">
-          <TransactionFilters 
+          <TransactionFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             categoryFilter={categoryFilter}
@@ -149,7 +154,7 @@ const DailyCashFlow = () => {
 
   return (
     <div className="space-y-6">
-      <DailyCashHeader 
+      <DailyCashHeader
         onAddTransaction={handleAddTransactionClick}
         selectedDate={selectedDate}
         handleDateChange={handleDateChange}
@@ -161,7 +166,7 @@ const DailyCashFlow = () => {
         getLocalDateString={getLocalDateString}
         isToday={isToday}
       />
-      
+
       <DailyCashStats summary={summary} isLoading={isInitialLoading} />
 
       {renderTransactionSection()}

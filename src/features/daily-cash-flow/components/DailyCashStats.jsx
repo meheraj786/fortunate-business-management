@@ -9,10 +9,10 @@ const DailyCashStats = ({ summary, isLoading }) => {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-sm p-5">
-             <Skeleton height={20} width="50%" />
-             <Skeleton height={30} width="70%" className="mt-2" />
-             <Skeleton height={15} width="40%" className="mt-1"/>
+          <div key={index} className="bg-white rounded-lg shadow-sm p-5">
+            <Skeleton height={20} width="50%" />
+            <Skeleton height={30} width="70%" className="mt-2" />
+            <Skeleton height={15} width="40%" className="mt-1" />
           </div>
         ))}
       </div>

@@ -198,7 +198,7 @@ const TransactionList = () => {
           </div>
 
           {showFilters && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">Filter Options</h3>
                 <button
@@ -292,7 +292,7 @@ const TransactionList = () => {
         </div>
 
         {!isLoading && pagination.totalPages > 1 && (
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-gray-200">
             <Pagination
               currentPage={pagination.page}
               totalPages={pagination.totalPages}
