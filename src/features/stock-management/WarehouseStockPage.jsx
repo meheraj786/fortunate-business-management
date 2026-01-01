@@ -192,7 +192,7 @@ const WarehouseStock = () => {
   const isLoading = loading.warehouse || loading.products;
   if (loading.warehouse && !warehouse) {
     return (
-      <div className="min-h-screen p-4 sm:p-6 flex items-center justify-center">
+      <div className="  p-4 sm:p-6 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading warehouse data...</p>
@@ -203,7 +203,7 @@ const WarehouseStock = () => {
 
   if (error && !warehouse) {
     return (
-      <div className="min-h-screen p-4 sm:p-6 flex items-center justify-center">
+      <div className="  p-4 sm:p-6 flex items-center justify-center">
         <div className="text-center">
           <Package size={48} className="text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">

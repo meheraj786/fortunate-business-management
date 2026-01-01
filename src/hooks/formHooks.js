@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { handleError } from "@/utils/handle-error";
-import api from "@/services/apiService";
 
 // Hook for managing form data
-export const useFormData = (isEditMode, id, accounts = []) => {
+export const useFormData = (initialData) => {
   const productIdCounter = useRef(0);
   const costIdCounter = useRef(0);
 
@@ -29,7 +27,7 @@ export const useFormData = (isEditMode, id, accounts = []) => {
     accountId: "",
   });
 
-  const initialFormData = {
+  const initialFormDataState = {
     basicInfo: {
       lcNumber: "",
       lcOpeningDate: new Date().toISOString().split("T")[0],
@@ -42,7 +40,6 @@ export const useFormData = (isEditMode, id, accounts = []) => {
       lcAmountUsd: "",
       exchangeRate: "",
       lcAmountBdt: "",
-      lcMarginPaidBdt: "",
       costs: [],
     },
     productInfo: [getNewProduct()],
@@ -56,38 +53,31 @@ export const useFormData = (isEditMode, id, accounts = []) => {
     },
     documentsNotes: {
       note: "",
+      uploadedDocuments: [],
     },
+    otherExpenses: {
+      costs: [],
+    }
   };
 
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState(initialFormDataState);
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  // Fetch LC data for edit mode
   useEffect(() => {
-    if (isEditMode && id && accounts.length > 0) {
-      fetchLCData();
+    if (initialData) {
+      processLCData(initialData);
+    } else {
+      resetForm();
     }
-  }, [isEditMode, id, accounts]);
-
-  const fetchLCData = async () => {
-    try {
-      const response = await api.get(`/lc/get-lc/${id}`);
-      const lcData = response.data.data;
-      processLCData(lcData);
-    } catch (error) {
-      handleError(error, "Failed to load LC data for editing");
-    }
-  };
+  }, [initialData]);
 
   const processLCData = (lcData) => {
-    // Processing logic from original LCForm
     const processedData = {
       basicInfo: {
         lcNumber: lcData.basicInfo?.lcNumber || "",
         lcOpeningDate: formatDateForInput(lcData.basicInfo?.lcOpeningDate),
         status: lcData.basicInfo?.status || "Draft",
-        accountId:
-          lcData.basicInfo?.accountId?._id || lcData.basicInfo?.accountId || "",
+        accountId: lcData.basicInfo?.accountId?._id || lcData.basicInfo?.accountId || "",
         supplierName: lcData.basicInfo?.supplierName || "",
         supplierCountry: lcData.basicInfo?.supplierCountry || "",
       },
@@ -95,65 +85,50 @@ export const useFormData = (isEditMode, id, accounts = []) => {
         lcAmountUsd: lcData.financialInfo?.lcAmountUsd || "",
         exchangeRate: lcData.financialInfo?.exchangeRate || "",
         lcAmountBdt: lcData.financialInfo?.lcAmountBdt || "",
-        lcMarginPaidBdt: lcData.financialInfo?.lcMarginPaidBdt || "",
-        costs: processCosts(lcData.financialInfo?.costs || [], "financialInfo"),
+        costs: processCosts(lcData.financialInfo?.costs || []),
       },
       productInfo: (lcData.productInfo || []).map((p) => ({
+        ...p,
         id: productIdCounter.current++,
-        itemName: p.itemName || "",
-        thickness: p.thickness || p.specification?.thickness_mm || "",
-        width: p.width || p.specification?.width_mm || "",
-        length: p.length || p.specification?.length_mm || "",
-        grade: p.grade || p.specification?.grade || "",
-        quantity: p.quantity || p.quantityValue || "",
         quantityUnit: p.quantityUnit?._id || p.quantityUnit || "",
-        unitPriceUsd: p.unitPriceUsd || "",
-        totalValueUsd: p.totalValueUsd || "",
       })),
       shippingCustomsInfo: {
         portOfShipment: lcData.shippingCustomsInfo?.portOfShipment || "",
-        expectedArrivalDate: formatDateForInput(
-          lcData.shippingCustomsInfo?.expectedArrivalDate
-        ),
-        costs: processCosts(
-          lcData.shippingCustomsInfo?.costs || [],
-          "shippingCustomsInfo"
-        ),
+        expectedArrivalDate: formatDateForInput(lcData.shippingCustomsInfo?.expectedArrivalDate),
+        costs: processCosts(lcData.shippingCustomsInfo?.costs || []),
       },
       agentTransportInfo: {
-        costs: processCosts(
-          lcData.agentTransportInfo?.costs || [],
-          "agentTransportInfo"
-        ),
+        costs: processCosts(lcData.agentTransportInfo?.costs || []),
       },
       documentsNotes: {
-        note:
-          lcData.documentsNotes?.note || lcData.documentsNotes?.remarks || "",
+        note: lcData.documentsNotes?.note || "",
+        uploadedDocuments: lcData.documentsNotes?.uploadedDocuments || [],
       },
+      otherExpenses: {
+        costs: processCosts(lcData.otherExpenses?.costs || []),
+      }
     };
-
     setFormData(processedData);
   };
 
-  const processCosts = (costs, section) => {
+  const processCosts = (costs) => {
     return costs.map((cost) => ({
       ...cost,
       id: costIdCounter.current++,
       date: formatDateForInput(cost.date),
+      accountId: cost.accountId?._id || cost.accountId,
     }));
   };
 
   const formatDateForInput = (dateString) => {
     if (!dateString) return "";
     try {
-      const date = new Date(dateString);
-      return date.toISOString().split("T")[0];
+      return new Date(dateString).toISOString().split("T")[0];
     } catch {
       return "";
     }
   };
 
-  // Form handlers
   const handleInputChange = useCallback((section, field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -193,166 +168,76 @@ export const useFormData = (isEditMode, id, accounts = []) => {
       const updatedCosts = prev[section].costs.map((cost) =>
         cost.id === id ? { ...cost, [field]: value } : cost
       );
-
-      return {
-        ...prev,
-        [section]: { ...prev[section], costs: updatedCosts },
-      };
+      return { ...prev, [section]: { ...prev[section], costs: updatedCosts } };
     });
   }, []);
 
   const addCost = useCallback((section) => {
     setFormData((prev) => ({
       ...prev,
-      [section]: {
-        ...prev[section],
-        costs: [...(prev[section].costs || []), getNewCost()],
-      },
+      [section]: { ...prev[section], costs: [...(prev[section].costs || []), getNewCost()] },
     }));
   }, []);
 
   const removeCost = useCallback((section, id) => {
     setFormData((prev) => ({
       ...prev,
-      [section]: {
-        ...prev[section],
-        costs: prev[section].costs.filter((cost) => cost.id !== id),
-      },
+      [section]: { ...prev[section], costs: prev[section].costs.filter((cost) => cost.id !== id) },
     }));
   }, []);
 
-  // Validation
   const validateForm = useCallback(() => {
     const { basicInfo, financialInfo, productInfo } = formData;
-
-    // Basic info validation
-    if (
-      !basicInfo.lcNumber.trim() ||
-      !basicInfo.accountId ||
-      !basicInfo.supplierName
-    ) {
-      return false;
-    }
-
-    // Financial info validation
-    if (!financialInfo.lcAmountUsd || !financialInfo.exchangeRate) {
-      return false;
-    }
-
-    // Product info validation
-    if (
-      productInfo.some(
-        (p) => !p.itemName.trim() || !p.quantity || !p.unitPriceUsd
-      )
-    ) {
-      return false;
-    }
-
+    if (!basicInfo.lcNumber.trim() || !basicInfo.accountId || !basicInfo.supplierName) return false;
+    if (!financialInfo.lcAmountUsd || !financialInfo.exchangeRate) return false;
+    if (productInfo.some((p) => !p.itemName.trim() || !p.quantity || !p.unitPriceUsd)) return false;
     return true;
   }, [formData]);
 
-  // Format for submission
   const formatFormDataForSubmit = useCallback(() => {
     const dataToSend = JSON.parse(JSON.stringify(formData));
 
-    // Handle LC Margin Paid as a cost
-    if (dataToSend.financialInfo.lcMarginPaidBdt) {
-      dataToSend.financialInfo.costs.push({
-        name: "LC Margin Paid",
-        amount: dataToSend.financialInfo.lcMarginPaidBdt,
-        date: dataToSend.basicInfo.lcOpeningDate,
-        paymentMethod: "Bank",
-        accountId: dataToSend.basicInfo.accountId,
-      });
-    }
-    delete dataToSend.financialInfo.lcMarginPaidBdt;
+    const cleanCosts = (costs) => costs.map(({ id, ...c }) => c);
 
-    // Remove client-side IDs
+    if (dataToSend.financialInfo?.costs) {
+      dataToSend.financialInfo.costs = cleanCosts(dataToSend.financialInfo.costs);
+    }
+    if (dataToSend.shippingCustomsInfo?.costs) {
+      dataToSend.shippingCustomsInfo.costs = cleanCosts(dataToSend.shippingCustomsInfo.costs);
+    }
+    if (dataToSend.agentTransportInfo?.costs) {
+      dataToSend.agentTransportInfo.costs = cleanCosts(dataToSend.agentTransportInfo.costs);
+    }
+     if (dataToSend.otherExpenses?.costs) {
+      dataToSend.otherExpenses.costs = cleanCosts(dataToSend.otherExpenses.costs);
+    }
+
     dataToSend.productInfo = dataToSend.productInfo.map(({ id, ...p }) => p);
-    ["financialInfo", "shippingCustomsInfo", "agentTransportInfo"].forEach(
-      (section) => {
-        if (dataToSend[section]?.costs) {
-          dataToSend[section].costs = dataToSend[section].costs.map(
-            ({ id, ...c }) => c
-          );
-        }
-      }
-    );
+    
+    // Remove client-side only fields from uploadedDocuments
+    if(dataToSend.documentsNotes.uploadedDocuments) {
+        dataToSend.documentsNotes.uploadedDocuments = dataToSend.documentsNotes.uploadedDocuments.map(doc => {
+            const { _id, ...rest } = doc; // Assuming _id is a client-side identifier for existing files
+            return rest;
+        });
+    }
+
 
     return dataToSend;
   }, [formData]);
 
   const resetForm = useCallback(() => {
-    setFormData(initialFormData);
+    setFormData(initialFormDataState);
     setUploadedFiles([]);
     productIdCounter.current = 0;
     costIdCounter.current = 0;
   }, []);
 
   return {
-    formData,
-    uploadedFiles,
-    setUploadedFiles,
-    handleInputChange,
-    handleProductChange,
-    addProduct,
-    removeProduct,
-    setProductInfo,
-    handleCostChange,
-    addCost,
-    removeCost,
-    validateForm,
-    formatFormDataForSubmit,
-    resetForm,
+    formData, setFormData, uploadedFiles, setUploadedFiles, handleInputChange, handleProductChange,
+    addProduct, removeProduct, setProductInfo, handleCostChange, addCost, removeCost,
+    validateForm, formatFormDataForSubmit, resetForm
   };
-};
-
-// Hook for fetching units
-export const useUnits = () => {
-  const [units, setUnits] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    fetchUnits();
-  }, []);
-
-  const fetchUnits = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.get("/unit/get");
-      setUnits(response.data.data || []);
-    } catch (error) {
-      handleError(error, "Failed to load units");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { units, isLoading, refetch: fetchUnits };
-};
-
-// Hook for fetching accounts
-export const useAccounts = () => {
-  const [accounts, setAccounts] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    fetchAccounts();
-  }, []);
-
-  const fetchAccounts = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.get("/account/get-all-accounts");
-      setAccounts(response.data.data || []);
-    } catch (error) {
-      handleError(error, "Failed to load accounts");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return { accounts, isLoading, refetch: fetchAccounts };
 };
 
 // Hook for cost management

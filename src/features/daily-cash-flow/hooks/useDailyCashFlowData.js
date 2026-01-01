@@ -1,10 +1,14 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation, useNavigate } from "react-router"; // Use react-router
+import { useLocation, useNavigate } from "react-router"; // Usereact-router
 import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService"; // Assuming apiService.js handles axios setup
 import toast from "react-hot-toast";
-import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, ITEMS_PER_PAGE } from "../constants";
+import {
+  INCOME_CATEGORIES,
+  EXPENSE_CATEGORIES,
+  ITEMS_PER_PAGE,
+} from "../constants";
 import { useAccounts } from "@/api/hooks/account"; // Import useAccounts from src/api/hooks/account.js
 
 // Helper to get local date string in YYYY-MM-DD format
@@ -41,14 +45,14 @@ const closeDailyCash = async (date) => {
 
 // Fetch active LCs and Sales for dropdowns
 const fetchActiveReferences = async () => {
-    const [lcRes, salesRes] = await Promise.all([
-        api.get(`/lc/get-all-lc?status=Active`),
-        api.get(`/sales/get-all-sales?status=Invoiced&paymentStatus=Due%20payment`),
-    ]);
-    return {
-        activeLc: lcRes.data.data || [],
-        activeSales: salesRes.data.data || [],
-    };
+  const [lcRes, salesRes] = await Promise.all([
+    api.get(`/lc/get-all-lc?status=Active`),
+    api.get(`/sales/get-all-sales?status=Invoiced&paymentStatus=Due%20payment`),
+  ]);
+  return {
+    activeLc: lcRes.data.data || [],
+    activeSales: salesRes.data.data || [],
+  };
 };
 
 // --- Main Hook ---
@@ -103,7 +107,9 @@ export const useDailyCashFlowData = () => {
   } = useQuery({
     queryKey: ["dailyCashSummary", selectedDate],
     queryFn: () => fetchDailyCashSummary(selectedDate),
-    enabled: dailyCashStatusData?.status === "Open" || dailyCashStatusData?.status === "Closed", // Only fetch summary if status is open or closed
+    enabled:
+      dailyCashStatusData?.status === "Open" ||
+      dailyCashStatusData?.status === "Closed", // Only fetch summary if status is open or closed
     staleTime: 5 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
     onError: (err) => handleError(err, "Failed to fetch daily cash summary."),
@@ -119,20 +125,24 @@ export const useDailyCashFlowData = () => {
     staleTime: 10 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     enabled: false, // Only fetch when needed (e.g., when AddTransactionDialog is opened)
-    onError: (err) => handleError(err, "Failed to load LCs or Sales for transaction linking."),
+    onError: (err) =>
+      handleError(err, "Failed to load LCs or Sales for transaction linking."),
   });
-  
+
   // Fetch Accounts using useAccounts from @/api/hooks/account
   const { data: accountsData, isLoading: accountsLoading } = useAccounts();
-
 
   // --- Mutations ---
   const openDayMutation = useMutation({
     mutationFn: openDailyCash,
     onSuccess: (data) => {
       toast.success(data.message || "Cash opened successfully!");
-      queryClient.invalidateQueries({ queryKey: ["dailyCashStatus", selectedDate] });
-      queryClient.invalidateQueries({ queryKey: ["dailyCashSummary", selectedDate] });
+      queryClient.invalidateQueries({
+        queryKey: ["dailyCashStatus", selectedDate],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dailyCashSummary", selectedDate],
+      });
     },
     onError: (err) => handleError(err, "Failed to open cash."),
   });
@@ -141,8 +151,12 @@ export const useDailyCashFlowData = () => {
     mutationFn: closeDailyCash,
     onSuccess: (data) => {
       toast.success(data.message || "Cash closed successfully!");
-      queryClient.invalidateQueries({ queryKey: ["dailyCashStatus", selectedDate] });
-      queryClient.invalidateQueries({ queryKey: ["dailyCashSummary", selectedDate] });
+      queryClient.invalidateQueries({
+        queryKey: ["dailyCashStatus", selectedDate],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dailyCashSummary", selectedDate],
+      });
     },
     onError: (err) => handleError(err, "Failed to close cash."),
   });
@@ -176,11 +190,15 @@ export const useDailyCashFlowData = () => {
     }
     // Sort by createdAt descending, assuming createdAt exists on transaction objects
     return filtered.sort(
-      (a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
+      (a, b) =>
+        new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
     );
   }, [transactions, searchTerm, categoryFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE)
+  );
 
   const paginatedTransactions = filteredTransactions.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -188,17 +206,31 @@ export const useDailyCashFlowData = () => {
   );
 
   const allCategories = useMemo(() => {
-    const incomeCats = INCOME_CATEGORIES.map(cat => ({ value: cat, label: cat }));
-    const expenseCats = EXPENSE_CATEGORIES.map(cat => ({ value: cat, label: cat }));
-    const uniqueCategories = [...new Set([...incomeCats.map(c => c.value), ...expenseCats.map(c => c.value)])];
-    return uniqueCategories.sort().map(cat => ({ value: cat, label: cat }));
+    const incomeCats = INCOME_CATEGORIES.map((cat) => ({
+      value: cat,
+      label: cat,
+    }));
+    const expenseCats = EXPENSE_CATEGORIES.map((cat) => ({
+      value: cat,
+      label: cat,
+    }));
+    const uniqueCategories = [
+      ...new Set([
+        ...incomeCats.map((c) => c.value),
+        ...expenseCats.map((c) => c.value),
+      ]),
+    ];
+    return uniqueCategories.sort().map((cat) => ({ value: cat, label: cat }));
   }, []);
 
-  const handlePageChange = useCallback((newPage) => {
-    if (newPage > 0 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
-  }, [totalPages]);
+  const handlePageChange = useCallback(
+    (newPage) => {
+      if (newPage > 0 && newPage <= totalPages) {
+        setCurrentPage(newPage);
+      }
+    },
+    [totalPages]
+  );
 
   const handleDateChange = useCallback((dateString) => {
     setSelectedDate(dateString);
@@ -209,21 +241,21 @@ export const useDailyCashFlowData = () => {
 
   const dailyCashStatus = dailyCashStatusData?.status;
   const summary = dailyCashSummaryData || {
-      openingBalance: 0,
-      totalIncome: 0,
-      totalExpenses: 0,
-      runningBalance: 0,
-      totalTransactions: 0,
-      incomeTransactionsCount: 0,
-      expenseTransactionsCount: 0,
+    openingBalance: 0,
+    totalIncome: 0,
+    totalExpenses: 0,
+    runningBalance: 0,
+    totalTransactions: 0,
+    incomeTransactionsCount: 0,
+    expenseTransactionsCount: 0,
   };
 
-
-  const isInitialLoading = isStatusLoading || (dailyCashStatus && isSummaryLoading);
-  const isLoading = isInitialLoading || openDayMutation.isLoading || closeDayMutation.isLoading;
+  const isInitialLoading =
+    isStatusLoading || (dailyCashStatus && isSummaryLoading);
+  const isLoading =
+    isInitialLoading || openDayMutation.isLoading || closeDayMutation.isLoading;
   const isError = isStatusError || isSummaryError;
   const error = statusError || summaryError;
-
 
   return {
     // Date & Status
@@ -244,8 +276,12 @@ export const useDailyCashFlowData = () => {
     transactions: paginatedTransactions,
     filteredTransactionsCount: filteredTransactions.length,
     refetchDailyCashData: () => {
-        queryClient.invalidateQueries({ queryKey: ["dailyCashStatus", selectedDate] });
-        queryClient.invalidateQueries({ queryKey: ["dailyCashSummary", selectedDate] });
+      queryClient.invalidateQueries({
+        queryKey: ["dailyCashStatus", selectedDate],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["dailyCashSummary", selectedDate],
+      });
     },
 
     // Mutations

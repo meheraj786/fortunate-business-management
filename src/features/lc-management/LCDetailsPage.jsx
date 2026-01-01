@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
-import PropTypes from "prop-types";
+import React, { useState, useMemo, memo } from "react";
 import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import {
@@ -22,7 +21,6 @@ import {
 } from "lucide-react";
 import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
-import api from "@/services/apiService";
 
 // Components
 import CollapsibleCard from "@/components/ui/CollapsibleCard";
@@ -31,43 +29,32 @@ import AddCostForm from "./components/AddCostForm";
 import StatusBadge from "@/components/ui/StatusBadge";
 import DataField from "@/components/ui/DataField";
 import CostField from "@/components/ui/CostField";
+import LCDetailsPageSkeleton from "./components/LCDetailsPageSkeleton";
 
-// Custom Hooks
+// Custom Hooks & Utils
 import { useUrl } from "@/context/UrlProvider";
-import { useLCData, useExportLC, useDeleteLC } from "@/hooks/useLCOperations";
+import { useLC, useDeleteLC, useExportLC } from "@/api/hooks/lc";
+import { formatNumber, formatDate } from "@/utils/format";
 
 const LCdetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { baseUrl } = useUrl();
 
-  // State
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     action: null,
     title: "",
     description: "",
   });
-  const [costModal, setCostModal] = useState({
-    isOpen: false,
-    category: null,
-  });
+  const [costModal, setCostModal] = useState({ isOpen: false, category: null });
 
-  // Custom Hooks
-  const { lcData, loading, error, refetch, formatNumber, formatDate } =
-    useLCData(id);
+  const { data: lcQueryData, isLoading, isError, error, refetch } = useLC(id);
+  const lcData = lcQueryData?.data;
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const deleteLCMutation = useDeleteLC();
+  const exportLCMutation = useExportLC(id, lcData?.basicInfo?.lcNumber);
 
-  const { exportLC, isExporting } = useExportLC(
-    id,
-    lcData?.basicInfo?.lcNumber
-  );
-  const { deleteLC, isDeleting } = useDeleteLC(id);
-
-  // Memoized values
   const totalProductsValueUsd = useMemo(() => {
     if (!lcData?.productInfo) return 0;
     return lcData.productInfo.reduce(
@@ -90,68 +77,41 @@ const LCdetails = () => {
     return allCosts.reduce((total, cost) => total + (cost.amount || 0), 0);
   }, [allCosts]);
 
-  // Helper function to construct document URLs
-  const getDocumentUrl = useCallback(
-    (documentName) => {
-      if (!baseUrl || !documentName) return "#";
-      return `${baseUrl}lc/${id}/documents/${documentName}`;
-    },
-    [baseUrl, id]
-  );
+  const handleOpenConfirmation = (action) => {
+    const actions = {
+      delete: {
+        title: "Confirm Deletion",
+        description: `Are you sure you want to delete this Letter of Credit (${lcData?.basicInfo?.lcNumber})? This action cannot be undone.`,
+      },
+      export: {
+        title: "Confirm Export",
+        description: `Export LC details for ${lcData?.basicInfo?.lcNumber} as PDF?`,
+      },
+    };
+    setConfirmModal({ isOpen: true, action, ...actions[action] });
+  };
 
-  // Handlers
-  const handleOpenConfirmation = useCallback(
-    (action) => {
-      const actions = {
-        delete: {
-          title: "Confirm Deletion",
-          description: `Are you sure you want to delete this Letter of Credit (${lcData?.basicInfo?.lcNumber})? This action cannot be undone.`,
-        },
-        export: {
-          title: "Confirm Export",
-          description: `Export LC details for ${lcData?.basicInfo?.lcNumber} as PDF?`,
-        },
-      };
-
-      setConfirmModal({
-        isOpen: true,
-        action,
-        ...actions[action],
-      });
-    },
-    [lcData?.basicInfo?.lcNumber]
-  );
-
-  const handleConfirm = useCallback(async () => {
+  const handleConfirm = async () => {
     if (confirmModal.action === "delete") {
-      await deleteLC();
-      navigate("/lc-management");
+      deleteLCMutation.mutate(id, {
+        onSuccess: () => navigate("/lc-management"),
+      });
     } else if (confirmModal.action === "export") {
-      await exportLC();
+      exportLCMutation.mutate();
     }
-
     setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-  }, [confirmModal.action, deleteLC, exportLC, navigate]);
+  };
 
-  const handleOpenAddCost = useCallback((category) => {
+  const handleOpenAddCost = (category) =>
     setCostModal({ isOpen: true, category });
-  }, []);
-
-  const handleAddCostSuccess = useCallback(() => {
-    refetch();
-  }, [refetch]);
-
-  console.log(lcData, "lcData");
+  const handleAddCostSuccess = () => refetch();
 
   const handleDownload = async (lcId, storedName, originalName) => {
     try {
-      // ডাবল স্ল্যাশ এড়ানোর জন্য baseUrl থেকে ট্রেইলিং স্ল্যাশ বাদ দেওয়া হয়েছে
       const cleanBaseUrl = baseUrl.endsWith("/")
         ? baseUrl.slice(0, -1)
         : baseUrl;
       const downloadUrl = `${cleanBaseUrl}/lc/${lcId}/documents/${storedName}`;
-
-      // ডাউনলোড শুরু করার প্রসেস
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.setAttribute("download", originalName);
@@ -159,31 +119,22 @@ const LCdetails = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-
       toast.success("Downloading started...");
-    } catch (error) {
-      handleError(error, "Failed to download file");
+    } catch (err) {
+      handleError(err, "Failed to download file");
     }
   };
 
-  // Loading and error states
-  if (loading) {
-    return (
-      <div className="h-full flex flex-col justify-center items-center p-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003b75]"></div>
-        <p className="mt-4 text-gray-600">Loading LC details...</p>
-      </div>
-    );
-  }
+  if (isLoading) return <LCDetailsPageSkeleton />;
 
-  if (error) {
+  if (isError) {
     return (
       <div className="h-full flex flex-col justify-center items-center p-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
           <h3 className="text-lg font-semibold text-red-800 mb-2">
             Error Loading LC
           </h3>
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4">{error.message}</p>
           <button
             onClick={() => navigate("/lc-management")}
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -195,9 +146,7 @@ const LCdetails = () => {
     );
   }
 
-  if (!lcData) {
-    return null;
-  }
+  if (!lcData) return null;
 
   const {
     basicInfo = {},
@@ -209,22 +158,19 @@ const LCdetails = () => {
     otherExpenses = {},
   } = lcData;
 
-  // Helper component for Add Cost button
   const AddCostButton = ({ category }) => (
     <button
       onClick={() => handleOpenAddCost(category)}
       className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 active:bg-gray-300 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:ring-offset-2"
       aria-label={`Add cost to ${category}`}
     >
-      <Plus size={14} aria-hidden="true" />
-      Add Cost
+      <Plus size={14} aria-hidden="true" /> Add Cost
     </button>
   );
 
   return (
     <div className="">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <motion.div
           className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-100"
           initial={{ opacity: 0, y: -10 }}
@@ -248,43 +194,37 @@ const LCdetails = () => {
                 Comprehensive view of your Letter of Credit
               </p>
             </div>
-
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => handleOpenConfirmation("export")}
-                disabled={isExporting}
+                disabled={exportLCMutation.isLoading}
                 className="flex items-center justify-center px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Export LC as PDF"
               >
                 <Download className="mr-2 w-4 h-4" aria-hidden="true" />
-                {isExporting ? "Exporting..." : "Export"}
+                {exportLCMutation.isLoading ? "Exporting..." : "Export"}
               </button>
               <button
                 onClick={() => navigate(`/lc-form/${id}`)}
                 className="flex items-center px-3 sm:px-4 py-2 bg-[#003b75] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-[#002855] active:bg-[#001c3a] transition-colors shadow-sm"
                 aria-label="Edit LC"
               >
-                <Edit className="mr-2 w-4 h-4" aria-hidden="true" />
-                Edit
+                <Edit className="mr-2 w-4 h-4" aria-hidden="true" /> Edit
               </button>
               <button
                 onClick={() => handleOpenConfirmation("delete")}
-                disabled={isDeleting}
+                disabled={deleteLCMutation.isLoading}
                 className="flex items-center px-3 sm:px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 active:bg-red-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Delete LC"
               >
                 <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
-                {isDeleting ? "Deleting..." : "Delete"}
+                {deleteLCMutation.isLoading ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
         </motion.div>
-
-        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Left Column */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Basic LC Information */}
             <CollapsibleCard
               title="Basic LC Information"
               icon={<FileText className="text-[#003b75]" />}
@@ -319,7 +259,6 @@ const LCdetails = () => {
                   />
                 </div>
               </div>
-
               {basicInfo.accountId && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">
@@ -347,8 +286,6 @@ const LCdetails = () => {
                 </div>
               )}
             </CollapsibleCard>
-
-            {/* Financial Information */}
             <CollapsibleCard
               title="Financial Information"
               icon={<DollarSign className="text-[#003b75]" />}
@@ -370,7 +307,6 @@ const LCdetails = () => {
                   value={`৳${formatNumber(financialInfo.lcAmountBdt)}`}
                 />
               </div>
-
               {financialInfo.costs?.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">
@@ -384,8 +320,6 @@ const LCdetails = () => {
                 </div>
               )}
             </CollapsibleCard>
-
-            {/* Product Information */}
             <CollapsibleCard
               title="Product Information"
               icon={<Package className="text-[#003b75]" />}
@@ -407,11 +341,11 @@ const LCdetails = () => {
                     {(product.thickness || product.width || product.length) && (
                       <DataField
                         label="Specifications"
-                        value={
-                          `Thickness: ${product.thickness || "-"}, ` +
-                          `Width: ${product.width || "-"}, ` +
-                          `Length: ${product.length || "-"}`
-                        }
+                        value={`Thickness: ${
+                          product.thickness || "-"
+                        }, Width: ${product.width || "-"}, Length: ${
+                          product.length || "-"
+                        }`}
                       />
                     )}
                     {product.grade && (
@@ -436,7 +370,6 @@ const LCdetails = () => {
                   </div>
                 </div>
               ))}
-
               {productInfo.length > 0 && (
                 <div className="mt-4 bg-gray-50 rounded-lg p-4">
                   <div className="flex justify-between items-center font-semibold">
@@ -448,8 +381,6 @@ const LCdetails = () => {
                 </div>
               )}
             </CollapsibleCard>
-
-            {/* Shipping & Customs Information */}
             <CollapsibleCard
               title="Shipping & Customs Info"
               icon={<Truck className="text-[#003b75]" />}
@@ -466,7 +397,6 @@ const LCdetails = () => {
                   value={formatDate(shippingCustomsInfo.expectedArrivalDate)}
                 />
               </div>
-
               {shippingCustomsInfo.costs?.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -477,8 +407,6 @@ const LCdetails = () => {
                 </div>
               )}
             </CollapsibleCard>
-
-            {/* Agent & Transport Information */}
             <CollapsibleCard
               title="Agent & Transport Info"
               icon={<User className="text-[#003b75]" />}
@@ -498,17 +426,15 @@ const LCdetails = () => {
                 </div>
               )}
             </CollapsibleCard>
-
-            {/* Other Expenses */}
             <CollapsibleCard
               title="Other Expenses"
               icon={<DollarSign className="text-[#003b75]" />}
               headerActions={<AddCostButton category="otherExpenses" />}
               ariaLabel="Other Expenses Section"
             >
-              {lcData.otherExpenses?.costs?.length > 0 ? (
+              {otherExpenses.costs?.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {lcData.otherExpenses.costs.map((cost) => (
+                  {otherExpenses.costs.map((cost) => (
                     <CostField key={cost._id} cost={cost} />
                   ))}
                 </div>
@@ -520,10 +446,7 @@ const LCdetails = () => {
               )}
             </CollapsibleCard>
           </div>
-
-          {/* Right Column */}
           <div className="space-y-4 sm:space-y-6">
-            {/* Cost Summary */}
             <CollapsibleCard
               title="Cost Summary"
               icon={<PieChart className="text-[#003b75]" />}
@@ -567,8 +490,6 @@ const LCdetails = () => {
                 )}
               </div>
             </CollapsibleCard>
-
-            {/* Documents & Notes */}
             <CollapsibleCard
               title="Documents & Notes"
               icon={<Clipboard className="text-[#003b75]" />}
@@ -592,7 +513,6 @@ const LCdetails = () => {
                               {doc.originalName}
                             </div>
                           </div>
-
                           <button
                             onClick={() =>
                               handleDownload(
@@ -611,7 +531,6 @@ const LCdetails = () => {
                     </div>
                   </div>
                 )}
-
                 {documentsNotes.note &&
                   documentsNotes.note !== "No notes given" && (
                     <div className="pt-4 border-t border-gray-200">
@@ -627,8 +546,6 @@ const LCdetails = () => {
                   )}
               </div>
             </CollapsibleCard>
-
-            {/* Payment History */}
             <CollapsibleCard
               title="Payment History"
               icon={<CreditCard className="text-[#003b75]" />}
@@ -682,8 +599,6 @@ const LCdetails = () => {
           </div>
         </div>
       </div>
-
-      {/* Add Cost Form Dialog */}
       <AddCostForm
         open={costModal.isOpen}
         onClose={() => setCostModal({ isOpen: false, category: null })}
@@ -691,8 +606,6 @@ const LCdetails = () => {
         category={costModal.category}
         onSuccess={handleAddCostSuccess}
       />
-
-      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
@@ -702,7 +615,9 @@ const LCdetails = () => {
         confirmText={confirmModal.action === "delete" ? "Delete" : "Export"}
         cancelText="Cancel"
         isConfirming={
-          confirmModal.action === "delete" ? isDeleting : isExporting
+          confirmModal.action === "delete"
+            ? deleteLCMutation.isLoading
+            : exportLCMutation.isLoading
         }
         confirmingText={
           confirmModal.action === "delete" ? "Deleting..." : "Exporting..."

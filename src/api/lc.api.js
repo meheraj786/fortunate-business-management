@@ -33,8 +33,15 @@ export const getTotalLCCount = () =>
 export const getActiveLCs = () =>
   api.get("/lc/active-lc");
 
-export const getLCSummary = () =>
-  api.get("/lc/summary");
+export const getLCSummary = (params) => {
+  const { searchQuery, status } = params || {};
+  // The search endpoint on the backend handles filtering by status as well,
+  // so if there's any search or filter parameter, we should use the search endpoint.
+  const isSearchOrFilter = searchQuery || status;
 
-export const searchLCSummary = (params) =>
-  api.get("/lc/summary/search", { params });
+  if (isSearchOrFilter) {
+    return api.get("/lc/summary/search", { params });
+  }
+  
+  return api.get("/lc/summary", { params });
+};

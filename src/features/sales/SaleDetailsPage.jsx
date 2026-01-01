@@ -309,7 +309,7 @@ const SaleDetails = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="  bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
           <Loader2 className="animate-spin h-12 w-12 text-blue-600 mx-auto" />
           <p className="mt-4 text-lg font-medium text-gray-700">
@@ -323,7 +323,7 @@ const SaleDetails = () => {
   // Error state
   if (error && !sale) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="  bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <div className="text-red-500 mb-4">⚠️</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -344,7 +344,7 @@ const SaleDetails = () => {
 
   if (!sale) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="  bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Sale Not Found

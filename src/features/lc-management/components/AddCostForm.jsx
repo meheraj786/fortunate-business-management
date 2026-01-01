@@ -1,36 +1,13 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect, memo } from "react";
 import PropTypes from "prop-types";
 import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
-import api from "@/services/apiService";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import { DollarSign, Calendar } from "lucide-react";
-
-// Custom hook for account fetching
-const useAccounts = () => {
-  const [accounts, setAccounts] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchAccounts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get("/account/get-all-accounts");
-      if (response.data.success) {
-        setAccounts(response.data.data || []);
-      } else {
-        throw new Error("Failed to fetch accounts");
-      }
-    } catch (error) {
-      handleError(error, "Failed to load accounts. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { accounts, loading, fetchAccounts };
-};
+import { useAccounts } from "@/api/hooks/account";
+import { useAddExpenseToLC } from "@/api/hooks/lc";
 
 const INITIAL_EXPENSE_STATE = {
   name: "",
@@ -49,11 +26,10 @@ const AddCostForm = ({
   initialData = null,
 }) => {
   const [expense, setExpense] = useState(INITIAL_EXPENSE_STATE);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-  const { accounts, loading: accountsLoading, fetchAccounts } = useAccounts();
+  const { data: accounts, isLoading: accountsLoading } = useAccounts();
+  const addExpenseMutation = useAddExpenseToLC();
 
-  // Initialize form
   useEffect(() => {
     if (open) {
       if (initialData) {
@@ -70,98 +46,68 @@ const AddCostForm = ({
         setExpense(INITIAL_EXPENSE_STATE);
       }
       setErrors({});
-      fetchAccounts();
     }
-  }, [open, initialData, fetchAccounts]);
+  }, [open, initialData]);
 
-  // Validation
-  const validateForm = useCallback(() => {
+  const validateForm = () => {
     const newErrors = {};
-
-    if (!expense.name.trim()) {
-      newErrors.name = "Expense name is required";
-    }
-
-    if (!expense.amount) {
-      newErrors.amount = "Amount is required";
-    } else if (parseFloat(expense.amount) <= 0) {
+    if (!expense.name.trim()) newErrors.name = "Expense name is required";
+    if (!expense.amount) newErrors.amount = "Amount is required";
+    else if (parseFloat(expense.amount) <= 0)
       newErrors.amount = "Amount must be greater than 0";
-    }
-
-    if (!expense.date) {
-      newErrors.date = "Date is required";
-    }
-
-    if (!expense.accountId) {
+    if (!expense.date) newErrors.date = "Date is required";
+    if (
+      (expense.paymentMethod === "Bank" ||
+        expense.paymentMethod === "Mobile Banking" ||
+        expense.paymentMethod === "Cash") &&
+      !expense.accountId
+    ) {
       newErrors.accountId = "Please select an account for this payment method";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [expense]);
+  };
 
-  // Handlers
-  const handleInputChange = useCallback(
-    (e) => {
-      const { name, value } = e.target;
-      setExpense((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setExpense((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
 
-      // Clear error for this field
-      if (errors[name]) {
-        setErrors((prev) => ({ ...prev, [name]: undefined }));
-      }
-    },
-    [errors]
-  );
+  const getFilteredAccounts = () => {
+    if (!accounts?.data) return [];
+    return accounts.data.filter((acc) => acc.accountType === expense.paymentMethod);
+  };
 
-  const getFilteredAccounts = useCallback(() => {
-    return accounts.filter((acc) => acc.accountType === expense.paymentMethod);
-  }, [accounts, expense.paymentMethod]);
+  const handleClose = () => {
+    setExpense(INITIAL_EXPENSE_STATE);
+    setErrors({});
+    onClose();
+  };
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       toast.error("Please fix the errors in the form");
       return;
     }
 
-    setIsSubmitting(true);
-    const toastId = toast.loading("Adding cost...");
+    const payload = {
+      lcId,
+      category,
+      expense: {
+        ...expense,
+        amount: parseFloat(expense.amount),
+        date: new Date(expense.date).toISOString(),
+      },
+    };
 
-    try {
-      const payload = {
-        lcId,
-        category,
-        expense: {
-          ...expense,
-          amount: parseFloat(expense.amount),
-          date: new Date(expense.date).toISOString(),
-        },
-      };
-
-      await api.post("/lc/add-expense", payload);
-      toast.success("Cost added successfully!", { id: toastId });
-
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      handleClose();
-    } catch (error) {
-      handleError(error, "Failed to add cost. Please try again.");
-      toast.dismiss(toastId);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [expense, lcId, category, validateForm, onSuccess]);
-
-  const handleClose = useCallback(() => {
-    setExpense(INITIAL_EXPENSE_STATE);
-    setErrors({});
-    onClose();
-  }, [onClose]);
+    addExpenseMutation.mutate(payload, {
+      onSuccess: () => {
+        if (onSuccess) onSuccess();
+        handleClose();
+      },
+    });
+  };
 
   const categoryTitle = category
     ? category
@@ -176,8 +122,8 @@ const AddCostForm = ({
       onClose={handleClose}
       title={`Add Cost to ${categoryTitle}`}
       onSubmit={handleSubmit}
-      isPrimaryButtonDisabled={isSubmitting || accountsLoading}
-      primaryButtonText={isSubmitting ? "Adding..." : "Add Cost"}
+      isPrimaryButtonDisabled={addExpenseMutation.isLoading || accountsLoading}
+      primaryButtonText={addExpenseMutation.isLoading ? "Adding..." : "Add Cost"}
       secondaryButtonText="Cancel"
       isLoading={accountsLoading}
       size="md"
