@@ -30,8 +30,9 @@ import {
   Clock,
   TrendingUp,
   CreditCard,
-  Loader2, // Changed from Loader
+  Loader2,
 } from "lucide-react";
+import CustomerDetailsSkeleton from "./components/CustomerDetailsSkeleton";
 import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 
@@ -152,12 +153,7 @@ const CustomerDetails = () => {
   };
 
   if (loadingCustomer) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <Loader2 className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]" />
-        <p className="mt-4 text-gray-600">Loading customer details...</p>
-      </div>
-    );
+    return <CustomerDetailsSkeleton />;
   }
 
   if (customerError) {
