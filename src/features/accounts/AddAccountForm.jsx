@@ -1,39 +1,56 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
 import { useCreateAccount, useUpdateAccount } from "@/api/hooks/account";
+import { useForm } from "react-hook-form"; // Import useForm
 
-const initialFormData = {
-  accountName: "",
-  initialBalance: "",
-  accountHolderName: "",
-  bankName: "",
-  branchName: "",
-  accountNumber: "",
-  swiftCode: "",
-  routingNumber: "",
-  serviceName: "",
-  mobileNumber: "",
-};
+const AddAccountForm = ({
+  isOpen,
+  onClose,
+  editingAccount,
+  onSuccess,
+  accountType,
+}) => {
+  const isEditing = !!editingAccount;
+  const currentAccountType = isEditing
+    ? editingAccount.accountType
+    : accountType;
 
-const AddAccountForm = ({ isOpen, onClose, editingAccount, onSuccess, accountType }) => {
-  const [formData, setFormData] = useState(initialFormData);
-  
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm({
+    defaultValues: {
+      accountName: "",
+      initialBalance: "",
+      accountHolderName: "",
+      bankName: "",
+      branchName: "",
+      accountNumber: "",
+      swiftCode: "",
+      routingNumber: "",
+      serviceName: "",
+      mobileNumber: "",
+    },
+  });
+
   const createAccountMutation = useCreateAccount();
   const updateAccountMutation = useUpdateAccount();
-
-  const isEditing = !!editingAccount;
-  const currentAccountType = isEditing ? editingAccount.accountType : accountType;
-  const isSubmitting = createAccountMutation.isLoading || updateAccountMutation.isLoading;
+  const isSubmitting =
+    createAccountMutation.isLoading || updateAccountMutation.isLoading;
 
   useEffect(() => {
     if (isOpen) {
-      if (isEditing) {
-        setFormData({
+      if (isEditing && editingAccount) {
+        reset({
           accountName: editingAccount.accountName || "",
-          initialBalance: editingAccount.balance || "", 
+          initialBalance: editingAccount.balance || "",
           accountHolderName: editingAccount.accountHolderName || "",
           bankName: editingAccount.bankName || "",
           branchName: editingAccount.branchName || "",
@@ -44,45 +61,64 @@ const AddAccountForm = ({ isOpen, onClose, editingAccount, onSuccess, accountTyp
           mobileNumber: editingAccount.mobileNumber || "",
         });
       } else {
-        setFormData(initialFormData);
+        reset();
       }
     }
-  }, [editingAccount, isOpen, isEditing]);
+  }, [editingAccount, isOpen, isEditing, reset]);
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  // Watch account type for conditional rendering
+  const watchedAccountType = watch("accountType") || currentAccountType;
 
-  const handleSaveAccount = async () => {
-    const { accountName, initialBalance, accountHolderName } = formData;
-    let payload = { accountType: currentAccountType, accountName, accountHolderName };
-    
+  const onSubmit = (data) => {
+    let payload = {
+      accountType: watchedAccountType,
+      accountName: data.accountName,
+      accountHolderName: data.accountHolderName,
+    };
+
     if (isEditing) {
-      payload.balance = Number(formData.initialBalance) || 0;
+      payload.balance = Number(data.initialBalance) || 0;
     } else {
-      payload.initialBalance = Number(initialBalance) || 0;
+      payload.initialBalance = Number(data.initialBalance) || 0;
     }
 
-    if (currentAccountType === "Bank") {
-      payload = { ...payload, bankName: formData.bankName, branchName: formData.branchName, accountNumber: formData.accountNumber, swiftCode: formData.swiftCode, routingNumber: formData.routingNumber };
-    } else if (currentAccountType === "Mobile Banking") {
-      payload = { ...payload, serviceName: formData.serviceName, mobileNumber: formData.mobileNumber };
+    if (watchedAccountType === "Bank") {
+      payload = {
+        ...payload,
+        bankName: data.bankName,
+        branchName: data.branchName,
+        accountNumber: data.accountNumber,
+        swiftCode: data.swiftCode,
+        routingNumber: data.routingNumber,
+      };
+    } else if (watchedAccountType === "Mobile Banking") {
+      payload = {
+        ...payload,
+        serviceName: data.serviceName,
+        mobileNumber: data.mobileNumber,
+      };
     }
-    
+
     const mutation = isEditing ? updateAccountMutation : createAccountMutation;
-    const mutationPayload = isEditing ? { id: editingAccount._id, data: payload } : payload;
+    const mutationPayload = isEditing
+      ? { id: editingAccount._id, data: payload }
+      : payload;
 
     mutation.mutate(mutationPayload, {
       onSuccess: (response) => {
-        toast.success(response.data.message || `Account ${isEditing ? "updated" : "created"} successfully!`);
-        onSuccess(); // This will trigger parent component logic (e.g., refresh lists)
+        toast.success(
+          response.data.message ||
+            `Account ${isEditing ? "updated" : "created"} successfully!`
+        );
+        onSuccess();
         onClose();
       },
       onError: (error) => {
-        // The hook's onError will handle the toast, but you can add more logic here if needed
-        handleError(error, `Failed to ${isEditing ? "update" : "create"} account.`);
-      }
+        handleError(
+          error,
+          `Failed to ${isEditing ? "update" : "create"} account.`
+        );
+      },
     });
   };
 
@@ -105,17 +141,26 @@ const AddAccountForm = ({ isOpen, onClose, editingAccount, onSuccess, accountTyp
       open={isOpen}
       onClose={onClose}
       title={getTitle()}
-      primaryButtonText={isSubmitting ? (isEditing ? "Updating..." : "Adding...") : (isEditing ? "Update Account" : "Add Account")}
+      primaryButtonText={
+        isSubmitting
+          ? isEditing
+            ? "Updating..."
+            : "Adding..."
+          : isEditing
+          ? "Update Account"
+          : "Add Account"
+      }
       secondaryButtonText="Cancel"
-      onSubmit={handleSaveAccount}
-      isPrimaryButtonDisabled={isSubmitting}
+      onSubmit={handleSubmit(onSubmit)} // Use handleSubmit from react-hook-form
+      isSubmitting={isSubmitting}
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InputField
           label="Account Name"
           name="accountName"
-          value={formData.accountName}
-          onChange={handleFormChange}
+          register={register}
+          error={errors.accountName?.message}
+          validation={{ required: "Account Name is required" }}
           placeholder={
             currentAccountType === "Bank"
               ? "e.g., My Personal Checking"
@@ -123,40 +168,95 @@ const AddAccountForm = ({ isOpen, onClose, editingAccount, onSuccess, accountTyp
               ? "e.g., My Bkash Account"
               : "e.g., Office Petty Cash"
           }
-          required
         />
         <InputField
           label="Account Holder Name"
           name="accountHolderName"
-          value={formData.accountHolderName}
-          onChange={handleFormChange}
+          register={register}
+          error={errors.accountHolderName?.message}
+          validation={{ required: "Account Holder Name is required" }}
           placeholder="e.g., John Doe"
-          required
         />
-         <InputField
+        <InputField
           label={isEditing ? "Current Balance" : "Initial Balance"}
           name="initialBalance"
           type="number"
-          value={formData.initialBalance}
-          onChange={handleFormChange}
-          placeholder="e.g., 5000"
+          register={register}
+          error={errors.initialBalance?.message}
+          validation={{
+            required: "Initial Balance is required",
+            min: { value: 0, message: "Balance cannot be negative" },
+            valueAsNumber: true,
+          }}
           disabled={isEditing}
+          placeholder="e.g., 5000"
         />
 
-        {currentAccountType === "Bank" && (
+        {watchedAccountType === "Bank" && (
           <>
-            <InputField label="Bank Name" name="bankName" value={formData.bankName} onChange={handleFormChange} placeholder="e.g., Standard Chartered Bank" required />
-            <InputField label="Branch Name" name="branchName" value={formData.branchName} onChange={handleFormChange} placeholder="e.g., Gulshan Branch" required />
-            <InputField label="Account Number" name="accountNumber" value={formData.accountNumber} onChange={handleFormChange} placeholder="e.g., 1234567890" required />
-            <InputField label="SWIFT Code" name="swiftCode" value={formData.swiftCode} onChange={handleFormChange} placeholder="e.g., SCBLBDDH" />
-            <InputField label="Routing Number" name="routingNumber" value={formData.routingNumber} onChange={handleFormChange} placeholder="e.g., 001234567" />
+            <InputField
+              label="Bank Name"
+              name="bankName"
+              register={register}
+              error={errors.bankName?.message}
+              validation={{ required: "Bank Name is required" }}
+              placeholder="e.g., Standard Chartered Bank"
+            />
+            <InputField
+              label="Branch Name"
+              name="branchName"
+              register={register}
+              error={errors.branchName?.message}
+              validation={{ required: "Branch Name is required" }}
+              placeholder="e.g., Gulshan Branch"
+            />
+            <InputField
+              label="Account Number"
+              name="accountNumber"
+              register={register}
+              error={errors.accountNumber?.message}
+              validation={{ required: "Account Number is required" }}
+              placeholder="e.g., 1234567890"
+            />
+            <InputField
+              label="SWIFT Code"
+              name="swiftCode"
+              register={register}
+              placeholder="e.g., SCBLBDDH"
+            />
+            <InputField
+              label="Routing Number"
+              name="routingNumber"
+              register={register}
+              placeholder="e.g., 001234567"
+            />
           </>
         )}
 
-        {currentAccountType === "Mobile Banking" && (
+        {watchedAccountType === "Mobile Banking" && (
           <>
-            <InputField label="Service Name" name="serviceName" value={formData.serviceName} onChange={handleFormChange} placeholder="e.g., Bkash, Nagad, Rocket" required />
-            <InputField label="Mobile Number" name="mobileNumber" value={formData.mobileNumber} onChange={handleFormChange} placeholder="e.g., 01XXXXXXXXX" required />
+            <InputField
+              label="Service Name"
+              name="serviceName"
+              register={register}
+              error={errors.serviceName?.message}
+              validation={{ required: "Service Name is required" }}
+              placeholder="e.g., Bkash, Nagad, Rocket"
+            />
+            <InputField
+              label="Mobile Number"
+              name="mobileNumber"
+              register={register}
+              error={errors.mobileNumber?.message}
+              validation={{
+                required: "Mobile Number is required",
+                pattern: {
+                  value: /^[0-9]+$/,
+                  message: "Invalid mobile number",
+                },
+              }}
+              placeholder="e.g., 01XXXXXXXXX"
+            />
           </>
         )}
       </div>

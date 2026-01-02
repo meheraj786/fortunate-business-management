@@ -1,18 +1,18 @@
 import { Layers, FileText, Ruler } from "lucide-react";
 import React from "react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // Changed to react-router
 
 const ProductCard = ({ product, warehouseId }) => {
   // Updated getStockColor to work with stockStatus string
   const getStockColor = (status) => {
     switch (status) {
       case "OK":
-        return "bg-green-100 text-green-800";
+        return "bg-[var(--color-success-light)] text-[var(--color-success)]";
       case "Low": // Backend sends "Low"
       case "Medium": // Backend sends "Medium"
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-[var(--color-warning-light)] text-[var(--color-warning)]";
       case "No Stock": // Backend sends "No Stock"
-        return "bg-red-100 text-red-800";
+        return "bg-[var(--color-danger-light)] text-[var(--color-danger)]";
       default:
         return "bg-gray-100 text-gray-800";
     }

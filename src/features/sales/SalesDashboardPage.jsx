@@ -7,13 +7,14 @@ import {
   FileX,
   Trash,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // Changed to react-router
 
 import AddSalesForm from "./AddSalesForm";
 import SalesTable from "./components/SalesTable";
 import SalesStatCard from "./components/SalesStatCard";
 import SalesDashboardSkeleton from "./components/SalesDashboardSkeleton";
 import SearchBar from "@/components/ui/SearchBar";
+import Button from "@/components/ui/Button"; // Import Button component
 
 import { useAuth } from "../../context/AuthContext";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -65,20 +66,17 @@ const Sales = () => {
     setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
-  const handleSort = useCallback(
-    (field) => {
-      setSortBy(currentSortBy => {
-        if (currentSortBy === field) {
-          setSortOrder(prevOrder => (prevOrder === "asc" ? "desc" : "asc"));
-          return currentSortBy;
-        } else {
-          setSortOrder("desc");
-          return field;
-        }
-      });
-    },
-    []
-  );
+  const handleSort = useCallback((field) => {
+    setSortBy((currentSortBy) => {
+      if (currentSortBy === field) {
+        setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
+        return currentSortBy;
+      } else {
+        setSortOrder("desc");
+        return field;
+      }
+    });
+  }, []);
 
   if (salesLoading || statsLoading) {
     return <SalesDashboardSkeleton />;
@@ -88,11 +86,11 @@ const Sales = () => {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="text-center max-w-md">
-          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <div className="text-[var(--color-danger)] text-4xl mb-4">⚠️</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Error Loading Sales Data
           </h3>
-          <p className="text-gray-600 mb-4">{error.message}</p>
+          <p className="text-[var(--color-danger)] mb-4">{error.message}</p>
         </div>
       </div>
     );
@@ -117,18 +115,23 @@ const Sales = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <button
+            <Button
               onClick={() => setShowAddSale(true)}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors active:scale-95 touch-manipulation"
+              variant="primary"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto"
               aria-label="Add new sale"
             >
               <Plus className="w-4 h-4" aria-hidden="true" /> Add Sale
-            </button>
+            </Button>
             {isSuperAdmin && (
-              <Link to="/trash/sale">
-                <button className="px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95">
-                  <Trash color="red" size={20} /> Sale Trash
-                </button>
+              <Link to="/trash/sale" className="sm:w-auto w-full">
+                <Button
+                  variant="secondary" // Changed to secondary variant
+                  className="inline-flex items-center justify-center gap-2 w-full"
+                >
+                  <Trash className="text-[var(--color-danger)]" size={20} />{" "}
+                  View Sale Trash
+                </Button>
               </Link>
             )}
           </div>

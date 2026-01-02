@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { useNavigate, useParams } from "react-router";
+import React, { useEffect, useCallback, useMemo, useState } from "react";
+import { useNavigate, useParams, Link } from "react-router"; // Changed Link import
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -14,13 +14,14 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import PropTypes from "prop-types";
+import { useForm, useFieldArray } from "react-hook-form"; // Import useForm and useFieldArray
 
 // Custom Hooks & API
-import { useFormData } from "@/hooks/formHooks";
 import { useSectionManager } from "@/hooks/useSectionManager";
 import { useUnits } from "@/api/hooks/unit";
 import { useAccounts } from "@/api/hooks/account";
 import { useLC, useCreateLC, useUpdateLC } from "@/api/hooks/lc";
+import { handleError } from "@/utils/handle-error"; // Import handleError
 
 // Components
 import FormSection from "@/components/ui/FormSection";
@@ -30,30 +31,85 @@ import TextAreaField from "@/components/ui/TextAreaField";
 import FileInput from "@/components/ui/FileInput";
 import FormPageLayout from "@/components/ui/FormPageLayout";
 import CostsSection from "@/components/LCForm/CostsSection";
-import Loading from "@/components/layout/Loading";
+import Button from "@/components/ui/Button"; // Import Button component
+import LCFormSkeleton from "./LCFormSkeleton"; // Import LCFormSkeleton
 
-const SECTIONS = [
-  { id: "basicInfo", title: "Basic Information", icon: FileText },
-  { id: "financialInfo", title: "Financial Information", icon: DollarSign },
-  { id: "productInfo", title: "Product Information", icon: Package },
-  { id: "shippingCustomsInfo", title: "Shipping & Customs", icon: Truck },
-  { id: "agentTransportInfo", title: "Agent & Transport", icon: User },
-  { id: "otherExpenses", title: "Other Expenses", icon: DollarSign },
-  { id: "documentsNotes", title: "Documents & Notes", icon: Clipboard },
+const SECTIONS_CONFIG = [
+  {
+    id: "basicInfo",
+    title: "Basic Information",
+    icon: FileText,
+    defaultOpen: true,
+  },
+  {
+    id: "financialInfo",
+    title: "Financial Information",
+    icon: DollarSign,
+    defaultOpen: true,
+  },
+  {
+    id: "productInfo",
+    title: "Product Information",
+    icon: Package,
+    defaultOpen: true,
+  },
+  {
+    id: "shippingCustomsInfo",
+    title: "Shipping & Customs",
+    icon: Truck,
+    defaultOpen: true,
+  },
+  {
+    id: "agentTransportInfo",
+    title: "Agent & Transport",
+    icon: User,
+    defaultOpen: true,
+  },
+  {
+    id: "otherExpenses",
+    title: "Other Expenses",
+    icon: DollarSign,
+    defaultOpen: true,
+  },
+  {
+    id: "documentsNotes",
+    title: "Documents & Notes",
+    icon: Clipboard,
+    defaultOpen: true,
+  },
 ];
 
 const LCFormWrapper = ({ onSave }) => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const isEditMode = !!id;
 
-  const { data: lcData, isLoading: isLcLoading, isError } = useLC(id);
+  const { data: lcData, isLoading: isLcDataLoading, isError } = useLC(id);
 
-  if (isLcLoading && isEditMode) return <Loading>Loading form data...</Loading>;
+  // If in edit mode and data is loading, show skeleton.
+  if (isEditMode && isLcDataLoading) {
+    return (
+      <FormPageLayout
+        title="Loading LC..."
+        subtitle="Please wait while we fetch the LC details."
+        cancelLink="/lc-management"
+        isEditMode={true} // isEditMode is true because we are loading for edit
+        submitButtonText="LC"
+        isLoading={true} // Indicate loading state to FormPageLayout
+      >
+        <LCFormSkeleton />
+      </FormPageLayout>
+    );
+  }
+
   if (isError) {
     toast.error("Failed to load LC data.");
-    navigate("/lc-management");
-    return null;
+    return null; // Or navigate to error page
+  }
+
+  // If in edit mode and data is not found after loading, handle that case.
+  if (isEditMode && !lcData) {
+    toast.error("LC not found.");
+    return null; // Or show a specific message/navigate
   }
 
   return (
@@ -69,205 +125,360 @@ const LCFormWrapper = ({ onSave }) => {
 const LCForm = ({ onSave, isEditMode, id, initialData }) => {
   const navigate = useNavigate();
 
-  const { data: units, isLoading: unitsLoading } = useUnits();
-  const { data: accounts, isLoading: accountsLoading } = useAccounts();
+  const { data: unitsData, isLoading: unitsLoading } = useUnits();
+  const { data: accountsData, isLoading: accountsLoading } = useAccounts();
+  const units = unitsData?.data || [];
+  const accounts = accountsData?.data || [];
+
   const { expandedSections, toggleSection, setSectionRef } =
-    useSectionManager(SECTIONS);
+    useSectionManager(SECTIONS_CONFIG);
 
   const {
-    formData,
-    setFormData,
-    uploadedFiles,
-    setUploadedFiles,
-    handleInputChange,
-    handleProductChange,
-    addProduct,
-    removeProduct,
-    setProductInfo,
-    handleCostChange,
-    addCost,
-    removeCost,
-    validateForm,
-    formatFormDataForSubmit,
-    resetForm,
-  } = useFormData(initialData);
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isValid, isSubmitting },
+    watch,
+    setValue,
+  } = useForm({
+    mode: "onChange",
+    defaultValues: useMemo(() => {
+      if (isEditMode && initialData) {
+        return {
+          basicInfo: {
+            lcNumber: initialData.basicInfo?.lcNumber || "",
+            lcOpeningDate: initialData.basicInfo?.lcOpeningDate
+              ? new Date(initialData.basicInfo.lcOpeningDate)
+                  .toISOString()
+                  .split("T")[0]
+              : "",
+            status: initialData.basicInfo?.status || "Draft",
+            accountId: initialData.basicInfo?.accountId?._id || "",
+            supplierName: initialData.basicInfo?.supplierName || "",
+            supplierCountry: initialData.basicInfo?.supplierCountry || "",
+          },
+          financialInfo: {
+            lcAmountUsd: initialData.financialInfo?.lcAmountUsd || 0,
+            exchangeRate: initialData.financialInfo?.exchangeRate || 0,
+            lcAmountBdt: initialData.financialInfo?.lcAmountBdt || 0,
+            costs: initialData.financialInfo?.costs || [],
+          },
+          productInfo: initialData.productInfo?.map((p) => ({
+            ...p,
+            id: p._id || p.id || Math.random(), // Ensure unique ID for field array
+            totalValueUsd:
+              p.totalValueUsd ||
+              (p.quantity && p.unitPriceUsd
+                ? (parseFloat(p.quantity) * parseFloat(p.unitPriceUsd)).toFixed(
+                    2
+                  )
+                : 0),
+          })) || [
+            {
+              id: Math.random(),
+              itemName: "",
+              thickness: "",
+              width: "",
+              length: "",
+              grade: "",
+              quantityUnit: "",
+              quantity: 0,
+              unitPriceUsd: 0,
+              totalValueUsd: 0,
+            },
+          ],
+          shippingCustomsInfo: {
+            portOfShipment:
+              initialData.shippingCustomsInfo?.portOfShipment || "",
+            expectedArrivalDate: initialData.shippingCustomsInfo
+              ?.expectedArrivalDate
+              ? new Date(initialData.shippingCustomsInfo.expectedArrivalDate)
+                  .toISOString()
+                  .split("T")[0]
+              : "",
+            costs: initialData.shippingCustomsInfo?.costs || [],
+          },
+          agentTransportInfo: {
+            costs: initialData.agentTransportInfo?.costs || [],
+          },
+          otherExpenses: {
+            costs: initialData.otherExpenses?.costs || [],
+          },
+          documentsNotes: {
+            note: initialData.documentsNotes?.note || "",
+            uploadedDocuments:
+              initialData.documentsNotes?.uploadedDocuments || [],
+          },
+        };
+      }
+      return {
+        basicInfo: {
+          lcNumber: "",
+          lcOpeningDate: new Date().toISOString().split("T")[0],
+          status: "Draft",
+          accountId: "",
+          supplierName: "",
+          supplierCountry: "",
+        },
+        financialInfo: {
+          lcAmountUsd: 0,
+          exchangeRate: 0,
+          lcAmountBdt: 0,
+          costs: [],
+        },
+        productInfo: [
+          {
+            id: Math.random(),
+            itemName: "",
+            thickness: "",
+            width: "",
+            length: "",
+            grade: "",
+            quantityUnit: "",
+            quantity: 0,
+            unitPriceUsd: 0,
+            totalValueUsd: 0,
+          },
+        ],
+        shippingCustomsInfo: {
+          portOfShipment: "",
+          expectedArrivalDate: "",
+          costs: [],
+        },
+        agentTransportInfo: {
+          costs: [],
+        },
+        otherExpenses: {
+          costs: [],
+        },
+        documentsNotes: {
+          note: "",
+          uploadedDocuments: [],
+        },
+      };
+    }, [isEditMode, initialData]),
+  });
 
+  // Field arrays for productInfo
+  const {
+    fields: productFields,
+    append: appendProduct,
+    remove: removeProductField,
+  } = useFieldArray({
+    control,
+    name: "productInfo",
+  });
+
+  // State for file uploads (separate from RHF for simplicity with existing FileInput)
+  const [newUploadedFiles, setNewUploadedFiles] = useState([]);
+
+  // Mutations
   const createLCMutation = useCreateLC();
   const updateLCMutation = useUpdateLC(id);
 
-  useEffect(() => {
-    if (
-      formData.financialInfo.lcAmountUsd &&
-      formData.financialInfo.exchangeRate
-    ) {
-      const bdtAmount =
-        parseFloat(formData.financialInfo.lcAmountUsd) *
-        parseFloat(formData.financialInfo.exchangeRate);
-      handleInputChange("financialInfo", "lcAmountBdt", bdtAmount.toFixed(2));
-    }
-  }, [
-    formData.financialInfo.lcAmountUsd,
-    formData.financialInfo.exchangeRate,
-    handleInputChange,
-  ]);
+  // Watch fields for calculations
+  const lcAmountUsd = watch("financialInfo.lcAmountUsd");
+  const exchangeRate = watch("financialInfo.exchangeRate");
 
   useEffect(() => {
-    const updatedProducts = formData.productInfo.map((product) => {
-      const { quantity, unitPriceUsd } = product;
-      if (quantity && unitPriceUsd) {
-        return {
-          ...product,
-          totalValueUsd: (
-            parseFloat(quantity) * parseFloat(unitPriceUsd)
-          ).toFixed(2),
-        };
+    if (lcAmountUsd && exchangeRate) {
+      const bdtAmount = parseFloat(lcAmountUsd) * parseFloat(exchangeRate);
+      setValue("financialInfo.lcAmountBdt", bdtAmount.toFixed(2));
+    } else {
+      setValue("financialInfo.lcAmountBdt", 0);
+    }
+  }, [lcAmountUsd, exchangeRate, setValue]);
+
+  const handleProductInfoChange = useCallback(
+    (index, fieldName, value) => {
+      setValue(`productInfo.${index}.${fieldName}`, value, {
+        shouldValidate: true,
+      });
+      // Recalculate totalValueUsd
+      const product = watch(`productInfo.${index}`);
+      if (fieldName === "quantity" || fieldName === "unitPriceUsd") {
+        const newQuantity = parseFloat(product.quantity) || 0;
+        const newUnitPriceUsd = parseFloat(product.unitPriceUsd) || 0;
+        setValue(
+          `productInfo.${index}.totalValueUsd`,
+          (newQuantity * newUnitPriceUsd).toFixed(2)
+        );
       }
-      return product;
-    });
-
-    if (
-      JSON.stringify(updatedProducts) !== JSON.stringify(formData.productInfo)
-    ) {
-      setProductInfo(updatedProducts);
-    }
-  }, [formData.productInfo, setProductInfo]);
+    },
+    [setValue, watch]
+  );
 
   const handleExistingFileRemove = (fileId) => {
-    setFormData((prev) => ({
-      ...prev,
-      documentsNotes: {
-        ...prev.documentsNotes,
-        uploadedDocuments: prev.documentsNotes.uploadedDocuments.filter(
-          (doc) => doc._id !== fileId
-        ),
-      },
-    }));
+    // Remove from react-hook-form state
+    const currentUploadedDocuments = watch("documentsNotes.uploadedDocuments");
+    setValue(
+      "documentsNotes.uploadedDocuments",
+      currentUploadedDocuments.filter((doc) => doc._id !== fileId)
+    );
     toast.success("Existing file marked for removal.");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      toast.error("Please fill all required fields");
-      return;
-    }
+  const onSubmit = async (data) => {
+    const payloadData = {
+      ...data,
+      productInfo: data.productInfo.map((product) => ({
+        ...product,
+        quantity: parseFloat(product.quantity),
+        unitPriceUsd: parseFloat(product.unitPriceUsd),
+        totalValueUsd: parseFloat(product.totalValueUsd),
+      })),
+      financialInfo: {
+        ...data.financialInfo,
+        lcAmountUsd: parseFloat(data.financialInfo.lcAmountUsd),
+        exchangeRate: parseFloat(data.financialInfo.exchangeRate),
+        lcAmountBdt: parseFloat(data.financialInfo.lcAmountBdt),
+      },
+    };
 
-    const payloadData = formatFormDataForSubmit();
-    const payload = new FormData();
-    payload.append("lc_data", JSON.stringify(payloadData));
-    uploadedFiles.forEach((file) => payload.append("documents", file));
+    const formDataToSend = new FormData();
+    formDataToSend.append("lc_data", JSON.stringify(payloadData));
+    newUploadedFiles.forEach((file) =>
+      formDataToSend.append("documents", file)
+    );
 
-    if (isEditMode) {
-      updateLCMutation.mutate(payload, {
-        onSuccess: (data) => {
-          if (onSave) onSave(formData);
-          resetForm();
-          navigate(`/lc-details/${data.data._id}`);
-        },
-      });
-    } else {
-      createLCMutation.mutate(payload, {
-        onSuccess: () => {
-          if (onSave) onSave(formData);
-          resetForm();
-          navigate("/lc-management");
-        },
-      });
+    try {
+      if (isEditMode) {
+        await updateLCMutation.mutateAsync(formDataToSend);
+        toast.success("LC updated successfully");
+        navigate(`/lc-details/${id}`);
+      } else {
+        await createLCMutation.mutateAsync(formDataToSend);
+        toast.success("LC created successfully");
+        navigate("/lc-management");
+      }
+      onSave?.(data); // Call onSave if provided
+    } catch (error) {
+      handleError(error, `Failed to ${isEditMode ? "update" : "create"} LC`);
     }
   };
 
-  const renderProductFields = (product, index) => (
-    <motion.div
-      key={product.id}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, height: 0 }}
-      className="p-4 border border-gray-200 rounded-lg relative bg-gray-50 mb-4"
-    >
-      {formData.productInfo.length > 1 && (
-        <button
-          type="button"
-          onClick={() => removeProduct(product.id)}
-          className="absolute top-4 right-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      )}
-      <h4 className="font-semibold text-gray-900 mb-4">Product {index + 1}</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <InputField
-          label="Item Name"
-          value={product.itemName}
-          onChange={(e) =>
-            handleProductChange(product.id, "itemName", e.target.value)
-          }
-          required
-        />
-        <InputField
-          label="Thickness"
-          value={product.thickness}
-          onChange={(e) =>
-            handleProductChange(product.id, "thickness", e.target.value)
-          }
-        />
-        <InputField
-          label="Width"
-          value={product.width}
-          onChange={(e) =>
-            handleProductChange(product.id, "width", e.target.value)
-          }
-        />
-        <InputField
-          label="Length"
-          value={product.length}
-          onChange={(e) =>
-            handleProductChange(product.id, "length", e.target.value)
-          }
-        />
-        <InputField
-          label="Grade"
-          value={product.grade}
-          onChange={(e) =>
-            handleProductChange(product.id, "grade", e.target.value)
-          }
-        />
-        <SelectField
-          label="Unit"
-          value={product.quantityUnit}
-          onChange={(e) =>
-            handleProductChange(product.id, "quantityUnit", e.target.value)
-          }
-          options={units?.data?.map((u) => ({ value: u._id, label: u.name })) || []}
-          required
-        />
-        <InputField
-          label="Quantity"
-          type="number"
-          value={product.quantity}
-          onChange={(e) =>
-            handleProductChange(product.id, "quantity", e.target.value)
-          }
-          required
-        />
-        <InputField
-          label="Price (USD)"
-          type="number"
-          value={product.unitPriceUsd}
-          onChange={(e) =>
-            handleProductChange(product.id, "unitPriceUsd", e.target.value)
-          }
-          required
-        />
-        <InputField
-          label="Total (USD)"
-          value={product.totalValueUsd}
-          disabled
-        />
-      </div>
-    </motion.div>
-  );
+  const isLoading = unitsLoading || accountsLoading; // General loading for external data
+  const formSubmitting =
+    createLCMutation.isLoading || updateLCMutation.isLoading;
 
-  const isSubmitting = createLCMutation.isLoading || updateLCMutation.isLoading;
+  // Initial form values (only for LCFormWrapper's initialData)
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData);
+      if (initialData.documentsNotes?.uploadedDocuments) {
+        setNewUploadedFiles(initialData.documentsNotes.uploadedDocuments);
+      }
+    }
+  }, [initialData, reset]);
+
+  const renderProductFields = (field, index) => {
+    const productErrors = errors.productInfo?.[index];
+    const watchedProduct = watch(`productInfo.${index}`);
+
+    return (
+      <motion.div
+        key={field.id}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, height: 0 }}
+        className="p-4 border border-gray-200 rounded-lg relative bg-gray-50 mb-4"
+      >
+        {productFields.length > 1 && (
+          <Button
+            type="button"
+            onClick={() => removeProductField(index)}
+            variant="subtle"
+            className="absolute top-2 right-2 !p-2 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]"
+            aria-label="Remove product"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        )}
+        <h4 className="font-semibold text-gray-900 mb-4">
+          Product {index + 1}
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <InputField
+            label="Item Name"
+            name={`productInfo.${index}.itemName`}
+            register={register}
+            error={productErrors?.itemName?.message}
+            validation={{ required: "Item name is required" }}
+          />
+          <InputField
+            label="Thickness"
+            name={`productInfo.${index}.thickness`}
+            register={register}
+            error={productErrors?.thickness?.message}
+          />
+          <InputField
+            label="Width"
+            name={`productInfo.${index}.width`}
+            register={register}
+            error={productErrors?.width?.message}
+          />
+          <InputField
+            label="Length"
+            name={`productInfo.${index}.length`}
+            register={register}
+            error={productErrors?.length?.message}
+          />
+          <InputField
+            label="Grade"
+            name={`productInfo.${index}.grade`}
+            register={register}
+            error={productErrors?.grade?.message}
+          />
+          <SelectField
+            label="Unit"
+            name={`productInfo.${index}.quantityUnit`}
+            register={register}
+            error={productErrors?.quantityUnit?.message}
+            options={units.map((u) => ({ value: u._id, label: u.name })) || []}
+            validation={{ required: "Unit is required" }}
+            loading={unitsLoading}
+          />
+          <InputField
+            label="Quantity"
+            name={`productInfo.${index}.quantity`}
+            type="number"
+            register={register}
+            error={productErrors?.quantity?.message}
+            validation={{
+              required: "Quantity is required",
+              min: { value: 0, message: "Quantity must be positive" },
+              valueAsNumber: true,
+            }}
+            onChange={(e) =>
+              handleProductInfoChange(index, "quantity", e.target.value)
+            }
+          />
+          <InputField
+            label="Price (USD)"
+            name={`productInfo.${index}.unitPriceUsd`}
+            type="number"
+            register={register}
+            error={productErrors?.unitPriceUsd?.message}
+            validation={{
+              required: "Price is required",
+              min: { value: 0, message: "Price must be positive" },
+              valueAsNumber: true,
+            }}
+            onChange={(e) =>
+              handleProductInfoChange(index, "unitPriceUsd", e.target.value)
+            }
+          />
+          <InputField
+            label="Total (USD)"
+            name={`productInfo.${index}.totalValueUsd`}
+            value={watchedProduct?.totalValueUsd || 0} // Watch to display calculated value
+            disabled
+          />
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
     <FormPageLayout
@@ -278,22 +489,14 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
         isEditMode ? "update" : "create"
       } a new LC`}
       cancelLink={isEditMode ? `/lc-details/${id}` : "/lc-management"}
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)} // Use handleSubmit from react-hook-form
       isEditMode={isEditMode}
-      submitButtonText={
-        isSubmitting
-          ? isEditMode
-            ? "Updating..."
-            : "Creating..."
-          : isEditMode
-          ? "Update LC"
-          : "Create LC"
-      }
-      isLoading={unitsLoading || accountsLoading}
-      isSubmitting={isSubmitting}
-      isValid={validateForm()}
+      submitButtonText="LC"
+      isLoading={isLoading} // General loading for external data
+      isSubmitting={isSubmitting || formSubmitting} // Mutation loading state
+      isValid={isValid}
     >
-      {SECTIONS.map((section) => (
+      {SECTIONS_CONFIG.map((section) => (
         <FormSection
           key={section.id}
           title={section.title}
@@ -301,79 +504,67 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
           isExpanded={expandedSections[section.id]}
           onToggle={() => toggleSection(section.id)}
           sectionRef={(el) => setSectionRef(section.id, el)}
+          defaultOpen={section.defaultOpen}
         >
           {section.id === "basicInfo" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <InputField
                 label="LC Number"
-                value={formData.basicInfo.lcNumber}
-                onChange={(e) =>
-                  handleInputChange("basicInfo", "lcNumber", e.target.value)
-                }
-                required
+                name="basicInfo.lcNumber"
+                register={register}
+                error={errors.basicInfo?.lcNumber?.message}
+                validation={{ required: "LC Number is required" }}
                 disabled={isEditMode}
               />
               <InputField
                 label="LC Opening Date"
+                name="basicInfo.lcOpeningDate"
                 type="date"
-                value={formData.basicInfo.lcOpeningDate}
-                onChange={(e) =>
-                  handleInputChange(
-                    "basicInfo",
-                    "lcOpeningDate",
-                    e.target.value
-                  )
-                }
-                required
+                register={register}
+                error={errors.basicInfo?.lcOpeningDate?.message}
+                validation={{ required: "LC Opening Date is required" }}
               />
               <SelectField
                 label="Status"
-                value={formData.basicInfo.status}
-                onChange={(e) =>
-                  handleInputChange("basicInfo", "status", e.target.value)
-                }
+                name="basicInfo.status"
+                register={register}
+                error={errors.basicInfo?.status?.message}
                 options={[
                   { value: "Draft", label: "Draft" },
                   { value: "Active", label: "Active" },
                   { value: "Completed", label: "Completed" },
                   { value: "Cancelled", label: "Cancelled" },
                 ]}
-                required
+                validation={{ required: "Status is required" }}
               />
               <SelectField
                 label="Choose an account"
-                value={formData.basicInfo.accountId}
-                onChange={(e) =>
-                  handleInputChange("basicInfo", "accountId", e.target.value)
-                }
-                options={(accounts?.data || [])
-                  ?.filter((acc) => acc.accountType === "Bank")
+                name="basicInfo.accountId"
+                register={register}
+                error={errors.basicInfo?.accountId?.message}
+                options={accounts
+                  .filter((acc) => acc.accountType === "Bank")
                   .map((acc) => ({
                     value: acc._id,
                     label: `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`,
                   }))}
                 placeholder="Select Bank"
-                required
+                validation={{ required: "Bank account is required" }}
+                loading={accountsLoading}
               />
               <InputField
                 label="Supplier Name"
-                value={formData.basicInfo.supplierName}
-                onChange={(e) =>
-                  handleInputChange("basicInfo", "supplierName", e.target.value)
-                }
-                required
+                name="basicInfo.supplierName"
+                register={register}
+                error={errors.basicInfo?.supplierName?.message}
+                validation={{ required: "Supplier Name is required" }}
               />
               <InputField
                 label="Supplier Country"
-                value={formData.basicInfo.supplierCountry}
-                onChange={(e) =>
-                  handleInputChange(
-                    "basicInfo",
-                    "supplierCountry",
-                    e.target.value
-                  )
-                }
-                required
+                name="basicInfo.supplierCountry"
+                register={register}
+                error={errors.basicInfo?.supplierCountry?.message}
+                validation={{ required: "Supplier Country is required" }}
               />
             </div>
           )}
@@ -382,63 +573,80 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <InputField
                   label="LC Amount (USD)"
+                  name="financialInfo.lcAmountUsd"
                   type="number"
-                  value={formData.financialInfo.lcAmountUsd}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "financialInfo",
-                      "lcAmountUsd",
-                      e.target.value
-                    )
-                  }
-                  required
+                  register={register}
+                  error={errors.financialInfo?.lcAmountUsd?.message}
+                  validation={{
+                    required: "LC Amount (USD) is required",
+                    min: { value: 0, message: "Amount cannot be negative" },
+                    valueAsNumber: true,
+                  }}
                 />
                 <InputField
                   label="Exchange Rate"
+                  name="financialInfo.exchangeRate"
                   type="number"
-                  value={formData.financialInfo.exchangeRate}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "financialInfo",
-                      "exchangeRate",
-                      e.target.value
-                    )
-                  }
-                  required
+                  register={register}
+                  error={errors.financialInfo?.exchangeRate?.message}
+                  validation={{
+                    required: "Exchange Rate is required",
+                    min: { value: 0, message: "Rate cannot be negative" },
+                    valueAsNumber: true,
+                  }}
                 />
                 <InputField
                   label="LC Amount (BDT)"
+                  name="financialInfo.lcAmountBdt"
                   type="number"
-                  value={formData.financialInfo.lcAmountBdt}
+                  register={register} // Still register for consistency, but disable
+                  error={errors.financialInfo?.lcAmountBdt?.message}
                   disabled
                 />
               </div>
-              {!isEditMode && <CostsSection
-                costs={formData.financialInfo.costs}
-                section="financialInfo"
-                onCostChange={handleCostChange}
-                onAddCost={() => addCost("financialInfo")}
-                onRemoveCost={(costId) => removeCost("financialInfo", costId)}
-                accounts={accounts?.data || []}
+              <CostsSection
+                // pass register and errors to CostsSection for its fields
+                control={control}
+                register={register}
+                errors={errors}
+                watch={watch}
+                section="financialInfo.costs" // Adjusted name for field array
+                accounts={accounts}
                 paymentMethods={["Cash", "Bank", "Mobile Banking"]}
-              />}
+                isSubmitting={formSubmitting}
+              />
             </div>
           )}
           {section.id === "productInfo" && (
             <div className="space-y-4 sm:space-y-6">
               <AnimatePresence>
-                {formData.productInfo.map((product, index) =>
-                  renderProductFields(product, index)
+                {productFields.map((field, index) =>
+                  renderProductFields(field, index)
                 )}
               </AnimatePresence>
-              <button
+              <Button
                 type="button"
-                onClick={addProduct}
-                className="flex items-center justify-center space-x-2 w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg hover:border-[#003b75] hover:text-[#003b75] transition-colors"
+                onClick={() =>
+                  appendProduct({
+                    id: Math.random(),
+                    itemName: "",
+                    thickness: "",
+                    width: "",
+                    length: "",
+                    grade: "",
+                    quantityUnit: "",
+                    quantity: 0,
+                    unitPriceUsd: 0,
+                    totalValueUsd: 0,
+                  })
+                }
+                variant="secondary" // Use secondary variant
+                className="w-full border-dashed border-gray-300 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                disabled={isSubmitting}
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-5 h-5 mr-2" />
                 <span>Add Another Product</span>
-              </button>
+              </Button>
             </div>
           )}
           {section.id === "shippingCustomsInfo" && (
@@ -446,104 +654,93 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <InputField
                   label="Port of Shipment"
-                  value={formData.shippingCustomsInfo.portOfShipment}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "shippingCustomsInfo",
-                      "portOfShipment",
-                      e.target.value
-                    )
-                  }
+                  name="shippingCustomsInfo.portOfShipment"
+                  register={register}
+                  error={errors.shippingCustomsInfo?.portOfShipment?.message}
                 />
                 <InputField
                   label="Expected Arrival Date"
+                  name="shippingCustomsInfo.expectedArrivalDate"
                   type="date"
-                  value={formData.shippingCustomsInfo.expectedArrivalDate}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "shippingCustomsInfo",
-                      "expectedArrivalDate",
-                      e.target.value
-                    )
+                  register={register}
+                  error={
+                    errors.shippingCustomsInfo?.expectedArrivalDate?.message
                   }
                 />
               </div>
-              {!isEditMode && <CostsSection
-                costs={formData.shippingCustomsInfo.costs}
-                section="shippingCustomsInfo"
-                onCostChange={handleCostChange}
-                onAddCost={() => addCost("shippingCustomsInfo")}
-                onRemoveCost={(costId) =>
-                  removeCost("shippingCustomsInfo", costId)
-                }
-                accounts={accounts?.data || []}
+              <CostsSection
+                control={control}
+                register={register}
+                errors={errors}
+                watch={watch}
+                section="shippingCustomsInfo.costs"
+                accounts={accounts}
                 paymentMethods={["Cash", "Bank", "Mobile Banking"]}
-              />}
+                isSubmitting={formSubmitting}
+              />
             </div>
           )}
           {section.id === "agentTransportInfo" && (
-            !isEditMode && (
-              <CostsSection
-                costs={formData.agentTransportInfo.costs}
-                section="agentTransportInfo"
-                onCostChange={handleCostChange}
-                onAddCost={() => addCost("agentTransportInfo")}
-                onRemoveCost={(costId) =>
-                  removeCost("agentTransportInfo", costId)
-                }
-                accounts={accounts?.data || []}
-                paymentMethods={["Cash", "Bank", "Mobile Banking"]}
-              />
-            )
+            <CostsSection
+              control={control}
+              register={register}
+              errors={errors}
+              watch={watch}
+              section="agentTransportInfo.costs"
+              accounts={accounts}
+              paymentMethods={["Cash", "Bank", "Mobile Banking"]}
+              isSubmitting={formSubmitting}
+            />
           )}
           {section.id === "otherExpenses" && (
-            !isEditMode && (
-              <CostsSection
-                costs={formData.otherExpenses.costs}
-                section="otherExpenses"
-                onCostChange={handleCostChange}
-                onAddCost={() => addCost("otherExpenses")}
-                onRemoveCost={(costId) => removeCost("otherExpenses", costId)}
-                accounts={accounts?.data || []}
-                paymentMethods={["Cash", "Bank", "Mobile Banking"]}
-              />
-            )
+            <CostsSection
+              control={control}
+              register={register}
+              errors={errors}
+              watch={watch}
+              section="otherExpenses.costs"
+              accounts={accounts}
+              paymentMethods={["Cash", "Bank", "Mobile Banking"]}
+              isSubmitting={formSubmitting}
+            />
           )}
           {section.id === "documentsNotes" && (
             <div className="space-y-6">
               <TextAreaField
                 label="Note"
-                value={formData.documentsNotes?.note || ""}
-                onChange={(e) =>
-                  handleInputChange("documentsNotes", "note", e.target.value)
-                }
+                name="documentsNotes.note"
+                register={register}
+                error={errors.documentsNotes?.note?.message}
                 rows={4}
               />
               {isEditMode &&
-                formData.documentsNotes.uploadedDocuments?.length > 0 && (
+                watch("documentsNotes.uploadedDocuments")?.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="text-sm font-semibold text-gray-700">
                       Existing Documents
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {formData.documentsNotes.uploadedDocuments.map((doc) => (
+                      {watch("documentsNotes.uploadedDocuments").map((doc) => (
                         <div
                           key={doc._id}
-                          className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-lg"
+                          className="flex items-center justify-between p-3 bg-[var(--color-primary-light)] border border-[var(--color-primary)] rounded-lg" // Themed colors
                         >
                           <div className="flex items-center min-w-0">
-                            <FileIcon className="w-4 h-4 text-blue-500 mr-2 flex-shrink-0" />
-                            <span className="text-xs text-blue-900 truncate font-medium">
+                            <FileIcon className="w-4 h-4 text-[var(--color-primary)] mr-2 flex-shrink-0" />
+                            <span className="text-xs text-gray-900 truncate font-medium">
                               {doc.originalName}
                             </span>
                           </div>
-                          <button
+                          <Button
                             type="button"
                             onClick={() => handleExistingFileRemove(doc._id)}
-                            className="p-1.5 text-red-500 hover:bg-red-100 rounded-md transition-colors"
+                            variant="subtle"
+                            className="!p-1.5 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]" // Themed colors
+                            aria-label="Remove document"
+                            disabled={formSubmitting}
                           >
                             <Trash2 className="w-4 h-4" />
-                          </button>
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -554,18 +751,19 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                   {isEditMode ? "Upload New Documents" : "Upload Documents"}
                 </h4>
                 <FileInput
-                  files={uploadedFiles}
+                  files={newUploadedFiles}
                   onFileChange={(files) =>
-                    setUploadedFiles((prev) => [...prev, ...files])
+                    setNewUploadedFiles((prev) => [...prev, ...files])
                   }
                   onFileRemove={(index) =>
-                    setUploadedFiles((prev) =>
+                    setNewUploadedFiles((prev) =>
                       prev.filter((_, i) => i !== index)
                     )
                   }
                   maxSize={10}
                   acceptedTypes="*/*"
                   label="Drop files here or click to upload"
+                  disabled={formSubmitting}
                 />
               </div>
             </div>

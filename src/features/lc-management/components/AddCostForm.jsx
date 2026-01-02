@@ -120,10 +120,9 @@ const AddCostForm = ({
       onClose={handleClose}
       title={`Add Cost to ${categoryTitle}`}
       onSubmit={handleSubmit}
-      isPrimaryButtonDisabled={addExpenseMutation.isLoading || accountsLoading}
+      isSubmitting={addExpenseMutation.isLoading || accountsLoading}
       primaryButtonText={addExpenseMutation.isLoading ? "Adding..." : "Add Cost"}
       secondaryButtonText="Cancel"
-      isLoading={accountsLoading}
       size="md"
     >
       <div className="space-y-4">

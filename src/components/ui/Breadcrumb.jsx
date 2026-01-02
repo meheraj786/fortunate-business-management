@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // Changed to react-router
 import { ChevronRight } from "lucide-react";
 
 const Breadcrumb = ({ items }) => {
@@ -23,7 +23,7 @@ const Breadcrumb = ({ items }) => {
             {item.path ? (
               <Link
                 to={item.path}
-                className="hover:text-gray-900 transition-colors truncate max-w-[120px] sm:max-w-none"
+                className="hover:text-[var(--color-primary)] transition-colors truncate max-w-[120px] sm:max-w-none" // Changed hover color
                 aria-current={index === items.length - 1 ? "page" : undefined}
               >
                 {item.label}

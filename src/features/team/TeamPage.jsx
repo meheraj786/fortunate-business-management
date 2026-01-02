@@ -1,37 +1,20 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Search, Plus, User } from "lucide-react";
 import TeamMemberCard from "./components/TeamMemberCard";
 import AddTeamMemForm from "./AddTeamMemForm";
-import api from "@/services/apiService";
-
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { useUsers } from "../../api/hooks/user";
+import Button from "@/components/ui/Button"; // Import Button component
 
 const Team = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [teamMembers, setTeamMembers] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editMember, setEditMember] = useState(null);
   const {data:team}=useUsers()
 
   const { user } = useAuth();
   const isSuperAdmin= user?.roleName === "SUPER_ADMIN";
-console.log(user)
-
-
-
-  const handleFormSubmit = (newMember) => {
-    if (editMember) {
-      setTeamMembers((prevMembers) =>
-        prevMembers.map((member) =>
-          member.id === newMember.id ? newMember : member
-        )
-      );
-    } else {
-      setTeamMembers((prevMembers) => [...prevMembers, newMember]);
-    }
-  };
 
   const handleEdit = (member) => {
     setEditMember(member);
@@ -61,13 +44,14 @@ console.log(user)
               </p>
             </div>
             {
-              isSuperAdmin && <button
+              isSuperAdmin && <Button
               onClick={() => setIsFormOpen(true)}
-              className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start"
+              variant="primary"
+              className="w-full sm:w-auto"
             >
-              <Plus size={20} />
+              <Plus size={20} className="mr-2" />
               Add Member
-            </button>
+            </Button>
             }
             
           </div>
@@ -81,12 +65,16 @@ console.log(user)
               size={20}
               className="hidden sm:block absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             />
+            <label htmlFor="search-members" className="sr-only">
+              Search members
+            </label>
             <input
+              id="search-members"
               type="text"
               placeholder="Search members..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+              className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base"
             />
           </div>
         </div>
@@ -122,7 +110,6 @@ console.log(user)
           setIsFormOpen(false);
           setEditMember(null);
         }}
-        onSubmit={handleFormSubmit}
         editData={editMember}
       />
     </div>

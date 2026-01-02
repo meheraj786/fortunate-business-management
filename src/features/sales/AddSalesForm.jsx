@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, User, Calendar, DollarSign, FileText, Tag, Hash, Home, Truck, PlusCircle, MinusCircle, Ruler } from "lucide-react";
 import toast from "react-hot-toast";
+import { useForm, useFieldArray } from "react-hook-form"; // Import useForm and useFieldArray
 
 import { useCustomers } from "@/api/hooks/customer";
 import { useWarehouses } from "@/api/hooks/warehouse";
@@ -10,6 +11,7 @@ import { useAccounts } from "@/api/hooks/account";
 import { useUnits } from "@/api/hooks/unit";
 import { useProducts } from "@/api/hooks/products";
 import { useCreateSale, useUpdateSale } from "@/api/hooks/sales";
+import { handleError } from "@/utils/handle-error"; // Import handleError
 
 import FormHeader from "@/components/ui/FormHeader";
 import FormActions from "@/components/ui/FormActions";
@@ -17,50 +19,33 @@ import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
 import FormSkeleton from "./components/AddSaleFormSkeleton";
+import Button from "@/components/ui/Button"; // Import Button component
 
 const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => {
   const isEditMode = !!editData;
 
-  const initialFormData = useMemo(() => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    const saleDate = now.toISOString().slice(0, 16);
+  const [newUploadedFiles, setNewUploadedFiles] = useState([]);
 
-    return {
-      warehouseId: "", productId: "", categoryId: "", quantity: "", unit: "", pricePerUnit: "", customerType: "existing", customerName: "",
-      customerPhone: "", customerAddress: "", saleDate, invoiceStatus: "Not-invoiced",
-      charges: [], costs: [], discount: "", payments: [], notes: "",
-    };
-  }, []);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isValid, isSubmitting },
+    watch,
+    setValue,
+  } = useForm({
+    mode: "onChange",
+    defaultValues: useMemo(() => {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      const saleDate = now.toISOString().slice(0, 16);
 
-  const [formData, setFormData] = useState(initialFormData);
-
-  // Data Fetching
-  const { data: customersData, isLoading: customersLoading } = useCustomers();
-  const { data: warehousesData, isLoading: warehousesLoading } = useWarehouses();
-  const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
-  const { data: accountsData, isLoading: accountsLoading } = useAccounts();
-  const { data: unitsData, isLoading: unitsLoading } = useUnits();
-  const { data: productsData, isLoading: productsLoading } = useProducts(formData.warehouseId, { limit: 10000 }, { enabled: !!formData.warehouseId });
-  
-  const customers = customersData?.data || [];
-  const warehouses = warehousesData?.data?.warehouses || [];
-  const categories = categoriesData?.data || [];
-  const accounts = accountsData?.data || [];
-  const units = unitsData?.data || [];
-  const products = productsData?.data?.docs || [];
-
-  const createSaleMutation = useCreateSale();
-  const updateSaleMutation = useUpdateSale(editData?._id);
-
-  // Populate form for edit mode
-  useEffect(() => {
-    if (isOpen) {
       if (isEditMode && editData) {
-        const saleDate = new Date(editData.saleDate);
-        saleDate.setMinutes(saleDate.getMinutes() - saleDate.getTimezoneOffset());
-        
-        setFormData({
+        const editedSaleDate = new Date(editData.saleDate);
+        editedSaleDate.setMinutes(editedSaleDate.getMinutes() - editedSaleDate.getTimezoneOffset());
+
+        return {
           warehouseId: editData.warehouse?._id || "",
           productId: editData.product?._id || "",
           categoryId: editData.category?._id || "",
@@ -68,10 +53,11 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
           unit: editData.unit?._id || editData.unit || "",
           pricePerUnit: editData.pricePerUnit || "",
           customerType: editData.customer?.customerId ? "existing" : "manual",
+          customerId: editData.customer?.customerId?._id || "", // For existing customer
           customerName: editData.customer?.name || "",
           customerPhone: editData.customer?.phone || "",
           customerAddress: editData.customer?.address || "",
-          saleDate: saleDate.toISOString().slice(0, 16),
+          saleDate: editedSaleDate.toISOString().slice(0, 16),
           invoiceStatus: editData.invoiceStatus || "Not-invoiced",
           charges: editData.charges || [],
           costs: editData.costs || [],
@@ -83,124 +69,207 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
             }
             return {
               ...p,
+              id: p._id || Math.random(), // Add unique ID for useFieldArray
               date: paymentDate ? paymentDate.toISOString().slice(0, 16) : "",
               accountId: p.accountId?._id || p.accountId
             };
           }) || [],
           notes: editData.notes || "",
+        };
+      }
+      return {
+        warehouseId: "", productId: "", categoryId: "", quantity: "", unit: "", pricePerUnit: "", customerType: "existing", customerId: "", customerName: "",
+        customerPhone: "", customerAddress: "", saleDate, invoiceStatus: "Not-invoiced",
+        charges: [{ id: Math.random(), name: "", amount: "" }], // Initial charge
+        costs: [],
+        discount: "", payments: [], notes: "",
+      };
+    }, [isEditMode, editData]),
+  });
+
+  // Data Fetching
+  const { data: customersData, isLoading: customersLoading } = useCustomers();
+  const { data: warehousesData, isLoading: warehousesLoading } = useWarehouses();
+  const { data: categoriesData, isLoading: categoriesLoading } = useCategories();
+  const { data: accountsData, isLoading: accountsLoading } = useAccounts();
+  const { data: unitsData, isLoading: unitsLoading } = useUnits();
+  
+  const customers = customersData?.data || [];
+  const warehouses = warehousesData?.data?.warehouses || [];
+  const categories = categoriesData?.data || [];
+  const accounts = accountsData?.data || [];
+  const units = unitsData?.data || [];
+
+  const watchedWarehouseId = watch("warehouseId");
+  const { data: productsData, isLoading: productsLoading } = useProducts(watchedWarehouseId, { limit: 10000 }, { enabled: !!watchedWarehouseId });
+  const products = productsData?.data?.docs || [];
+
+  const createSaleMutation = useCreateSale();
+  const updateSaleMutation = useUpdateSale(editData?._id);
+
+  const { fields: chargesFields, append: appendCharge, remove: removeCharge } = useFieldArray({
+    control,
+    name: "charges",
+  });
+  const { fields: costsFields, append: appendCost, remove: removeCost } = useFieldArray({
+    control,
+    name: "costs",
+  });
+  const { fields: paymentsFields, append: appendPayment, remove: removePayment } = useFieldArray({
+    control,
+    name: "payments",
+  });
+
+
+  // Populate form for edit mode
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditMode && editData) {
+        // Reset form with default values from editData
+        reset({
+          ...editData,
+          warehouseId: editData.warehouse?._id || "",
+          productId: editData.product?._id || "",
+          categoryId: editData.category?._id || "",
+          unit: editData.unit?._id || editData.unit || "",
+          customerType: editData.customer?.customerId ? "existing" : "manual",
+          customerId: editData.customer?.customerId?._id || "",
+          customerName: editData.customer?.name || "",
+          customerPhone: editData.customer?.phone || "",
+          customerAddress: editData.customer?.address || "",
+          saleDate: new Date(editData.saleDate).toISOString().slice(0, 16),
+          payments: editData.payments?.map(p => ({
+            ...p,
+            id: p._id || Math.random(),
+            date: p.date ? new Date(p.date).toISOString().slice(0, 16) : "",
+            accountId: p.accountId?._id || p.accountId
+          })) || [],
         });
+        // Clear new uploaded files if any
+        setNewUploadedFiles([]);
       } else {
-        setFormData(initialFormData);
+        // Reset to initial form state for new sale
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const saleDate = now.toISOString().slice(0, 16);
+        reset({
+          warehouseId: "", productId: "", categoryId: "", quantity: "", unit: "", pricePerUnit: "", customerType: "existing", customerId: "", customerName: "",
+          customerPhone: "", customerAddress: "", saleDate, invoiceStatus: "Not-invoiced",
+          charges: [{ id: Math.random(), name: "", amount: "" }],
+          costs: [],
+          discount: "", payments: [], notes: "",
+        });
       }
     }
-  }, [isEditMode, isOpen, editData, initialFormData]);
+  }, [isEditMode, isOpen, editData, reset]);
 
   // Calculations
+  const watchedQuantity = watch("quantity");
+  const watchedPricePerUnit = watch("pricePerUnit");
+  const watchedCharges = watch("charges");
+  const watchedCosts = watch("costs");
+  const watchedDiscount = watch("discount");
+
   const { totalAmount, totalAmountToBePaid } = useMemo(() => {
-    const quantity = parseFloat(formData.quantity) || 0;
-    const pricePerUnit = parseFloat(formData.pricePerUnit) || 0;
+    const quantity = parseFloat(watchedQuantity) || 0;
+    const pricePerUnit = parseFloat(watchedPricePerUnit) || 0;
     const total = quantity * pricePerUnit;
-    const chargesTotal = formData.charges.reduce((acc, charge) => acc + (parseFloat(charge.amount) || 0), 0);
-    const costsTotal = formData.costs.reduce((acc, cost) => acc + (parseFloat(cost.amount) || 0), 0);
-    const discount = parseFloat(formData.discount) || 0;
+    const chargesTotal = (watchedCharges || []).reduce((acc, charge) => acc + (parseFloat(charge.amount) || 0), 0);
+    const costsTotal = (watchedCosts || []).reduce((acc, cost) => acc + (parseFloat(cost.amount) || 0), 0);
+    const discount = parseFloat(watchedDiscount) || 0;
     return { totalAmount: total, totalAmountToBePaid: total + chargesTotal + costsTotal - discount };
-  }, [formData.quantity, formData.pricePerUnit, formData.charges, formData.costs, formData.discount]);
+  }, [watchedQuantity, watchedPricePerUnit, watchedCharges, watchedCosts, watchedDiscount]);
 
   // Handlers
   const handleWarehouseChange = useCallback((warehouseId) => {
-    setFormData((prev) => ({ ...prev, warehouseId, productId: "", categoryId: "", quantity: "", unit: "", pricePerUnit: "" }));
-  }, []);
+    setValue("warehouseId", warehouseId);
+    setValue("productId", "");
+    setValue("categoryId", "");
+    setValue("quantity", "");
+    setValue("unit", "");
+    setValue("pricePerUnit", "");
+  }, [setValue]);
 
   const handleProductChange = useCallback((productId) => {
     const product = products.find(p => p._id === productId);
     if (product) {
-      setFormData(prev => ({ ...prev, productId, unit: product.unit?._id || "", pricePerUnit: product.unitPrice || "", categoryId: product.category?._id || "" }));
+      setValue("productId", productId);
+      setValue("unit", product.unit?._id || "");
+      setValue("pricePerUnit", product.unitPrice || "");
+      setValue("categoryId", product.category?._id || "");
     }
-  }, [products]);
+  }, [products, setValue]);
   
   const handleUnitChange = useCallback((unitId) => {
-    const product = products.find(p => p._id === formData.productId);
+    const productId = watch("productId");
+    const product = products.find(p => p._id === productId);
     const selectedUnit = units.find(u => u._id === unitId);
     if (product && selectedUnit && product.unit?.conversionFactor && selectedUnit.conversionFactor) {
       const pricePerBaseUnit = product.unitPrice / product.unit.conversionFactor;
       const newPriceForSale = pricePerBaseUnit * selectedUnit.conversionFactor;
-      setFormData(prev => ({ ...prev, unit: unitId, pricePerUnit: newPriceForSale.toFixed(2) }));
+      setValue("unit", unitId);
+      setValue("pricePerUnit", newPriceForSale.toFixed(2));
     } else {
-      setFormData(prev => ({ ...prev, unit: unitId }));
+      setValue("unit", unitId);
     }
-  }, [products, units, formData.productId]);
+  }, [products, units, watch, setValue]);
   
   const handleInvoiceStatusChange = useCallback((status) => {
+    setValue("invoiceStatus", status);
     if (status === "Not-invoiced") {
-      setFormData((prev) => ({ ...prev, invoiceStatus: status, paymentStatus: "", payments: [] }));
+      setValue("paymentStatus", "");
+      setValue("payments", []);
     } else if (status === "Invoiced") {
-      setFormData((prev) => ({ ...prev, invoiceStatus: status, paymentStatus: "Due payment" }));
+      setValue("paymentStatus", "Due payment");
     }
-  }, []);
+  }, [setValue]);
 
   const handlePaymentStatusChange = useCallback((status) => {
+    setValue("paymentStatus", status);
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     const paymentDate = now.toISOString().slice(0, 16);
     if (status === "Paid payment") {
-      setFormData(prev => ({ ...prev, paymentStatus: status, payments: [{ amount: totalAmountToBePaid.toFixed(2), date: paymentDate, method: "", accountId: "" }] }));
+      setValue("payments", [{ id: Math.random(), amount: totalAmountToBePaid.toFixed(2), date: paymentDate, method: "", accountId: "" }]);
     } else if (status === "Due payment") {
-      setFormData(prev => ({ ...prev, paymentStatus: status, payments: [] }));
+      setValue("payments", []);
     }
-  }, [totalAmountToBePaid]);
+  }, [totalAmountToBePaid, setValue]);
 
-  const handleInputChange = useCallback((field, value) => {
-    switch (field) {
-      case "warehouseId": handleWarehouseChange(value); break;
-      case "productId": handleProductChange(value); break;
-      case "unit": handleUnitChange(value); break;
-      case "invoiceStatus": handleInvoiceStatusChange(value); break;
-      case "paymentStatus": handlePaymentStatusChange(value); break;
-      default: setFormData(prev => ({ ...prev, [field]: value }));
+  const handleCustomerSelect = useCallback((customerId) => {
+    const customer = customers.find(c => c._id === customerId);
+    if (customer) {
+      setValue("customerId", customer._id);
+      setValue("customerName", customer.name);
+      setValue("customerPhone", customer.phone);
+      setValue("customerAddress", customer.address);
     }
-  }, [handleWarehouseChange, handleProductChange, handleUnitChange, handleInvoiceStatusChange, handlePaymentStatusChange]);
-  
-  const handleArrayField = useCallback((field, action, index = null, updates = {}) => {
-    setFormData(prev => {
-      const fieldData = [...(prev[field] || [])];
-      if (action === "add") fieldData.push(updates.newItem);
-      if (action === "remove") fieldData.splice(index, 1);
-      if (action === "update" && index !== null) fieldData[index] = { ...fieldData[index], ...updates };
-      return { ...prev, [field]: fieldData };
-    });
-  }, []);
+  }, [customers, setValue]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Validation
-    if (!formData.quantity || !formData.pricePerUnit || !formData.customerName || !formData.productId) {
-      toast.error("Please fill all required fields.");
-      return;
-    }
-
+  const handleSubmitForm = async (data) => {
     const salesData = {
-      quantity: parseFloat(formData.quantity),
-      unit: formData.unit,
-      pricePerUnit: parseFloat(formData.pricePerUnit),
-      saleDate: formData.saleDate,
-      invoiceStatus: formData.invoiceStatus,
-      charges: formData.charges.filter(c => c.name && c.amount).map(c => ({ ...c, amount: parseFloat(c.amount) })),
-      costs: formData.costs.filter(c => c.name && c.amount && c.accountId).map(c => ({
+      quantity: parseFloat(data.quantity),
+      unit: data.unit,
+      pricePerUnit: parseFloat(data.pricePerUnit),
+      saleDate: data.saleDate,
+      invoiceStatus: data.invoiceStatus,
+      charges: data.charges.filter(c => c.name && c.amount).map(c => ({ ...c, amount: parseFloat(c.amount) })),
+      costs: data.costs.filter(c => c.name && c.amount && c.accountId).map(c => ({
         name: c.name,
         amount: parseFloat(c.amount),
         accountId: c.accountId,
         paymentMethod: c.method
       })),
-      discount: parseFloat(formData.discount) || 0,
-      notes: formData.notes,
-      product: formData.productId,
-      warehouse: formData.warehouseId,
-      category: formData.categoryId,
-      customer: formData.customerType === 'existing'
-        ? { customerId: formData.customerId, name: formData.customerName }
-        : { customerId: null, name: formData.customerName, phone: formData.customerPhone, address: formData.customerAddress },
-      paymentStatus: formData.paymentStatus,
-      payments: formData.payments.map(p => ({
+      discount: parseFloat(data.discount) || 0,
+      notes: data.notes,
+      product: data.productId,
+      warehouse: data.warehouseId,
+      category: data.categoryId,
+      customer: data.customerType === 'existing'
+        ? { customerId: data.customerId, name: data.customerName }
+        : { customerId: null, name: data.customerName, phone: data.customerPhone, address: data.customerAddress },
+      paymentStatus: data.paymentStatus,
+      payments: data.payments.map(p => ({
         amount: parseFloat(p.amount) || 0,
         date: p.date,
         method: p.method,
@@ -208,22 +277,26 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
       })).filter(p => p.amount > 0 && p.method && p.accountId),
     };
     
-    if (isEditMode) {
-      const { customer, costs, payments, product, warehouse, category, ...updatableData } = salesData;
-      updateSaleMutation.mutate(updatableData, { onSuccess: () => { onSaleAdded(); onClose(); } });
-    } else {
-      createSaleMutation.mutate(salesData, { onSuccess: () => { onSaleAdded(); onClose(); setFormData(initialFormData); } });
+    try {
+        if (isEditMode) {
+            const { customer, costs, payments, product, warehouse, category, ...updatableData } = salesData;
+            await updateSaleMutation.mutateAsync({id: editData._id, ...updatableData});
+            toast.success("Sale updated successfully");
+        } else {
+            await createSaleMutation.mutateAsync(salesData);
+            toast.success("Sale created successfully");
+        }
+        onSaleAdded?.(); // Call onSaleAdded if provided
+        onClose();
+    } catch (error) {
+        handleError(error, `Failed to ${isEditMode ? "update" : "create"} sale.`);
     }
   };
   
-  const isLoading = customersLoading || warehousesLoading || categoriesLoading || accountsLoading || unitsLoading;
-  const isSubmitting = createSaleMutation.isLoading || updateSaleMutation.isLoading;
+  const isLoadingData = customersLoading || warehousesLoading || categoriesLoading || accountsLoading || unitsLoading || productsLoading;
 
   const getFilteredAccounts = useCallback((method) => {
-    if (!accounts) return []; // Guard against accounts being undefined
-    // Backend API defines accountType as "Cash", "Bank", "Mobile Banking"
-    // The payment methods are also "Cash", "Bank", "Mobile Banking"
-    // So direct comparison is fine
+    if (!accounts) return [];
     return accounts
       .filter((acc) => acc.accountType === method)
       .map((acc) => ({
@@ -232,6 +305,12 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
       }));
   }, [accounts]);
 
+  // Watch fields for conditional rendering
+  const watchedCustomerType = watch("customerType");
+  const watchedInvoiceStatus = watch("invoiceStatus");
+  const watchedPaymentStatus = watch("paymentStatus");
+
+
   if (!isOpen) return null;
 
   return (
@@ -239,265 +318,487 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed p-4 inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
           <FormHeader title={isEditMode ? "Edit Sale" : "Add New Sale"} subtitle="Enter the details of the sale" onClose={onClose} />
-          {isLoading ? <FormSkeleton /> : (
-            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-grow">
+          {isLoadingData ? <FormSkeleton /> : (
+            <form onSubmit={handleSubmit(handleSubmitForm)} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-grow">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <SelectField label="Warehouse" value={formData.warehouseId} onChange={e => handleInputChange("warehouseId", e.target.value)} options={warehouses.map(w => ({ value: w._id, label: w.name }))} required icon={Home} disabled={isEditMode || isLoading} />
-                <SelectField label="Category" value={formData.categoryId} onChange={e => handleInputChange("categoryId", e.target.value)} options={categories.map(c => ({ value: c._id, label: c.name }))} icon={Tag} disabled={isEditMode || !formData.warehouseId || isLoading} />
-                <SelectField label="Product" value={formData.productId} onChange={e => handleProductChange(e.target.value)} options={products.map(p => ({ value: p._id, label: p.name }))} required icon={Package} disabled={isEditMode || !formData.warehouseId || isLoading} />
+                <SelectField
+                  label="Warehouse"
+                  name="warehouseId"
+                  register={register}
+                  error={errors.warehouseId?.message}
+                  options={warehouses.map(w => ({ value: w._id, label: w.name }))}
+                  validation={{ required: "Warehouse is required" }}
+                  icon={Home}
+                  disabled={isEditMode || isLoadingData}
+                  onChange={(e) => {
+                    setValue("warehouseId", e.target.value, { shouldValidate: true });
+                    handleWarehouseChange(e.target.value);
+                  }}
+                />
+                <SelectField
+                  label="Category"
+                  name="categoryId"
+                  register={register}
+                  error={errors.categoryId?.message}
+                  options={categories.map(c => ({ value: c._id, label: c.name }))}
+                  icon={Tag}
+                  disabled={isEditMode || !watchedWarehouseId || isLoadingData}
+                  validation={{ required: "Category is required" }}
+                />
+                <SelectField
+                  label="Product"
+                  name="productId"
+                  register={register}
+                  error={errors.productId?.message}
+                  options={products.map(p => ({ value: p._id, label: p.name }))}
+                  validation={{ required: "Product is required" }}
+                  icon={Package}
+                  disabled={isEditMode || !watchedWarehouseId || isLoadingData}
+                  onChange={(e) => {
+                    setValue("productId", e.target.value, { shouldValidate: true });
+                    handleProductChange(e.target.value);
+                  }}
+                />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <InputField label="Quantity" type="number" value={formData.quantity} onChange={e => handleInputChange("quantity", e.target.value)} required icon={Hash} min="0" step="0.01" />
-                <SelectField label="Unit" value={formData.unit} onChange={e => handleUnitChange(e.target.value)} options={units.map(u => ({ value: u._id, label: u.name }))} required icon={Ruler} disabled={isLoading} />
-                <InputField label="Price Per Unit" type="number" value={formData.pricePerUnit} onChange={e => handleInputChange("pricePerUnit", e.target.value)} required icon={DollarSign} min="0" step="0.01" />
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200"><p className="text-sm font-medium text-gray-700">Subtotal</p><p className="text-lg font-semibold text-gray-900">${totalAmount.toFixed(2)}</p></div>
+                <InputField
+                  label="Quantity"
+                  name="quantity"
+                  type="number"
+                  register={register}
+                  error={errors.quantity?.message}
+                  icon={Hash}
+                  validation={{
+                    required: "Quantity is required",
+                    min: { value: 0.01, message: "Quantity must be greater than 0" },
+                    valueAsNumber: true,
+                  }}
+                />
+                <SelectField
+                  label="Unit"
+                  name="unit"
+                  register={register}
+                  error={errors.unit?.message}
+                  options={units.map(u => ({ value: u._id, label: u.name }))}
+                  validation={{ required: "Unit is required" }}
+                  icon={Ruler}
+                  disabled={isLoadingData}
+                  onChange={(e) => {
+                    setValue("unit", e.target.value, { shouldValidate: true });
+                    handleUnitChange(e.target.value);
+                  }}
+                />
+                <InputField
+                  label="Price Per Unit"
+                  name="pricePerUnit"
+                  type="number"
+                  register={register}
+                  error={errors.pricePerUnit?.message}
+                  icon={DollarSign}
+                  validation={{
+                    required: "Price Per Unit is required",
+                    min: { value: 0, message: "Price cannot be negative" },
+                    valueAsNumber: true,
+                  }}
+                />
+                <div className="p-3 bg-[var(--color-primary-light)] rounded-lg border border-[var(--color-primary-light)]">
+                  <p className="text-sm font-medium text-gray-700">Subtotal</p>
+                  <p className="text-lg font-semibold text-[var(--color-primary)]">${totalAmount.toFixed(2)}</p>
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SelectField label="Customer Type" value={formData.customerType} onChange={e => handleInputChange("customerType", e.target.value)} options={[{ value: "existing", label: "Existing Customer" }, { value: "manual", label: "Manual Input" }]} required disabled={isEditMode} />
-                <InputField label="Sale Date" type="datetime-local" value={formData.saleDate} onChange={e => handleInputChange("saleDate", e.target.value)} required icon={Calendar} />
-              </div>
-              {formData.customerType === 'existing' ? (
-                <SelectField 
-                  label="Select Customer" 
-                  value={formData.customerId} 
-                  onChange={e => {
-                    const customer = customers.find(c => c._id === e.target.value);
-                    if (customer) {
-                      setFormData(prev => ({
-                        ...prev,
-                        customerId: customer._id,
-                        customerName: customer.name,
-                        customerPhone: customer.phone,
-                        customerAddress: customer.location
-                      }));
+                <SelectField
+                  label="Customer Type"
+                  name="customerType"
+                  register={register}
+                  error={errors.customerType?.message}
+                  options={[{ value: "existing", label: "Existing Customer" }, { value: "manual", label: "Manual Input" }]}
+                  validation={{ required: "Customer type is required" }}
+                  disabled={isEditMode}
+                  onChange={(e) => {
+                    setValue("customerType", e.target.value);
+                    if (e.target.value === 'manual') {
+                      setValue("customerId", "");
+                    } else {
+                      setValue("customerName", "");
+                      setValue("customerPhone", "");
+                      setValue("customerAddress", "");
                     }
-                  }} 
-                  options={customers.map(c => ({ value: c._id, label: `${c.name} - ${c.phone}` }))} 
-                  required 
-                  icon={User} 
-                  disabled={isEditMode || isLoading} 
+                  }}
+                />
+                <InputField
+                  label="Sale Date"
+                  name="saleDate"
+                  type="datetime-local"
+                  register={register}
+                  error={errors.saleDate?.message}
+                  validation={{ required: "Sale Date is required" }}
+                  icon={Calendar}
+                />
+              </div>
+              {watchedCustomerType === 'existing' ? (
+                <SelectField
+                  label="Select Customer"
+                  name="customerId"
+                  register={register}
+                  error={errors.customerId?.message}
+                  options={customers.map(c => ({ value: c._id, label: `${c.name} - ${c.phone}` }))}
+                  validation={{ required: "Customer is required" }}
+                  icon={User}
+                  disabled={isEditMode || isLoadingData}
+                  onChange={(e) => {
+                    setValue("customerId", e.target.value, { shouldValidate: true });
+                    handleCustomerSelect(e.target.value);
+                  }}
                 />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <InputField label="Customer Name" value={formData.customerName} onChange={e => handleInputChange("customerName", e.target.value)} required icon={User} disabled={isEditMode} />
-                  <InputField label="Phone Number" value={formData.customerPhone} onChange={e => handleInputChange("customerPhone", e.target.value)} icon={User} disabled={isEditMode} />
-                  <InputField label="Address" value={formData.customerAddress} onChange={e => handleInputChange("customerAddress", e.target.value)} icon={User} disabled={isEditMode} />
+                  <InputField
+                    label="Customer Name"
+                    name="customerName"
+                    register={register}
+                    error={errors.customerName?.message}
+                    validation={{ required: "Customer Name is required" }}
+                    icon={User}
+                    disabled={isEditMode}
+                  />
+                  <InputField
+                    label="Phone Number"
+                    name="customerPhone"
+                    register={register}
+                    error={errors.customerPhone?.message}
+                    icon={User}
+                    disabled={isEditMode}
+                  />
+                  <InputField
+                    label="Address"
+                    name="customerAddress"
+                    register={register}
+                    error={errors.customerAddress?.message}
+                    icon={User}
+                    disabled={isEditMode}
+                  />
                 </div>
               )}
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Charges</label>
-                {formData.charges.map((charge, index) => (
-                  <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 items-end">
-                    <InputField label={`Charge Name ${index + 1}`} value={charge.name} onChange={e => handleArrayField("charges", "update", index, { name: e.target.value })} />
-                    <InputField label="Amount" type="number" value={charge.amount} onChange={e => handleArrayField("charges", "update", index, { amount: e.target.value })} min="0" step="0.01" />
-                    <button type="button" onClick={() => handleArrayField("charges", "remove", index)} className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center"><MinusCircle size={20} /><span className="ml-2 text-sm">Remove</span></button>
-                  </div>
-                ))}
-                <button type="button" onClick={() => handleArrayField("charges", "add", null, { newItem: { name: "", amount: "" } })} className="flex items-center space-x-2 text-sm text-primary hover:bg-primary-light px-3 py-2 rounded-lg"><PlusCircle size={16} /><span>Add Charge</span></button>
+                <AnimatePresence>
+                  {chargesFields.map((field, index) => (
+                    <motion.div
+                      key={field.id}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 items-end"
+                    >
+                      <InputField
+                        label={`Charge Name ${index + 1}`}
+                        name={`charges.${index}.name`}
+                        register={register}
+                        error={errors.charges?.[index]?.name?.message}
+                        validation={{ required: "Charge name is required" }}
+                        disabled={isSubmitting}
+                      />
+                      <InputField
+                        label="Amount"
+                        name={`charges.${index}.amount`}
+                        type="number"
+                        register={register}
+                        error={errors.charges?.[index]?.amount?.message}
+                        validation={{ required: "Charge amount is required", min: { value: 0, message: "Amount cannot be negative" }, valueAsNumber: true }}
+                        disabled={isSubmitting}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => removeCharge(index)}
+                        variant="subtle"
+                        className="!h-10 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] flex items-center justify-center"
+                        disabled={isSubmitting}
+                      >
+                        <MinusCircle size={20} className="mr-2" />
+                        <span className="text-sm">Remove</span>
+                      </Button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <Button
+                  type="button"
+                  onClick={() => appendCharge({ name: "", amount: "" })}
+                  variant="secondary"
+                  className="mt-2 text-primary hover:bg-primary-light px-3 py-2 rounded-lg"
+                  disabled={isSubmitting}
+                >
+                  <PlusCircle size={16} className="mr-2" />
+                  <span>Add Charge</span>
+                </Button>
               </div>
               
               {!isEditMode && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Costs</label>
-                {formData.costs.map((cost, index) => (
-                  <div key={index} className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-3 items-end">
-                    <InputField label={`Cost Name ${index + 1}`} value={cost.name} onChange={e => handleArrayField("costs", "update", index, { name: e.target.value })} />
-                    <InputField label="Amount" type="number" value={cost.amount} onChange={e => handleArrayField("costs", "update", index, { amount: e.target.value })} min="0" step="0.01" />
-                    <SelectField
-                      label="Payment Method"
-                      value={cost.method}
-                      onChange={e => handleArrayField("costs", "update", index, { method: e.target.value, accountId: "" })}
-                      options={[{ value: "Cash", label: "Cash" }, { value: "Bank", label: "Bank Transfer" }, { value: "Mobile Banking", label: "Mobile Banking" }]}
-                    />
-                    <SelectField
-                      label="Account"
-                      value={cost.accountId}
-                      onChange={e => handleArrayField("costs", "update", index, { accountId: e.target.value })}
-                      options={getFilteredAccounts(cost.method)}
-                      required
-                    />
-                    <button type="button" onClick={() => handleArrayField("costs", "remove", index)} className="h-10 px-3 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center"><MinusCircle size={20} /><span className="ml-2 text-sm">Remove</span></button>
-                  </div>
-                ))}
-                <button type="button" onClick={() => handleArrayField("costs", "add", null, { newItem: { name: "", amount: "", method: "Cash", accountId: "" } })} className="flex items-center space-x-2 text-sm text-primary hover:bg-primary-light px-3 py-2 rounded-lg"><PlusCircle size={16} /><span>Add Cost</span></button>
+                <AnimatePresence>
+                  {costsFields.map((field, index) => (
+                    <motion.div
+                      key={field.id}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-3 items-end"
+                    >
+                      <InputField
+                        label={`Cost Name ${index + 1}`}
+                        name={`costs.${index}.name`}
+                        register={register}
+                        error={errors.costs?.[index]?.name?.message}
+                        validation={{ required: "Cost name is required" }}
+                        disabled={isSubmitting}
+                      />
+                      <InputField
+                        label="Amount"
+                        name={`costs.${index}.amount`}
+                        type="number"
+                        register={register}
+                        error={errors.costs?.[index]?.amount?.message}
+                        validation={{ required: "Cost amount is required", min: { value: 0, message: "Amount cannot be negative" }, valueAsNumber: true }}
+                        disabled={isSubmitting}
+                      />
+                      <SelectField
+                        label="Payment Method"
+                        name={`costs.${index}.method`}
+                        register={register}
+                        error={errors.costs?.[index]?.method?.message}
+                        options={[{ value: "Cash", label: "Cash" }, { value: "Bank", label: "Bank Transfer" }, { value: "Mobile Banking", label: "Mobile Banking" }]}
+                        validation={{ required: "Payment method is required" }}
+                        disabled={isSubmitting}
+                      />
+                      <SelectField
+                        label="Account"
+                        name={`costs.${index}.accountId`}
+                        register={register}
+                        error={errors.costs?.[index]?.accountId?.message}
+                        options={getFilteredAccounts(watch(`costs.${index}.method`))}
+                        validation={{ required: "Account is required" }}
+                        disabled={isSubmitting}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => removeCost(index)}
+                        variant="subtle"
+                        className="!h-10 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] flex items-center justify-center"
+                        disabled={isSubmitting}
+                      >
+                        <MinusCircle size={20} className="mr-2" />
+                        <span className="text-sm">Remove</span>
+                      </Button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <Button
+                  type="button"
+                  onClick={() => appendCost({ name: "", amount: "", method: "Cash", accountId: "" })}
+                  variant="secondary"
+                  className="mt-2 text-primary hover:bg-primary-light px-3 py-2 rounded-lg"
+                  disabled={isSubmitting}
+                >
+                  <PlusCircle size={16} className="mr-2" />
+                  <span>Add Cost</span>
+                </Button>
               </div>
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField label="Discount" type="number" value={formData.discount} onChange={e => handleInputChange("discount", e.target.value)} icon={DollarSign} min="0" step="0.01" />
-                <div className="p-3 bg-primary-light rounded-lg border border-primary-light"><p className="text-sm font-medium text-gray-700">Total Amount to be Paid</p><p className="text-xl font-bold text-primary">${totalAmountToBePaid.toFixed(2)}</p></div>
+                <InputField
+                  label="Discount"
+                  name="discount"
+                  type="number"
+                  register={register}
+                  error={errors.discount?.message}
+                  icon={DollarSign}
+                  validation={{ min: { value: 0, message: "Discount cannot be negative" }, valueAsNumber: true }}
+                  disabled={isSubmitting}
+                />
+                <div className="p-3 bg-[var(--color-primary-light)] rounded-lg border border-[var(--color-primary-light)]">
+                  <p className="text-sm font-medium text-gray-700">Total Amount to be Paid</p>
+                  <p className="text-xl font-bold text-[var(--color-primary)]">${totalAmountToBePaid.toFixed(2)}</p>
+                </div>
               </div>
               
-              <SelectField label="Invoice Status" value={formData.invoiceStatus} onChange={e => handleInputChange("invoiceStatus", e.target.value)} options={[{ value: "Invoiced", label: "Invoiced" }, { value: "Not-invoiced", label: "Not Invoiced" }]} required icon={FileText} />
+              <SelectField
+                label="Invoice Status"
+                name="invoiceStatus"
+                register={register}
+                error={errors.invoiceStatus?.message}
+                options={[{ value: "Invoiced", label: "Invoiced" }, { value: "Not-invoiced", label: "Not Invoiced" }]}
+                validation={{ required: "Invoice Status is required" }}
+                icon={FileText}
+                disabled={isEditMode || isSubmitting}
+                onChange={(e) => {
+                  setValue("invoiceStatus", e.target.value, { shouldValidate: true });
+                  handleInvoiceStatusChange(e.target.value);
+                }}
+              />
 
-              {!isEditMode && formData.invoiceStatus === "Invoiced" && (
+              {!isEditMode && watchedInvoiceStatus === "Invoiced" && (
               <div className="border-t border-gray-200 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <SelectField
                     label="Payment Status"
                     name="paymentStatus"
-                    value={formData.paymentStatus}
-                    onChange={(e) =>
-                      handleInputChange("paymentStatus", e.target.value)
-                    }
+                    register={register}
+                    error={errors.paymentStatus?.message}
+                    value={watchedPaymentStatus}
                     options={[
                       { value: "Due payment", label: "Due Payment" },
                       { value: "Paid payment", label: "Paid Payment" },
                     ]}
-                    required
+                    validation={{ required: "Payment Status is required" }}
                     icon={DollarSign}
-                    disabled={isLoading || (isEditMode && editData.invoiceStatus === "Invoiced")}
+                    disabled={isSubmitting || (isEditMode && editData.invoiceStatus === "Invoiced")}
+                    onChange={(e) => {
+                      setValue("paymentStatus", e.target.value, { shouldValidate: true });
+                      handlePaymentStatusChange(e.target.value);
+                    }}
                   />
 
-                  {formData.paymentStatus === "Paid payment" && (
+                  {watchedPaymentStatus === "Paid payment" && (
                     <>
                       <SelectField
                         label="Payment Method"
-                        name="payments[0].method"
-                        value={formData.payments[0]?.method || ""}
-                        onChange={(e) =>
-                          handleArrayField("payments", "update", 0, {
-                            method: e.target.value,
-                            accountId: "",
-                          })
-                        }
+                        name="payments.0.method"
+                        register={register}
+                        error={errors.payments?.[0]?.method?.message}
                         options={[{ value: "Cash", label: "Cash" }, { value: "Bank", label: "Bank Transfer" }, { value: "Mobile Banking", label: "Mobile Banking" }]}
-                        required
-                        disabled={isLoading}
+                        validation={{ required: "Payment Method is required" }}
+                        disabled={isSubmitting}
                       />
 
-                      {(formData.payments[0]?.method === "Bank" ||
-                        formData.payments[0]?.method === "Mobile Banking" ||
-                        formData.payments[0]?.method === "Cash") && (
+                      {(watch("payments.0.method") === "Bank" ||
+                        watch("payments.0.method") === "Mobile Banking" ||
+                        watch("payments.0.method") === "Cash") && (
                         <SelectField
                           label="Account"
-                          name="payments[0].accountId"
-                          value={formData.payments[0]?.accountId || ""}
-                          onChange={(e) =>
-                            handleArrayField("payments", "update", 0, {
-                              accountId: e.target.value,
-                            })
-                          }
-                          options={getFilteredAccounts(
-                            formData.payments[0]?.method
-                          )}
-                          required
-                          disabled={isLoading}
+                          name="payments.0.accountId"
+                          register={register}
+                          error={errors.payments?.[0]?.accountId?.message}
+                          options={getFilteredAccounts(watch("payments.0.method"))}
+                          validation={{ required: "Account is required" }}
+                          disabled={isSubmitting}
                         />
                       )}
                     </>
                   )}
                 </div>
 
-                {formData.paymentStatus === "Due payment" && (
+                {watchedPaymentStatus === "Due payment" && (
                     <div className="md:col-span-2 mt-4">
                       <label className="block text-sm font-medium text-gray-700 mb-3">
                         Partial Payments
                       </label>
-                      {formData.payments.map((payment, index) => (
-                        <div
-                          key={index}
-                          className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-3 items-end"
-                        >
-                          <InputField
-                            label="Amount"
-                            type="number"
-                            value={payment.amount}
-                            onChange={(e) =>
-                              handleArrayField("payments", "update", index, {
-                                amount: e.target.value,
-                              })
-                            }
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                            disabled={isLoading}
-                          />
-
-                          <InputField
-                            label="Date"
-                            type="datetime-local"
-                            value={payment.date}
-                            onChange={(e) =>
-                              handleArrayField("payments", "update", index, {
-                                date: e.target.value,
-                              })
-                            }
-                            disabled={isLoading}
-                          />
-
-                          <SelectField
-                            label="Method"
-                            value={payment.method}
-                            onChange={(e) =>
-                              handleArrayField("payments", "update", index, {
-                                method: e.target.value,
-                                accountId: "",
-                              })
-                            }
-                            options={[{ value: "Cash", label: "Cash" }, { value: "Bank", label: "Bank Transfer" }, { value: "Mobile Banking", label: "Mobile Banking" }]}
-                            disabled={isLoading}
-                          />
-
-                          {(payment.method === "Bank" ||
-                            payment.method === "Mobile Banking" ||
-                            payment.method === "Cash") && (
-                            <SelectField
-                              label="Account"
-                              value={payment.accountId}
-                              onChange={(e) =>
-                                handleArrayField("payments", "update", index, {
-                                  accountId: e.target.value,
-                                })
-                              }
-                              options={getFilteredAccounts(payment.method)}
-                              required
-                              disabled={isLoading}
-                            />
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleArrayField("payments", "remove", index)
-                            }
-                            className="h-10 px-3 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
-                            disabled={isLoading}
+                      <AnimatePresence>
+                        {paymentsFields.map((field, index) => (
+                          <motion.div
+                            key={field.id}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-3 items-end"
                           >
-                            <MinusCircle size={20} />
-                            <span className="ml-2 text-sm">Remove</span>
-                          </button>
-                        </div>
-                      ))}
+                            <InputField
+                              label="Amount"
+                              name={`payments.${index}.amount`}
+                              type="number"
+                              register={register}
+                              error={errors.payments?.[index]?.amount?.message}
+                              validation={{ required: "Amount is required", min: { value: 0.01, message: "Amount must be positive" }, valueAsNumber: true }}
+                              disabled={isSubmitting}
+                            />
 
-                      <button
+                            <InputField
+                              label="Date"
+                              name={`payments.${index}.date`}
+                              type="datetime-local"
+                              register={register}
+                              error={errors.payments?.[index]?.date?.message}
+                              validation={{ required: "Date is required" }}
+                              disabled={isSubmitting}
+                            />
+
+                            <SelectField
+                              label="Method"
+                              name={`payments.${index}.method`}
+                              register={register}
+                              error={errors.payments?.[index]?.method?.message}
+                              options={[{ value: "Cash", label: "Cash" }, { value: "Bank", label: "Bank Transfer" }, { value: "Mobile Banking", label: "Mobile Banking" }]}
+                              validation={{ required: "Payment method is required" }}
+                              disabled={isSubmitting}
+                            />
+
+                            {(watch(`payments.${index}.method`) === "Bank" ||
+                              watch(`payments.${index}.method`) === "Mobile Banking" ||
+                              watch(`payments.${index}.method`) === "Cash") && (
+                              <SelectField
+                                label="Account"
+                                name={`payments.${index}.accountId`}
+                                register={register}
+                                error={errors.payments?.[index]?.accountId?.message}
+                                options={getFilteredAccounts(watch(`payments.${index}.method`))}
+                                validation={{ required: "Account is required" }}
+                                disabled={isSubmitting}
+                              />
+                            )}
+
+                            <Button
+                              type="button"
+                              onClick={() => removePayment(index)}
+                              variant="subtle"
+                              className="!h-10 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] flex items-center justify-center"
+                              disabled={isSubmitting}
+                            >
+                              <MinusCircle size={20} className="mr-2" />
+                              <span className="text-sm">Remove</span>
+                            </Button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+
+                      <Button
                         type="button"
                         onClick={() => {
                             const now = new Date();
                             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                             const newPaymentDate = now.toISOString().slice(0, 16);
-                            handleArrayField("payments", "add", null, {
-                                newItem: {
+                            appendPayment({
+                                id: Math.random(),
                                 amount: "",
                                 date: newPaymentDate,
                                 method: "",
                                 accountId: "",
-                                },
                             })
                         }}
-                        className="flex items-center space-x-2 text-sm text-primary hover:text-primary-hover hover:bg-primary-light px-3 py-2 rounded-lg transition-colors"
-                        disabled={isLoading}
+                        variant="secondary"
+                        className="mt-2 text-primary hover:bg-primary-light px-3 py-2 rounded-lg"
+                        disabled={isSubmitting}
                       >
-                        <PlusCircle size={16} />
+                        <PlusCircle size={16} className="mr-2" />
                         <span>Add Partial Payment</span>
-                      </button>
+                      </Button>
                     </div>
                   )}
               </div>
             )}
 
-              <TextAreaField label="Additional Notes" value={formData.notes} onChange={e => handleInputChange("notes", e.target.value)} rows={3} />
+              <TextAreaField
+                label="Additional Notes"
+                name="notes"
+                register={register}
+                error={errors.notes?.message}
+                rows={3}
+                disabled={isSubmitting}
+              />
               <FormActions onCancel={onClose} isSaving={isSubmitting} saveText={isEditMode ? "Update Sale" : "Save Sale"} />
             </form>
           )}

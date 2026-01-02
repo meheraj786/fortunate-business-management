@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Building, Smartphone, Receipt, Plus, DollarSign, Trash, Wallet, ArrowUp, ArrowDown } from "lucide-react"; // Import necessary icons for StatBox
+import {
+  Building,
+  Smartphone,
+  Receipt,
+  Plus,
+  DollarSign,
+  Trash,
+  Wallet,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react"; // Import necessary icons for StatBox
 import { useTransactionStats } from "@/api/hooks/transaction";
 import StatBox from "@/components/ui/StatBox";
 import AccountList from "./AccountListPage";
@@ -7,13 +17,21 @@ import TransactionList from "./TransactionListPage";
 import AddAccountForm from "./AddAccountForm";
 import AddTransactionForm from "./AddTransactionFormPage";
 import { useAuth } from "../../context/AuthContext";
-import { Link } from "react-router";
-import Skeleton from "react-loading-skeleton";
+import { Link } from "react-router"; // Corrected import
+// import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
+import Button from "@/components/ui/Button"; // Import Button
+import { motion } from "framer-motion"; // Import motion
 
+// Custom Skeleton for StatBox
+const StatBoxSkeleton = () => (
+  // Themed skeleton color
+  <div className="h-24 bg-[var(--color-neutral-200)] rounded-lg animate-pulse"></div>
+);
 
 const Accounts = () => {
   const { isSuperAdmin } = useAuth();
-  const { data: transactionStatsResponse, isLoading: isLoadingStats } = useTransactionStats();
+  const { data: transactionStatsResponse, isLoading: isLoadingStats } =
+    useTransactionStats();
   const transactionStats = transactionStatsResponse?.data;
 
   // State for controlling modals
@@ -27,7 +45,7 @@ const Accounts = () => {
     setEditingAccount(account);
     setIsAccountFormOpen(true);
   };
-  
+
   const handleOpenAddAccountForm = (accountType) => {
     setEditingAccount(null);
     setPreselectedAccountType(accountType);
@@ -49,44 +67,44 @@ const Accounts = () => {
       return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} height={100} borderRadius="0.5rem" />
+            <StatBoxSkeleton key={i} />
           ))}
         </div>
       );
     }
 
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
         <StatBox
           title="Total Transactions"
           number={transactionStats?.totalTransactionsCount || 0}
           Icon={Receipt}
-          textColor="blue"
+          textColor="primary" // Changed from blue
         />
         <StatBox
           title="Total Amount"
           number={`৳${(transactionStats?.totalAmount || 0).toLocaleString()}`}
           Icon={DollarSign}
-          textColor="green"
+          textColor="success" // Changed from green
         />
         <StatBox
           title="Bank Transfers"
           number={transactionStats?.totalBankTransactionCount || 0}
           Icon={Building}
-          textColor="blue"
+          textColor="primary" // Changed from blue
         />
         <StatBox
           title="Mobile Banking"
           number={transactionStats?.totalMobileBankingTransactionCount || 0}
           Icon={Smartphone}
-          textColor="purple"
+          textColor="primary" // Changed from purple
         />
       </div>
     );
   };
 
   return (
-    <div>
+    <motion.div>
       <div className="mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
@@ -95,26 +113,33 @@ const Accounts = () => {
                 Accounts & Transactions
               </h1>
               <p className="text-gray-600 text-sm sm:text-base">
-                Manage bank, mobile, and cash accounts, and track
-                transactions
+                Manage bank, mobile, and cash accounts, and track transactions
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 onClick={() => setIsTransactionFormOpen(true)}
-                className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors justify-center text-sm"
+                variant="success" // Changed from native button with bg-green-600
+                size="sm"
+                className="flex items-center gap-2 justify-center" // Added justify-center for mobile
+                aria-label="Add new transaction"
               >
                 <Plus className="w-4 h-4" />
-                Add Transaction
-              </button>
+                <span>Add Transaction</span>
+              </Button>
               {isSuperAdmin && (
-                <Link to="/trash/account">
-                  <button
-                    className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors justify-center text-sm"
+                <Link to="/trash/account" className="flex items-center">
+                  {" "}
+                  {/* Added flex items-center for styling */}
+                  <Button
+                    variant="danger" // Changed from native button with bg-red-600
+                    size="sm"
+                    className="flex items-center gap-2 justify-center" // Added justify-center for mobile
+                    aria-label="View trash accounts"
                   >
-                    <Trash/>
-                    Trash Account
-                  </button>
+                    <Trash />
+                    <span>Trash Account</span>
+                  </Button>
                 </Link>
               )}
             </div>
@@ -146,7 +171,7 @@ const Accounts = () => {
         onClose={() => setIsTransactionFormOpen(false)}
         onSuccess={handleTransactionFormSuccess}
       />
-    </div>
+    </motion.div>
   );
 };
 

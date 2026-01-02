@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
@@ -7,89 +7,78 @@ import { handleError } from "@/utils/handle-error";
 import api from "@/services/apiService";
 import toast from "react-hot-toast";
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, INITIAL_TRANSACTION_STATE } from "../constants";
+import { useForm } from "react-hook-form";
 
 const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accounts, accountsLoading, activeLc, activeSales, selectedDate }) => {
-  const [newTransaction, setNewTransaction] = useState(INITIAL_TRANSACTION_STATE);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm({
+    defaultValues: INITIAL_TRANSACTION_STATE,
+  });
 
-  const handleNewTransactionChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setNewTransaction((prev) => {
-      let newState = { ...prev, [name]: value };
+  const [isSubmittingMutation, setIsSubmittingMutation] = useState(false); // Renamed to avoid clash with r-h-f isSubmitting
 
-      if (name === "paymentMethod") {
-        newState.accountId = "";
+  const watchedCategory = watch("category");
+  const watchedPaymentMethod = watch("paymentMethod");
+  const watchedAmount = watch("amount");
+
+  useEffect(() => {
+    if (open) {
+      reset(INITIAL_TRANSACTION_STATE);
+      // Pre-select category if only one available
+      if (transactionType === "income" && INCOME_CATEGORIES.length === 1) {
+        setValue("category", INCOME_CATEGORIES[0]);
+      } else if (transactionType === "expense" && EXPENSE_CATEGORIES.length === 1) {
+        setValue("category", EXPENSE_CATEGORIES[0]);
       }
-      if (name === "category") {
-        newState.lcId = "";
-        newState.salesId = "";
-        if (transactionType === 'expense') {
-          newState.name = "";
-        }
-        if ((value === "LC" || value === "Sales") && !prev.description) {
-          newState.description = `Auto-generated description for ${value}`;
-        } else if ((prev.category === "LC" || prev.category === "Sales") && prev.description.startsWith("Auto-generated")) {
-          newState.description = "";
-        }
+      // Pre-select account if only one available for default method
+      const defaultAccounts = accounts.filter(acc => acc.accountType === "Cash");
+      if (defaultAccounts.length === 1) {
+        setValue("accountId", defaultAccounts[0]._id);
       }
-      return newState;
-    });
-  }, [transactionType]);
+    }
+  }, [open, reset, accounts, setValue, transactionType]);
 
-  const handleAddTransactionSubmit = async () => {
-    // Validation and submission logic here
-    // This logic is copied and adapted from DailyCashFlowPage.jsx
-    if (!newTransaction.amount || parseFloat(newTransaction.amount) <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
+  useEffect(() => {
+    // Auto-select account when payment method changes if only one option
+    const filteredAccounts = accounts.filter(acc => acc.accountType === watchedPaymentMethod);
+    if (filteredAccounts.length === 1) {
+      setValue("accountId", filteredAccounts[0]._id);
+    } else {
+      setValue("accountId", ""); // Clear if multiple or none
     }
-    if (!newTransaction.category) {
-      toast.error("Please select a category");
-      return;
-    }
-    if (!newTransaction.name && (newTransaction.category === 'LC' || newTransaction.category === 'Sales')) {
-        toast.error(`A name is required for ${newTransaction.category} ${transactionType}`);
-        return;
-    }
-    if (!newTransaction.accountId) {
-      toast.error("Please select an account");
-      return;
-    }
-    if (newTransaction.category === "LC" && !newTransaction.lcId) {
-      toast.error("Please select an LC for this transaction");
-      return;
-    }
-    if (newTransaction.category === "Sales" && !newTransaction.salesId) {
-      toast.error("Please select a Sale for this transaction");
-      return;
-    }
-    if (transactionType === 'expense' && !(newTransaction.category === "LC" || newTransaction.category === "Sales") && !newTransaction.description) {
-      toast.error("Please enter a description");
-      return;
-    }
+  }, [watchedPaymentMethod, accounts, setValue]);
+
+
+  const onSubmit = async (data) => {
+    setIsSubmittingMutation(true); // Manually manage mutation submission state
 
     const endpoint = transactionType === "income" ? "income" : "expense";
     const toastId = toast.loading(`Adding ${transactionType}...`);
-    setIsSubmitting(true);
 
     const payload = {
       date: selectedDate,
-      amount: parseFloat(newTransaction.amount),
-      category: newTransaction.category,
-      name: newTransaction.name,
-      paymentMethod: newTransaction.paymentMethod,
-      accountId: newTransaction.accountId,
-      description: newTransaction.description || undefined,
+      amount: parseFloat(data.amount),
+      category: data.category,
+      name: data.name,
+      paymentMethod: data.paymentMethod,
+      accountId: data.accountId,
+      description: data.description || undefined,
     };
 
-    if (newTransaction.category === "LC") {
-      payload.lcId = newTransaction.lcId;
+    if (data.category === "LC") {
+      payload.lcId = data.lcId;
       if (transactionType === 'expense') {
-        payload.lcCostCategory = newTransaction.lcCostCategory;
+        payload.lcCostCategory = data.lcCostCategory;
       }
     }
-    if (newTransaction.category === "Sales") {
-      payload.salesId = newTransaction.salesId;
+    if (data.category === "Sales") {
+      payload.salesId = data.salesId;
     }
 
     try {
@@ -100,34 +89,33 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
         } added successfully!`,
         { id: toastId, duration: 3000 }
       );
-      setNewTransaction(INITIAL_TRANSACTION_STATE);
       onSuccess();
       onClose();
     } catch (err) {
-      handleError(err, `Failed to add ${transactionType}.`);
-      toast.dismiss(toastId);
+      handleError(err, `Failed to add ${transactionType}.`, toastId);
+      // toast.dismiss(toastId); // Dismissing is now handled by handleError if toastId is passed
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingMutation(false);
     }
   };
   
   const getFilteredAccounts = useCallback(() => {
-    return accounts.filter((acc) => acc.accountType === newTransaction.paymentMethod);
-  }, [accounts, newTransaction.paymentMethod]);
+    return accounts.filter((acc) => acc.accountType === watchedPaymentMethod);
+  }, [accounts, watchedPaymentMethod]);
 
   const nameLabel = useMemo(() => {
     if (transactionType === 'income') {
       return 'Income Name';
     }
-    if (newTransaction.category === 'LC' || newTransaction.category === 'Sales') {
+    if (watchedCategory === 'LC' || watchedCategory === 'Sales') {
       return 'Cost Name';
     }
     return 'Expense Name';
-  }, [transactionType, newTransaction.category]);
+  }, [transactionType, watchedCategory]);
 
   const namePlaceholder = useMemo(() => {
     if (transactionType === 'income') {
-      switch (newTransaction.category) {
+      switch (watchedCategory) {
         case 'LC': return "e.g., LC final settlement";
         case 'Sales': return "e.g., Payment from customer";
         case 'Donation': return "e.g., From Acme Corp";
@@ -137,7 +125,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
         default: return "e.g., Miscellaneous income";
       }
     } else { // expense
-      switch (newTransaction.category) {
+      switch (watchedCategory) {
         case 'LC': return "e.g., Port handling fee";
         case 'Sales': return "e.g., Return processing fee";
         case 'Rent': return "e.g., Office rent for May";
@@ -148,11 +136,11 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
         default: return "e.g., Miscellaneous expense";
       }
     }
-  }, [transactionType, newTransaction.category]);
+  }, [transactionType, watchedCategory]);
   
   const descriptionPlaceholder = useMemo(() => {
     if (transactionType === 'income') {
-        switch (newTransaction.category) {
+        switch (watchedCategory) {
             case 'Donation': return "e.g., Donation for office party";
             case 'Commission': return "e.g., Commission from sales of product X";
             case 'Interest': return "e.g., Monthly interest from savings account";
@@ -160,7 +148,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
             default: return "Enter description";
         }
     } else { // expense
-        switch (newTransaction.category) {
+        switch (watchedCategory) {
             case 'Rent': return "e.g., Office rent for the month of May";
             case 'Salary': return "e.g., Salary for John Doe";
             case 'Office Expense': return "e.g., Purchase of office supplies";
@@ -169,7 +157,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
             default: return "Enter description";
         }
     }
-  }, [transactionType, newTransaction.category]);
+  }, [transactionType, watchedCategory]);
 
   const transactionCategories = transactionType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
@@ -178,10 +166,10 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
       open={open}
       onClose={onClose}
       title={`Add ${transactionType === "income" ? "Income" : "Expense"}`}
-      primaryButtonText={isSubmitting ? "Adding..." : "Add Transaction"}
+      primaryButtonText={isSubmittingMutation ? "Adding..." : "Add Transaction"}
       secondaryButtonText="Cancel"
-      onSubmit={handleAddTransactionSubmit}
-      isPrimaryButtonDisabled={isSubmitting || accountsLoading}
+      onSubmit={handleSubmit(onSubmit)}
+      isSubmitting={isSubmittingMutation || accountsLoading}
       size="md"
     >
       <div className="space-y-4">
@@ -189,114 +177,123 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
           label="Amount"
           name="amount"
           type="number"
-          value={newTransaction.amount}
-          onChange={handleNewTransactionChange}
+          register={register}
+          error={errors.amount?.message}
           placeholder="e.g., 5000"
-          required
-          min="0"
-          step="0.01"
+          validation={{
+            required: "Amount is required",
+            min: { value: 0.01, message: "Amount must be greater than 0" },
+            valueAsNumber: true,
+          }}
         />
 
         <SelectField
           label="Category"
           name="category"
-          value={newTransaction.category}
-          onChange={handleNewTransactionChange}
+          register={register}
+          error={errors.category?.message}
           options={transactionCategories.map((item) => ({
               value: item,
               label: item.charAt(0).toUpperCase() + item.slice(1),
           }))}
-          required
+          validation={{ required: "Category is required" }}
           placeholder="Select category"
         />
 
         <InputField
           label={nameLabel}
           name="name"
-          value={newTransaction.name}
-          onChange={handleNewTransactionChange}
+          register={register}
+          error={errors.name?.message}
           placeholder={namePlaceholder}
-          required
+          validation={{
+            required:
+              (watchedCategory === 'LC' || watchedCategory === 'Sales')
+                ? `A name is required for ${watchedCategory} ${transactionType}`
+                : false, // Optional if not LC/Sales
+          }}
         />
 
-        {newTransaction.category === "LC" && (
+        {watchedCategory === "LC" && (
           <SelectField
             label="Select LC"
             name="lcId"
-            value={newTransaction.lcId}
-            onChange={handleNewTransactionChange}
+            register={register}
+            error={errors.lcId?.message}
             options={activeLc.map((lc) => ({
               value: lc._id,
               label: lc.basicInfo?.lcNumber || `LC ${lc._id?.slice(-6)}`,
             }))}
-            required
+            validation={{ required: "Please select an LC for this transaction" }}
             placeholder="Select an LC"
           />
         )}
 
-        {transactionType === 'expense' && newTransaction.category === "LC" && (
+        {transactionType === 'expense' && watchedCategory === "LC" && (
           <SelectField
             label="LC Cost Category"
             name="lcCostCategory"
-            value={newTransaction.lcCostCategory}
-            onChange={handleNewTransactionChange}
+            register={register}
+            error={errors.lcCostCategory?.message}
             options={[
               { value: "financialInfo", label: "Financial" },
               { value: "shippingCustomsInfo", label: "Shipping & Customs" },
               { value: "agentTransportInfo", label: "Agent & Transport" },
               { value: "otherExpenses", label: "Other Expenses" },
             ]}
-            required
+            validation={{ required: "LC Cost Category is required" }}
           />
         )}
 
-        {newTransaction.category === "Sales" && (
+        {watchedCategory === "Sales" && (
           <SelectField
             label="Select Sale"
             name="salesId"
-            value={newTransaction.salesId}
-            onChange={handleNewTransactionChange}
+            register={register}
+            error={errors.salesId?.message}
             options={activeSales.map((sale) => ({
               value: sale._id,
               label: sale.saleId || `Sale ${sale._id?.slice(-6)}`,
             }))}
-            required
+            validation={{ required: "Please select a Sale for this transaction" }}
             placeholder="Select a Sale"
           />
         )}
 
-        {!(newTransaction.category === "LC" || newTransaction.category === "Sales") && (
+        {!(watchedCategory === "LC" || watchedCategory === "Sales") && (
           <TextAreaField
             label="Description"
             name="description"
-            value={newTransaction.description}
-            onChange={handleNewTransactionChange}
+            register={register}
+            error={errors.description?.message}
             placeholder={descriptionPlaceholder}
             rows="3"
-            required
+            validation={{
+              required: transactionType === 'expense' ? "Description is required" : false,
+            }}
           />
         )}
 
         <SelectField
           label="Payment Method"
           name="paymentMethod"
-          value={newTransaction.paymentMethod}
-          onChange={handleNewTransactionChange}
+          register={register}
+          error={errors.paymentMethod?.message}
           options={[
             { value: "Cash", label: "💵 Cash" },
             { value: "Bank", label: "🏦 Bank Transfer" },
             { value: "Mobile Banking", label: "📱 Mobile Banking" },
           ]}
-          required
+          validation={{ required: "Payment Method is required" }}
         />
-        {(newTransaction.paymentMethod === "Bank" ||
-          newTransaction.paymentMethod === "Mobile Banking" ||
-          newTransaction.paymentMethod === "Cash") && (
+        {(watchedPaymentMethod === "Bank" ||
+          watchedPaymentMethod === "Mobile Banking" ||
+          watchedPaymentMethod === "Cash") && (
           <SelectField
             label="Select Account"
             name="accountId"
-            value={newTransaction.accountId}
-            onChange={handleNewTransactionChange}
+            register={register}
+            error={errors.accountId?.message}
             options={getFilteredAccounts().map((acc) => {
               let label = "";
               if (acc.accountType === "Bank") {
@@ -309,7 +306,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
               return { value: acc._id, label: label };
             })}
             placeholder="Select an account"
-            required
+            validation={{ required: "Account is required" }}
             loading={accountsLoading}
           />
         )}

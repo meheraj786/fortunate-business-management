@@ -1,8 +1,9 @@
 import React, { memo } from "react";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion";
-import { Link } from "react-router";
-import { Save, X, Loader2 } from "lucide-react";
+import { Link } from "react-router"; // Changed to react-router
+import { Save, X } from "lucide-react";
+import Button from "./Button"; // Import the Button component
 
 const FormPageLayout = ({
   title,
@@ -47,32 +48,28 @@ const FormPageLayout = ({
                 className="flex-1 sm:flex-none"
                 aria-label="Cancel and go back"
               >
-                <button
+                <Button
                   type="button"
                   disabled={isLoading}
-                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 border border-gray-300 rounded-lg hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 transition-colors duration-200 flex items-center justify-center space-x-2"
+                  variant="secondary"
+                  className="w-full sm:w-auto"
+                  aria-label="Cancel"
                 >
                   <X className="w-4 h-4" />
                   <span className="whitespace-nowrap">Cancel</span>
-                </button>
+                </Button>
               </Link>
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading || !isValid}
-                className="flex-1 sm:flex-none w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] active:bg-[#001c3a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center space-x-2"
+                isLoading={isLoading}
+                variant="primary"
+                className="w-full sm:w-auto"
+                aria-label={saveButtonLabel}
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    <span className="whitespace-nowrap">{saveButtonLabel}</span>
-                  </>
-                )}
-              </button>
+                <Save className="w-4 h-4" />
+                <span className="whitespace-nowrap">{saveButtonLabel}</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -92,44 +89,40 @@ const FormPageLayout = ({
             className="w-full sm:w-auto"
             aria-label="Cancel and go back"
           >
-            <button
+            <Button
               type="button"
               disabled={isLoading}
-              className="w-full sm:w-auto px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 transition-colors duration-200 font-medium"
+              variant="secondary"
+              className="w-full sm:w-auto"
             >
               Cancel
-            </button>
+            </Button>
           </Link>
 
           <div className="flex items-center space-x-2 sm:space-x-4">
             {!isValid && (
-              <span className="text-sm text-red-600 flex items-center">
+              <span className="text-sm text-[var(--color-danger)] flex items-center">
                 Please complete all required fields
               </span>
             )}
             <span
               className={`text-sm ${
-                isValid ? "text-gray-600" : "text-amber-600"
+                isValid ? "text-gray-600" : "text-[var(--color-warning)]"
               }`}
             >
               {isValid ? "Ready to save" : "Complete all required sections"}
             </span>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading || !isValid}
-            className="w-full sm:w-auto px-6 py-2.5 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] active:bg-[#001c3a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium"
+            isLoading={isLoading}
+            variant="primary"
+            className="w-full sm:w-auto"
           >
-            {isLoading ? (
-              <div className="flex items-center justify-center space-x-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Processing...</span>
-              </div>
-            ) : (
-              saveButtonLabel
-            )}
-          </button>
+            {saveButtonLabel}
+          </Button>
         </motion.div>
       </form>
     </motion.div>

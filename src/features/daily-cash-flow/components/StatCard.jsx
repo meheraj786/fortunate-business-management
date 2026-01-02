@@ -1,36 +1,43 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { motion } from "framer-motion"; // Import motion
 
 const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
   const colorClasses = {
     blue: {
-      text: "text-blue-600",
-      bg: "bg-blue-100",
-      border: "border-blue-500",
+      text: "text-[var(--color-primary)]",
+      bg: "bg-[var(--color-primary-light)]",
+      border: "border-[var(--color-primary)]",
     },
     green: {
-      text: "text-green-600",
-      bg: "bg-green-100",
-      border: "border-green-500",
+      text: "text-[var(--color-success)]",
+      bg: "bg-[var(--color-success-light)]",
+      border: "border-[var(--color-success)]",
     },
-    red: { text: "text-red-600", bg: "bg-red-100", border: "border-red-500" },
-    purple: {
-      text: "text-purple-600",
-      bg: "bg-purple-100",
-      border: "border-purple-500",
+    red: {
+      text: "text-[var(--color-danger)]",
+      bg: "bg-[var(--color-danger-light)]",
+      border: "border-[var(--color-danger)]",
+    },
+    purple: { // Remapping purple to primary for consistency
+      text: "text-[var(--color-primary)]",
+      bg: "bg-[var(--color-primary-light)]",
+      border: "border-[var(--color-primary)]",
     },
     orange: {
-      text: "text-orange-600",
-      bg: "bg-orange-100",
-      border: "border-orange-500",
+      text: "text-[var(--color-warning)]",
+      bg: "bg-[var(--color-warning-light)]",
+      border: "border-[var(--color-warning)]",
     },
   };
 
-  const selectedColor = colorClasses[color] || colorClasses.blue;
+  const selectedColor = colorClasses[color] || colorClasses.blue; // Default to blue (primary)
 
   return (
-    <div
+    <motion.div
       className={`bg-white rounded-lg shadow-sm p-5 border-l-4 ${selectedColor.border} hover:shadow-md transition-shadow`}
+      whileHover={{ scale: 1.01 }} // Subtle scale up on hover
+      whileTap={{ scale: 0.99 }} // Subtle scale down on tap
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">
@@ -48,7 +55,7 @@ const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
           {Icon && <Icon className={`w-6 h-6 ${selectedColor.text}`} />}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

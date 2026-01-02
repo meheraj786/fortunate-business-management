@@ -1,35 +1,35 @@
 import React from "react";
-import Skeleton from "react-loading-skeleton";
+// import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 
 const SalesTableSkeleton = () => {
   const SkeletonRow = () => (
     <tr>
       <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-4 sm:text-sm">
-        <Skeleton width={120} />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-[120px]" />
       </td>
       <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
-        <Skeleton width={100} />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-[100px]" />
       </td>
       <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
-        <Skeleton width={60} />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-[60px]" />
       </td>
       <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
-        <Skeleton width={80} />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-[80px]" />
       </td>
       <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
-        <Skeleton width={70} />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-[70px]" />
       </td>
       <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
-        <Skeleton width={90} />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-[90px]" />
       </td>
       <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
-        <Skeleton width={100} />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-[100px]" />
       </td>
       <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
-        <Skeleton width={80} />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-[80px]" />
       </td>
       <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
-        <Skeleton width={80} />
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-[80px]" />
       </td>
     </tr>
   );

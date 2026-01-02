@@ -35,8 +35,8 @@ const StatusBadge = ({
     statusLower.includes("invoiced")
   ) {
     config = {
-      bgColor: "bg-green-100",
-      textColor: "text-green-800",
+      bgColor: "var(--color-success-light)",
+      textColor: "var(--color-success)",
       icon: CheckCircle,
     };
   } else if (
@@ -46,8 +46,8 @@ const StatusBadge = ({
     statusLower.includes("rejected")
   ) {
     config = {
-      bgColor: "bg-red-100",
-      textColor: "text-red-800",
+      bgColor: "var(--color-danger-light)",
+      textColor: "var(--color-danger)",
       icon: XCircle,
     };
   } else if (
@@ -57,8 +57,8 @@ const StatusBadge = ({
     statusLower.includes("processing")
   ) {
     config = {
-      bgColor: "bg-yellow-100",
-      textColor: "text-yellow-800",
+      bgColor: "var(--color-warning-light)",
+      textColor: "var(--color-warning)",
       icon: AlertCircle,
     };
   } else if (
@@ -66,8 +66,8 @@ const StatusBadge = ({
     statusLower.includes("delivered")
   ) {
     config = {
-      bgColor: "bg-blue-100",
-      textColor: "text-blue-800",
+      bgColor: "var(--color-primary-light)",
+      textColor: "var(--color-primary)",
       icon: Truck,
     };
   }

@@ -43,7 +43,7 @@ const CollapsibleCard = ({
 
   return (
     <motion.div
-      className={`bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden touch-manipulation ${className}`}
+      className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden touch-manipulation ${className}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
@@ -57,13 +57,13 @@ const CollapsibleCard = ({
             type="button"
             aria-expanded={isOpen}
             aria-controls={contentId}
-            className="flex items-center cursor-pointer flex-1 text-left focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:ring-offset-2 rounded-lg p-1 -m-1"
+            className="flex items-center cursor-pointer flex-1 text-left focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 rounded-lg p-1 -m-1"
             onClick={handleToggle}
             onKeyDown={handleKeyDown}
           >
             {icon && (
               <span
-                className="text-[#003b75] mr-3 text-lg flex-shrink-0"
+                className="text-[var(--color-primary)] mr-3 text-lg flex-shrink-0"
                 aria-hidden="true"
               >
                 {icon}
@@ -84,7 +84,7 @@ const CollapsibleCard = ({
           <button
             type="button"
             aria-label={isOpen ? `Collapse ${title}` : `Expand ${title}`}
-            className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:ring-offset-2"
+            className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
             onClick={handleToggle}
           >
             <ChevronDown

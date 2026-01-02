@@ -11,11 +11,14 @@ import {
   Users,
   Trash,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // Changed to react-router
 import { handleError } from "@/utils/handle-error";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCustomerSummary } from "../../api/hooks/customer";
 import { useAuth } from "../../context/AuthContext";
+import Button from "@/components/ui/Button"; // Import Button
+import Pagination from "@/components/ui/Pagination"; // Import Pagination
+import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
 
 const sortOptions = [
   { value: "joinDate", label: "Join Date" },
@@ -38,60 +41,6 @@ const customerTypeOptions = [
   { value: "Retail", label: "Retail" },
   { value: "Wholesale", label: "Wholesale" },
 ];
-
-const Pagination = ({ currentPage, totalPages, onPageChange, isLoading }) => {
-  if (totalPages <= 1) return null;
-
-  return (
-    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pt-6 border-t border-gray-200">
-      <div className="text-sm text-gray-600">
-        Page <span className="font-semibold">{currentPage}</span> of{" "}
-        <span className="font-semibold">{totalPages}</span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1 || isLoading}
-          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-        >
-          <ArrowUp className="w-4 h-4 rotate-90" />
-          <span>Previous</span>
-        </button>
-
-        <div className="flex items-center gap-1">
-          {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-            const pageNum = i + 1;
-            return (
-              <button
-                key={pageNum}
-                onClick={() => onPageChange(pageNum)}
-                disabled={isLoading}
-                className={`w-10 h-10 rounded-lg transition-colors ${
-                  currentPage === pageNum
-                    ? "bg-primary text-white"
-                    : "border border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
-          {totalPages > 5 && <span className="px-2 text-gray-500">...</span>}
-        </div>
-
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages || isLoading}
-          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-        >
-          <span>Next</span>
-          <ArrowDown className="w-4 h-4 -rotate-90" />
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const SkeletonCard = () => (
   <div className="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
@@ -199,8 +148,11 @@ const Customers = () => {
     [totalPages]
   );
 
+
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6" // Added padding for overall layout
+    >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
@@ -210,23 +162,31 @@ const Customers = () => {
             Manage your customer relationships and track their purchases
           </p>
         </div>
-        {isSuperAdmin && (
-          <Link
-            to="/trash/customer"
-            className="flex items-center gap-2 px-4 py-2.5 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors font-medium"
-          >
-            {" "}
-            <Trash className="w-5 h-5" /> Trash Customer
-          </Link>
-        )}
-
         <div className="flex items-center gap-3">
+          {isSuperAdmin && (
+            <Link to="/trash/customer">
+              <Button
+                variant="danger"
+                size="sm"
+                className="flex items-center gap-2"
+                aria-label="Trash Customer"
+              >
+                <Trash className="w-5 h-5" /> Trash Customer
+              </Button>
+            </Link>
+          )}
+
           <Link to="/customer-form" className="flex-shrink-0">
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-medium">
+            <Button
+              variant="primary"
+              size="sm"
+              className="flex items-center gap-2"
+              aria-label="Add Customer"
+            >
               <Plus className="w-5 h-5" />
               <span className="hidden sm:inline">Add Customer</span>
               <span className="sm:hidden">Add</span>
-            </button>
+            </Button>
           </Link>
         </div>
       </div>
@@ -235,10 +195,14 @@ const Customers = () => {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <label htmlFor="customer-search" className="sr-only">
+              Search by name, phone, or ID
+            </label>
             <input
+              id="customer-search"
               type="text"
               placeholder="Search by name, phone, or ID..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -248,7 +212,7 @@ const Customers = () => {
             <select
               value={sorting.sortBy}
               onChange={handleSortByChange}
-              className="w-full appearance-none pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base bg-white"
+              className="w-full appearance-none pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base bg-white"
             >
               {sortOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -259,9 +223,11 @@ const Customers = () => {
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
           </div>
 
-          <button
+          <Button
             onClick={toggleSortOrder}
-            className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full md:w-auto"
+            variant="secondary"
+            size="sm"
+            className="flex items-center justify-center gap-2 w-full md:w-auto"
           >
             {sorting.sortOrder === "asc" ? (
               <>
@@ -274,18 +240,20 @@ const Customers = () => {
                 <span className="hidden sm:inline">Descending</span>
               </>
             )}
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full md:w-auto"
+            variant="secondary"
+            size="sm"
+            className="flex items-center justify-center gap-2 w-full md:w-auto"
           >
             <Filter className="w-4 h-4" />
             <span>Filters</span>
             {(filters.status || filters.customerType) && (
-              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+              <span className="w-2 h-2 bg-[var(--color-danger)] rounded-full"></span>
             )}
-          </button>
+          </Button>
         </div>
 
         {showFilters && (
@@ -294,12 +262,13 @@ const Customers = () => {
               <h3 className="text-sm font-semibold text-gray-700">
                 Filter Customers
               </h3>
-              <button
+              <Button
                 onClick={clearFilters}
-                className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 px-3 py-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                variant="subtle"
+                className="flex items-center gap-2 text-sm text-[var(--color-danger)] hover:text-[var(--color-danger-dark)]"
               >
                 <X className="w-4 h-4" /> Clear All Filters
-              </button>
+              </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
@@ -309,7 +278,7 @@ const Customers = () => {
                 <select
                   value={filters.status}
                   onChange={(e) => handleFilterChange("status", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm"
                 >
                   {statusOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -327,7 +296,7 @@ const Customers = () => {
                   onChange={(e) =>
                     handleFilterChange("customerType", e.target.value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm"
                 >
                   {customerTypeOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -349,19 +318,17 @@ const Customers = () => {
             ))}
           </div>
         ) : customers.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {customers.map((customer) => (
-                <CustomerCard key={customer._id} customer={customer} />
-              ))}
-            </div>
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              isLoading={loading}
-            />
-          </>
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          >
+            {customers.map((customer) => (
+              <motion.div key={customer._id}>
+                <CustomerCard customer={customer} />
+              </motion.div>
+            ))}
+          </motion.div>
         ) : (
           <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -374,22 +341,34 @@ const Customers = () => {
                 : "Get started by adding your first customer."}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button
+              <Button
                 onClick={clearFilters}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                variant="secondary"
+                size="sm"
+                className="w-full sm:w-auto"
               >
                 Clear Filters
-              </button>
+              </Button>
               <Link to="/customer-form">
-                <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   Add Customer
-                </button>
+                </Button>
               </Link>
             </div>
           </div>
         )}
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          isLoading={loading}
+        />
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,6 +1,7 @@
 import React from "react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // Changed to react-router
 import { Check, X, Calendar, Package, ArrowUp, ArrowDown } from "lucide-react";
+import Button from "@/components/ui/Button"; // Import Button component
 
 const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
   const SortableHeader = ({ label, value }) => {
@@ -10,20 +11,26 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
       <th
         scope="col"
         className="px-2 py-3 text-left text-xs font-semibold text-gray-900 cursor-pointer sm:px-3 sm:text-sm"
-        onClick={() => onSort(value)}
       >
-        <div className="flex items-center gap-1 whitespace-nowrap">
+        <Button
+          variant="subtle"
+          onClick={() => onSort(value)}
+          className="flex items-center whitespace-nowrap hover:text-gray-700 !p-0" // !p-0 to remove default button padding
+          aria-label={`Sort by ${label} ${
+            isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
+          }`}
+        >
           {label}
           {isSorted && (
             <span>
               {sortOrder === "desc" ? (
-                <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4" />
+                <ArrowDown size={14} className="ml-1" aria-hidden="true" />
               ) : (
-                <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                <ArrowUp size={14} className="ml-1" aria-hidden="true" />
               )}
             </span>
           )}
-        </div>
+        </Button>
       </th>
     );
   };
@@ -104,7 +111,7 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                   <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
                     <Link
                       to={`/sales/${sale._id}`}
-                      className="text-indigo-600 hover:text-indigo-900 font-medium"
+                      className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
                     >
                       <div
                         className="max-w-[80px] sm:max-w-[120px] truncate"
@@ -134,19 +141,19 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                   </td>
                   <td className="whitespace-nowrap px-2 py-4 text.xs sm:px-3 sm:text-sm">
                     {sale.invoiceStatus === "Invoiced" ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--color-success-light)] text-[var(--color-success)]">
                         <Check className="w-2.5 h-2.5 mr-1 sm:w-3 sm:h-3" />
                         <span className="hidden sm:inline">Invoiced</span>
                         <span className="sm:hidden">Inv</span>
                       </span>
                     ) : sale.invoiceStatus === "Not-invoiced" ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--color-danger-light)] text-[var(--color-danger)]">
                         <X className="w-2.5 h-2.5 mr-1 sm:w-3 sm:h-3" />
                         <span className="hidden sm:inline">Not Invoiced</span>
                         <span className="sm:hidden">Not Inv</span>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--color-warning-light)] text-[var(--color-warning)]">
                         <Calendar className="w-2.5 h-2.5 mr-1 sm:w-3 sm:h-3" />
                         <div
                           className="max-w-[60px] truncate"
@@ -161,9 +168,9 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         sale.paymentStatus === "Paid payment"
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
                           : sale.paymentStatus === "Due payment"
-                          ? "bg-yellow-100 text-yellow-800"
+                          ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >

@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import toast from "react-hot-toast";
-
+import Button from "@/components/ui/Button";
 import {
   useSale,
   useDeleteSale,
@@ -30,7 +30,7 @@ import {
 } from "@/api/hooks/sales";
 import { useInvoicesBySale, useGenerateInvoice } from "@/api/hooks/invoice";
 import { useAccounts } from "@/api/hooks/account";
-import { useHover } from "@/hooks/useHover"; // Assuming this hook is available globally or needs to be copied
+// import { useHover } from "@/hooks/useHover"; // Removed as MotionButton is removed
 
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import FormDialog from "@/components/ui/FormDialog";
@@ -40,19 +40,40 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import AddSalesForm from "./AddSalesForm";
 import SaleDetailsSkeleton from "./components/SaleDetailsSkeleton";
 
-const MotionButton = ({ children, ...props }) => {
-  const canHover = useHover();
-  return (
-    <motion.button
-      whileHover={canHover ? { scale: 1.01 } : {}}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 200, damping: 6 }}
-      {...props}
-    >
-      {children}
-    </motion.button>
-  );
-};
+// Removed MotionButton as it is replaced by Button
+// const MotionButton = ({ children, ...props }) => {
+//   const canHover = useHover();
+//   return (
+//     <motion.button
+//       whileHover={canHover ? { scale: 1.01 } : {}}
+//       whileTap={{ scale: 0.98 }}
+//       transition={{ type: "spring", stiffness: 200, damping: 6 }}
+//       {...props}
+//     >
+//       {children}
+//     </motion.button>
+//   );
+// };
+
+const formatCurrency = (amount) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "BDT",
+  }).format(amount || 0);
+
+const formatDate = (dateString) =>
+  new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+const formatShortDate = (dateString) =>
+  new Date(dateString).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 
 const SaleDetails = () => {
   const { id } = useParams();
@@ -80,34 +101,7 @@ const SaleDetails = () => {
   const cancelSaleMutation = useCancelSale();
   const generateInvoiceMutation = useGenerateInvoice();
   const addPaymentMutation = useAddPartialPayment(id);
-
-  const formatCurrency = useCallback(
-    (amount) =>
-      new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount || 0),
-    []
-  );
-  const formatDate = useCallback(
-    (dateString) =>
-      new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      }),
-    []
-  );
-  const formatShortDate = useCallback(
-    (dateString) =>
-      new Date(dateString).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }),
-    []
-  );
-
+  
   const handleConfirmAction = async () => {
     const { type } = confirmAction;
     if (!type) return;
@@ -209,7 +203,7 @@ const SaleDetails = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="md:hidden fixed inset-0 z-40 bg-black/50"
+            className="md:hidden fixed inset-0 z-40 bg-gray-900/50"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <motion.div
@@ -233,24 +227,23 @@ const SaleDetails = () => {
               </div>
   
               <div className="space-y-2.5">
-                <MotionButton
-                  onClick={() => {
-                    setIsUpdateModalOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  disabled={
-                    isCancelled ||
-                    deleteSaleMutation.isLoading ||
-                    cancelSaleMutation.isLoading
-                  }
-                  className="flex items-center justify-center gap-1.5 w-full px-3.5 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] disabled:opacity-50 shadow-sm"
-                  style={{ backgroundColor: 'rgb(0, 51, 102)', '--hover-bg': 'rgb(0, 77, 153)' }} // primary-base and primary-hover
-
-                >
-                  <Edit className="w-3.5 h-3.5" />
-                  <span>Update Sale</span>
-                </MotionButton>
-                <MotionButton
+                                <Button
+                                  onClick={() => {
+                                    setIsUpdateModalOpen(true);
+                                    setIsMobileMenuOpen(false);
+                                  }}
+                                  disabled={
+                                    isCancelled ||
+                                    deleteSaleMutation.isLoading ||
+                                    cancelSaleMutation.isLoading
+                                  }
+                                  variant="primary"
+                                  className="w-full flex items-center justify-center gap-1.5"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                  <span>Update Sale</span>
+                                </Button>
+                <Button
                   onClick={() => {
                     setConfirmAction({ type: "cancel" });
                     setIsMobileMenuOpen(false);
@@ -260,12 +253,12 @@ const SaleDetails = () => {
                     deleteSaleMutation.isLoading ||
                     cancelSaleMutation.isLoading
                   }
-                  className="flex items-center justify-center gap-1.5 w-full px-3.5 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 shadow-sm"
+                  variant="warning"
+                  className="w-full flex items-center justify-center gap-1.5"
                 >
                   <XCircle className="w-3.5 h-3.5" />
                   <span>Cancel Sale</span>
-                </MotionButton>
-                <MotionButton
+                </Button>                <Button
                   onClick={() => {
                     setConfirmAction({ type: "delete" });
                     setIsMobileMenuOpen(false);
@@ -273,35 +266,38 @@ const SaleDetails = () => {
                   disabled={
                     deleteSaleMutation.isLoading || cancelSaleMutation.isLoading
                   }
-                  className="flex items-center justify-center gap-1.5 w-full px-3.5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 shadow-sm"
+                  variant="danger"
+                  className="w-full flex items-center justify-center gap-1.5"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete Sale</span>
-                </MotionButton>
-                {sale.invoiceStatus !== "Invoiced" && !isCancelled && (
-                  <MotionButton
+                </Button>                {sale.invoiceStatus !== "Invoiced" && !isCancelled && (
+                  <Button
                     onClick={() => {
                       handleGenerateInvoice();
                       setIsMobileMenuOpen(false);
                     }}
                     disabled={generateInvoiceMutation.isLoading || isCancelled}
-                    className="flex items-center justify-center gap-1.5 w-full px-3.5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 shadow-sm"
+                    isLoading={generateInvoiceMutation.isLoading}
+                    variant="success"
+                    className="w-full flex items-center justify-center gap-1.5"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>Generate Invoice</span>
-                  </MotionButton>
+                  </Button>
                 )}
                 {canAddPayment && (
-                  <MotionButton
+                  <Button
                     onClick={() => {
                       setIsPaymentDialogOpen(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center justify-center gap-1.5 w-full px-3.5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 shadow-sm"
+                    variant="primary" // Mapped purple to primary
+                    className="w-full flex items-center justify-center gap-1.5"
                   >
                     <CreditCard className="w-3.5 h-3.5" />
                     <span>Add Payment</span>
-                  </MotionButton>
+                  </Button>
                 )}
               </div>
             </motion.div>
@@ -318,8 +314,8 @@ const SaleDetails = () => {
             <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-lg bg-primary-light">
-                    <ShoppingCart className="h-6 w-6 text-primary" />
+                  <div className="p-3 rounded-lg bg-[var(--color-primary-light)]">
+                    <ShoppingCart className="h-6 w-6 text-[var(--color-primary)]" />
                   </div>
                   <div>
                     <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
@@ -335,10 +331,10 @@ const SaleDetails = () => {
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-medium ${
                       isCancelled
-                        ? "bg-red-100 text-red-800"
+                        ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
                         : balanceDue > 0
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-green-100 text-green-800"
+                        ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                        : "bg-[var(--color-success-light)] text-[var(--color-success)]"
                     }`}
                   >
                     {isCancelled
@@ -353,51 +349,56 @@ const SaleDetails = () => {
   
                 {/* Desktop Actions */}
                 <div className="hidden md:flex flex-shrink-0 flex-wrap gap-2">
-                  <MotionButton
+                  <Button
                     onClick={() => setIsUpdateModalOpen(true)}
                     disabled={
                       isCancelled ||
                       deleteSaleMutation.isLoading ||
                       cancelSaleMutation.isLoading
                     }
-                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 shadow-sm"
+                    variant="primary"
+                    size="sm"
+                    className="flex items-center gap-1.5"
                   >
                     <Edit className="w-3.5 h-3.5" />
                     <span>Update Sale</span>
-                  </MotionButton>
-                  <MotionButton
+                  </Button>
+                  <Button
                     onClick={() => setConfirmAction({ type: "cancel" })}
                     disabled={
                       isCancelled ||
                       deleteSaleMutation.isLoading ||
                       cancelSaleMutation.isLoading
                     }
-                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 shadow-sm"
+                    variant="warning"
+                    size="sm"
+                    className="flex items-center gap-1.5"
                   >
                     <XCircle className="w-3.5 h-3.5" />
                     <span>Cancel Sale</span>
-                  </MotionButton>
-                  <MotionButton
+                  </Button>                  <Button
                     onClick={() => setConfirmAction({ type: "delete" })}
                     disabled={
                       deleteSaleMutation.isLoading || cancelSaleMutation.isLoading
                     }
-                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 shadow-sm"
+                    variant="danger"
+                    size="sm"
+                    className="flex items-center gap-1.5"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Delete Sale</span>
-                  </MotionButton>
+                  </Button>
                 </div>
   
                 {/* Mobile Actions Button */}
-                <MotionButton
+                <Button
                   onClick={() => setIsMobileMenuOpen(true)}
-                  className="md:hidden w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium text-sm shadow-sm"
+                  variant="primary"
+                  className="md:hidden w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2.5 font-medium text-sm shadow-sm"
                 >
                   <Menu className="w-4 h-4" />
                   <span>Actions</span>
-                </MotionButton>
-              </div>
+                </Button>              </div>
             </div>
   
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -405,7 +406,7 @@ const SaleDetails = () => {
                 {/* Sale Info, Financial Summary */}
                 <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Info className="h-5 w-5 mr-2 text-primary" />
+                    <Info className="h-5 w-5 mr-2 text-[var(--color-primary)]" />
                     Sale Information
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -469,13 +470,15 @@ const SaleDetails = () => {
                       Financial Summary
                     </h2>
                     {canAddPayment && (
-                      <button
+                      <Button
                         onClick={() => setIsPaymentDialogOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
+                        variant="primary"
+                        size="sm"
+                        className="flex items-center gap-2"
                       >
                         <CreditCard className="h-4 w-4" />
                         Add Payment
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <div className="space-y-3">
@@ -516,7 +519,7 @@ const SaleDetails = () => {
                     {sale.discount > 0 && (
                       <div className="flex justify-between items-center py-2">
                         <span className="text-gray-600">Discount</span>
-                        <span className="font-medium text-green-600">
+                        <span className="font-medium text-[var(--color-success)]">
                           -{formatCurrency(sale.discount)}
                         </span>
                       </div>
@@ -535,7 +538,7 @@ const SaleDetails = () => {
                     </div>
                     <div
                       className={`border-t border-gray-200 pt-3 flex justify-between items-center text-lg font-semibold ${
-                        balanceDue > 0 ? "text-red-600" : "text-green-600"
+                        balanceDue > 0 ? "text-[var(--color-danger)]" : "text-[var(--color-success)]"
                       }`}
                     >
                       <span>
@@ -552,7 +555,7 @@ const SaleDetails = () => {
                 {sale.customer && (
                   <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
                                       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                        <User className="h-5 w-5 mr-2 text-primary" />
+                                        <User className="h-5 w-5 mr-2 text-[var(--color-primary)]" />
                                         Customer Information
                                       </h2>                    <div className="space-y-4">
                       <div>
@@ -580,7 +583,7 @@ const SaleDetails = () => {
                       {isRegisteredCustomer && (
                         <Link
                           to={`/customer-details/${sale.customer.customerId._id}`}
-                          className="inline-flex items-center text-sm text-primary hover:text-primary-hover hover:underline"
+                          className="inline-flex items-center text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
                         >
                           View Customer Details
                           <ExternalLink className="h-4 w-4 ml-1" />
@@ -616,7 +619,7 @@ const SaleDetails = () => {
                                     : ""}
                                 </p>
                               </div>
-                              <span className="text-sm font-medium text-green-600">
+                              <span className="text-sm font-medium text-[var(--color-success)]">
                                 {formatCurrency(p.amount)}
                               </span>
                             </div>
@@ -642,17 +645,17 @@ const SaleDetails = () => {
                   <h2 className="text-lg font-semibold text-gray-900">
                     Invoice History
                   </h2>
-                  <button
+                  <Button
                     onClick={handleGenerateInvoice}
                     disabled={generateInvoiceMutation.isLoading}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50"
+                    isLoading={generateInvoiceMutation.isLoading}
+                    variant="primary"
+                    size="sm"
+                    className="flex items-center gap-2"
                   >
                     <Printer className="h-4 w-4" />
-                    {generateInvoiceMutation.isLoading
-                      ? "Generating..."
-                      : "Generate New Invoice"}
-                  </button>
-                </div>
+                    <span>Generate New Invoice</span>
+                  </Button>                </div>
                 {invoiceHistory.length > 0 ? (
                   <div className="space-y-3">
                     {invoiceHistory.map((inv) => (
@@ -669,15 +672,16 @@ const SaleDetails = () => {
                             {new Date(inv.invoiceGeneratedDate).toLocaleString()}
                           </p>
                         </div>
-                        <button
+                        <Button
                           onClick={() =>
                             navigate(`/sales/${sale._id}/invoice/${inv._id}`)
                           }
-                          className="mt-2 sm:mt-0 text-sm text-primary hover:underline"
+                          variant="subtle"
+                          size="sm"
+                          className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
                         >
                           View Invoice
-                        </button>
-                      </div>
+                        </Button>                      </div>
                     ))}
                   </div>
                 ) : (
@@ -699,7 +703,7 @@ const SaleDetails = () => {
           }
           secondaryButtonText="Cancel"
           onSubmit={handleAddPayment}
-          isPrimaryButtonDisabled={addPaymentMutation.isLoading}
+          isSubmitting={addPaymentMutation.isLoading}
         >
           <div className="space-y-4">
             <InputField

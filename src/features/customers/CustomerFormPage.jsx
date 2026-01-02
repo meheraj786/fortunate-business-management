@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useParams } from "react-router";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate, useParams, Link } from "react-router"; // Changed Link import
 import { useForm } from "react-hook-form";
 import PropTypes from "prop-types";
 import { handleError } from "@/utils/handle-error";
@@ -27,7 +27,11 @@ import {
 
 // Custom Hooks
 import { useSectionManager } from "@/hooks/useSectionManager";
-import { useCreateCustomer, useCustomer, useDeleteCustomer, useUpdateCustomer } from "../../api/hooks/customer";
+import {
+  useCreateCustomer,
+  useCustomer,
+  useUpdateCustomer,
+} from "../../api/hooks/customer"; // Removed useDeleteCustomer as it's not used here
 
 const CustomerForm = ({ onSave }) => {
   const { id } = useParams();
@@ -60,63 +64,90 @@ const CustomerForm = ({ onSave }) => {
 
   // State
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const updateCustomerMutation=useUpdateCustomer()
-  const createCustomerMutation=useCreateCustomer()
+  const updateCustomerMutation = useUpdateCustomer();
+  const createCustomerMutation = useCreateCustomer();
 
   // Sections
-  const SECTIONS = [
-    { id: "basic", title: "Basic Information", icon: User },
-    { id: "contact", title: "Contact Information", icon: Phone },
-    { id: "others", title: "Others", icon: FileText },
-  ];
+  const SECTIONS = useMemo(
+    () => [
+      {
+        id: "basic",
+        title: "Basic Information",
+        icon: User,
+        defaultOpen: true,
+      }, // Always open basic info
+      {
+        id: "contact",
+        title: "Contact Information",
+        icon: Phone,
+        defaultOpen: true,
+      }, // Always open contact info
+      { id: "others", title: "Others", icon: FileText, defaultOpen: true }, // Always open others
+    ],
+    []
+  );
 
   const { expandedSections, toggleSection, setSectionRef } =
     useSectionManager(SECTIONS);
 
   // Data
-  const customerTypes = [
-    { value: "Retail", label: "Retail" },
-    { value: "Wholesale", label: "Wholesale" },
-  ];
+  const customerTypes = useMemo(
+    () => [
+      { value: "Retail", label: "Retail" },
+      { value: "Wholesale", label: "Wholesale" },
+    ],
+    []
+  );
 
-  const statusOptions = [
-    { value: "Active", label: "Active" },
-    { value: "Suspended", label: "Suspended" },
-  ];
+  const statusOptions = useMemo(
+    () => [
+      { value: "Active", label: "Active" },
+      { value: "Suspended", label: "Suspended" },
+    ],
+    []
+  );
 
-  const {data:customer}=useCustomer(id);
-  // Effects
+  const { data: customerData, isLoading: isCustomerDataLoading } =
+    useCustomer(id);
+  const customer = customerData?.data;
+
+  // Effects for form initialization
   useEffect(() => {
-    if (id) {
-      fetchCustomerData();
-    }
-  }, [id]);
-  
-  const fetchCustomerData = async () => {
-    setIsLoading(true);
-    try {
-
-      // Set form values
-      Object.keys(customer).forEach((key) => {
-        if (key in watch()) {
-          if (key === "joinDate") {
-            setValue(key, new Date(customer[key]).toISOString().split("T")[0]);
-          } else {
-            setValue(key, customer[key]);
-          }
-        }
+    if (isEditMode && customer) {
+      reset({
+        name: customer.name || "",
+        companyName: customer.companyName || "",
+        customerType: customer.customerType || "Retail",
+        customerStatus: customer.customerStatus || "Active",
+        joinDate: customer.joinDate
+          ? new Date(customer.joinDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+        creditLimit: customer.creditLimit || "",
+        phone: customer.phone || "",
+        email: customer.email || "",
+        billingAddress: customer.billingAddress || "",
+        customerNote: customer.customerNote || "",
       });
-
       if (customer.documents) {
         setUploadedFiles(customer.documents);
       }
-    } catch (error) {
-      handleError(error, "Failed to load customer data");
-    } finally {
-      setIsLoading(false);
+    } else if (!isEditMode) {
+      // Reset form to default values when adding a new customer
+      reset({
+        name: "",
+        companyName: "",
+        customerType: "Retail",
+        customerStatus: "Active",
+        joinDate: new Date().toISOString().split("T")[0],
+        creditLimit: "",
+        phone: "",
+        email: "",
+        billingAddress: "",
+        customerNote: "",
+      });
+      setUploadedFiles([]); // Clear uploaded files for new customer
     }
-  };
+  }, [isEditMode, customer, reset]);
 
   // Event Handlers
   const handleFileChange = useCallback((files) => {
@@ -139,16 +170,24 @@ const CustomerForm = ({ onSave }) => {
       })),
     };
 
-    if (isEditMode) {
-      await updateCustomerMutation.mutateAsync({id:id,...payload})
-      toast.success("Customer updated successfully");
-    } else {
-      await createCustomerMutation.mutateAsync(payload)
-      toast.success("Customer created successfully");
-    }
+    try {
+      if (isEditMode && id) {
+        // Ensure id is available for update
+        await updateCustomerMutation.mutateAsync({ id: id, ...payload });
+        toast.success("Customer updated successfully");
+      } else {
+        await createCustomerMutation.mutateAsync(payload);
+        toast.success("Customer created successfully");
+      }
 
-    if (onSave) onSave(payload);
-    navigate("/customers");
+      if (onSave) onSave(payload);
+      navigate("/customers");
+    } catch (error) {
+      handleError(
+        error,
+        `Failed to ${isEditMode ? "update" : "create"} customer`
+      );
+    }
   };
 
   return (
@@ -163,7 +202,7 @@ const CustomerForm = ({ onSave }) => {
       onSubmit={handleSubmit(onSubmit)}
       isEditMode={isEditMode}
       submitButtonText="Customer"
-      isLoading={isSubmitting || isLoading}
+      isLoading={isSubmitting || isCustomerDataLoading} // Use isLoading from useCustomer hook
       isValid={isValid}
     >
       {SECTIONS.map((section) => (
@@ -175,6 +214,7 @@ const CustomerForm = ({ onSave }) => {
           onToggle={() => toggleSection(section.id)}
           sectionRef={(el) => setSectionRef(section.id, el)}
           ariaLabel={`${section.title} section`}
+          defaultOpen={section.defaultOpen}
         >
           {section.id === "basic" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">

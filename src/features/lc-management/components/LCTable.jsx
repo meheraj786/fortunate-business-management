@@ -10,6 +10,7 @@ import {
   ArrowDown,
   ChevronDown,
 } from "lucide-react";
+import Button  from "../../../components/ui/Button";
 
 const LCTable = ({
   lcData = [],
@@ -30,13 +31,13 @@ const LCTable = ({
     const statusLower = status.toLowerCase();
     switch (statusLower) {
       case "active":
-        return "bg-green-100 text-green-800";
+        return "bg-[var(--color-success-light)] text-[var(--color-success)]";
       case "completed":
-        return "bg-blue-100 text-blue-800";
+        return "bg-[var(--color-primary-light)] text-[var(--color-primary)]";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-[var(--color-danger-light)] text-[var(--color-danger)]";
       case "draft":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-[var(--color-warning-light)] text-[var(--color-warning)]";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -80,27 +81,31 @@ const LCTable = ({
           results
         </div>
         <div className="flex items-center gap-2 order-1 sm:order-2">
-          <button
+          <Button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage <= 1}
-            className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform touch-manipulation"
+            variant="secondary"
+            size="sm"
+            className="inline-flex items-center justify-center"
             aria-label="Previous page"
           >
             <ChevronLeft size={16} className="mr-1" aria-hidden="true" />
             <span className="hidden sm:inline">Previous</span>
-          </button>
+          </Button>
           <span className="text-sm text-gray-700 px-2">
             {currentPage} / {totalPages}
           </span>
-          <button
+          <Button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage >= totalPages}
-            className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform touch-manipulation"
+            variant="secondary"
+            size="sm"
+            className="inline-flex items-center justify-center"
             aria-label="Next page"
           >
             <span className="hidden sm:inline">Next</span>
             <ChevronRight size={16} className="ml-1" aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -119,7 +124,7 @@ const LCTable = ({
         <tr>
           <td colSpan="8" className="text-center py-16">
             <Loader2
-              className="mx-auto animate-spin h-8 w-8 text-blue-500"
+              className="mx-auto animate-spin h-8 w-8 text-[var(--color-primary)]"
               aria-label="Loading"
             />
             <p className="mt-2 text-sm text-gray-500">Loading LC data...</p>
@@ -159,7 +164,7 @@ const LCTable = ({
           <td className="py-4 pl-4 pr-3 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6">
             <Link
               to={`/lc-details/${lc._id}`}
-              className="text-indigo-600 hover:text-indigo-900 font-medium"
+              className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
               aria-label={`View LC ${lc.lcNumber || "details"}`}
             >
               {lc.lcNumber || "N/A"}
@@ -221,20 +226,23 @@ const LCTable = ({
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
               aria-hidden="true"
             />
+            <label htmlFor="lc-search" className="sr-only">
+              Search LC number, supplier, or products...
+            </label>
             <input
+              id="lc-search"
               type="text"
               placeholder="Search LC number, supplier, or products..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base bg-white placeholder-gray-500"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base bg-white placeholder-gray-500"
               value={searchQuery}
               onChange={onSearchChange}
-              aria-label="Search LC records"
             />
           </div>
           <div className="relative w-full sm:w-auto">
             <select
               value={filterStatus}
               onChange={onStatusChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base appearance-none bg-white pr-10"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base appearance-none bg-white pr-10"
               aria-label="Filter by status"
             >
               {statusOptions.map((option) => (
@@ -259,9 +267,10 @@ const LCTable = ({
                   scope="col"
                   className="py-3.5 pl-4 pr-3 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider sm:pl-6"
                 >
-                  <button
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
+                  <Button
+                    variant="subtle"
                     onClick={() => onSortChange("lcNumber")}
+                    className="flex items-center whitespace-nowrap hover:text-gray-700"
                     aria-label={`Sort by LC Number ${
                       sortBy === "lcNumber"
                         ? sortOrder === "asc"
@@ -272,15 +281,16 @@ const LCTable = ({
                   >
                     LC Number
                     <SortIcon column="lcNumber" />
-                  </button>
+                  </Button>
                 </th>
                 <th
                   scope="col"
                   className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
                 >
-                  <button
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
+                  <Button
+                    variant="subtle"
                     onClick={() => onSortChange("supplierName")}
+                    className="flex items-center whitespace-nowrap hover:text-gray-700"
                     aria-label={`Sort by Supplier ${
                       sortBy === "supplierName"
                         ? sortOrder === "asc"
@@ -291,7 +301,7 @@ const LCTable = ({
                   >
                     Supplier
                     <SortIcon column="supplierName" />
-                  </button>
+                  </Button>
                 </th>
                 <th
                   scope="col"
@@ -303,9 +313,10 @@ const LCTable = ({
                   scope="col"
                   className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
                 >
-                  <button
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
+                  <Button
+                    variant="subtle"
                     onClick={() => onSortChange("openingDate")}
+                    className="flex items-center whitespace-nowrap hover:text-gray-700"
                     aria-label={`Sort by Opening Date ${
                       sortBy === "openingDate"
                         ? sortOrder === "asc"
@@ -316,15 +327,16 @@ const LCTable = ({
                   >
                     Opening Date
                     <SortIcon column="openingDate" />
-                  </button>
+                  </Button>
                 </th>
                 <th
                   scope="col"
                   className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
                 >
-                  <button
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
+                  <Button
+                    variant="subtle"
                     onClick={() => onSortChange("dueDate")}
+                    className="flex items-center whitespace-nowrap hover:text-gray-700"
                     aria-label={`Sort by Due Date ${
                       sortBy === "dueDate"
                         ? sortOrder === "asc"
@@ -335,7 +347,7 @@ const LCTable = ({
                   >
                     Due Date
                     <SortIcon column="dueDate" />
-                  </button>
+                  </Button>
                 </th>
                 <th
                   scope="col"
@@ -353,9 +365,10 @@ const LCTable = ({
                   scope="col"
                   className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
                 >
-                  <button
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
+                  <Button
+                    variant="subtle"
                     onClick={() => onSortChange("totalCost")}
+                    className="flex items-center whitespace-nowrap hover:text-gray-700"
                     aria-label={`Sort by Total Cost ${
                       sortBy === "totalCost"
                         ? sortOrder === "asc"
@@ -366,7 +379,7 @@ const LCTable = ({
                   >
                     Total (৳)
                     <SortIcon column="totalCost" />
-                  </button>
+                  </Button>
                 </th>
               </tr>
             </thead>

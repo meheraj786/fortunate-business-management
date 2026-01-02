@@ -1,4 +1,4 @@
-import React, { memo, useId, useState, useMemo } from "react";
+import React, { memo, useId, useMemo } from "react";
 import PropTypes from "prop-types";
 import { ChevronDown, AlertCircle } from "lucide-react";
 
@@ -10,6 +10,7 @@ const SelectField = ({
   onChange,
   options,
   required = false,
+  validation,
   icon: Icon,
   disabled = false,
   error,
@@ -19,10 +20,9 @@ const SelectField = ({
 }) => {
   const id = useId();
   const errorId = `${id}-error`;
-  const [isOpen, setIsOpen] = useState(false);
 
   const selectProps = register
-    ? { ...register(name, { required }) }
+    ? { ...register(name, { required, ...validation }) }
     : {
         value: value || "",
         onChange,
@@ -45,7 +45,7 @@ const SelectField = ({
           className="flex items-start text-sm font-medium text-gray-700"
         >
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {(required || validation?.required) && <span className="text-[var(--color-danger)] ml-1">*</span>}
         </label>
       )}
       <div className="relative">
@@ -68,11 +68,11 @@ const SelectField = ({
           className={`
             w-full px-3 py-2.5 sm:py-2 pr-10
             border rounded-lg appearance-none
-            focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent
+            focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
             transition-all duration-200
             disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60
             ${Icon ? "pl-10 sm:pl-12" : ""}
-            ${error ? "border-red-300 focus:ring-red-500" : "border-gray-300"}
+            ${error ? "border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]" : "border-gray-300"}
             text-base sm:text-sm
             bg-white
             cursor-pointer
@@ -102,7 +102,7 @@ const SelectField = ({
           aria-hidden="true"
         >
           {loading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400" />
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary)]" />
           ) : (
             <ChevronDown className="w-4 h-4" />
           )}
@@ -113,12 +113,12 @@ const SelectField = ({
             className="absolute right-10 top-1/2 transform -translate-y-1/2"
             aria-hidden="true"
           >
-            <AlertCircle className="w-4 h-4 text-red-500" />
+            <AlertCircle className="w-4 h-4 text-[var(--color-danger)]" />
           </div>
         )}
       </div>
       {error && (
-        <p id={errorId} className="text-sm text-red-600 mt-1">
+        <p id={errorId} className="text-sm text-[var(--color-danger)] mt-1">
           {error}
         </p>
       )}

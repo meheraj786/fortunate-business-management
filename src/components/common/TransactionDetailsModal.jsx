@@ -190,13 +190,13 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
 
               <div className="flex justify-end gap-3">
                 <Button
-                  variant="outline"
+                  variant="secondary" // Changed from outline to secondary
                   onClick={() => setShowDeleteConfirm(false)}
                 >
                   Cancel
                 </Button>
                 <Button
-                  className="bg-red-600 text-white hover:bg-red-700"
+                  variant="danger" // Changed to danger variant
                   onClick={() => {
                     deleteMutation.mutate(transaction._id, {
                       onSuccess: () => {
@@ -209,7 +209,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
                       },
                     });
                   }}
-                  disabled={deleteMutation.isLoading}
+                  isLoading={deleteMutation.isLoading}
                 >
                   {deleteMutation.isLoading ? "Deleting..." : "Confirm Delete"}
                 </Button>

@@ -9,7 +9,7 @@ const CustomerField = ({
   icon: Icon,
 }) => (
   <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">
+    <label htmlFor="customer-field" className="block text-sm font-medium text-gray-700">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <div className="relative">
@@ -19,6 +19,7 @@ const CustomerField = ({
         </div>
       )}
       <input
+        id="customer-field"
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}

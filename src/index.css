@@ -1,12 +1,26 @@
 @import url(https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900,100italic,200italic,300italic,italic,500italic,600italic,700italic,800italic,900italic);
 @import "tailwindcss";
-@import "react-loading-skeleton/dist/skeleton.css";
 
 @theme {
   --font-inter: "Inter", sans-serif;
-  --color-primary: #003366;
-  --color-primary-hover: #003b75;
-  --color-primary-light: rgb(230, 242, 255);
+  
+  /* Primary Colors */
+  --color-primary: #003366; /* rgb(0, 51, 102) */
+  --color-primary-hover: #002b54;
+  --color-primary-light: #e6f2ff; /* rgb(230, 242, 255) */
+
+  /* Semantic Colors */
+  --color-danger: #d32f2f;      /* A standard red for errors and deletions */
+  --color-danger-hover: #b71c1c;
+  --color-danger-light: #ffebee;
+
+  --color-warning: #f57c00;     /* A standard orange for warnings */
+  --color-warning-hover: #e65100;
+  --color-warning-light: #fff3e0;
+
+  --color-success: #388e3c;     /* A standard green for success states */
+  --color-success-hover: #1b5e20;
+  --color-success-light: #e8f5e9;
 }
 
 body {

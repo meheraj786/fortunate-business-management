@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // Changed to react-router
 import {
   Box,
   CheckCircle,
   Edit,
-  Loader,
+  Loader2, // Changed from Loader
   MapPin,
   Package,
   Plus,
@@ -19,6 +19,7 @@ import StatBox from "@/components/ui/StatBox";
 import AddWarehouseForm from "./AddWarehouseForm";
 import { useAuth } from "../../context/AuthContext";
 import { useWarehouses, useDeleteWarehouse } from "@/api/hooks/warehouse";
+import Button from "@/components/ui/Button"; // Import Button component
 
 const Warehouses = () => {
   const {
@@ -70,7 +71,10 @@ const Warehouses = () => {
     return (
       <div className="flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader className="animate-spin text-primary" size={32} />
+          <Loader2
+            className="animate-spin text-[var(--color-primary)]"
+            size={32}
+          />
           <p className="text-gray-600">Loading warehouses...</p>
         </div>
       </div>
@@ -81,16 +85,15 @@ const Warehouses = () => {
     return (
       <div className="flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
-          <div className="bg-red-50 rounded-full p-3 w-12 h-12 flex items-center justify-center mx-auto mb-4">
-            <Warehouse className="text-red-500" size={24} />
+          <div className="bg-[var(--color-danger-light)] rounded-full p-3 w-12 h-12 flex items-center justify-center mx-auto mb-4">
+            <Warehouse className="text-[var(--color-danger)]" size={24} />
           </div>
-          <p className="text-red-600 mb-4 text-sm">{error.message}</p>
-          <button
-            onClick={() => refetch()}
-            className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-hover transition-colors font-medium"
-          >
+          <p className="text-[var(--color-danger)] mb-4 text-sm">
+            {error.message}
+          </p>
+          <Button onClick={() => refetch()} variant="primary" size="sm">
             Try Again
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -114,18 +117,25 @@ const Warehouses = () => {
           </div>
           <div className="flex gap-2">
             {isSuperAdmin && (
-              <button
+              <Button
                 onClick={handleAddClick}
-                className="bg-primary hover:bg-primary-hover text-white px-3 sm:px-6 sm:py-3 py-2 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95"
+                variant="primary"
+                size="sm"
+                className="flex items-center gap-2 w-full sm:w-auto justify-center"
               >
                 <Plus size={20} /> Add Warehouse
-              </button>
+              </Button>
             )}
             {isSuperAdmin && (
               <Link to="/trash/warehouse">
-                <button className="px-3 py-2 sm:px-6 sm:py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 w-full sm:w-auto justify-center shadow-sm hover:shadow-md active:scale-95">
-                  <Trash size={20} /> Warehouse Trash
-                </button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="flex items-center gap-2 w-full sm:w-auto justify-center"
+                >
+                  <Trash className="text-[var(--color-danger)]" size={20} />{" "}
+                  Warehouse Trash
+                </Button>
               </Link>
             )}
           </div>
@@ -137,33 +147,33 @@ const Warehouses = () => {
               title="Total Products"
               number={totalStats?.totalProducts || 0}
               Icon={Package}
-              textColor="blue"
+              textColor="primary" // Changed from blue
             />
             <StatBox
               title="Total In-stock"
               number={totalStats?.totalInStock || 0}
               Icon={CheckCircle}
-              textColor="green"
+              textColor="success" // Changed from green
             />
             <StatBox
               title="Total Low Stock"
               number={totalStats?.totalLowStock || 0}
               Icon={Box}
-              textColor="orange"
+              textColor="warning" // Changed from orange
             />
             <StatBox
               title="Total Out of Stock"
               number={totalStats?.totalOutOfStock || 0}
               Icon={XCircle}
-              textColor="red"
+              textColor="danger" // Changed from red
             />
           </div>
         )}
 
         {warehouses.length === 0 && !isLoading && (
           <div className="text-center py-16 bg-white rounded-lg shadow-sm border border-gray-100">
-            <div className="bg-blue-50 rounded-full p-4 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <Warehouse className="text-blue-600" size={32} />
+            <div className="bg-[var(--color-primary-light)] rounded-full p-4 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <Warehouse className="text-[var(--color-primary)]" size={32} />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">
               No warehouses yet
@@ -172,12 +182,13 @@ const Warehouses = () => {
               Start by adding your first warehouse to organize and manage your
               inventory efficiently.
             </p>
-            <button
+            <Button
               onClick={handleAddClick}
-              className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 mx-auto shadow-sm hover:shadow-md active:scale-95"
+              variant="primary"
+              className="flex items-center gap-2 mx-auto"
             >
               <Plus size={20} /> Add Your First Warehouse
-            </button>
+            </Button>
           </div>
         )}
 
@@ -194,10 +205,13 @@ const Warehouses = () => {
                 >
                   <div className="flex items-start gap-4">
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg group-hover:scale-105 transition-transform duration-200">
-                      <Warehouse className="text-blue-600" size={24} />
+                      <Warehouse
+                        className="text-[var(--color-primary)]"
+                        size={24}
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-semibold text-gray-900 truncate mb-1 group-hover:text-blue-700 transition-colors">
+                      <h2 className="text-lg font-semibold text-gray-900 truncate mb-1 group-hover:text-[var(--color-primary)] transition-colors">
                         {warehouse.name}
                       </h2>
                       <div className="flex items-center gap-2 text-gray-600 mb-3">
@@ -215,7 +229,10 @@ const Warehouses = () => {
                           <span className="text-gray-500">Products</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <CheckCircle size={16} className="text-green-500" />{" "}
+                          <CheckCircle
+                            size={16}
+                            className="text-[var(--color-success)]"
+                          />{" "}
                           <span className="font-medium">
                             {warehouse.stats?.totalInStock || 0}
                           </span>{" "}
@@ -227,31 +244,34 @@ const Warehouses = () => {
                 </Link>
                 {isSuperAdmin && (
                   <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
-                    <button
+                    <Button
                       onClick={() => handleEditClick(warehouse)}
-                      className="cursor-pointer p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 hover:scale-105"
+                      variant="subtle"
+                      size="sm"
+                      className="!p-2 text-gray-400 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
                       aria-label={`Edit ${warehouse.name}`}
                       title="Edit Warehouse"
                     >
                       <Edit size={16} />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => handleDeleteClick(warehouse)}
                       disabled={
                         deleteWarehouseMutation.isLoading &&
                         warehouseToDelete?._id === warehouse._id
                       }
-                      className="cursor-pointer p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      isLoading={
+                        deleteWarehouseMutation.isLoading &&
+                        warehouseToDelete?._id === warehouse._id
+                      }
+                      variant="subtle"
+                      size="sm"
+                      className="!p-2 text-gray-400 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]"
                       aria-label={`Delete ${warehouse.name}`}
                       title="Delete Warehouse"
                     >
-                      {deleteWarehouseMutation.isLoading &&
-                      warehouseToDelete?._id === warehouse._id ? (
-                        <Loader className="animate-spin" size={16} />
-                      ) : (
-                        <Trash2 size={16} />
-                      )}
-                    </button>
+                      <Trash2 size={16} />
+                    </Button>
                   </div>
                 )}
               </div>

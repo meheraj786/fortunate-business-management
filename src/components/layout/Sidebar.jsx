@@ -235,19 +235,15 @@ const Sidebar = () => {
           )}
         </AnimatePresence>
         <ConfirmationModal
-          isOpen={isLogoutModalOpen}
-          onClose={() => setIsLogoutModalOpen(false)}
-          onConfirm={handleLogout}
-          title="Confirm Logout"
-          description="Are you sure you want to log out?"
-          isConfirming={logoutMutation.isPending}
-          confirmingText="Logging out..."
-          icon={LogOut}
-          iconBgColor="bg-sky-100"
-          iconTextColor="text-sky-600"
-          confirmButtonBgColor="bg-sky-600"
-          confirmButtonHoverBgColor="hover:bg-sky-700"
-        />
+                    isOpen={isLogoutModalOpen}
+                    onClose={() => setIsLogoutModalOpen(false)}
+                    onConfirm={handleLogout}
+                    title="Confirm Logout"
+                    description="Are you sure you want to log out?"
+                    isConfirming={logoutMutation.isPending}
+                    confirmingText="Logging out..."
+                    variant="primary"
+                    icon={LogOut}        />
       </>
     );
   }
@@ -316,19 +312,15 @@ const Sidebar = () => {
         </div>
       </motion.div>
       <ConfirmationModal
-        isOpen={isLogoutModalOpen}
-        onClose={() => setIsLogoutModalOpen(false)}
-        onConfirm={handleLogout}
-        title="Confirm Logout"
-        description="Are you sure you want to log out?"
-        isConfirming={logoutMutation.isPending}
-        confirmingText="Logging out..."
-        icon={LogOut}
-        iconBgColor="bg-sky-100"
-        iconTextColor="text-sky-600"
-        confirmButtonBgColor="bg-sky-600"
-        confirmButtonHoverBgColor="hover:bg-sky-700"
-      />
+                  isOpen={isLogoutModalOpen}
+                  onClose={() => setIsLogoutModalOpen(false)}
+                  onConfirm={handleLogout}
+                  title="Confirm Logout"
+                  description="Are you sure you want to log out?"
+                  isConfirming={logoutMutation.isPending}
+                  confirmingText="Logging out..."
+                  variant="primary"
+                  icon={LogOut}      />
     </>
   );
 };

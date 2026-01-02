@@ -7,7 +7,8 @@ import DailyCashHeader from "./components/DailyCashHeader";
 import DailyCashStats from "./components/DailyCashStats";
 import TransactionFilters from "./components/TransactionFilters";
 import Pagination from "@/components/ui/Pagination";
-import Skeleton from "react-loading-skeleton";
+import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
+// import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 
 const DailyCashFlow = () => {
   const {
@@ -68,44 +69,57 @@ const DailyCashFlow = () => {
   const renderTransactionSection = () => {
     if (isError) {
       return (
-        <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200">
-          <p className="text-lg font-semibold text-red-800 mb-4">
+        <motion.div
+          className="text-center p-8 bg-[var(--color-danger-light)] rounded-lg border border-[var(--color-danger-light)]"
+        >
+          <p className="text-lg font-semibold text-[var(--color-danger)] mb-4">
             Could not load transactions.
           </p>
-          <p className="text-sm text-red-600">{error?.message}</p>
-        </div>
+          <p className="text-sm text-[var(--color-danger)]">{error?.message}</p>
+        </motion.div>
       );
     }
 
     if (dailyCashStatus === "Not Opened Yet") {
       return (
-        <div className="text-center p-8 bg-yellow-50 rounded-lg border border-yellow-200">
-          <p className="text-lg font-semibold text-yellow-800 mb-4">
+        <motion.div
+          className="text-center p-8 bg-[var(--color-warning-light)] rounded-lg border border-[var(--color-warning-light)]"
+        >
+          <p className="text-lg font-semibold text-[var(--color-warning)] mb-4">
             Cash for {selectedDate} is not opened yet.
           </p>
-          <p className="text-sm text-yellow-600">
+          <p className="text-sm text-[var(--color-warning)]">
             Click "Open Day" to start tracking transactions.
           </p>
-        </div>
+        </motion.div>
       );
     }
 
     if (isInitialLoading) {
       return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <Skeleton height={30} width={200} />
-          <Skeleton height={20} width={150} className="mt-2" />
+        <motion.div
+          className="bg-white rounded-lg shadow-sm p-6"
+        >
+          <div className="h-8 bg-gray-200 rounded w-2/3 animate-pulse mb-4"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse mb-6"></div>
           <div className="mt-4">
-            <TransactionTable transactions={[]} />
-            <Skeleton height={40} className="mt-4" />
+            {/* Mimic TransactionTable skeleton */}
+            <div className="h-10 bg-gray-200 rounded w-full animate-pulse mb-2"></div>
+            <div className="h-8 bg-gray-200 rounded w-full animate-pulse mb-2"></div>
+            <div className="h-8 bg-gray-200 rounded w-full animate-pulse mb-2"></div>
+            <div className="h-8 bg-gray-200 rounded w-full animate-pulse mb-2"></div>
+            <div className="h-8 bg-gray-200 rounded w-full animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-1/4 animate-pulse mt-4 ml-auto"></div>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
     if (transactions.length === 0 && filteredTransactionsCount === 0) {
       return (
-        <div className="text-center py-12 px-4 bg-white rounded-lg shadow-sm">
+        <motion.div
+          className="text-center py-12 px-4 bg-white rounded-lg shadow-sm"
+        >
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
             <img
               src="/favicon.jpg"
@@ -119,12 +133,14 @@ const DailyCashFlow = () => {
           <p className="text-gray-500 max-w-md mx-auto">
             There are no transactions recorded for this day yet.
           </p>
-        </div>
+        </motion.div>
       );
     }
 
     return (
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <motion.div
+        className="bg-white rounded-lg shadow-sm overflow-hidden"
+      >
         <div className="p-4 sm:p-6">
           <TransactionFilters
             searchTerm={searchTerm}
@@ -148,12 +164,14 @@ const DailyCashFlow = () => {
             />
           </div>
         )}
-      </div>
+      </motion.div>
     );
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+    >
       <DailyCashHeader
         onAddTransaction={handleAddTransactionClick}
         selectedDate={selectedDate}
@@ -168,8 +186,10 @@ const DailyCashFlow = () => {
       />
 
       <DailyCashStats summary={summary} isLoading={isInitialLoading} />
-
-      {renderTransactionSection()}
+      
+      <AnimatePresence mode="wait">
+        {renderTransactionSection()}
+      </AnimatePresence>
 
       {showAddTransaction && (
         <AddTransactionDialog
@@ -198,8 +218,9 @@ const DailyCashFlow = () => {
           transactionId={selectedTransactionId}
         />
       )}
-    </div>
+    </motion.div>
   );
 };
 
 export default DailyCashFlow;
+

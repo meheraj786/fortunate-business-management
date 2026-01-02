@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // Changed to react-router
 
 const SalesStatCard = ({ title, count, linkTo, icon, color }) => {
   const IconComponent = icon;
@@ -7,28 +7,30 @@ const SalesStatCard = ({ title, count, linkTo, icon, color }) => {
   // Map color prop to actual Tailwind classes
   const colorClasses = {
     yellow: {
-      bg: "bg-yellow-100",
-      text: "text-yellow-600",
+      bg: "bg-[var(--color-warning-light)]",
+      text: "text-[var(--color-warning)]",
     },
     orange: {
-      bg: "bg-orange-100",
-      text: "text-orange-600",
+      // Mapping orange to warning for consistency
+      bg: "bg-[var(--color-warning-light)]",
+      text: "text-[var(--color-warning)]",
     },
     green: {
-      bg: "bg-green-100",
-      text: "text-green-600",
+      bg: "bg-[var(--color-success-light)]",
+      text: "text-[var(--color-success)]",
     },
     red: {
-      bg: "bg-red-100",
-      text: "text-red-600",
+      bg: "bg-[var(--color-danger-light)]",
+      text: "text-[var(--color-danger)]",
     },
     blue: {
-      bg: "bg-primary-light",
-      text: "text-primary",
+      // Default color if primary is meant to be blue
+      bg: "bg-[var(--color-primary-light)]",
+      text: "text-[var(--color-primary)]",
     },
   };
 
-  const classes = colorClasses[color] || colorClasses.blue;
+  const classes = colorClasses[color] || colorClasses.blue; // Default to blue (primary)
 
   return (
     <Link

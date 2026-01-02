@@ -1,6 +1,8 @@
 import React from "react";
 import SearchBar from "@/components/ui/SearchBar";
 import SelectField from "@/components/ui/SelectField";
+import Button from "@/components/ui/Button"; // Import Button component
+import { motion } from "framer-motion"; // Import motion
 
 const TransactionFilters = ({
   searchTerm,
@@ -24,7 +26,12 @@ const TransactionFilters = ({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="bg-white rounded-lg shadow-sm p-4 sm:p-6 space-y-4"
+    >
       {/* Filters Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
@@ -34,12 +41,14 @@ const TransactionFilters = ({
           </p>
         </div>
         {(searchTerm || categoryFilter !== "all") && (
-          <button
+          <Button
             onClick={handleClearFilters}
-            className="text-sm text-primary hover:text-primary-hover font-medium px-3 py-1.5 rounded-lg bg-primary/10 transition-colors self-start sm:self-auto"
+            variant="subtle"
+            className="text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] bg-[var(--color-primary-light)] self-start sm:self-auto" // Themed colors
+            size="sm"
           >
             Clear Filters
-          </button>
+          </Button>
         )}
       </div>
 
@@ -69,7 +78,7 @@ const TransactionFilters = ({
           />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -4,6 +4,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
+import Button from "./Button"; // Import the new Button component
 
 export default function FormDialog({
   open,
@@ -14,6 +15,7 @@ export default function FormDialog({
   secondaryButtonText,
   onSubmit,
   isPrimaryButtonDisabled = false,
+  isSubmitting = false, // New prop for loading state
 }) {
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
@@ -39,22 +41,26 @@ export default function FormDialog({
                 <div className="mt-4">{children}</div>
               </div>
             </div>
-            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button
-                type="button"
+            <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse sm:gap-3">
+              <Button
+                type="submit" // Changed to submit as it's typically used in forms
                 onClick={onSubmit}
-                disabled={isPrimaryButtonDisabled}
-                className="cursor-pointer inline-flex w-full justify-center rounded-md bg-[#003b75] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#002855] disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto"
+                disabled={isPrimaryButtonDisabled || isSubmitting}
+                isLoading={isSubmitting}
+                variant="primary"
+                className="w-full sm:w-auto"
               >
                 {primaryButtonText}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={onClose}
-                className="cursor-pointer mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto "
+                disabled={isSubmitting}
+                variant="secondary"
+                className="w-full sm:w-auto mt-3 sm:mt-0"
               >
                 {secondaryButtonText}
-              </button>
+              </Button>
             </div>
           </DialogPanel>
         </div>

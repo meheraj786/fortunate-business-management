@@ -111,8 +111,8 @@ const FileInput = ({
 
   return (
     <div className={className}>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
+      <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 mb-2">
+        {label} {required && <span className="text-[var(--color-danger)]">*</span>}
       </label>
 
       <div
@@ -126,10 +126,10 @@ const FileInput = ({
           transition-all duration-200 ease-in-out
           ${
             isDragging
-              ? "border-[#003b75] bg-blue-50 scale-[1.02]"
+              ? "border-[var(--color-primary)] bg-[var(--color-primary-light)] scale-[1.02]"
               : "border-gray-300 bg-gray-50 hover:bg-gray-100"
           }
-          ${error || uploadError ? "border-red-300" : ""}
+          ${error || uploadError ? "border-[var(--color-danger-light)]" : ""}
           touch-manipulation
         `}
         role="button"
@@ -145,7 +145,7 @@ const FileInput = ({
         <div className="flex flex-col items-center justify-center p-5">
           <UploadCloud
             className={`w-8 h-8 mb-3 ${
-              isDragging ? "text-[#003b75]" : "text-gray-400"
+              isDragging ? "text-[var(--color-primary)]" : "text-gray-400"
             }`}
           />
           <p className="mb-2 text-sm text-gray-600 text-center">
@@ -170,7 +170,7 @@ const FileInput = ({
       </div>
 
       {(error || uploadError) && (
-        <div className="mt-2 flex items-center text-sm text-red-600">
+        <div className="mt-2 flex items-center text-sm text-[var(--color-danger)]">
           <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
           <span>{error || uploadError}</span>
         </div>
@@ -200,12 +200,12 @@ const FileInput = ({
                       {formatFileSize(file.size)}
                     </p>
                   </div>
-                  <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 ml-2" />
+                  <CheckCircle className="w-4 h-4 text-[var(--color-success)] flex-shrink-0 ml-2" />
                 </div>
                 <button
                   type="button"
                   onClick={() => onFileRemove(index)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-2 flex-shrink-0"
+                  className="p-2 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] rounded-lg transition-colors ml-2 flex-shrink-0"
                   aria-label={`Remove ${file.name}`}
                 >
                   <X className="w-4 h-4" />

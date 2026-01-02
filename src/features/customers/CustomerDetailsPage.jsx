@@ -7,7 +7,7 @@ import React, {
   useContext,
 } from "react";
 import PropTypes from "prop-types";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router"; // Changed to react-router
 import { motion } from "framer-motion";
 import {
   User,
@@ -30,6 +30,7 @@ import {
   Clock,
   TrendingUp,
   CreditCard,
+  Loader2, // Changed from Loader
 } from "lucide-react";
 import { handleError } from "@/utils/handle-error";
 import toast from "react-hot-toast";
@@ -40,6 +41,7 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatusBadge from "@/components/ui/StatusBadge";
 import DataField from "@/components/ui/DataField";
 import Pagination from "@/components/ui/Pagination";
+import Button from "@/components/ui/Button"; // Import Button
 
 // Custom Hooks
 import { useUrl } from "@/context/UrlProvider";
@@ -143,20 +145,16 @@ const CustomerDetails = () => {
       link.setAttribute("download", fileName);
       link.setAttribute("target", "_blank");
       document.body.appendChild(link);
-      link.click();
       link.remove();
     } catch (error) {
       handleError(error, "Download trigger failed");
     }
   };
 
-  console.log(customerData, "customerData");
-
-  // Loading and error states
   if (loadingCustomer) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003b75]"></div>
+        <Loader2 className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]" />
         <p className="mt-4 text-gray-600">Loading customer details...</p>
       </div>
     );
@@ -165,24 +163,22 @@ const CustomerDetails = () => {
   if (customerError) {
     return (
       <div className="flex flex-col items-center justify-center h-full ">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-red-800 mb-2">
+        <div className="bg-[var(--color-danger-light)] border border-[var(--color-danger-light)] rounded-lg p-6 max-w-md">
+          <h3 className="text-lg font-semibold text-[var(--color-danger)] mb-2">
             Error Loading Customer
           </h3>
-          <p className="text-red-600 mb-4">{customerError}</p>
+          <p className="text-[var(--color-danger)] mb-4">{customerError}</p>
           <div className="flex gap-3">
-            <button
-              onClick={refetchCustomer}
-              className="px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002855] transition-colors"
-            >
+            <Button onClick={refetchCustomer} variant="primary" size="sm">
               Retry
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => navigate("/customers")}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              variant="secondary"
+              size="sm"
             >
               Back to Customers
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -192,38 +188,43 @@ const CustomerDetails = () => {
   if (!customerData) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+        <div className="bg-[var(--color-warning-light)] border border-[var(--color-warning-light)] rounded-lg p-6 max-w-md">
+          <h3 className="text-lg font-semibold text-[var(--color-warning)] mb-2">
             Customer Not Found
           </h3>
-          <p className="text-yellow-600 mb-4">
+          <p className="text-[var(--color-warning)] mb-4">
             The requested customer could not be found.
           </p>
-          <button
+          <Button
             onClick={() => navigate("/customers")}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            variant="secondary"
+            size="sm"
           >
             Back to Customers
-          </button>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
-          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-100"
+          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-200"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center flex-1 min-w-0">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
-                <User className="text-[#003b75] text-xl sm:text-2xl" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                <User className="text-[var(--color-primary)] text-xl sm:text-2xl" />
               </div>
               <div className="min-w-0">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
@@ -241,22 +242,26 @@ const CustomerDetails = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 onClick={() => navigate(`/customer-form/${id}`)}
-                className="flex items-center px-3 sm:px-4 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002855] active:bg-[#001c3a] transition-colors text-sm font-medium"
+                variant="primary"
+                size="sm"
+                className="flex items-center"
                 aria-label="Edit customer"
               >
                 <Edit className="mr-2 w-4 h-4" aria-hidden="true" />
                 Edit
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleOpenDeleteModal}
-                className="flex items-center px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors text-sm font-medium"
+                variant="danger"
+                size="sm"
+                className="flex items-center"
                 aria-label="Delete customer"
               >
                 <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </motion.div>
@@ -268,7 +273,7 @@ const CustomerDetails = () => {
             {/* General Info */}
             <CollapsibleCard
               title="General Information"
-              icon={<User className="text-[#003b75]" />}
+              icon={<User className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="General Information Section"
             >
@@ -333,40 +338,40 @@ const CustomerDetails = () => {
             {/* Transaction Overview */}
             <CollapsibleCard
               title="Transaction Overview"
-              icon={<PieChart className="text-[#003b75]" />}
+              icon={<PieChart className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="Transaction Overview Section"
             >
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-blue-700">
+                <div className="bg-[var(--color-primary-light)] p-4 rounded-lg text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-primary)]">
                     {customerStats.totalPurchases}
                   </div>
-                  <div className="text-xs sm:text-sm text-[#003b75] mt-1">
+                  <div className="text-xs sm:text-sm text-[var(--color-primary)] mt-1">
                     Total Purchases
                   </div>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-green-700">
+                <div className="bg-[var(--color-success-light)] p-4 rounded-lg text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-success)]">
                     {customerStats.totalSpent}
                   </div>
-                  <div className="text-xs sm:text-sm text-green-600 mt-1">
+                  <div className="text-xs sm:text-sm text-[var(--color-success)] mt-1">
                     Total Spent
                   </div>
                 </div>
-                <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-yellow-700">
+                <div className="bg-[var(--color-warning-light)] p-4 rounded-lg text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-warning)]">
                     {customerStats.notInvoiced}
                   </div>
-                  <div className="text-xs sm:text-sm text-yellow-600 mt-1">
+                  <div className="text-xs sm:text-sm text-[var(--color-warning)] mt-1">
                     Not Invoiced
                   </div>
                 </div>
-                <div className="bg-red-50 p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-red-700">
+                <div className="bg-[var(--color-danger-light)] p-4 rounded-lg text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-danger)]">
                     {customerStats.outstandingDues}
                   </div>
-                  <div className="text-xs sm:text-sm text-red-600 mt-1">
+                  <div className="text-xs sm:text-sm text-[var(--color-danger)] mt-1">
                     Outstanding Dues
                   </div>
                 </div>
@@ -379,7 +384,7 @@ const CustomerDetails = () => {
             {/* Status Info */}
             <CollapsibleCard
               title="Status Information"
-              icon={<Star className="text-[#003b75]" />}
+              icon={<Star className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="Status Information Section"
             >
@@ -407,7 +412,7 @@ const CustomerDetails = () => {
             {/* Documents */}
             <CollapsibleCard
               title="Documents"
-              icon={<FileText className="text-[#003b75]" />}
+              icon={<FileText className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="Documents Section"
             >
@@ -426,17 +431,19 @@ const CustomerDetails = () => {
                         {(doc.size / 1024).toFixed(2)} KB
                       </div>
                     </div>
-                    <button
+                    <Button
                       onClick={() =>
                         handleDownload(
                           customerData._id,
                           doc.storedName || doc.name
                         )
                       }
-                      className="ml-2 p-2 text-[#003b75] hover:bg-blue-100 rounded-full transition-colors"
+                      variant="subtle"
+                      size="sm"
+                      className="!p-2 text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full"
                     >
                       <Download className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -448,13 +455,13 @@ const CustomerDetails = () => {
         <div className="mt-4 sm:mt-6">
           <CollapsibleCard
             title="Recent Purchases"
-            icon={<DollarSign className="text-[#003b75]" />}
+            icon={<DollarSign className="text-[var(--color-primary)]" />}
             defaultOpen={true}
             ariaLabel="Recent Purchases Section"
           >
             {loadingSales ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003b75]"></div>
+                <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" />
                 <span className="ml-3 text-gray-600">Loading purchases...</span>
               </div>
             ) : salesData.length === 0 ? (
@@ -547,7 +554,7 @@ const CustomerDetails = () => {
                             {new Date(sale.saleDate).toLocaleDateString()}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-[#003b75]">
+                            <div className="text-sm font-medium text-[var(--color-primary)]">
                               {sale.product?.name || "N/A"}
                             </div>
                           </td>
@@ -602,15 +609,11 @@ const CustomerDetails = () => {
         description={confirmModal.description}
         confirmText="Delete"
         cancelText="Cancel"
-        isConfirming={false}
+        isConfirming={deleteCustomerMutation.isLoading}
         icon={Trash2}
-        iconBgColor="bg-red-100"
-        iconTextColor="text-red-600"
-        confirmButtonBgColor="bg-red-600"
-        confirmButtonHoverBgColor="hover:bg-red-700"
-        size="md"
+        variant="danger" // Themed variant
       />
-    </div>
+    </motion.div>
   );
 };
 

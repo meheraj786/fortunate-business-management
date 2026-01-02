@@ -40,7 +40,7 @@ const FormSection = ({
         <div className="flex items-center space-x-3 flex-1 min-w-0">
           {Icon && (
             <div
-              className="flex-shrink-0 p-2 bg-[#003b75] rounded-lg"
+              className="flex-shrink-0 p-2 bg-[var(--color-primary)] rounded-lg"
               aria-hidden="true"
             >
               <Icon className="w-5 h-5 text-white" />

@@ -47,7 +47,7 @@ const DataField = ({
           href={value}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#003b75] hover:text-blue-800 font-medium hover:underline truncate block"
+          className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium hover:underline truncate block"
         >
           {displayValue}
         </a>
@@ -55,7 +55,7 @@ const DataField = ({
         <div
           className={`text-gray-900 font-medium truncate ${
             type === "email"
-              ? "text-blue-600 hover:underline cursor-pointer"
+              ? "text-[var(--color-primary)] hover:underline cursor-pointer"
               : ""
           }`}
           onClick={

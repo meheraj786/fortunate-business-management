@@ -2,17 +2,17 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Wallet, TrendingDown, TrendingUp, DollarSign } from "lucide-react";
 import StatCard from "./StatCard";
-import Skeleton from "react-loading-skeleton";
+// import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 
 const DailyCashStats = ({ summary, isLoading }) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm p-5">
-            <Skeleton height={20} width="50%" />
-            <Skeleton height={30} width="70%" className="mt-2" />
-            <Skeleton height={15} width="40%" className="mt-1" />
+          <div key={index} className="bg-white rounded-lg shadow-sm p-5 animate-pulse">
+            <div className="h-5 bg-[var(--color-neutral-200)] rounded w-1/2 mb-2"></div>
+            <div className="h-8 bg-[var(--color-neutral-200)] rounded w-3/4 mb-1"></div>
+            <div className="h-4 bg-[var(--color-neutral-200)] rounded w-1/3"></div>
           </div>
         ))}
       </div>

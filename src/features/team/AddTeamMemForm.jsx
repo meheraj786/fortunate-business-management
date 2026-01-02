@@ -1,40 +1,49 @@
-import React, { useState, useEffect, useRef } from "react";
-import {  AnimatePresence } from "framer-motion";
+import React, { useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   FiX,
   FiUser,
+  FiMail, // Added FiMail for consistency
   FiPhone,
   FiMapPin,
   FiBriefcase,
   FiImage,
-  FiChevronDown,
   FiLock,
 } from "react-icons/fi";
 import Dropdown from "@/components/ui/Dropdown";
-import { UrlContext } from "../../context/UrlContext";
 import toast from "react-hot-toast";
 import api from "@/services/apiService";
 import { useAuth } from "../../context/AuthContext";
-import {motion} from "framer-motion";
 import InputField from "@/components/ui/InputField";
-import { useCreateUser } from "../../api/hooks/user";
+import { useCreateUser, useUpdateUser } from "../../api/hooks/user"; // Import useUpdateUser as well
+import { useForm } from "react-hook-form"; // Import useForm
+import Button from "@/components/ui/Button"; // Import Button component
+import { handleError } from "@/utils/handle-error";
 
-const AddTeamMemForm = ({ isOpen, onClose, editData = null }) => {
-  const createUserMutation=useCreateUser()
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    roleName: "",
-    location: "",
-    avatar: "",
-    password: "",
+const AddTeamMemForm = ({ isOpen, onClose, editData = null, onUserAdded, onUserUpdated }) => {
+  const isEditMode = !!editData;
+  
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+    setValue,
+    watch,
+  } = useForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      roleName: "",
+      location: "",
+      avatar: "",
+      password: "",
+    },
   });
-  
 
-
-  const [errors, setErrors] = useState({});
-  
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser(); // useUpdateUser hook
 
   const roles = [
       "MANAGER",
@@ -48,101 +57,67 @@ const AddTeamMemForm = ({ isOpen, onClose, editData = null }) => {
       "No Role",
   ];
 
-  const nameInputRef = useRef(null);
-  const phoneInputRef = useRef(null);
-  const locationInputRef = useRef(null);
-
-  // ✅ When editing, pre-fill data
+  // When editing, pre-fill data
   useEffect(() => {
-    if (editData) {
-      setFormData({
-        name: editData.name || "",
-        email: editData.email || "",
-        phone: editData.phone || "",
-        roleName: editData.roleName || "",
-        location: editData.location || "",
-        avatar: editData.avatar || "",
-        password: "",
+    if (isOpen) {
+      if (isEditMode && editData) {
+        reset({
+          name: editData.name || "",
+          email: editData.email || "",
+          phone: editData.phone || "",
+          roleName: editData.roleName || "",
+          location: editData.location || "",
+          avatar: editData.avatar || "",
+          password: "", // Password should not be pre-filled
+        });
+      } else {
+        reset({
+          name: "", email: "", phone: "", roleName: "", location: "", avatar: "", password: "",
+        });
+      }
+    }
+  }, [editData, isOpen, isEditMode, reset]);
+  
+  const onSubmit = (data) => {
+    const payload = {
+      ...data,
+      avatar:
+        data.avatar || `https://i.pravatar.cc/150?u=${data.name}`,
+    };
+
+    if (isEditMode) {
+      // Don't send password if it's empty
+      if (!payload.password) {
+        delete payload.password;
+      }
+      updateUserMutation.mutate({ id: editData._id, data: payload }, {
+        onSuccess: () => {
+          toast.success("User Updated Successfully!");
+          onUserUpdated?.();
+          handleClose();
+        },
+        onError: (error) => {
+          handleError(error, "User update failed");
+        },
       });
     } else {
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        roleName: "",
-        location: "",
-        avatar: "",
-        password: "",
+      createUserMutation.mutate(payload, {
+        onSuccess: () => {
+          toast.success("User Created Successfully!");
+          onUserAdded?.();
+          handleClose();
+        },
+        onError: (error) => {
+          handleError(error, "User create failed");
+        },
       });
     }
-    setErrors({});
-  }, [editData]);
-
-  // ✅ Input change handler
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleFocus = (ref) => {
-    if (window.innerWidth < 768) {
-      ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  };
 
-  // ✅ Validation
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.email.trim()) newErrors.email = "Email is required";
-    if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
-    if (!formData.roleName) newErrors.roleName = "Role is required";
-    if (!formData.location.trim()) newErrors.location = "Location is required";
-    if (!formData.password.trim()) newErrors.password = "Password is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // ✅ Submit Handler
-const handleSubmit = (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
-
-  const payload = {
-    ...formData,
-    avatar:
-      formData.avatar || `https://i.pravatar.cc/150?u=${formData.name}`,
-  };
-
-  createUserMutation.mutate(payload, {
-    onSuccess: () => {
-      toast.success("User Created Successfully!");
-      handleClose();
-    },
-    onError: (error) => {
-      toast.error(
-        error?.response?.data?.message || "User create failed"
-      );
-    },
-  });
-};
-
-
-  // ✅ Close & Reset Form
+  // Close & Reset Form
   const handleClose = () => {
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      roleName: "",
-      location: "",
-      avatar: "",
-      password: "",
-    });
-    setErrors({});
+    reset();
     onClose();
   };
 
@@ -154,6 +129,8 @@ const handleSubmit = (e) => {
 if (!user || user.roleName !== "SUPER_ADMIN") {
   return null;
 }
+
+  const mutationIsLoading = createUserMutation.isLoading || updateUserMutation.isLoading;
 
   return (
     <AnimatePresence>
@@ -178,90 +155,92 @@ if (!user || user.roleName !== "SUPER_ADMIN") {
               <h2 className="text-xl font-semibold text-gray-800">
                 {editData ? "Edit Team Member" : "Add New Team Member"}
               </h2>
-              <button
+              <Button
                 onClick={handleClose}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                variant="subtle"
+                size="sm"
+                className="!p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                aria-label="Close"
               >
                 <FiX size={20} />
-              </button>
+              </Button>
             </div>
 
             {/* Form */}
             <div className="overflow-y-auto">
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
                 {/* Avatar */}
                 <InputField
                   icon={FiImage}
                   label="Avatar URL"
                   name="avatar"
-                  value={formData.avatar}
-                  onChange={handleChange}
+                  register={register}
+                  error={errors.avatar?.message}
                   placeholder="Enter image URL or leave blank for default"
+                  disabled={isSubmitting || mutationIsLoading}
                 />
 
                 {/* Name */}
                 <InputField
-                  ref={nameInputRef}
                   icon={FiUser}
                   label="Full Name"
                   name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  onFocus={() => handleFocus(nameInputRef)}
-                  error={errors.name}
+                  register={register}
+                  error={errors.name?.message}
+                  validation={{ required: "Name is required" }}
                   placeholder="Enter full name"
+                  disabled={isSubmitting || mutationIsLoading}
                 />
 
                 {/* Email */}
                 <InputField
-                  icon={FiUser}
+                  icon={FiMail} // Changed to FiMail
                   label="Email"
                   name="email"
                   type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  error={errors.email}
+                  register={register}
+                  error={errors.email?.message}
+                  validation={{ required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" } }}
                   placeholder="Enter email address"
+                  disabled={isSubmitting || mutationIsLoading}
                 />
 
                 {/* Phone */}
                 <InputField
-                  ref={phoneInputRef}
                   icon={FiPhone}
                   label="Phone"
                   name="phone"
                   type="tel"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  onFocus={() => handleFocus(phoneInputRef)}
-                  error={errors.phone}
+                  register={register}
+                  error={errors.phone?.message}
+                  validation={{ required: "Phone number is required" }}
                   placeholder="+880 XXXX-XXXXXX"
+                  disabled={isSubmitting || mutationIsLoading}
                 />
 
                 {/* Role Dropdown */}
                 <Dropdown
                   options={roles}
-                  selected={formData.roleName}
+                  selected={watch("roleName")}
                   onSelect={(roleName) =>
-                    handleChange({ target: { name: "roleName", value: roleName } })
+                    setValue("roleName", roleName, { shouldValidate: true })
                   }
                   placeholder="Select roleName"
                   label="Role"
                   icon={FiBriefcase}
-                  error={errors.roleName}
+                  error={errors.roleName?.message}
                 />
 
                 {/* Location */}
                 <InputField
-                  ref={locationInputRef}
                   icon={FiMapPin}
                   label="Location"
                   name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  onFocus={() => handleFocus(locationInputRef)}
-                  error={errors.location}
+                  register={register}
+                  error={errors.location?.message}
+                  validation={{ required: "Location is required" }}
                   placeholder="Enter location"
+                  disabled={isSubmitting || mutationIsLoading}
                 />
 
                 {/* Password */}
@@ -269,28 +248,34 @@ if (!user || user.roleName !== "SUPER_ADMIN") {
                   icon={FiLock}
                   label="Password"
                   name="password"
-                  type="text"
-                  value={formData.password}
-                  onChange={handleChange}
-                  error={errors.password}
-                  placeholder="Enter strong password"
+                  type="password"
+                  register={register}
+                  error={errors.password?.message}
+                  validation={{ required: !isEditMode ? "Password is required" : false }}
+                  placeholder={isEditMode ? "Leave blank to keep unchanged" : "Enter strong password"}
+                  disabled={isSubmitting || mutationIsLoading}
                 />
 
                 {/* Buttons */}
                 <div className="flex gap-3 pt-4">
-                  <button
+                  <Button
                     type="button"
                     onClick={handleClose}
-                    className="flex-1 px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium"
+                    variant="secondary"
+                    className="flex-1"
+                    disabled={isSubmitting || mutationIsLoading}
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
-                    className="flex-1 px-6 py-3 text-white bg-[#003b75d8] rounded-lg hover:bg-[#00366d] transition-all font-medium"
+                    variant="primary"
+                    className="flex-1"
+                    isLoading={isSubmitting || mutationIsLoading}
+                    disabled={isSubmitting || mutationIsLoading}
                   >
-                    {editData ? "Update" : "Add"} Member
-                  </button>
+                    {isEditMode ? "Update" : "Add"} Member
+                  </Button>
                 </div>
               </form>
             </div>
@@ -300,6 +285,5 @@ if (!user || user.roleName !== "SUPER_ADMIN") {
     </AnimatePresence>
   );
 };
-
 
 export default AddTeamMemForm;

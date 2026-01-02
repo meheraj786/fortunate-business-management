@@ -1,6 +1,9 @@
 import React, { useState, useMemo, memo } from "react";
 import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
+
+import Button  from "../../components/ui/Button";
+
 import {
   Plus,
   Download,
@@ -130,17 +133,18 @@ const LCdetails = () => {
   if (isError) {
     return (
       <div className="h-full flex flex-col justify-center items-center p-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-red-800 mb-2">
+        <div className="bg-[var(--color-danger-light)] border border-[var(--color-danger-light)] rounded-lg p-6 max-w-md">
+          <h3 className="text-lg font-semibold text-[var(--color-danger)] mb-2">
             Error Loading LC
           </h3>
-          <p className="text-red-600 mb-4">{error.message}</p>
-          <button
+          <p className="text-[var(--color-danger)] mb-4">{error.message}</p>
+          <Button
             onClick={() => navigate("/lc-management")}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            variant="secondary"
+            size="sm"
           >
             Back to LC Management
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -159,20 +163,22 @@ const LCdetails = () => {
   } = lcData;
 
   const AddCostButton = ({ category }) => (
-    <button
+    <Button
       onClick={() => handleOpenAddCost(category)}
-      className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 active:bg-gray-300 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:ring-offset-2"
+      variant="secondary"
+      size="sm"
+      className="flex items-center gap-1"
       aria-label={`Add cost to ${category}`}
     >
       <Plus size={14} aria-hidden="true" /> Add Cost
-    </button>
+    </Button>
   );
 
   return (
     <div className="">
       <div className="max-w-7xl mx-auto">
         <motion.div
-          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-100"
+          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-200"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -181,7 +187,7 @@ const LCdetails = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-3 mb-2">
                 <div
-                  className="p-2 bg-[#003b75] rounded-lg flex-shrink-0"
+                  className="p-2 bg-[var(--color-primary)] rounded-lg flex-shrink-0"
                   aria-hidden="true"
                 >
                   <FileText className="text-white text-xl" />
@@ -195,31 +201,39 @@ const LCdetails = () => {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button
+              <Button
                 onClick={() => handleOpenConfirmation("export")}
                 disabled={exportLCMutation.isLoading}
-                className="flex items-center justify-center px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                isLoading={exportLCMutation.isLoading}
+                variant="secondary"
+                size="sm"
+                className="flex items-center justify-center" // Adjust spacing if needed
                 aria-label="Export LC as PDF"
               >
                 <Download className="mr-2 w-4 h-4" aria-hidden="true" />
                 {exportLCMutation.isLoading ? "Exporting..." : "Export"}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => navigate(`/lc-form/${id}`)}
-                className="flex items-center px-3 sm:px-4 py-2 bg-[#003b75] border border-transparent rounded-lg text-sm font-medium text-white hover:bg-[#002855] active:bg-[#001c3a] transition-colors shadow-sm"
+                variant="primary"
+                size="sm"
+                className="flex items-center"
                 aria-label="Edit LC"
               >
                 <Edit className="mr-2 w-4 h-4" aria-hidden="true" /> Edit
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => handleOpenConfirmation("delete")}
                 disabled={deleteLCMutation.isLoading}
-                className="flex items-center px-3 sm:px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 active:bg-red-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                isLoading={deleteLCMutation.isLoading}
+                variant="danger"
+                size="sm"
+                className="flex items-center"
                 aria-label="Delete LC"
               >
                 <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
                 {deleteLCMutation.isLoading ? "Deleting..." : "Delete"}
-              </button>
+              </Button>
             </div>
           </div>
         </motion.div>
@@ -227,7 +241,7 @@ const LCdetails = () => {
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <CollapsibleCard
               title="Basic LC Information"
-              icon={<FileText className="text-[#003b75]" />}
+              icon={<FileText className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="Basic LC Information Section"
             >
@@ -288,7 +302,7 @@ const LCdetails = () => {
             </CollapsibleCard>
             <CollapsibleCard
               title="Financial Information"
-              icon={<DollarSign className="text-[#003b75]" />}
+              icon={<DollarSign className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               headerActions={<AddCostButton category="financialInfo" />}
               ariaLabel="Financial Information Section"
@@ -322,7 +336,7 @@ const LCdetails = () => {
             </CollapsibleCard>
             <CollapsibleCard
               title="Product Information"
-              icon={<Package className="text-[#003b75]" />}
+              icon={<Package className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="Product Information Section"
             >
@@ -374,7 +388,7 @@ const LCdetails = () => {
                 <div className="mt-4 bg-gray-50 rounded-lg p-4">
                   <div className="flex justify-between items-center font-semibold">
                     <span className="text-gray-700">Total Products Value</span>
-                    <span className="text-[#003b75]">
+                    <span className="text-[var(--color-primary)]">
                       ${formatNumber(totalProductsValueUsd)} USD
                     </span>
                   </div>
@@ -383,7 +397,7 @@ const LCdetails = () => {
             </CollapsibleCard>
             <CollapsibleCard
               title="Shipping & Customs Info"
-              icon={<Truck className="text-[#003b75]" />}
+              icon={<Truck className="text-[var(--color-primary)]" />}
               headerActions={<AddCostButton category="shippingCustomsInfo" />}
               ariaLabel="Shipping and Customs Information Section"
             >
@@ -409,7 +423,7 @@ const LCdetails = () => {
             </CollapsibleCard>
             <CollapsibleCard
               title="Agent & Transport Info"
-              icon={<User className="text-[#003b75]" />}
+              icon={<User className="text-[var(--color-primary)]" />}
               headerActions={<AddCostButton category="agentTransportInfo" />}
               ariaLabel="Agent and Transport Information Section"
             >
@@ -428,7 +442,7 @@ const LCdetails = () => {
             </CollapsibleCard>
             <CollapsibleCard
               title="Other Expenses"
-              icon={<DollarSign className="text-[#003b75]" />}
+              icon={<DollarSign className="text-[var(--color-primary)]" />}
               headerActions={<AddCostButton category="otherExpenses" />}
               ariaLabel="Other Expenses Section"
             >
@@ -449,7 +463,7 @@ const LCdetails = () => {
           <div className="space-y-4 sm:space-y-6">
             <CollapsibleCard
               title="Cost Summary"
-              icon={<PieChart className="text-[#003b75]" />}
+              icon={<PieChart className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="Cost Summary Section"
             >
@@ -476,7 +490,7 @@ const LCdetails = () => {
                         <span className="font-bold text-gray-800">
                           Total LC Expenses
                         </span>
-                        <span className="font-bold text-lg text-[#003b75]">
+                        <span className="font-bold text-lg text-[var(--color-primary)]">
                           ৳{formatNumber(totalLcExpenses)}
                         </span>
                       </div>
@@ -492,7 +506,7 @@ const LCdetails = () => {
             </CollapsibleCard>
             <CollapsibleCard
               title="Documents & Notes"
-              icon={<Clipboard className="text-[#003b75]" />}
+              icon={<Clipboard className="text-[var(--color-primary)]" />}
               ariaLabel="Documents and Notes Section"
             >
               <div className="space-y-4">
@@ -513,7 +527,7 @@ const LCdetails = () => {
                               {doc.originalName}
                             </div>
                           </div>
-                          <button
+                          <Button
                             onClick={() =>
                               handleDownload(
                                 lcData._id,
@@ -521,11 +535,13 @@ const LCdetails = () => {
                                 doc.originalName
                               )
                             }
-                            className="p-2 text-[#003b75] hover:bg-blue-50 rounded-full transition-colors"
-                            title="Download"
+                            variant="subtle"
+                            size="sm"
+                            className="!p-2 text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full"
+                            aria-label="Download document"
                           >
                             <Download size={18} />
-                          </button>
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -537,7 +553,7 @@ const LCdetails = () => {
                       <h3 className="text-sm font-semibold text-gray-700 mb-3">
                         Notes
                       </h3>
-                      <div className="p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
+                      <div className="p-3 bg-[var(--color-warning-light)] border border-[var(--color-warning-light)] rounded-lg">
                         <p className="text-sm text-gray-700 whitespace-pre-line">
                           {documentsNotes.note}
                         </p>
@@ -548,7 +564,7 @@ const LCdetails = () => {
             </CollapsibleCard>
             <CollapsibleCard
               title="Payment History"
-              icon={<CreditCard className="text-[#003b75]" />}
+              icon={<CreditCard className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="Payment History Section"
             >
@@ -590,7 +606,7 @@ const LCdetails = () => {
                   </div>
                 ) : (
                   <div className="text-center py-6 text-gray-500">
-                    <CreditCard className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <CreditCard className="w-12 h-12 mx-auto mb-2 text-gray-400" />
                     <p>No payment history available</p>
                   </div>
                 )}
@@ -622,21 +638,8 @@ const LCdetails = () => {
         confirmingText={
           confirmModal.action === "delete" ? "Deleting..." : "Exporting..."
         }
+        variant={confirmModal.action === "delete" ? "danger" : "primary"}
         icon={confirmModal.action === "delete" ? Trash2 : Download}
-        iconBgColor={
-          confirmModal.action === "delete" ? "bg-red-100" : "bg-blue-100"
-        }
-        iconTextColor={
-          confirmModal.action === "delete" ? "text-red-600" : "text-blue-600"
-        }
-        confirmButtonBgColor={
-          confirmModal.action === "delete" ? "bg-red-600" : "bg-blue-600"
-        }
-        confirmButtonHoverBgColor={
-          confirmModal.action === "delete"
-            ? "hover:bg-red-500"
-            : "hover:bg-blue-500"
-        }
       />
     </div>
   );

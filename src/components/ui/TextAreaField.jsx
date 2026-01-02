@@ -76,7 +76,7 @@ const TextAreaField = ({
           className="block text-start text-sm font-medium text-gray-700"
         >
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-[var(--color-danger)] ml-1">*</span>}
         </label>
       )}
       <div className="relative">
@@ -91,9 +91,9 @@ const TextAreaField = ({
           className={`
             w-full px-3 py-2.5 sm:py-2
             border rounded-lg
-            focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent
+            focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
             transition-all duration-200
-            ${error ? "border-red-300 focus:ring-red-500" : "border-gray-300"}
+            ${error ? "border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]" : "border-gray-300"}
             placeholder:text-gray-400
             text-base sm:text-sm
             resize-none
@@ -108,12 +108,12 @@ const TextAreaField = ({
             className="absolute right-3 top-3"
             aria-hidden="true"
           >
-            <AlertCircle className="w-4 h-4 text-red-500" />
+            <AlertCircle className="w-4 h-4 text-[var(--color-danger)]" />
           </div>
         )}
       </div>
       {error && (
-        <p id={errorId} className="text-sm text-red-600 mt-1">
+        <p id={errorId} className="text-sm text-[var(--color-danger)] mt-1">
           {error}
         </p>
       )}

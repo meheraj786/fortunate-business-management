@@ -384,6 +384,7 @@ const TeamDetails = () => {
                 {warehousesData?.data?.warehouses?.map((wh) => (
                   <label
                     key={wh._id}
+                    htmlFor={`warehouse-${wh._id}`}
                     className={`flex items-center justify-between p-4 border-2 rounded-lg transition-all ${
                       isEditing ? "cursor-pointer" : "cursor-default"
                     } ${
@@ -413,6 +414,7 @@ const TeamDetails = () => {
                     </div>
                     {isEditing && (
                       <input
+                        id={`warehouse-${wh._id}`}
                         type="checkbox"
                         checked={selectedWarehouses.includes(wh._id)}
                         onChange={() => handleWarehouseToggle(wh._id)}

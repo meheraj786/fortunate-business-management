@@ -1,13 +1,14 @@
 import React from "react";
-import { 
-  Building, 
-  Smartphone, 
-  Wallet, 
+import {
+  Building,
+  Smartphone,
+  Wallet,
   CreditCard,
   Landmark,
   Smartphone as Mobile,
-  Banknote
+  Banknote,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
 
 const getAccountDisplayName = (accountId) => {
   if (!accountId) return "N/A";
@@ -46,6 +47,12 @@ const TransactionTable = ({ transactions, onRowClick }) => {
     }
   };
 
+  const rowVariants = {
+    hidden: { opacity: 0, y: 0 },
+    visible: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 0 },
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[700px] lg:min-w-full">
@@ -55,40 +62,45 @@ const TransactionTable = ({ transactions, onRowClick }) => {
             <th className="px-4 pr-0 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
               Description
             </th>
-            
+
             {/* Category - Hidden on small screens, visible on medium+ */}
             <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Category
             </th>
-            
+
             {/* Amount - Always visible */}
             <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Amount
             </th>
-            
+
             {/* Payment Method - Always visible */}
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Payment
             </th>
-            
+
             {/* Account - Hidden on extra small, visible on small+ */}
             <th className="hidden xs:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
               Account
             </th>
-            
+
             {/* Date - Always visible but compact */}
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Date
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <AnimatePresence>
           {transactions && transactions.length > 0 ? (
-            transactions.map((transaction) => (
-              <tr
+            transactions.map((transaction, index) => (
+              <motion.tr
                 key={transaction._id}
                 className="hover:bg-gray-50 cursor-pointer"
                 onClick={() => handleRowClick(transaction._id)}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={rowVariants}
+                transition={{ duration: 0.2, delay: index * 0.03 }} // Staggered animation
               >
                 {/* Description/Source Column */}
                 <td className="px-4 pr-0 py-3">
@@ -101,7 +113,7 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                     </div>
                   </div>
                 </td>
-                
+
                 {/* Category Column - Hidden on small screens */}
                 <td className="hidden sm:table-cell px-4 py-3">
                   <span className="text-sm text-gray-700 whitespace-nowrap">
@@ -111,59 +123,65 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                     {transaction.source}
                   </div>
                 </td>
-                
+
                 {/* Amount Column */}
                 <td
                   className={`px-4 py-3 text-sm font-semibold text-right whitespace-nowrap ${
                     transaction.transactionType === "Income"
-                      ? "text-green-600"
-                      : "text-red-600"
+                      ? "text-[var(--color-success)]" // Themed success
+                      : "text-[var(--color-danger)]" // Themed danger
                   }`}
                 >
                   {transaction.transactionType === "Income" ? "+ " : "- "}৳
                   {transaction.amount.toLocaleString()}
                 </td>
-                
+
                 {/* Payment Method Column */}
                 <td className="px-4 py-3">
-                  <div className="flex flex-col gap-2">
-                    {/* Payment method with icon */}
+                  <div className="flex flex-col gap-1">
+                    {/* First line: Icon + Payment Method */}
                     <div className="flex items-center gap-2">
-                      <div className={`p-1.5 rounded-md ${
-                        transaction.paymentMethod === "Bank"
-                          ? "bg-blue-50 text-blue-600"
-                          : transaction.paymentMethod === "Mobile Banking"
-                          ? "bg-purple-50 text-purple-600"
-                          : transaction.paymentMethod === "Cash"
-                          ? "bg-green-50 text-green-600"
-                          : "bg-gray-50 text-gray-600"
-                      }`}>
+                      {/* Icon box */}
+                      <div
+                        className={`p-1 rounded-md ${
+                          transaction.paymentMethod === "Bank"
+                            ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
+                            : transaction.paymentMethod === "Mobile Banking"
+                            ? "bg-purple-50 text-purple-600"
+                            : transaction.paymentMethod === "Cash"
+                            ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                            : "bg-gray-50 text-gray-600"
+                        }`}
+                      >
                         {getPaymentIcon(transaction.paymentMethod)}
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">
-                          {transaction.paymentMethod}
-                        </span>
-                        {/* Show account on extra small screens when account column is hidden */}
-                        <div className="text-xs text-gray-600 xs:hidden line-clamp-1 mt-0.5">
-                          {getAccountDisplayName(transaction.accountId)}
-                        </div>
-                      </div>
+
+                      {/* Payment method text */}
+                      <span className="text-sm font-medium text-gray-900">
+                        {transaction.paymentMethod}
+                      </span>
+                    </div>
+
+                    {/* Second line: Other info */}
+                    <div className="text-xs text-gray-600 xs:hidden line-clamp-1">
+                      {getAccountDisplayName(transaction.accountId)}
                     </div>
                   </div>
                 </td>
-                
+
                 {/* Account Column - Hidden on extra small screens */}
                 <td className="hidden xs:table-cell px-4 py-3">
                   <div className="text-sm text-gray-700 line-clamp-2 min-h-[40px]">
                     {getAccountDisplayName(transaction.accountId)}
                   </div>
                 </td>
-                
+
                 {/* Date Column - Always visible */}
                 <td className="px-4 py-3">
                   <div className="flex flex-col text-sm text-gray-500 whitespace-nowrap">
-                    <span>{new Date(transaction.date).toLocaleDateString("en-GB")}</span>
+                    <span>
+                      {new Date(transaction.date).toLocaleDateString("en-GB")}
+                    </span>
                     <span className="text-xs text-gray-400">
                       {new Date(transaction.date).toLocaleTimeString("en-US", {
                         hour: "numeric",
@@ -177,7 +195,7 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                     {transaction.category}
                   </div>
                 </td>
-              </tr>
+              </motion.tr>
             ))
           ) : (
             <tr>
@@ -186,7 +204,7 @@ const TransactionTable = ({ transactions, onRowClick }) => {
               </td>
             </tr>
           )}
-        </tbody>
+        </AnimatePresence>
       </table>
     </div>
   );

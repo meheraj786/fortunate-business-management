@@ -189,8 +189,8 @@ const Dropdown = ({
         aria-describedby={error ? "dropdown-error" : undefined}
         className={`w-full flex items-center justify-between px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 appearance-none bg-white ${
           error
-            ? "border-red-300 focus:ring-red-200"
-            : "border-gray-300 focus:border-blue-500 focus:ring-blue-200"
+            ? "border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]"
+            : "border-gray-300 focus:ring-[var(--color-primary)]"
         }`}
       >
         <span className={selected ? "text-gray-800" : "text-gray-400"}>
@@ -232,9 +232,9 @@ const Dropdown = ({
                       tabIndex={-1}
                       className={`px-4 py-3 text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors duration-150 ${
                         focusedIndex === index
-                          ? "bg-blue-50 border-blue-200 border"
+                          ? "bg-[var(--color-primary-light)] border-[var(--color-primary)] border"
                           : ""
-                      } ${selected === option ? "bg-gray-50 font-medium" : ""}`}
+                      } ${selected === option ? "bg-gray-50 font-medium text-[var(--color-primary)]" : ""}`}
                     >
                       {option}
                     </div>
@@ -251,7 +251,7 @@ const Dropdown = ({
           id="dropdown-error"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-sm text-red-600 mt-1"
+          className="text-sm text-[var(--color-danger)] mt-1"
           role="alert"
         >
           {error}

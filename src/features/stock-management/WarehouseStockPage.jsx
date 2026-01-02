@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router";
+import { useParams, useNavigate, Link } from "react-router"; // Changed to react-router
 import {
   Search,
   Plus,
@@ -14,6 +14,7 @@ import {
   X,
   ChevronDown,
   Trash,
+  Loader2, // Changed from Loader
 } from "lucide-react";
 import { useWarehouse } from "@/api/hooks/warehouse";
 import { useProducts as useProductsFromProductHook } from "@/api/hooks/products";
@@ -25,6 +26,7 @@ import AddProductForm from "./AddProductForm";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { useDebounce } from "@/hooks/useDebounce";
 import Pagination from "@/components/ui/Pagination";
+import Button from "@/components/ui/Button"; // Import Button component
 
 const sortOptions = [
   { value: "createdAt", label: "Creation Date" },
@@ -137,7 +139,7 @@ const WarehouseStock = () => {
     return (
       <div className="p-4 sm:p-6 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading warehouse data...</p>
         </div>
       </div>
@@ -148,17 +150,23 @@ const WarehouseStock = () => {
     return (
       <div className="p-4 sm:p-6 flex items-center justify-center">
         <div className="text-center">
-          <Package size={48} className="text-red-500 mx-auto mb-4" />
+          <Package
+            size={48}
+            className="text-[var(--color-danger)] mx-auto mb-4"
+          />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Error Loading Data
           </h2>
-          <p className="text-gray-600 mb-4">{warehouseError.message}</p>
-          <button
+          <p className="text-[var(--color-danger)] mb-4">
+            {warehouseError.message}
+          </p>
+          <Button
             onClick={() => navigate("/stock-management")}
-            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors"
+            variant="primary"
+            size="sm"
           >
             Back to Warehouses
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -181,17 +189,24 @@ const WarehouseStock = () => {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 onClick={() => setShowAddProductForm(true)}
-                className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start"
+                variant="primary"
+                size="sm"
+                className="flex items-center gap-2 w-full sm:w-auto justify-center"
               >
                 <Plus size={20} /> Add Product
-              </button>
+              </Button>
               {isSuperAdmin && (
                 <Link to={`/trash/product?warehouseId=${warehouseId}`}>
-                  <button className="bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors w-full sm:w-auto justify-center sm:justify-start border border-gray-300">
-                    <Trash size={20} /> Product Trash
-                  </button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex items-center gap-2 w-full sm:w-auto justify-center"
+                  >
+                    <Trash className="text-[var(--color-danger)]" size={20} />{" "}
+                    Product Trash
+                  </Button>
                 </Link>
               )}
             </div>
@@ -202,25 +217,25 @@ const WarehouseStock = () => {
               title="Total Products"
               number={warehouse?.stats?.totalProducts || 0}
               Icon={Package}
-              textColor="blue"
+              textColor="primary" // Changed from blue
             />
             <StatBox
               title="In Stock"
               number={warehouse?.stats?.totalInStock || 0}
               Icon={CheckCircle}
-              textColor="green"
+              textColor="success" // Changed from green
             />
             <StatBox
               title="Low Stock"
               number={warehouse?.stats?.totalLowStock || 0}
               Icon={Box}
-              textColor="orange"
+              textColor="warning" // Changed from orange
             />
             <StatBox
               title="Out of Stock"
               number={warehouse?.stats?.totalStockOut || 0}
               Icon={XCircle}
-              textColor="red"
+              textColor="danger" // Changed from red
             />
           </div>
 
@@ -228,10 +243,14 @@ const WarehouseStock = () => {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <label htmlFor="search-product" className="sr-only">
+                  Search by name or LC number
+                </label>
                 <input
+                  id="search-product"
                   type="text"
                   placeholder="Search by name or LC number..."
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -240,7 +259,7 @@ const WarehouseStock = () => {
                 <select
                   value={sorting.sortBy}
                   onChange={handleSortByChange}
-                  className="w-full appearance-none pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base bg-white"
+                  className="w-full appearance-none pl-3 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base bg-white"
                 >
                   {sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -250,25 +269,29 @@ const WarehouseStock = () => {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
               </div>
-              <button
+              <Button
                 onClick={toggleSortOrder}
-                className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full md:w-auto"
+                variant="secondary"
+                size="sm"
+                className="px-4 py-2.5 flex items-center justify-center gap-2 w-full md:w-auto"
               >
                 {sorting.sortOrder === "asc" ? (
                   <ArrowUp className="w-4 h-4" />
                 ) : (
                   <ArrowDown className="w-4 h-4" />
                 )}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setShowFilters(!showFilters)}
-                className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full md:w-auto"
+                variant="secondary"
+                size="sm"
+                className="px-4 py-2.5 flex items-center justify-center gap-2 w-full md:w-auto"
               >
                 <Filter className="w-4 h-4" /> <span>Filters</span>
                 {filters.stockStatus && (
-                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-[var(--color-danger)] rounded-full"></span>
                 )}
-              </button>
+              </Button>
             </div>
             {showFilters && (
               <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -276,12 +299,14 @@ const WarehouseStock = () => {
                   <h3 className="text-sm font-semibold text-gray-700">
                     Filter Products
                   </h3>
-                  <button
+                  <Button
                     onClick={clearFilters}
-                    className="flex items-center gap-2 text-sm text-red-600 hover:text-red-800 px-3 py-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                    variant="subtle"
+                    size="sm"
+                    className="flex items-center gap-2 text-[var(--color-danger)] hover:text-[var(--color-danger)]"
                   >
                     <X className="w-4 h-4" /> Clear All Filters
-                  </button>
+                  </Button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
@@ -293,7 +318,7 @@ const WarehouseStock = () => {
                       onChange={(e) =>
                         handleFilterChange("stockStatus", e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm"
                     >
                       {stockStatusOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>

@@ -5,6 +5,7 @@ import SalesTableSkeleton from "./components/SalesTableSkeleton";
 import SearchBar from "@/components/ui/SearchBar";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import Pagination from "@/components/ui/Pagination";
+import Button from "@/components/ui/Button"; // Import Button component
 
 const SalesListPage = ({ title, description, breadcrumbItems, initialFilters = {} }) => {
   const [paginationState, setPaginationState] = useState({ page: 1, limit: 10 });
@@ -46,12 +47,12 @@ const SalesListPage = ({ title, description, breadcrumbItems, initialFilters = {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="text-center max-w-md">
-          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <div className="text-[var(--color-danger)] text-4xl mb-4">⚠️</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Data</h3>
-          <p className="text-gray-600 mb-4">{error.message}</p>
-          <button onClick={() => refetch()} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+          <p className="text-[var(--color-danger)] mb-4">{error.message}</p>
+          <Button onClick={() => refetch()} variant="primary" size="sm">
             Try Again
-          </button>
+          </Button>
         </div>
       </div>
     );

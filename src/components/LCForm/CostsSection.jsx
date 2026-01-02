@@ -1,20 +1,28 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import PropTypes from "prop-types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import Button from "@/components/ui/Button"; // Import Button component
+import { useFieldArray } from "react-hook-form"; // Import useFieldArray
 
 const CostsSection = ({
-  costs,
-  section,
-  onCostChange,
-  onAddCost,
-  onRemoveCost,
+  control, // from react-hook-form
+  register, // from react-hook-form
+  errors, // from react-hook-form
+  watch, // from react-hook-form
+  section, // the path to the costs array in the form data
   accounts,
   paymentMethods,
   className = "",
+  isSubmitting = false,
 }) => {
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: section, // e.g., "financialInfo.costs"
+  });
+
   const sectionAnimation = {
     initial: { opacity: 0, height: 0 },
     animate: { opacity: 1, height: "auto" },
@@ -22,41 +30,56 @@ const CostsSection = ({
     transition: { duration: 0.2 },
   };
 
-  const getCostNamePlaceholder = (section, index) => {
+  const getCostNamePlaceholder = useCallback((sectionName, index) => {
     const placeholders = {
-      financialInfo: {
+      "financialInfo.costs": {
         first: "e.g., Bank Commission",
         other: "e.g., Swift Fees, Insurance",
       },
-      shippingCustomsInfo: {
+      "shippingCustomsInfo.costs": {
         first: "e.g., Customs Duty",
         other: "e.g., Port Fees, Freight Charges",
       },
-      agentTransportInfo: {
+      "agentTransportInfo.costs": {
         first: "e.g., C&F Agent Bill",
         other: "e.g., Local Transport, Labor Cost",
       },
+      "otherExpenses.costs": { // Added for otherExpenses
+        first: "e.g., Utility Bills",
+        other: "e.g., Miscellaneous expenses",
+      },
     };
 
-    const sectionPlaceholders = placeholders[section];
+    const sectionPlaceholders = placeholders[sectionName];
     if (!sectionPlaceholders) {
       return "Enter cost name"; // Fallback
     }
 
     return index === 0 ? sectionPlaceholders.first : sectionPlaceholders.other;
-  };
+  }, []);
+
+  // Helper to get nested error message
+  const getNestedError = useCallback((fieldErrors, path) => {
+    const pathParts = path.split('.');
+    let current = fieldErrors;
+    for (let i = 0; i < pathParts.length; i++) {
+      if (!current) return undefined;
+      current = current[pathParts[i]];
+    }
+    return current?.message;
+  }, []);
 
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <h4 className="font-semibold text-gray-800">Costs</h4>
         <span className="text-sm text-gray-500">
-          {costs.length} cost{costs.length !== 1 ? "s" : ""}
+          {fields.length} cost{fields.length !== 1 ? "s" : ""}
         </span>
       </div>
 
       <AnimatePresence>
-        {costs.map((cost, index) => (
+        {fields.map((cost, index) => (
           <motion.div
             key={cost.id}
             {...sectionAnimation}
@@ -65,108 +88,110 @@ const CostsSection = ({
             <div className="sm:col-span-3">
               <InputField
                 label={`Cost Name ${index + 1}`}
-                value={cost.name}
-                onChange={(e) =>
-                  onCostChange(section, cost.id, "name", e.target.value)
-                }
+                name={`${section}[${index}].name`}
+                register={register}
+                error={getNestedError(errors, `${section}[${index}].name`)}
                 placeholder={getCostNamePlaceholder(section, index)}
-                required
+                validation={{ required: "Cost name is required" }}
+                disabled={isSubmitting}
               />
             </div>
             <div className="sm:col-span-3">
               <InputField
                 label="Amount (BDT)"
+                name={`${section}[${index}].amount`}
                 type="number"
-                value={cost.amount}
-                onChange={(e) =>
-                  onCostChange(section, cost.id, "amount", e.target.value)
-                }
+                register={register}
+                error={getNestedError(errors, `${section}[${index}].amount`)}
                 placeholder="e.g., 5000"
-                required
-                min="0"
-                step="0.01"
+                validation={{ required: "Amount is required", min: { value: 0, message: "Amount must be positive" }, valueAsNumber: true }}
+                disabled={isSubmitting}
               />
             </div>
             <div className="sm:col-span-3">
               <SelectField
                 label="Payment Method"
-                value={cost.paymentMethod}
-                onChange={(e) =>
-                  onCostChange(
-                    section,
-                    cost.id,
-                    "paymentMethod",
-                    e.target.value
-                  )
-                }
+                name={`${section}[${index}].paymentMethod`}
+                register={register}
+                error={getNestedError(errors, `${section}[${index}].paymentMethod`)}
                 options={paymentMethods.map((method) => ({
                   value: method,
                   label: method,
                 }))}
-                required
+                validation={{ required: "Payment method is required" }}
+                disabled={isSubmitting}
               />
             </div>
             <div className="sm:col-span-2">
-              {(cost.paymentMethod === "Bank" ||
-                cost.paymentMethod === "Mobile Banking" ||
-                cost.paymentMethod === "Cash") && (
+              {watch(`${section}[${index}].paymentMethod`) && ( // Watch the paymentMethod for this specific cost
                 <SelectField
                   label="Select Account"
-                  value={cost.accountId}
-                  onChange={(e) =>
-                    onCostChange(section, cost.id, "accountId", e.target.value)
-                  }
+                  name={`${section}[${index}].accountId`}
+                  register={register}
+                  error={getNestedError(errors, `${section}[${index}].accountId`)}
                   options={accounts
-                    .filter((acc) => acc.accountType === cost.paymentMethod)
+                    .filter(
+                      (acc) =>
+                        acc.accountType ===
+                        watch(`${section}[${index}].paymentMethod`)
+                    )
                     .map((acc) => {
                       let label = "";
                       if (acc.accountType === "Bank") {
-                        label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
+                        label = `${acc.bankName || 'N/A'} (${acc.accountHolderName || 'N/A'}) - ${acc.accountNumber || 'N/A'}`;
                       } else if (acc.accountType === "Mobile Banking") {
-                        label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
+                        label = `${acc.serviceName || 'N/A'} (${acc.accountHolderName || 'N/A'}) - ${acc.mobileNumber || 'N/A'}`;
                       } else if (acc.accountType === "Cash") {
-                        label = `${acc.accountName} (${acc.accountHolderName})`;
+                        label = `${acc.accountName || acc.accountType} (${acc.accountHolderName || 'N/A'})`;
                       }
                       return { value: acc._id, label: label };
                     })}
                   placeholder="Choose account"
-                  required
+                  validation={{ required: "Account is required" }}
+                  disabled={isSubmitting}
                 />
               )}
             </div>
             <div className="sm:col-span-1 flex items-end justify-end">
-              <button
+              <Button
                 type="button"
-                onClick={() => onRemoveCost(cost.id)}
-                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                onClick={() => remove(index)}
+                variant="subtle"
+                className="!p-2 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]"
                 aria-label="Remove cost"
+                disabled={isSubmitting}
               >
                 <Trash2 className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </motion.div>
         ))}
       </AnimatePresence>
 
-      <button
+      <Button
         type="button"
-        onClick={onAddCost}
-        className="flex items-center justify-center space-x-2 px-4 py-2 w-full border border-dashed border-gray-400 text-gray-600 rounded-lg hover:bg-gray-100 hover:border-gray-500 hover:text-gray-800 transition-colors"
+        onClick={() => append({ name: "", amount: 0, paymentMethod: "Cash", accountId: "" })}
+        variant="secondary"
+        className="w-full border-dashed border-gray-400 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+        disabled={isSubmitting}
       >
-        <Plus className="w-4 h-4" />
+        <Plus className="w-4 h-4 mr-2" />
         <span>Add Cost</span>
-      </button>
+      </Button>
     </div>
   );
 };
 
 CostsSection.propTypes = {
-  onCostChange: PropTypes.func.isRequired,
-  onAddCost: PropTypes.func.isRequired,
-  onRemoveCost: PropTypes.func.isRequired,
+  control: PropTypes.object.isRequired,
+  register: PropTypes.func.isRequired,
+  errors: PropTypes.object.isRequired,
+  watch: PropTypes.func.isRequired,
+  section: PropTypes.string.isRequired,
   accounts: PropTypes.array.isRequired,
   paymentMethods: PropTypes.arrayOf(PropTypes.string).isRequired,
   className: PropTypes.string,
+  isSubmitting: PropTypes.bool,
 };
 
 export default memo(CostsSection);

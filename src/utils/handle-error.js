@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
  * @param {Error | { response?: { data?: { message?: string } } }} error - The error object from a try-catch block.
  * @param {string} [defaultMessage] - A fallback message for when the backend doesn't provide one.
  */
-export const handleError = (error, defaultMessage = "An unexpected error occurred.") => {
+export const handleError = (error, defaultMessage = "An unexpected error occurred.", toastId = undefined) => {
   let message;
 
   // Prioritize the specific message from the backend
@@ -19,7 +19,11 @@ export const handleError = (error, defaultMessage = "An unexpected error occurre
     message = defaultMessage;
   }
 
-  toast.error(message);
+  if (toastId) {
+    toast.error(message, { id: toastId });
+  } else {
+    toast.error(message);
+  }
 
   // Log the full error for debugging purposes
   console.error("API Error caught by handleError:", error);

@@ -1,20 +1,21 @@
 import { MapPin, Phone, User, Edit } from "lucide-react";
 import React from "react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // Changed to react-router
 import { useAuth } from "@/context/AuthContext";
+import Button from "@/components/ui/Button"; // Import Button component
 
 const TeamMemberCard = ({ member, onEdit }) => {
-  const {user}=useAuth();
-  const isSuperAdmin= user?.roleName === "SUPER_ADMIN";
+  const { user } = useAuth();
+  const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
   const getRoleColor = (role) => {
     if (!role) return "bg-gray-100 text-gray-800";
     switch (role.toLowerCase()) {
       case "manager":
-        return "bg-blue-100 text-blue-800";
+        return "bg-[var(--color-primary-light)] text-[var(--color-primary)]";
       case "admin":
-        return "bg-red-100 text-white-800";
+        return "bg-[var(--color-danger-light)] text-[var(--color-danger)]";
       case "warehouse keeper":
-        return "bg-green-100 text-green-800";
+        return "bg-[var(--color-success-light)] text-[var(--color-success)]";
       case "accountant":
         return "bg-purple-100 text-purple-800";
       case "sales executive":
@@ -22,7 +23,7 @@ const TeamMemberCard = ({ member, onEdit }) => {
       case "operations coordinator":
         return "bg-pink-100 text-pink-800";
       case "logistics officer":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-[var(--color-warning-light)] text-[var(--color-warning)]";
       case "quality inspector":
         return "bg-teal-100 text-teal-800";
       case "customs officer":
@@ -34,14 +35,17 @@ const TeamMemberCard = ({ member, onEdit }) => {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 relative">
-      {
-        isSuperAdmin &&       <button
-        onClick={() => onEdit(member)}
-        className="absolute top-2 right-2 p-1 bg-gray-100 rounded-full hover:bg-gray-200"
-      >
-        <Edit size={16} />
-      </button>
-      }
+      {isSuperAdmin && (
+        <Button
+          onClick={() => onEdit(member)}
+          variant="subtle"
+          size="sm"
+          className="absolute top-2 right-2 !p-1 bg-gray-100 rounded-full hover:bg-gray-200"
+          aria-label={`Edit ${member?.name}`}
+        >
+          <Edit size={16} />
+        </Button>
+      )}
 
       <Link to={`/team/${member._id}`}>
         <div className="flex items-start justify-between mb-3">

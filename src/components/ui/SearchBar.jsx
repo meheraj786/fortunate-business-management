@@ -17,13 +17,16 @@ const SearchBar = ({ onSearch, placeholder, debounceDelay = 300 }) => {
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
         <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
       </div>
+      <label htmlFor="search-bar" className="sr-only">
+        {placeholder || "Search"}
+      </label>
       <input
+        id="search-bar"
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder || "Search..."}
-        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base transition-shadow"
-        aria-label={placeholder || "Search"}
+        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base transition-shadow"
       />
     </div>
   );

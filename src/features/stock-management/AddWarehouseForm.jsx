@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React, { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { X, Save, Warehouse, MapPin, Loader2 } from "lucide-react";
 import { useCreateWarehouse, useUpdateWarehouse } from "@/api/hooks/warehouse";
 import toast from "react-hot-toast";
+import { useForm } from "react-hook-form"; // Import useForm
 import InputField from "@/components/ui/InputField";
+import Button from "@/components/ui/Button"; // Import Button component
+import { handleError } from "@/utils/handle-error"; // Import handleError
 
 const AddWarehouseForm = ({
   onClose,
@@ -12,62 +15,61 @@ const AddWarehouseForm = ({
   editingWarehouse,
   onWarehouseUpdated,
 }) => {
-  const [formData, setFormData] = useState({ name: "", address: "" });
   const isEditMode = !!editingWarehouse;
 
   const createWarehouseMutation = useCreateWarehouse();
   const updateWarehouseMutation = useUpdateWarehouse();
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting: formSubmitting },
+  } = useForm({
+    defaultValues: {
+      name: "",
+      address: "",
+    },
+  });
+
   useEffect(() => {
     if (isOpen) {
-      if (isEditMode) {
-        setFormData({
+      if (isEditMode && editingWarehouse) {
+        reset({
           name: editingWarehouse.name,
           address: editingWarehouse.location,
         });
       } else {
-        setFormData({ name: "", address: "" });
+        reset({ name: "", address: "" });
       }
     }
-  }, [editingWarehouse, isOpen, isEditMode]);
+  }, [editingWarehouse, isOpen, isEditMode, reset]);
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.address) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
+  const onSubmit = async (data) => {
     const payload = {
-      name: formData.name,
-      location: formData.address,
+      name: data.name,
+      location: data.address,
     };
 
-    if (isEditMode) {
-      updateWarehouseMutation.mutate(
-        { id: editingWarehouse._id, data: payload },
-        {
-          onSuccess: () => {
-            onWarehouseUpdated();
-            onClose();
-          },
-        }
-      );
-    } else {
-      createWarehouseMutation.mutate(payload, {
-        onSuccess: () => {
-          onWarehouseAdded();
-          onClose();
-        },
-      });
+    try {
+      if (isEditMode) {
+        await updateWarehouseMutation.mutateAsync(
+          { id: editingWarehouse._id, data: payload }
+        );
+        onWarehouseUpdated?.(); // Optional callback
+        toast.success("Warehouse updated successfully!");
+      } else {
+        await createWarehouseMutation.mutateAsync(payload);
+        onWarehouseAdded?.(); // Optional callback
+        toast.success("Warehouse created successfully!");
+      }
+      onClose();
+    } catch (error) {
+      handleError(error, `Failed to ${isEditMode ? "update" : "create"} warehouse.`);
     }
   };
 
-  const isSubmitting = createWarehouseMutation.isLoading || updateWarehouseMutation.isLoading;
+  const isSubmitting = createWarehouseMutation.isLoading || updateWarehouseMutation.isLoading || formSubmitting;
 
   return (
     <AnimatePresence>
@@ -76,18 +78,18 @@ const AddWarehouseForm = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           onClick={onClose}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: 0 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            exit={{ opacity: 0, scale: 0.9, y: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-[#003b75] text-white p-6">
+            <div className="bg-[var(--color-primary)] text-white p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <Warehouse className="w-6 h-6" />
@@ -95,68 +97,68 @@ const AddWarehouseForm = ({
                     <h2 className="text-xl font-bold">
                       {isEditMode ? "Edit Warehouse" : "Add New Warehouse"}
                     </h2>
-                    <p className="text-blue-100 text-sm">
+                    <p className="text-[var(--color-primary-light)] text-sm">
                       {isEditMode
                         ? "Update the details of the warehouse"
                         : "Enter details of the new warehouse"}
                     </p>
                   </div>
                 </div>
-                <button
+                <Button
                   onClick={onClose}
-                  className="p-2 hover:bg-blue-700 rounded-lg transition-colors duration-200"
+                  variant="subtle"
+                  className="!p-2 hover:bg-[var(--color-primary-hover)] rounded-lg transition-colors"
                   aria-label="Close"
                   disabled={isSubmitting}
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
             </div>
 
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <InputField
                   label="Warehouse Name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  required
+                  name="name"
+                  register={register}
+                  error={errors.name?.message}
+                  validation={{ required: "Warehouse name is required" }}
                   placeholder="e.g., Main Warehouse"
                   icon={Warehouse}
                   disabled={isSubmitting}
                 />
                 <InputField
                   label="Warehouse Address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  required
+                  name="address"
+                  register={register}
+                  error={errors.address?.message}
+                  validation={{ required: "Warehouse address is required" }}
                   placeholder="e.g., 123 Industrial Park, Dhaka"
                   icon={MapPin}
                   disabled={isSubmitting}
                 />
                 <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-gray-200">
-                  <button
+                  <Button
                     type="button"
                     onClick={onClose}
                     disabled={isSubmitting}
-                    className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 disabled:opacity-50"
+                    variant="secondary"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4 mr-2" />
                     <span>Cancel</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-6 py-2 bg-[#003b75] text-white rounded-lg hover:bg-[#002a54] transition-colors duration-200 font-medium flex items-center justify-center space-x-2 disabled:opacity-50"
+                    isLoading={isSubmitting}
+                    variant="primary"
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
+                    <Save className="w-4 h-4 mr-2" />
                     <span>
                       {isSubmitting ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update Warehouse" : "Save Warehouse")}
                     </span>
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
