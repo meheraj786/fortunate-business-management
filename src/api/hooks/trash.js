@@ -19,7 +19,7 @@ export const useMoveToTrash = () => {
       qc.invalidateQueries({ queryKey: ["trash"] });
       qc.invalidateQueries(); 
     },
-    onError: (error) => handleError(error, "Failed to move to trash."),
+    onError: (error) => handleError(error, "Failed to move to trash.", "trashError"),
   });
 };
 
@@ -33,7 +33,7 @@ export const useRestoreFromTrash = () => {
       qc.invalidateQueries({ queryKey: ["trash"] });
       qc.invalidateQueries();
     },
-    onError: (error) => handleError(error, "Failed to restore from trash."),
+    onError: (error) => handleError(error, "Failed to restore from trash.", "trashError"),
   });
 };
 
@@ -45,7 +45,7 @@ export const useDeleteTrashPermanently = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["trash"] });
     },
-    onError: (error) => handleError(error, "Failed to delete permanently."),
+    onError: (error) => handleError(error, "Failed to delete permanently.", "trashError"),
   });
 };
 

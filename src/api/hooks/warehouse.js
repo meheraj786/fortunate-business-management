@@ -21,10 +21,9 @@ export const useCreateWarehouse = () => {
   return useMutation({
     mutationFn: api.createWarehouse,
     onSuccess: () => {
-      toast.success("Warehouse created successfully!");
       qc.invalidateQueries({ queryKey: ["warehouses"] });
     },
-    onError: (error) => handleError(error, "Failed to create warehouse."),
+    onError: (error) => handleError(error, "Failed to create warehouse.", "warehouseError"),
   });
 };
 
@@ -33,11 +32,10 @@ export const useUpdateWarehouse = () => {
   return useMutation({
     mutationFn: ({ id, data }) => api.updateWarehouse(id, data),
     onSuccess: (_, { id }) => {
-      toast.success("Warehouse updated successfully!");
       qc.invalidateQueries({ queryKey: ["warehouses"] });
       qc.invalidateQueries({ queryKey: ["warehouses", id] });
     },
-    onError: (error) => handleError(error, "Failed to update warehouse."),
+    onError: (error) => handleError(error, "Failed to update warehouse.", "warehouseError"),
   });
 };
 
@@ -46,9 +44,8 @@ export const useDeleteWarehouse = () => {
   return useMutation({
     mutationFn: api.deleteWarehouse,
     onSuccess: () => {
-      toast.success("Warehouse deleted successfully!");
       qc.invalidateQueries({ queryKey: ["warehouses"] });
     },
-    onError: (error) => handleError(error, "Failed to delete warehouse."),
+    onError: (error) => handleError(error, "Failed to delete warehouse.", "warehouseError"),
   });
 };

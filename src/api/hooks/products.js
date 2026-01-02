@@ -42,7 +42,7 @@ export const useCreateProduct = (warehouseId) => {
       qc.invalidateQueries({ queryKey: ["products", warehouseId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
     },
-    onError: (error) => handleError(error, "Failed to create product."),
+    onError: (error) => handleError(error, "Failed to create product.", "productError"),
   });
 };
 
@@ -57,7 +57,7 @@ export const useUpdateProduct = (warehouseId, productId) => {
       qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
     },
-    onError: (error) => handleError(error, "Failed to update product."),
+    onError: (error) => handleError(error, "Failed to update product.", "productError"),
   });
 };
 
@@ -72,6 +72,6 @@ export const useDeleteProduct = (warehouseId, productId) => {
       qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
     },
-    onError: (error) => handleError(error, "Failed to delete product."),
+    onError: (error) => handleError(error, "Failed to delete product.", "productError"),
   });
 };

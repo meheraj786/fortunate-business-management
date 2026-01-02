@@ -38,7 +38,7 @@ export const useCreateTransaction = () => {
   return useMutation({
     mutationFn: api.createTransaction,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
-    onError: (error) => handleError(error, "Failed to create transaction."),
+    onError: (error) => handleError(error, "Failed to create transaction.", "transactionError"),
   });
 };
 
@@ -47,6 +47,6 @@ export const useDeleteTransaction = () => {
   return useMutation({
     mutationFn: api.deleteTransaction,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
-    onError: (error) => handleError(error, "Failed to delete transaction."),
+    onError: (error) => handleError(error, "Failed to delete transaction.", "transactionError"),
   });
 };

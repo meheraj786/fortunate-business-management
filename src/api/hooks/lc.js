@@ -41,9 +41,8 @@ export const useCreateLC = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lcs", "summary"] });
       qc.invalidateQueries({ queryKey: ["lcs", "counts"] });
-      toast.success("LC created successfully!");
     },
-    onError: (error) => handleError(error, "Failed to create LC."),
+    onError: (error) => handleError(error, "Failed to create LC.", "lcError"),
   });
 };
 
@@ -56,9 +55,8 @@ export const useUpdateLC = (id) => {
       qc.invalidateQueries({ queryKey: ["lcs", "summary"] });
       qc.invalidateQueries({ queryKey: ["lcs", "counts"] });
       qc.invalidateQueries({ queryKey: ["lcs", id] });
-      toast.success("LC updated successfully!");
     },
-    onError: (error) => handleError(error, "Failed to update LC."),
+    onError: (error) => handleError(error, "Failed to update LC.", "lcError"),
   });
 };
 
@@ -71,7 +69,7 @@ export const useDeleteLC = () => {
       qc.invalidateQueries({ queryKey: ["lcs"] });
       toast.success("LC deleted successfully.");
     },
-    onError: (error) => handleError(error, "Failed to delete LC."),
+    onError: (error) => handleError(error, "Failed to delete LC.", "lcError"),
   });
 };
 
@@ -86,7 +84,7 @@ export const useAddExpenseToLC = () => {
       qc.invalidateQueries({ queryKey: ["lcs", "summary"] }); // to update total cost
       toast.success("Cost added successfully!");
     },
-    onError: (error) => handleError(error, "Failed to add cost."),
+    onError: (error) => handleError(error, "Failed to add cost.", "lcError"),
   });
 };
 
@@ -105,5 +103,5 @@ export const useExportLC = (lcId, lcNumber) =>
       window.URL.revokeObjectURL(url);
       toast.success("LC exported as PDF successfully!");
     },
-    onError: (error) => handleError(error, "Failed to export LC."),
+    onError: (error) => handleError(error, "Failed to export LC.", "lcError"),
   });

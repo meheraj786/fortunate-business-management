@@ -22,10 +22,9 @@ export const useGenerateInvoice = () => {
   return useMutation({
     mutationFn: api.generateInvoice,
     onSuccess: (_, { saleId }) => {
-      toast.success("Invoice generated successfully!");
       qc.invalidateQueries({ queryKey: ["invoices", "sale", saleId] });
       qc.invalidateQueries({ queryKey: ["sales", saleId] });
     },
-    onError: (error) => handleError(error, "Failed to generate invoice."),
+    onError: (error) => handleError(error, "Failed to generate invoice.", "invoiceError"),
   });
 };

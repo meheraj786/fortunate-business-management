@@ -21,7 +21,7 @@ export const useCreateUnit = () => {
     mutationFn: api.createUnit,
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["units"] }),
-    onError: (error) => handleError(error, "Failed to create unit."),
+    onError: (error) => handleError(error, "Failed to create unit.", "unitError"),
   });
 };
 
@@ -31,7 +31,7 @@ export const useUpdateUnit = () => {
     mutationFn: ({ id, data }) => api.updateUnit(id, data),
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["units"] }),
-    onError: (error) => handleError(error, "Failed to update unit."),
+    onError: (error) => handleError(error, "Failed to update unit.", "unitError"),
   });
 };
 
@@ -41,6 +41,6 @@ export const useDeleteUnit = () => {
     mutationFn: api.deleteUnit,
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["units"] }),
-    onError: (error) => handleError(error, "Failed to delete unit."),
+    onError: (error) => handleError(error, "Failed to delete unit.", "unitError"),
   });
 };

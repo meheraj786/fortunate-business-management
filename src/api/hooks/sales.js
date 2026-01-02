@@ -42,10 +42,9 @@ export const useCreateSale = () => {
   return useMutation({
     mutationFn: api.createSale,
     onSuccess: () => {
-      toast.success("Sale created successfully!");
       qc.invalidateQueries({ queryKey: ["sales"] });
     },
-    onError: (error) => handleError(error, "Failed to create sale."),
+    onError: (error) => handleError(error, "Failed to create sale.", "salesError"),
   });
 };
 
@@ -54,11 +53,10 @@ export const useUpdateSale = (id) => {
   return useMutation({
     mutationFn: (data) => api.updateSale(id, data),
     onSuccess: () => {
-      toast.success("Sale updated successfully!");
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["sales", id] });
     },
-    onError: (error) => handleError(error, "Failed to update sale."),
+    onError: (error) => handleError(error, "Failed to update sale.", "salesError"),
   });
 };
 
@@ -67,10 +65,9 @@ export const useDeleteSale = () => {
   return useMutation({
     mutationFn: api.deleteSale,
     onSuccess: () => {
-      toast.success("Sale deleted successfully.");
       qc.invalidateQueries({ queryKey: ["sales"] });
     },
-    onError: (error) => handleError(error, "Failed to delete sale."),
+    onError: (error) => handleError(error, "Failed to delete sale.", "salesError"),
   });
 };
 
@@ -79,11 +76,10 @@ export const useCancelSale = () => {
   return useMutation({
     mutationFn: api.cancelSale,
     onSuccess: (_, saleId) => {
-      toast.success("Sale cancelled successfully.");
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["sales", saleId] });
     },
-    onError: (error) => handleError(error, "Failed to cancel sale."),
+    onError: (error) => handleError(error, "Failed to cancel sale.", "salesError"),
   });
 };
 
@@ -92,10 +88,9 @@ export const useAddPartialPayment = (saleId) => {
   return useMutation({
     mutationFn: (data) => api.addPartialPayment(saleId, data),
     onSuccess: () => {
-      toast.success("Payment added successfully!");
       qc.invalidateQueries({ queryKey: ["sales", saleId] });
       qc.invalidateQueries({ queryKey: ["sales", "summary"] });
     },
-    onError: (error) => handleError(error, "Failed to add payment."),
+    onError: (error) => handleError(error, "Failed to add payment.", "salesError"),
   });
 };

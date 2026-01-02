@@ -34,13 +34,13 @@ export const useProfile = () =>
 export const useLogin = () =>
   useMutation({
     mutationFn: loginUser,
-    onError: (error) => handleError(error, "Login failed."),
+    onError: (error) => handleError(error, "Login failed.", "userError"),
   });
 
 export const useLogout = () =>
   useMutation({
     mutationFn: logoutUser,
-    onError: (error) => handleError(error, "Logout failed."),
+    onError: (error) => handleError(error, "Logout failed.", "userError"),
   });
 
 export const useUsers = () =>
@@ -96,7 +96,7 @@ export const useUpdateUser = () => {
         }
       }
     },
-    onError: (error) => handleError(error, "Failed to update user."),
+    onError: (error) => handleError(error, "Failed to update user.", "userError"),
   });
 };
 
@@ -108,6 +108,6 @@ export const useCreateUser = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: (error) => handleError(error, "Failed to create user."),
+    onError: (error) => handleError(error, "Failed to create user.", "userError"),
   });
 };
