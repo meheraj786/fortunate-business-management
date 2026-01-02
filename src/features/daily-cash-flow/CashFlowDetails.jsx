@@ -55,6 +55,8 @@ const CashFlowDetails = ({
     totalExpenses,
     runningBalance,
     totalTransactions,
+    totalIncomeTransactionsCount,
+    totalExpenseTransactionsCount,
   } = summary;
 
   return (
@@ -73,14 +75,14 @@ const CashFlowDetails = ({
           amount={totalIncome}
           icon={TrendingUp}
           color="green"
-          subtitle={`${summary.incomeTransactionsCount || 0} transactions`}
+          subtitle={`${totalIncomeTransactionsCount || 0} transactions`}
         />
         <StatCard
           title="Total Expenses"
           amount={totalExpenses}
           icon={TrendingDown}
           color="red"
-          subtitle={`${summary.expenseTransactionsCount || 0} transactions`}
+          subtitle={`${totalExpenseTransactionsCount || 0} transactions`}
         />
         <StatCard
           title="Running Balance"

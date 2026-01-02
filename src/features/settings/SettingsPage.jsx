@@ -26,7 +26,7 @@ const Settings = () => {
                       className={({ isActive }) =>
                         `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${
                           isActive
-                            ? "text-gray-900 bg-gray-100"
+                            ? "text-white bg-[rgb(0,51,102)]"
                             : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                         }`
                       }
@@ -39,7 +39,7 @@ const Settings = () => {
                       className={({ isActive }) =>
                         `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${
                           isActive
-                            ? "text-gray-900 bg-gray-100"
+                            ? "text-white bg-[rgb(0,51,102)]"
                             : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                         }`
                       }

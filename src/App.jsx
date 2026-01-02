@@ -5,7 +5,6 @@ import { Toaster } from "react-hot-toast";
 import LoginPage from "@/features/login/LoginPage";
 import Layout from "@/components/layout/Layout";
 import PrivateRoute from "@/routes/PrivateRoutes";
-import Loading from "@/components/layout/Loading";
 import { useAuth } from "./context/AuthContext";
 
 // Lazy-loaded components
@@ -35,12 +34,6 @@ const UnitsSettingsPage = lazy(() => import("@/features/settings/UnitsSettingsPa
 const AccountDetailsPage = lazy(() => import("@/features/accounts/AccountDetailsPage"));
 const TrashPage = lazy(() => import("./features/trash/TrashPage"));
 
-const createSuspense = (Component) => (
-  <Suspense fallback={<Loading />}>
-    <Component />
-  </Suspense>
-);
-
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   {
@@ -51,39 +44,39 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
     children: [
-      { path: "lc-management", element: createSuspense(LCPage) },
-      { path: "customers", element: createSuspense(CustomersPage) },
+      { path: "lc-management", element: <LCPage /> },
+      { path: "customers", element: <CustomersPage /> },
       {
         path: "settings",
-        element: createSuspense(SettingsPage),
+        element: <SettingsPage />,
         children: [
-          { index: true, element: createSuspense(CategorySettingsPage) },
-          { path: "units", element: createSuspense(UnitsSettingsPage) },
+          { index: true, element: <CategorySettingsPage /> },
+          { path: "units", element: <UnitsSettingsPage /> },
         ],
       },
-      { path: "lc-details/:id", element: createSuspense(LCDetailsPage) },
-      { path: "customer-details/:id", element: createSuspense(CustomerDetailsPage) },
-      { path: "stock-management", element: createSuspense(StockManagementPage) },
-      { path: "stock/:warehouseId", element: createSuspense(WarehouseStockPage) },
-      { path: "stock/:warehouseId/product/:productId", element: createSuspense(ProductDetailsPage) },
-      { path: "team", element: createSuspense(TeamPage) },
-      { path: "team/:id", element: createSuspense(TeamDetailsPage) },
-      { index: true, element: createSuspense(SalesDashboardPage) },
-      { path: "sales", element: createSuspense(SalesDashboardPage) },
-      { path: "sales/not-invoiced", element: createSuspense(NotInvoicedSalesPage) },
-      { path: "sales/due-invoices", element: createSuspense(DueInvoicesPage) },
-      { path: "sales/paid-invoices", element: createSuspense(PaidInvoicesPage) },
-      { path: "sales/cancelled", element: createSuspense(CancelledSalesPage) },
-      { path: "sales/:id", element: createSuspense(SaleDetailsPage) },
-      { path: "sales/:id/invoice/:invoiceId", element: createSuspense(DisplayInvoicePage) },
-      { path: "daily-cash-flow", element: createSuspense(DailyCashFlowPage) },
-      { path: "accounts", element: createSuspense(AccountsPage) },
-      { path: "accounts/:accountId", element: createSuspense(AccountDetailsPage) },
-      { path: "lc-form", element: createSuspense(LCFormPage) },
-      { path: "lc-form/:id", element: createSuspense(LCFormPage) },
-      { path: "customer-form", element: createSuspense(CustomerFormPage) },
-      { path: "customer-form/:id", element: createSuspense(CustomerFormPage) },
-      { path: "trash/:moduleName", element: createSuspense(TrashPage) },
+      { path: "lc-details/:id", element: <LCDetailsPage /> },
+      { path: "customer-details/:id", element: <CustomerDetailsPage /> },
+      { path: "stock-management", element: <StockManagementPage /> },
+      { path: "stock/:warehouseId", element: <WarehouseStockPage /> },
+      { path: "stock/:warehouseId/product/:productId", element: <ProductDetailsPage /> },
+      { path: "team", element: <TeamPage /> },
+      { path: "team/:id", element: <TeamDetailsPage /> },
+      { index: true, element: <SalesDashboardPage /> },
+      { path: "sales", element: <SalesDashboardPage /> },
+      { path: "sales/not-invoiced", element: <NotInvoicedSalesPage /> },
+      { path: "sales/due-invoices", element: <DueInvoicesPage /> },
+      { path: "sales/paid-invoices", element: <PaidInvoicesPage /> },
+      { path: "sales/cancelled", element: <CancelledSalesPage /> },
+      { path: "sales/:id", element: <SaleDetailsPage /> },
+      { path: "sales/:id/invoice/:invoiceId", element: <DisplayInvoicePage /> },
+      { path: "daily-cash-flow", element: <DailyCashFlowPage /> },
+      { path: "accounts", element: <AccountsPage /> },
+      { path: "accounts/:accountId", element: <AccountDetailsPage /> },
+      { path: "lc-form", element: <LCFormPage /> },
+      { path: "lc-form/:id", element: <LCFormPage /> },
+      { path: "customer-form", element: <CustomerFormPage /> },
+      { path: "customer-form/:id", element: <CustomerFormPage /> },
+      { path: "trash/:moduleName", element: <TrashPage /> },
     ],
   },
 ]);
