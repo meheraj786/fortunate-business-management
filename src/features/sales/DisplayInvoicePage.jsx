@@ -1,12 +1,21 @@
-import React from "react";
 import { useNavigate, useParams } from "react-router";
-import { Printer, ArrowLeft, Download, Mail, Share2 } from "lucide-react";
-import { useInvoice } from "@/api/hooks/invoice";
+import { getInvoiceAsPNG, getInvoiceAsPDF } from "@/api/invoice.api.js";
 import DisplayInvoiceSkeleton from "./components/DisplayInvoiceSkeleton";
+import { formatDate, formatNumber } from "@/utils/format";
+import { useInvoice } from "@/api/hooks/invoice";
+import { AlertTriangle, ArrowLeft, FileX, Printer, Share2 } from "lucide-react";
+import React from "react";
+import Button from "@/components/ui/Button";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+
+// Helper to format currency
+const formatCurrency = (amount) => `BDT ${formatNumber(amount)}`;
 
 const DisplayInvoice = () => {
   const navigate = useNavigate();
   const { invoiceId } = useParams();
+  const [isSharing, setIsSharing] = React.useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = React.useState(false);
 
   const {
     data: invoiceData,
@@ -16,47 +25,125 @@ const DisplayInvoice = () => {
   } = useInvoice(invoiceId);
   const invoice = invoiceData?.data;
 
-  const handlePrint = () => {
-    window.print();
+
+  const handleDownloadPDF = async () => {
+    setIsDownloadingPDF(true);
+    try {
+      const response = await getInvoiceAsPDF(invoiceId);
+
+      // --- TEMPORARY DEBUGGING ---
+      // Check if the backend sent a PDF or an HTML error page
+      if (response.headers['content-type'].includes('text/html')) {
+        console.error('Backend did not return a PDF. It returned HTML, likely an error page.');
+        const errorText = await response.data.text(); // Read the HTML content
+        console.error('HTML content from backend:', errorText);
+        alert('Backend Error: The server failed to generate the PDF and returned an error page. Check the browser console for details.');
+        setIsDownloadingPDF(false);
+        return; // Stop execution
+      }
+      // --- END OF DEBUGGING ---
+
+      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${invoice.invoiceId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error('PDF Download request failed:', err);
+      alert('Could not download the PDF. Please try again.');
+    } finally {
+      setIsDownloadingPDF(false);
+    }
   };
 
+
+
+  const shareInvoice = async () => {
+    if (!navigator.share) {
+      alert('Web Share is not supported on your browser. Try on a mobile device.');
+      return;
+    }
+
+    setIsSharing(true);
+    try {
+      // Use the centralized API function which returns a blob
+      const response = await getInvoiceAsPNG(invoiceId);
+      const imageBlob = response.data; // Axios wraps the blob in the 'data' property
+
+      const imageFile = new File([imageBlob], `invoice-${invoice.invoiceId}.png`, { type: 'image/png' });
+
+      if (!navigator.canShare || !navigator.canShare({ files: [imageFile] })) {
+        throw new Error("Your browser doesn't support sharing this file type.");
+      }
+
+      await navigator.share({
+        files: [imageFile],
+        title: `Invoice ${invoice.invoiceId}`,
+        text: `Invoice for ${invoice.customerDetails.name}`,
+      });
+
+    } catch (err) {
+      console.error('Share failed:', err);
+      alert(`Could not share invoice: ${err.message}`);
+    }
+    finally {
+      setIsSharing(false);
+    }
+  };
+
+  // --- Render States ---
   if (isLoading) {
     return <DisplayInvoiceSkeleton />;
   }
 
   if (isError) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <p className="text-2xl font-bold text-red-600 mb-4">Error</p>
-          <p className="text-gray-700 mb-4">{error.message}</p>
-          <button
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center text-primary hover:text-primary-hover hover:underline"
-          >
-            <ArrowLeft size={16} className="mr-1" /> Go Back
-          </button>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
+        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          Error Loading Invoice
+        </h2>
+        <p className="text-gray-600 mb-6 max-w-md">
+          {error?.message || "Something went wrong while fetching the invoice data."}
+        </p>
+        <Button
+          onClick={() => navigate(-1)}
+          variant="primary"
+        >
+          <ArrowLeft size={16} className="mr-2" /> Go Back
+        </Button>
       </div>
     );
   }
 
   if (!invoice) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <p className="text-2xl font-bold mb-4">Invoice Data Not Found</p>
-          <button
-            onClick={() => navigate("/sales")}
-            className="inline-flex items-center text-primary hover:text-primary-hover hover:underline"
-          >
-            <ArrowLeft size={16} className="mr-1" /> Back to Sales
-          </button>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
+        <FileX className="w-16 h-16 text-gray-500 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          Invoice Not Found
+        </h2>
+        <p className="text-gray-600 mb-6 max-w-md">
+          The invoice you are looking for does not exist or could not be loaded.
+        </p>
+        <Button
+          onClick={() => navigate("/sales")}
+          variant="primary"
+        >
+          <ArrowLeft size={16} className="mr-2" /> Back to Sales
+        </Button>
       </div>
     );
   }
 
+  // --- Data Destructuring ---
   const {
     productDetails,
     customerDetails,
@@ -65,180 +152,214 @@ const DisplayInvoice = () => {
     salesDate,
     invoiceGeneratedDate,
     notes,
-    _id: fetchedInvoiceId,
+    invoiceId: invoiceNumber,
   } = invoice;
-  const totalPayments = paymentAndAmountInfo.payments.reduce(
-    (sum, p) => sum + p.amount,
-    0
-  );
-  const balanceDue = paymentAndAmountInfo.totalAmountToBePaid - totalPayments;
 
+  const {
+    totalAmount,
+    charges = [],
+    costs = [],
+    discount = 0,
+    totalAmountToBePaid,
+    payments = [],
+  } = paymentAndAmountInfo;
+
+  const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
+  const balanceDue = totalAmountToBePaid - totalPayments;
+  const paymentStatus =
+    balanceDue <= 0
+      ? "Paid"
+      : totalPayments > 0
+      ? "Partially Paid"
+      : "Unpaid";
+
+  // --- JSX ---
   return (
-    <div className="">
-      <div className="flex flex-col lg:flex-row">
-        <div className="flex-grow p-4 sm:p-8 print-area">
-          <div className="max-w-4xl mx-auto bg-white p-8 sm:p-12 rounded-lg shadow-lg">
-            <div className="flex justify-between items-start pb-8 border-b">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">INVOICE</h1>
-                <p className="text-gray-500">#{fetchedInvoiceId.slice(-6)}</p>
-              </div>
-              <div className="text-right">
-                <h2 className="text-2xl font-semibold text-gray-800">
-                  Your Company
-                </h2>
-                <p className="text-gray-600">123 Business Rd, Dhaka</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-8 py-8">
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Bill To:</h3>
-                <p className="font-medium text-gray-900">
-                  {customerDetails.name}
-                </p>
-                <p className="text-gray-600">{customerDetails.phone}</p>
-                <p className="text-gray-600">{customerDetails.address}</p>
-              </div>
-              <div className="text-right">
-                <p>
-                  <span className="font-semibold">Sale ID:</span> #
-                  {salesId.slice(-6)}
-                </p>
-                <p>
-                  <span className="font-semibold">Sale Date:</span>{" "}
-                  {new Date(salesDate).toLocaleDateString()}
-                </p>
-                <p>
-                  <span className="font-semibold">Generated:</span>{" "}
-                  {new Date(invoiceGeneratedDate).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-            <table className="w-full mb-8">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left p-3 font-medium text-gray-600">
-                    Product
-                  </th>
-                  <th className="text-center p-3 font-medium text-gray-600">
-                    Quantity
-                  </th>
-                  <th className="text-right p-3 font-medium text-gray-600">
-                    Unit Price
-                  </th>
-                  <th className="text-right p-3 font-medium text-gray-600">
-                    Total
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b">
-                  <td className="p-3">{productDetails.name}</td>
-                  <td className="text-center p-3">
-                    {productDetails.quantity}{" "}
-                    {productDetails.unit?.name || productDetails.unit}
-                  </td>
-                  <td className="text-right p-3">
-                    ${productDetails.pricePerUnit.toFixed(2)}
-                  </td>
-                  <td className="text-right p-3">
-                    $
-                    {(
-                      productDetails.pricePerUnit * productDetails.quantity
-                    ).toFixed(2)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div className="flex justify-end">
-              <div className="w-full max-w-xs space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal:</span>
-                  <span>${paymentAndAmountInfo.totalAmount.toFixed(2)}</span>
-                </div>
-                {paymentAndAmountInfo.charges?.map((charge, i) => (
-                  <div key={i} className="flex justify-between">
-                    <span className="text-gray-600">{charge.name}:</span>
-                    <span>${charge.amount.toFixed(2)}</span>
-                  </div>
-                ))}
-                {paymentAndAmountInfo.costs?.map((cost, i) => (
-                  <div key={i} className="flex justify-between">
-                    <span className="text-gray-600">{cost.name}:</span>
-                    <span>${cost.amount.toFixed(2)}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Discount:</span>
-                  <span className="text-green-600">
-                    -${paymentAndAmountInfo.discount.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between font-bold border-t pt-2">
-                  <span className="text-gray-900">Net Amount:</span>
-                  <span className="text-gray-900">
-                    ${paymentAndAmountInfo.totalAmountToBePaid.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Payments Made:</span>
-                  <span>${totalPayments.toFixed(2)}</span>
-                </div>
-                <div
-                  className={`flex justify-between font-bold text-lg pt-2 border-t ${
-                    balanceDue > 0 ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  <span>
-                    {balanceDue > 0 ? "Balance Due:" : "Overpayment:"}
-                  </span>
-                  <span>${Math.abs(balanceDue).toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-            {notes && (
-              <div className="mt-12 pt-8 border-t">
-                <h3 className="font-semibold text-gray-700 mb-2">Notes:</h3>
-                <p className="text-gray-600 text-sm">{notes}</p>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="w-full lg:w-80 bg-white lg:h-screen p-6 no-print">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Actions</h3>
-            <button
-              onClick={() => navigate(`/sales/${salesId}`)}
-              className="w-full inline-flex items-center justify-center bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300"
+    <div className="bg-gray-100 min-h-screen font-sans">
+      {/* --- Actions Bar (No Print) --- */}
+      <div className="py-4 px-4 sm:px-6 lg:px-8 bg-white border-b print:hidden">
+        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
+           <div className="flex items-center gap-4">
+             <Button
+              variant="subtle"
+              onClick={() => navigate(-1)}
+              className="flex items-center text-gray-700 hover:text-black"
             >
-              <ArrowLeft size={16} className="mr-2" />
-              Back to Sale Details
-            </button>
-            <button
-              onClick={handlePrint}
-              className="w-full inline-flex items-center justify-center bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover"
-            >
-              <Printer size={16} className="mr-2" />
-              Print / Save as PDF
-            </button>
-            <button className="w-full inline-flex items-center justify-center border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">
-              <Download size={16} className="mr-2" />
-              Download
-            </button>
-            <button className="w-full inline-flex items-center justify-center border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">
-              <Mail size={16} className="mr-2" />
-              Send via Email
-            </button>
-            <button className="w-full inline-flex items-center justify-center border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">
-              <Share2 size={16} className="mr-2" />
-              Share
-            </button>
+              <ArrowLeft size={18} className="mr-1" />
+              Back
+            </Button>
+             <p className="text-lg font-bold">Invoice {invoiceNumber}</p>
+           </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="primary" onClick={handleDownloadPDF} isLoading={isDownloadingPDF}>
+                <Printer size={14} /><span>Print / Save as PDF</span>
+            </Button>
+            <Button variant="secondary" onClick={shareInvoice} isLoading={isSharing}>
+                <Share2 size={14} /><span>Share</span>
+            </Button>
           </div>
         </div>
       </div>
-      <style>{`@media print { .no-print { display: none; } .print-area { position: absolute; left: 0; top: 0; width: 100%; height: 100%; padding: 0; margin: 0; } body { -webkit-print-color-adjust: exact; } }`}</style>
+
+      {/* --- Breadcrumb --- */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 print:hidden">
+        <Breadcrumb
+          items={[
+            { label: "Home", path: "/" },
+            { label: "Sales", path: "/sales" },
+            { label: `Invoice ${invoiceNumber}`, path: `/sales/invoice/${invoiceId}` },
+          ]}
+        />
+      </div>
+
+      {/* --- Invoice Paper --- */}
+      <main className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto bg-white shadow-lg" id="invoice-paper">
+           <article className="p-6 sm:p-12 text-sm">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
+              <div className="flex flex-col mb-4 sm:mb-0">
+                 <h1 className="text-3xl font-bold text-black">INVOICE</h1>
+                 <p className="text-gray-600"># {invoiceNumber}</p>
+              </div>
+              <div className="text-left sm:text-right">
+                <h2 className="text-xl font-bold text-black">Fortunate Business Management</h2>
+                <p className="text-gray-600">123 Business Rd, Dhaka, Bangladesh</p>
+                <p className="text-gray-600">contact@yourcompany.com</p>
+              </div>
+            </div>
+
+            {/* Bill To & Invoice Details */}
+            <div className="grid sm:grid-cols-2 gap-8 mb-12">
+              <div>
+                <h3 className="font-semibold text-gray-800 mb-2">Bill To</h3>
+                <p className="font-bold text-black">{customerDetails.name}</p>
+                <p className="text-gray-600">{customerDetails.address}</p>
+                <p className="text-gray-600">{customerDetails.phone}</p>
+              </div>
+              <div className="text-left sm:text-right">
+                <div>
+                    <p><span className="font-semibold text-gray-800">Invoice Date:</span> {formatDate(invoiceGeneratedDate)}</p>
+                    <p><span className="font-semibold text-gray-800">Sale Date:</span> {formatDate(salesDate)}</p>
+                    <p><span className="font-semibold text-gray-800">Sale ID:</span> #{salesId.slice(-6)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Items Table */}
+            <div className="overflow-x-auto mb-12">
+              <table className="w-full">
+                <thead className="border-b-2 border-black">
+                  <tr>
+                    <th className="p-1 sm:p-2 text-left font-bold text-black">Item</th>
+                    <th className="p-1 sm:p-2 text-center font-bold text-black">Qty</th>
+                    <th className="p-1 sm:p-2 text-right font-bold text-black">Unit Price</th>
+                    <th className="p-1 sm:p-2 text-right font-bold text-black">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-200">
+                    <td className="p-1 sm:p-2 align-top">
+                      <p className="font-semibold text-black">{productDetails.name}</p>
+                      <p className="text-gray-600">{productDetails.category}</p>
+                    </td>
+                    <td className="p-1 sm:p-2 text-center align-top">{productDetails.quantity} {productDetails.unit?.name}</td>
+                    <td className="p-1 sm:p-2 text-right align-top">{formatCurrency(productDetails.pricePerUnit)}</td>
+                    <td className="p-1 sm:p-2 text-right align-top">{formatCurrency(productDetails.pricePerUnit * productDetails.quantity)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Financial Summary */}
+            <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4 sm:gap-x-12 sm:gap-y-8 mb-12">
+               {/* Payments Section */}
+              <div>
+                {payments.length > 0 && (
+                    <>
+                      <h3 className="font-semibold text-gray-800 mb-3 border-b pb-1">Payments Received</h3>
+                      <div className="space-y-2">
+                        {payments.map(p => (
+                          <div key={p._id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                            <p className="text-gray-600">{formatDate(p.date)} - {p.method} ({p.accountDetails.accountName})</p>
+                            <p className="font-semibold text-black text-left sm:text-right">{formatCurrency(p.amount)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                )}
+              </div>
+
+              {/* Totals Section */}
+              <div className="space-y-2">
+                 <div className="flex justify-between">
+                    <p className="text-gray-600">Subtotal:</p>
+                    <p className="font-semibold text-black">{formatCurrency(totalAmount)}</p>
+                </div>
+                {[...charges, ...costs].map((item, i) => (
+                    <div key={i} className="flex justify-between">
+                        <p className="text-gray-600">{item.name}:</p>
+                        <p className="font-semibold text-black">{formatCurrency(item.amount)}</p>
+                    </div>
+                ))}
+                {discount > 0 && (
+                    <div className="flex justify-between">
+                        <p className="text-gray-600">Discount:</p>
+                        <p className="font-semibold text-black">-{formatCurrency(discount)}</p>
+                    </div>
+                )}
+                <div className="flex justify-between pt-2 border-t-2 border-black">
+                    <p className="font-bold text-black text-base">Net Amount:</p>
+                    <p className="font-bold text-black text-base">{formatCurrency(totalAmountToBePaid)}</p>
+                </div>
+                <div className="flex justify-between">
+                    <p className="text-gray-600">Total Paid:</p>
+                    <p className="font-semibold text-black">{formatCurrency(totalPayments)}</p>
+                </div>
+                 <div className="flex justify-between bg-gray-100 p-2 rounded-md">
+                    <p className="font-bold text-black text-base">Balance Due:</p>
+                    <p className="font-bold text-black text-base">{formatCurrency(balanceDue)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {notes && (
+                <div className="mb-12">
+                     <h3 className="font-semibold text-gray-800 mb-2">Notes</h3>
+                     <p className="text-gray-600 whitespace-pre-line">{notes}</p>
+                </div>
+            )}
+            
+            {/* Footer */}
+            <footer className="text-center pt-8 border-t">
+                 <p className="text-gray-600">Thank you for your business.</p>
+            </footer>
+           </article>
+        </div>
+      </main>
+
+       {/* --- Print Styles --- */}
+      <style>{`
+        @media print {
+          body {
+            background-color: #fff;
+          }
+          #invoice-paper {
+            max-width: 100%;
+            margin: 0;
+            box-shadow: none;
+            border: none;
+          }
+          article {
+             padding: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
+
+
 
 export default DisplayInvoice;
