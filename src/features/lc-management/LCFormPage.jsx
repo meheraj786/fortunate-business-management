@@ -144,6 +144,12 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
   } = useForm({
     mode: "onChange",
     defaultValues: useMemo(() => {
+      // Helper function to map populated accountId to its _id in costs
+      const mapCostAccountIds = (cost) => ({
+        ...cost,
+        accountId: cost.accountId?._id || cost.accountId || "",
+      });
+
       if (isEditMode && initialData) {
         return {
           basicInfo: {
@@ -162,32 +168,35 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
             lcAmountUsd: initialData.financialInfo?.lcAmountUsd || 0,
             exchangeRate: initialData.financialInfo?.exchangeRate || 0,
             lcAmountBdt: initialData.financialInfo?.lcAmountBdt || 0,
-            costs: initialData.financialInfo?.costs || [],
+            costs:
+              initialData.financialInfo?.costs?.map(mapCostAccountIds) || [],
           },
-          productInfo: initialData.productInfo?.map((p) => ({
-            ...p,
-            id: p._id || p.id || Math.random(), // Ensure unique ID for field array
-            totalValueUsd:
-              p.totalValueUsd ||
-              (p.quantity && p.unitPriceUsd
-                ? (parseFloat(p.quantity) * parseFloat(p.unitPriceUsd)).toFixed(
-                    2
-                  )
-                : 0),
-          })) || [
-            {
-              id: Math.random(),
-              itemName: "",
-              thickness: "",
-              width: "",
-              length: "",
-              grade: "",
-              quantityUnit: "",
-              quantity: 0,
-              unitPriceUsd: 0,
-              totalValueUsd: 0,
-            },
-          ],
+          productInfo:
+            initialData.productInfo?.map((p) => ({
+              ...p,
+              id: p._id || p.id || Math.random(),
+              quantityUnit: p.quantityUnit?._id || p.quantityUnit || "",
+              totalValueUsd:
+                p.totalValueUsd ||
+                (p.quantity && p.unitPriceUsd
+                  ? (
+                      parseFloat(p.quantity) * parseFloat(p.unitPriceUsd)
+                    ).toFixed(2)
+                  : 0),
+            })) || [
+              {
+                id: Math.random(),
+                itemName: "",
+                thickness: "",
+                width: "",
+                length: "",
+                grade: "",
+                quantityUnit: "",
+                quantity: 0,
+                unitPriceUsd: 0,
+                totalValueUsd: 0,
+              },
+            ],
           shippingCustomsInfo: {
             portOfShipment:
               initialData.shippingCustomsInfo?.portOfShipment || "",
@@ -197,13 +206,17 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                   .toISOString()
                   .split("T")[0]
               : "",
-            costs: initialData.shippingCustomsInfo?.costs || [],
+            costs:
+              initialData.shippingCustomsInfo?.costs?.map(mapCostAccountIds) ||
+              [],
           },
           agentTransportInfo: {
-            costs: initialData.agentTransportInfo?.costs || [],
+            costs:
+              initialData.agentTransportInfo?.costs?.map(mapCostAccountIds) ||
+              [],
           },
           otherExpenses: {
-            costs: initialData.otherExpenses?.costs || [],
+            costs: initialData.otherExpenses?.costs?.map(mapCostAccountIds) || [],
           },
           documentsNotes: {
             note: initialData.documentsNotes?.note || "",
@@ -212,6 +225,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
           },
         };
       }
+      // Default values for new form
       return {
         basicInfo: {
           lcNumber: "",
@@ -362,16 +376,6 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
   const formSubmitting =
     createLCMutation.isLoading || updateLCMutation.isLoading;
 
-  // Initial form values (only for LCFormWrapper's initialData)
-  useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-      if (initialData.documentsNotes?.uploadedDocuments) {
-        setNewUploadedFiles(initialData.documentsNotes.uploadedDocuments);
-      }
-    }
-  }, [initialData, reset]);
-
   const renderProductFields = (field, index) => {
     const productErrors = errors.productInfo?.[index];
     const watchedProduct = watch(`productInfo.${index}`);
@@ -405,30 +409,35 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
             register={register}
             error={productErrors?.itemName?.message}
             validation={{ required: "Item name is required" }}
+            placeholder="e.g., Hot Rolled Steel Coil"
           />
           <InputField
             label="Thickness"
             name={`productInfo.${index}.thickness`}
             register={register}
             error={productErrors?.thickness?.message}
+            placeholder="e.g., 2.5mm"
           />
           <InputField
             label="Width"
             name={`productInfo.${index}.width`}
             register={register}
             error={productErrors?.width?.message}
+            placeholder="e.g., 1250mm"
           />
           <InputField
             label="Length"
             name={`productInfo.${index}.length`}
             register={register}
             error={productErrors?.length?.message}
+            placeholder="e.g., 2500mm or C"
           />
           <InputField
             label="Grade"
             name={`productInfo.${index}.grade`}
             register={register}
             error={productErrors?.grade?.message}
+            placeholder="e.g., JIS G3131 SPHC"
           />
           <SelectField
             label="Unit"
@@ -453,6 +462,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
             onChange={(e) =>
               handleProductInfoChange(index, "quantity", e.target.value)
             }
+            placeholder="e.g., 25"
           />
           <InputField
             label="Price (USD)"
@@ -468,6 +478,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
             onChange={(e) =>
               handleProductInfoChange(index, "unitPriceUsd", e.target.value)
             }
+            placeholder="e.g., 850"
           />
           <InputField
             label="Total (USD)"
@@ -515,6 +526,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                 error={errors.basicInfo?.lcNumber?.message}
                 validation={{ required: "LC Number is required" }}
                 disabled={isEditMode}
+                placeholder="e.g., LC-2024-001"
               />
               <InputField
                 label="LC Opening Date"
@@ -558,6 +570,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                 register={register}
                 error={errors.basicInfo?.supplierName?.message}
                 validation={{ required: "Supplier Name is required" }}
+                placeholder="e.g., Global Steel Inc."
               />
               <InputField
                 label="Supplier Country"
@@ -565,6 +578,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                 register={register}
                 error={errors.basicInfo?.supplierCountry?.message}
                 validation={{ required: "Supplier Country is required" }}
+                placeholder="e.g., South Korea"
               />
             </div>
           )}
@@ -582,6 +596,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                     min: { value: 0, message: "Amount cannot be negative" },
                     valueAsNumber: true,
                   }}
+                  placeholder="e.g., 50000"
                 />
                 <InputField
                   label="Exchange Rate"
@@ -594,6 +609,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                     min: { value: 0, message: "Rate cannot be negative" },
                     valueAsNumber: true,
                   }}
+                  placeholder="e.g., 115.50"
                 />
                 <InputField
                   label="LC Amount (BDT)"
@@ -657,6 +673,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                   name="shippingCustomsInfo.portOfShipment"
                   register={register}
                   error={errors.shippingCustomsInfo?.portOfShipment?.message}
+                  placeholder="e.g., Port of Busan"
                 />
                 <InputField
                   label="Expected Arrival Date"
@@ -712,6 +729,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                 register={register}
                 error={errors.documentsNotes?.note?.message}
                 rows={4}
+                placeholder="Add any relevant notes about the LC, documents, or other details here."
               />
               {isEditMode &&
                 watch("documentsNotes.uploadedDocuments")?.length > 0 && (

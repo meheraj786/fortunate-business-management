@@ -58,16 +58,18 @@ const CostsSection = ({
     return index === 0 ? sectionPlaceholders.first : sectionPlaceholders.other;
   }, []);
 
-  // Helper to get nested error message
-  const getNestedError = useCallback((fieldErrors, path) => {
-    const pathParts = path.split('.');
-    let current = fieldErrors;
-    for (let i = 0; i < pathParts.length; i++) {
-      if (!current) return undefined;
-      current = current[pathParts[i]];
+  // Helper to get nested error message safely
+  const getNestedErrorMessage = useCallback((path) => {
+    const pathParts = path.replace(/\[/g, '.').replace(/\]/g, '').split('.');
+    let current = errors;
+    for (const part of pathParts) {
+      if (current === null || current === undefined) {
+        return undefined;
+      }
+      current = current[part];
     }
     return current?.message;
-  }, []);
+  }, [errors]);
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -90,7 +92,7 @@ const CostsSection = ({
                 label={`Cost Name ${index + 1}`}
                 name={`${section}[${index}].name`}
                 register={register}
-                error={getNestedError(errors, `${section}[${index}].name`)}
+                error={getNestedErrorMessage(`${section}[${index}].name`)}
                 placeholder={getCostNamePlaceholder(section, index)}
                 validation={{ required: "Cost name is required" }}
                 disabled={isSubmitting}
@@ -102,9 +104,9 @@ const CostsSection = ({
                 name={`${section}[${index}].amount`}
                 type="number"
                 register={register}
-                error={getNestedError(errors, `${section}[${index}].amount`)}
+                error={getNestedErrorMessage(`${section}[${index}].amount`)}
                 placeholder="e.g., 5000"
-                validation={{ required: "Amount is required", min: { value: 0, message: "Amount must be positive" }, valueAsNumber: true }}
+                validation={{ required: "Amount is required", min: { value: 0.01, message: "Amount must be positive" }, valueAsNumber: true }}
                 disabled={isSubmitting}
               />
             </div>
@@ -113,7 +115,7 @@ const CostsSection = ({
                 label="Payment Method"
                 name={`${section}[${index}].paymentMethod`}
                 register={register}
-                error={getNestedError(errors, `${section}[${index}].paymentMethod`)}
+                error={getNestedErrorMessage(`${section}[${index}].paymentMethod`)}
                 options={paymentMethods.map((method) => ({
                   value: method,
                   label: method,
@@ -128,7 +130,7 @@ const CostsSection = ({
                   label="Select Account"
                   name={`${section}[${index}].accountId`}
                   register={register}
-                  error={getNestedError(errors, `${section}[${index}].accountId`)}
+                  error={getNestedErrorMessage(`${section}[${index}].accountId`)}
                   options={accounts
                     .filter(
                       (acc) =>
@@ -170,7 +172,7 @@ const CostsSection = ({
 
       <Button
         type="button"
-        onClick={() => append({ name: "", amount: 0, paymentMethod: "Cash", accountId: "" })}
+        onClick={() => append({ name: "", amount: "", paymentMethod: "Cash", accountId: "" })}
         variant="secondary"
         className="w-full border-dashed border-gray-400 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
         disabled={isSubmitting}
