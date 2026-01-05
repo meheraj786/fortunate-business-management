@@ -88,6 +88,20 @@ export const useAddExpenseToLC = () => {
   });
 };
 
+// Delete an LC document
+export const useDeleteLCDocument = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ lcId, docId }) => api.deleteLCDocument(lcId, docId),
+    onSuccess: (data, { lcId }) => {
+      qc.invalidateQueries({ queryKey: ["lcs", lcId] });
+      toast.success("Document deleted successfully.");
+    },
+    onError: (error) =>
+      handleError(error, "Failed to delete document.", "lcError"),
+  });
+};
+
 // Export LC as PDF
 export const useExportLC = (lcId, lcNumber) =>
   useMutation({

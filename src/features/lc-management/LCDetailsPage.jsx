@@ -34,9 +34,13 @@ import DataField from "@/components/ui/DataField";
 import CostField from "@/components/ui/CostField";
 import LCDetailsPageSkeleton from "./components/LCDetailsPageSkeleton";
 
-// Custom Hooks & Utils
+import {
+  useLC,
+  useDeleteLC,
+  useExportLC,
+  useDeleteLCDocument,
+} from "@/api/hooks/lc";
 import { useUrl } from "@/context/UrlProvider";
-import { useLC, useDeleteLC, useExportLC } from "@/api/hooks/lc";
 import { formatNumber, formatDate } from "@/utils/format";
 
 const LCdetails = () => {
@@ -50,6 +54,10 @@ const LCdetails = () => {
     title: "",
     description: "",
   });
+  const [deleteDocModal, setDeleteDocModal] = useState({
+    isOpen: false,
+    docId: null,
+  });
   const [costModal, setCostModal] = useState({ isOpen: false, category: null });
 
   const { data: lcQueryData, isLoading, isError, error, refetch } = useLC(id);
@@ -57,6 +65,7 @@ const LCdetails = () => {
 
   const deleteLCMutation = useDeleteLC();
   const exportLCMutation = useExportLC(id, lcData?.basicInfo?.lcNumber);
+  const deleteDocMutation = useDeleteLCDocument();
 
   const totalProductsValueUsd = useMemo(() => {
     if (!lcData?.productInfo) return 0;
@@ -109,16 +118,19 @@ const LCdetails = () => {
     setCostModal({ isOpen: true, category });
   const handleAddCostSuccess = () => refetch();
 
-  const handleDownload = async (lcId, storedName, originalName) => {
+  const getFileUrl = (lcId, storedName) => {
+    const cleanBaseUrl = baseUrl.endsWith("/")
+      ? baseUrl.slice(0, -1)
+      : baseUrl;
+    return `${cleanBaseUrl}/lc/${lcId}/documents/${storedName}`;
+  };
+
+  const handleDownload = (lcId, storedName, originalName) => {
     try {
-      const cleanBaseUrl = baseUrl.endsWith("/")
-        ? baseUrl.slice(0, -1)
-        : baseUrl;
-      const downloadUrl = `${cleanBaseUrl}/lc/${lcId}/documents/${storedName}`;
+      const downloadUrl = getFileUrl(lcId, storedName);
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.setAttribute("download", originalName);
-      link.setAttribute("target", "_blank");
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -126,6 +138,23 @@ const LCdetails = () => {
     } catch (err) {
       handleError(err, "Failed to download file");
     }
+  };
+
+  const handleDeleteDoc = (docId) => {
+    setDeleteDocModal({ isOpen: true, docId });
+  };
+
+  const handleConfirmDeleteDoc = () => {
+    if (!deleteDocModal.docId) return;
+    deleteDocMutation.mutate(
+      { lcId: id, docId: deleteDocModal.docId },
+      {
+        onSuccess: () => {
+          setDeleteDocModal({ isOpen: false, docId: null });
+          refetch(); // Refetch LC data to update the documents list
+        },
+      }
+    );
   };
 
   if (isLoading) return <LCDetailsPageSkeleton />;
@@ -510,7 +539,7 @@ const LCdetails = () => {
               ariaLabel="Documents and Notes Section"
             >
               <div className="space-y-4">
-                {documentsNotes.uploadedDocuments?.length > 0 && (
+                {documentsNotes.uploadedDocuments?.length > 0 ? (
                   <div>
                     <h3 className="text-sm font-semibold text-gray-700 mb-3">
                       Uploaded Documents
@@ -523,28 +552,51 @@ const LCdetails = () => {
                         >
                           <div className="flex items-center min-w-0">
                             <File className="text-gray-400 mr-3 flex-shrink-0" />
-                            <div className="text-sm font-medium text-gray-700 truncate">
+                            <a
+                              href={getFileUrl(lcData._id, doc.storedName)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm font-medium text-gray-700 truncate hover:text-[var(--color-primary)]"
+                              title={`View ${doc.originalName}`}
+                            >
                               {doc.originalName}
-                            </div>
+                            </a>
                           </div>
-                          <Button
-                            onClick={() =>
-                              handleDownload(
-                                lcData._id,
-                                doc.storedName,
-                                doc.originalName
-                              )
-                            }
-                            variant="subtle"
-                            size="sm"
-                            className="!p-2 text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full"
-                            aria-label="Download document"
-                          >
-                            <Download size={18} />
-                          </Button>
+                          <div className="flex items-center flex-shrink-0">
+                            <Button
+                              onClick={() =>
+                                handleDownload(
+                                  lcData._id,
+                                  doc.storedName,
+                                  doc.originalName
+                                )
+                              }
+                              variant="subtle"
+                              size="sm"
+                              className="!p-2 text-gray-500 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full"
+                              aria-label="Download document"
+                            >
+                              <Download size={18} />
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteDoc(doc._id)}
+                              variant="subtle"
+                              size="sm"
+                              className="!p-2 text-gray-500 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] rounded-full"
+                              aria-label="Delete document"
+                              disabled={deleteDocMutation.isLoading}
+                            >
+                              <Trash2 size={18} />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <p>No documents uploaded yet.</p>
                   </div>
                 )}
                 {documentsNotes.note &&
@@ -641,8 +693,22 @@ const LCdetails = () => {
         variant={confirmModal.action === "delete" ? "danger" : "primary"}
         icon={confirmModal.action === "delete" ? Trash2 : Download}
       />
+      <ConfirmationModal
+        isOpen={deleteDocModal.isOpen}
+        onClose={() => setDeleteDocModal({ isOpen: false, docId: null })}
+        onConfirm={handleConfirmDeleteDoc}
+        title="Confirm Document Deletion"
+        description="Are you sure you want to delete this document? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isConfirming={deleteDocMutation.isLoading}
+        confirmingText="Deleting..."
+        variant="danger"
+        icon={Trash2}
+      />
     </div>
   );
 };
 
 export default memo(LCdetails);
+

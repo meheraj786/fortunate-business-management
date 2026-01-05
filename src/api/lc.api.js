@@ -33,6 +33,10 @@ export const getTotalLCCount = () =>
 export const getActiveLCs = () =>
   api.get("/lc/active-lc");
 
+
+export const deleteLCDocument = (lcId, docId) =>
+  api.delete(`/lc/delete-document/${lcId}/${docId}`);
+
 export const getLCSummary = (params) => {
   const { searchQuery, status } = params || {};
   // The search endpoint on the backend handles filtering by status as well,
