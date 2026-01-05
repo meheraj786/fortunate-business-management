@@ -44,7 +44,8 @@ const CostsSection = ({
         first: "e.g., C&F Agent Bill",
         other: "e.g., Local Transport, Labor Cost",
       },
-      "otherExpenses.costs": { // Added for otherExpenses
+      "otherExpenses.costs": {
+        // Added for otherExpenses
         first: "e.g., Utility Bills",
         other: "e.g., Miscellaneous expenses",
       },
@@ -59,17 +60,20 @@ const CostsSection = ({
   }, []);
 
   // Helper to get nested error message safely
-  const getNestedErrorMessage = useCallback((path) => {
-    const pathParts = path.replace(/\[/g, '.').replace(/\]/g, '').split('.');
-    let current = errors;
-    for (const part of pathParts) {
-      if (current === null || current === undefined) {
-        return undefined;
+  const getNestedErrorMessage = useCallback(
+    (path) => {
+      const pathParts = path.replace(/\[/g, ".").replace(/\]/g, "").split(".");
+      let current = errors;
+      for (const part of pathParts) {
+        if (current === null || current === undefined) {
+          return undefined;
+        }
+        current = current[part];
       }
-      current = current[part];
-    }
-    return current?.message;
-  }, [errors]);
+      return current?.message;
+    },
+    [errors]
+  );
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -106,7 +110,11 @@ const CostsSection = ({
                 register={register}
                 error={getNestedErrorMessage(`${section}[${index}].amount`)}
                 placeholder="e.g., 5000"
-                validation={{ required: "Amount is required", min: { value: 0.01, message: "Amount must be positive" }, valueAsNumber: true }}
+                validation={{
+                  required: "Amount is required",
+                  min: { value: 0.01, message: "Amount must be positive" },
+                  valueAsNumber: true,
+                }}
                 disabled={isSubmitting}
               />
             </div>
@@ -115,7 +123,9 @@ const CostsSection = ({
                 label="Payment Method"
                 name={`${section}[${index}].paymentMethod`}
                 register={register}
-                error={getNestedErrorMessage(`${section}[${index}].paymentMethod`)}
+                error={getNestedErrorMessage(
+                  `${section}[${index}].paymentMethod`
+                )}
                 options={paymentMethods.map((method) => ({
                   value: method,
                   label: method,
@@ -130,7 +140,9 @@ const CostsSection = ({
                   label="Select Account"
                   name={`${section}[${index}].accountId`}
                   register={register}
-                  error={getNestedErrorMessage(`${section}[${index}].accountId`)}
+                  error={getNestedErrorMessage(
+                    `${section}[${index}].accountId`
+                  )}
                   options={accounts
                     .filter(
                       (acc) =>
@@ -140,11 +152,17 @@ const CostsSection = ({
                     .map((acc) => {
                       let label = "";
                       if (acc.accountType === "Bank") {
-                        label = `${acc.bankName || 'N/A'} (${acc.accountHolderName || 'N/A'}) - ${acc.accountNumber || 'N/A'}`;
+                        label = `${acc.bankName || "N/A"} (${
+                          acc.accountHolderName || "N/A"
+                        }) - ${acc.accountNumber || "N/A"}`;
                       } else if (acc.accountType === "Mobile Banking") {
-                        label = `${acc.serviceName || 'N/A'} (${acc.accountHolderName || 'N/A'}) - ${acc.mobileNumber || 'N/A'}`;
+                        label = `${acc.serviceName || "N/A"} (${
+                          acc.accountHolderName || "N/A"
+                        }) - ${acc.mobileNumber || "N/A"}`;
                       } else if (acc.accountType === "Cash") {
-                        label = `${acc.accountName || acc.accountType} (${acc.accountHolderName || 'N/A'})`;
+                        label = `${acc.accountName || acc.accountType} (${
+                          acc.accountHolderName || "N/A"
+                        })`;
                       }
                       return { value: acc._id, label: label };
                     })}
@@ -172,13 +190,15 @@ const CostsSection = ({
 
       <Button
         type="button"
-        onClick={() => append({ name: "", amount: "", paymentMethod: "Cash", accountId: "" })}
+        onClick={() =>
+          append({ name: "", amount: "", paymentMethod: "Cash", accountId: "" })
+        }
         variant="secondary"
         className="w-full border-dashed border-gray-400 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
         disabled={isSubmitting}
       >
         <Plus className="w-4 h-4 mr-2" />
-        <span>Add Cost</span>
+        <span> Cost</span>
       </Button>
     </div>
   );

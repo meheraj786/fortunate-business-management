@@ -78,7 +78,7 @@ const AccountList = ({ onAddAccount }) => {
             className="flex items-center gap-1"
           >
             <Plus size={16} />
-            <span>Add Account</span>
+            <span> Account</span>
           </Button>
         </div>
         <AnimatePresence mode="wait">
@@ -172,7 +172,7 @@ const AccountList = ({ onAddAccount }) => {
             className="flex items-center gap-1"
           >
             <Plus size={16} />
-            <span>Add Account</span>
+            <span> Account</span>
           </Button>
         </div>
         <AnimatePresence mode="wait">
@@ -258,7 +258,7 @@ const AccountList = ({ onAddAccount }) => {
             className="flex items-center gap-1"
           >
             <Plus size={16} />
-            <span>Add Account</span>
+            <span> Account</span>
           </Button>
         </div>
         <AnimatePresence mode="wait">

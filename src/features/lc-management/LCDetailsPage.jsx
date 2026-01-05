@@ -2,7 +2,7 @@ import React, { useState, useMemo, memo } from "react";
 import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 
-import Button  from "../../components/ui/Button";
+import Button from "../../components/ui/Button";
 
 import {
   Plus,
@@ -119,9 +119,7 @@ const LCdetails = () => {
   const handleAddCostSuccess = () => refetch();
 
   const getFileUrl = (lcId, storedName) => {
-    const cleanBaseUrl = baseUrl.endsWith("/")
-      ? baseUrl.slice(0, -1)
-      : baseUrl;
+    const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
     return `${cleanBaseUrl}/lc/${lcId}/documents/${storedName}`;
   };
 
@@ -199,7 +197,7 @@ const LCdetails = () => {
       className="flex items-center gap-1"
       aria-label={`Add cost to ${category}`}
     >
-      <Plus size={14} aria-hidden="true" /> Add Cost
+      <Plus size={14} aria-hidden="true" /> Cost
     </Button>
   );
 
@@ -711,4 +709,3 @@ const LCdetails = () => {
 };
 
 export default memo(LCdetails);
-

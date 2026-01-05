@@ -125,7 +125,7 @@ const Accounts = () => {
                 aria-label="Add new transaction"
               >
                 <Plus className="w-4 h-4" />
-                <span>Add Transaction</span>
+                <span> Transaction</span>
               </Button>
               {isSuperAdmin && (
                 <Link to="/trash/account" className="flex items-center">
@@ -165,7 +165,7 @@ const Accounts = () => {
         accountType={preselectedAccountType}
       />
 
-      {/* Add Transaction Form */}
+      {/*  Transaction Form */}
       <AddTransactionForm
         isOpen={isTransactionFormOpen}
         onClose={() => setIsTransactionFormOpen(false)}
