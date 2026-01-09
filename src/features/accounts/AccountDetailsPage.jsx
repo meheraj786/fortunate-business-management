@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router"; // Changed to react-router
 import {
   ArrowLeft,
@@ -34,6 +34,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 // import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 import Button from "@/components/ui/Button"; // Import Button
 import { motion } from "framer-motion"; // Import motion
+import { useAuth } from "@/context/AuthContext";
 
 const sortOptions = [
   { value: "date", label: "Date" },
@@ -83,6 +84,7 @@ const StatBoxSkeleton = () => (
 const AccountDetails = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
 
   // UI Control State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -101,6 +103,13 @@ const AccountDetails = () => {
   });
   const [sorting, setSorting] = useState({ sortBy: "date", sortOrder: "desc" });
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    if (!hasPermission("ACCOUNT_VIEW_DETAILS")) {
+      toast.error("You don't have permission to view account details.");
+      navigate("/accounts");
+    }
+  }, [hasPermission, navigate]);
 
   // Data Fetching via React Query
   const {
@@ -300,23 +309,26 @@ const AccountDetails = () => {
 
         {/* Right side */}
         <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
-          <Button
-            onClick={() => setIsEditFormOpen(true)}
-            variant="primary"
-            size="sm"
-            className="flex items-center justify-center gap-2 w-full sm:w-auto"
-          >
-            <Edit size={16} /> Edit
-          </Button>
-
-          <Button
-            onClick={() => setIsDeleteModalOpen(true)}
-            variant="danger"
-            size="sm"
-            className="flex items-center justify-center gap-2 w-full sm:w-auto"
-          >
-            <Trash2 size={16} /> Delete
-          </Button>
+          {hasPermission("ACCOUNT_UPDATE") && (
+            <Button
+              onClick={() => setIsEditFormOpen(true)}
+              variant="primary"
+              size="sm"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto"
+            >
+              <Edit size={16} /> Edit
+            </Button>
+          )}
+          {hasPermission("ACCOUNT_DELETE") && (
+            <Button
+              onClick={() => setIsDeleteModalOpen(true)}
+              variant="danger"
+              size="sm"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto"
+            >
+              <Trash2 size={16} /> Delete
+            </Button>
+          )}
         </div>
       </div>
 
@@ -380,186 +392,188 @@ const AccountDetails = () => {
       {renderStats()}
 
       {/* Transactions List */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-[var(--color-primary)]" />{" "}
-            Transactions
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            View financial movements associated with this account.
-          </p>
-        </div>
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <label htmlFor="transaction-search" className="sr-only">
-                Search by description
-              </label>
-              <input
-                id="transaction-search"
-                type="text"
-                placeholder="Search by description..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base transition-shadow"
-              />
-            </div>
-            <div className="relative w-full md:w-48">
-              <select
-                value={sorting.sortBy}
-                onChange={handleSortByChange}
-                className="w-full appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
-              >
-                {sortOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    Sort by {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            </div>
-            <Button
-              onClick={toggleSortOrder}
-              variant="secondary"
-              size="sm"
-              className="flex items-center justify-center gap-2"
-            >
-              {sorting.sortOrder === "asc" ? (
-                <ArrowUp className="w-4 h-4" />
-              ) : (
-                <ArrowDown className="w-4 h-4" />
-              )}
-            </Button>
-            <Button
-              onClick={() => setShowFilters(!showFilters)}
-              variant="secondary"
-              size="sm"
-              className="flex items-center justify-center gap-2"
-            >
-              <Filter className="w-4 h-4" />
-              <span>Filters</span>
-            </Button>
+      {hasPermission("ACCOUNT_VIEW_TRANSACTIONS") && (
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-[var(--color-primary)]" />{" "}
+              Transactions
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              View financial movements associated with this account.
+            </p>
           </div>
-          {showFilters && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold">Filter Options</h3>
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <label htmlFor="transaction-search" className="sr-only">
+                  Search by description
+                </label>
+                <input
+                  id="transaction-search"
+                  type="text"
+                  placeholder="Search by description..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base transition-shadow"
+                />
+              </div>
+              <div className="relative w-full md:w-48">
+                <select
+                  value={sorting.sortBy}
+                  onChange={handleSortByChange}
+                  className="w-full appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                >
+                  {sortOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      Sort by {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              </div>
+              <Button
+                onClick={toggleSortOrder}
+                variant="secondary"
+                size="sm"
+                className="flex items-center justify-center gap-2"
+              >
+                {sorting.sortOrder === "asc" ? (
+                  <ArrowUp className="w-4 h-4" />
+                ) : (
+                  <ArrowDown className="w-4 h-4" />
+                )}
+              </Button>
+              <Button
+                onClick={() => setShowFilters(!showFilters)}
+                variant="secondary"
+                size="sm"
+                className="flex items-center justify-center gap-2"
+              >
+                <Filter className="w-4 h-4" />
+                <span>Filters</span>
+              </Button>
+            </div>
+            {showFilters && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-semibold">Filter Options</h3>
+                  <Button
+                    onClick={clearFilters}
+                    variant="subtle"
+                    className="text-sm text-[var(--color-danger)] flex items-center gap-1"
+                  >
+                    <X size={16} /> Clear
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <select
+                    name="transactionType"
+                    value={filters.transactionType}
+                    onChange={(e) =>
+                      handleFilterChange("transactionType", e.target.value)
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                  >
+                    {transactionTypeOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    name="paymentMethod"
+                    value={filters.paymentMethod}
+                    onChange={(e) =>
+                      handleFilterChange("paymentMethod", e.target.value)
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                  >
+                    {paymentMethodOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    name="category"
+                    value={filters.category}
+                    onChange={(e) =>
+                      handleFilterChange("category", e.target.value)
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                    disabled={categories.length === 0}
+                  >
+                    <option value="all">All Categories</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {isLoadingTransactions ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th />
+                    <th />
+                    <th />
+                    <th />
+                    <th />
+                    <th />
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <SkeletonRow key={i} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : transactions.length > 0 ? (
+            <TransactionTable
+              transactions={transactions}
+              onRowClick={handleTransactionClick}
+            />
+          ) : (
+            <div className="text-center py-16">
+              <CreditCard className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900">
+                No transactions found for this account
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Try adjusting your search or filter to find what you're looking
+                for.
+              </p>
+              <div className="mt-6">
                 <Button
                   onClick={clearFilters}
                   variant="subtle"
-                  className="text-sm text-[var(--color-danger)] flex items-center gap-1"
+                  className="text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
                 >
-                  <X size={16} /> Clear
+                  Clear all filters
                 </Button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <select
-                  name="transactionType"
-                  value={filters.transactionType}
-                  onChange={(e) =>
-                    handleFilterChange("transactionType", e.target.value)
-                  }
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
-                >
-                  {transactionTypeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  name="paymentMethod"
-                  value={filters.paymentMethod}
-                  onChange={(e) =>
-                    handleFilterChange("paymentMethod", e.target.value)
-                  }
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
-                >
-                  {paymentMethodOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  name="category"
-                  value={filters.category}
-                  onChange={(e) =>
-                    handleFilterChange("category", e.target.value)
-                  }
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
-                  disabled={categories.length === 0}
-                >
-                  <option value="all">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
           )}
-        </div>
-
-        {isLoadingTransactions ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th />
-                  <th />
-                  <th />
-                  <th />
-                  <th />
-                  <th />
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <SkeletonRow key={i} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : transactions.length > 0 ? (
-          <TransactionTable
-            transactions={transactions}
-            onRowClick={handleTransactionClick}
-          />
-        ) : (
-          <div className="text-center py-16">
-            <CreditCard className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-lg font-medium text-gray-900">
-              No transactions found for this account
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Try adjusting your search or filter to find what you're looking
-              for.
-            </p>
-            <div className="mt-6">
-              <Button
-                onClick={clearFilters}
-                variant="subtle"
-                className="text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
-              >
-                Clear all filters
-              </Button>
+          {!isLoadingTransactions && transactionPagination.totalPages > 1 && (
+            <div className="p-4 border-t border-gray-200">
+              <Pagination
+                currentPage={transactionPagination.page}
+                totalPages={transactionPagination.totalPages}
+                onPageChange={handlePageChange}
+              />
             </div>
-          </div>
-        )}
-        {!isLoadingTransactions && transactionPagination.totalPages > 1 && (
-          <div className="p-4 border-t border-gray-200">
-            <Pagination
-              currentPage={transactionPagination.page}
-              totalPages={transactionPagination.totalPages}
-              onPageChange={handlePageChange}
-            />
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}

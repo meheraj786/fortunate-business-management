@@ -2,8 +2,12 @@ import React from "react";
 import { MapPin, Phone, ShoppingBag, DollarSign, Calendar } from "lucide-react";
 import { Link } from "react-router"; // Changed to react-router
 import { motion } from "framer-motion"; // Import motion
+import { useAuth } from "@/context/AuthContext";
 
 const CustomerCard = ({ customer }) => {
+  const { hasPermission } = useAuth();
+  const canViewDetails = hasPermission("CUSTOMER_VIEW_DETAILS");
+
   const totalPurchased = customer.totalSpent || 0;
   const totalDue = customer.totalDue || 0;
   const lastPurchaseDate = customer.lastPurchaseDate
@@ -26,98 +30,104 @@ const CustomerCard = ({ customer }) => {
     }
   };
 
-  return (
-    <Link to={`/customer-details/${customer._id}`} className="block">
-      <motion.div
-        className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.99] h-full"
-        whileHover={{ scale: 1.01 }} 
-        whileTap={{ scale: 1 }} 
-      >
-        {/* Header with name and badges */}
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">
-              {customer.name}
-            </h3>
-            <p className="text-sm text-gray-500 mt-1 truncate">
-              ID: {customer.customerId || customer._id?.slice(-6)}
+  const CardContent = () => (
+    <motion.div
+      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.99] h-full"
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 1 }}
+    >
+      {/* Header with name and badges */}
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">
+            {customer.name}
+          </h3>
+          <p className="text-sm text-gray-500 mt-1 truncate">
+            ID: {customer.customerId || customer._id?.slice(-6)}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-1 ml-2">
+          {customer.status && (
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                customer.status
+              )}`}
+            >
+              {customer.status}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Contact Information */}
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center gap-2 text-gray-600">
+          <Phone size={14} className="flex-shrink-0 text-gray-400" />
+          <span className="text-sm truncate">
+            {customer.phone || "No phone"}
+          </span>
+        </div>
+        {customer.billingAddress && (
+          <div className="flex items-center gap-2 text-gray-600">
+            <MapPin
+              size={14}
+              className="flex-shrink-0 text-gray-400 mt-0.5"
+            />
+            <span className="text-sm line-clamp-2">
+              {customer.billingAddress}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Financial Summary */}
+      <div className="border-t border-gray-100 pt-4">
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-gray-600">
+              <ShoppingBag size={14} />
+              <span className="text-xs font-medium">Total Purchased</span>
+            </div>
+            <p className="font-semibold text-gray-900 text-base">
+              ${totalPurchased.toLocaleString()}
             </p>
           </div>
 
-          <div className="flex flex-col gap-1 ml-2">
-            {customer.status && (
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                  customer.status
-                )}`}
-              >
-                {customer.status}
-              </span>
-            )}
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-[var(--color-danger)]">
+              <DollarSign size={14} />
+              <span className="text-xs font-medium">Total Due</span>
+            </div>
+            <p className="font-semibold text-[var(--color-danger)] text-base">
+              ${totalDue.toLocaleString()}
+            </p>
           </div>
         </div>
 
-        {/* Contact Information */}
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-gray-600">
-            <Phone size={14} className="flex-shrink-0 text-gray-400" />
-            <span className="text-sm truncate">
-              {customer.phone || "No phone"}
-            </span>
+        {/* Last Purchase and Credit Limit */}
+        <div className="flex justify-between items-center text-xs text-gray-500 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-1">
+            <Calendar size={12} />
+            <span>Last: {lastPurchaseDate}</span>
           </div>
-          {customer.billingAddress && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <MapPin
-                size={14}
-                className="flex-shrink-0 text-gray-400 mt-0.5"
-              />
-              <span className="text-sm line-clamp-2">
-                {customer.billingAddress}
-              </span>
+
+          {customer.creditLimit > 0 && (
+            <div className="text-xs bg-gray-100 px-2 py-1 rounded">
+              Limit: ${customer.creditLimit?.toLocaleString()}
             </div>
           )}
         </div>
+      </div>
+    </motion.div>
+  );
 
-        {/* Financial Summary */}
-        <div className="border-t border-gray-100 pt-4">
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1 text-gray-600">
-                <ShoppingBag size={14} />
-                <span className="text-xs font-medium">Total Purchased</span>
-              </div>
-              <p className="font-semibold text-gray-900 text-base">
-                ${totalPurchased.toLocaleString()}
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center gap-1 text-[var(--color-danger)]">
-                <DollarSign size={14} />
-                <span className="text-xs font-medium">Total Due</span>
-              </div>
-              <p className="font-semibold text-[var(--color-danger)] text-base">
-                ${totalDue.toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          {/* Last Purchase and Credit Limit */}
-          <div className="flex justify-between items-center text-xs text-gray-500 pt-3 border-t border-gray-100">
-            <div className="flex items-center gap-1">
-              <Calendar size={12} />
-              <span>Last: {lastPurchaseDate}</span>
-            </div>
-
-            {customer.creditLimit > 0 && (
-              <div className="text-xs bg-gray-100 px-2 py-1 rounded">
-                Limit: ${customer.creditLimit?.toLocaleString()}
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.div>
+  return canViewDetails ? (
+    <Link to={`/customer-details/${customer._id}`} className="block">
+      <CardContent />
     </Link>
+  ) : (
+    <CardContent />
   );
 };
 

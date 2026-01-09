@@ -34,19 +34,16 @@ import DataField from "@/components/ui/DataField";
 import CostField from "@/components/ui/CostField";
 import LCDetailsPageSkeleton from "./components/LCDetailsPageSkeleton";
 
-import {
-  useLC,
-  useDeleteLC,
-  useExportLC,
-  useDeleteLCDocument,
-} from "@/api/hooks/lc";
+import { useLC, useDeleteLC, useExportLC, useDeleteLCDocument } from "@/api/hooks/lc";
 import { useUrl } from "@/context/UrlProvider";
 import { formatNumber, formatDate } from "@/utils/format";
+import { useAuth } from "@/context/AuthContext";
 
 const LCdetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { baseUrl } = useUrl();
+  const { hasPermission } = useAuth();
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -228,39 +225,45 @@ const LCdetails = () => {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => handleOpenConfirmation("export")}
-                disabled={exportLCMutation.isLoading}
-                isLoading={exportLCMutation.isLoading}
-                variant="secondary"
-                size="sm"
-                className="flex items-center justify-center" // Adjust spacing if needed
-                aria-label="Export LC as PDF"
-              >
-                <Download className="mr-2 w-4 h-4" aria-hidden="true" />
-                {exportLCMutation.isLoading ? "Exporting..." : "Export"}
-              </Button>
-              <Button
-                onClick={() => navigate(`/lc-form/${id}`)}
-                variant="primary"
-                size="sm"
-                className="flex items-center"
-                aria-label="Edit LC"
-              >
-                <Edit className="mr-2 w-4 h-4" aria-hidden="true" /> Edit
-              </Button>
-              <Button
-                onClick={() => handleOpenConfirmation("delete")}
-                disabled={deleteLCMutation.isLoading}
-                isLoading={deleteLCMutation.isLoading}
-                variant="danger"
-                size="sm"
-                className="flex items-center"
-                aria-label="Delete LC"
-              >
-                <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
-                {deleteLCMutation.isLoading ? "Deleting..." : "Delete"}
-              </Button>
+              {hasPermission("LC_EXPORT_PDF") && (
+                <Button
+                  onClick={() => handleOpenConfirmation("export")}
+                  disabled={exportLCMutation.isLoading}
+                  isLoading={exportLCMutation.isLoading}
+                  variant="secondary"
+                  size="sm"
+                  className="flex items-center justify-center" // Adjust spacing if needed
+                  aria-label="Export LC as PDF"
+                >
+                  <Download className="mr-2 w-4 h-4" aria-hidden="true" />
+                  {exportLCMutation.isLoading ? "Exporting..." : "Export"}
+                </Button>
+              )}
+              {hasPermission("LC_UPDATE") && (
+                <Button
+                  onClick={() => navigate(`/lc-form/${id}`)}
+                  variant="primary"
+                  size="sm"
+                  className="flex items-center"
+                  aria-label="Edit LC"
+                >
+                  <Edit className="mr-2 w-4 h-4" aria-hidden="true" /> Edit
+                </Button>
+              )}
+              {hasPermission("LC_DELETE") && (
+                <Button
+                  onClick={() => handleOpenConfirmation("delete")}
+                  disabled={deleteLCMutation.isLoading}
+                  isLoading={deleteLCMutation.isLoading}
+                  variant="danger"
+                  size="sm"
+                  className="flex items-center"
+                  aria-label="Delete LC"
+                >
+                  <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
+                  {deleteLCMutation.isLoading ? "Deleting..." : "Delete"}
+                </Button>
+              )}
             </div>
           </div>
         </motion.div>
@@ -331,7 +334,11 @@ const LCdetails = () => {
               title="Financial Information"
               icon={<DollarSign className="text-[var(--color-primary)]" />}
               defaultOpen={true}
-              headerActions={<AddCostButton category="financialInfo" />}
+              headerActions={
+                hasPermission("LC_UPDATE") ? (
+                  <AddCostButton category="financialInfo" />
+                ) : null
+              }
               ariaLabel="Financial Information Section"
             >
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -425,7 +432,11 @@ const LCdetails = () => {
             <CollapsibleCard
               title="Shipping & Customs Info"
               icon={<Truck className="text-[var(--color-primary)]" />}
-              headerActions={<AddCostButton category="shippingCustomsInfo" />}
+              headerActions={
+                hasPermission("LC_UPDATE") ? (
+                  <AddCostButton category="shippingCustomsInfo" />
+                ) : null
+              }
               ariaLabel="Shipping and Customs Information Section"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -451,7 +462,11 @@ const LCdetails = () => {
             <CollapsibleCard
               title="Agent & Transport Info"
               icon={<User className="text-[var(--color-primary)]" />}
-              headerActions={<AddCostButton category="agentTransportInfo" />}
+              headerActions={
+                hasPermission("LC_UPDATE") ? (
+                  <AddCostButton category="agentTransportInfo" />
+                ) : null
+              }
               ariaLabel="Agent and Transport Information Section"
             >
               {agentTransportInfo.costs?.length > 0 ? (
@@ -470,7 +485,11 @@ const LCdetails = () => {
             <CollapsibleCard
               title="Other Expenses"
               icon={<DollarSign className="text-[var(--color-primary)]" />}
-              headerActions={<AddCostButton category="otherExpenses" />}
+              headerActions={
+                hasPermission("LC_UPDATE") ? (
+                  <AddCostButton category="otherExpenses" />
+                ) : null
+              }
               ariaLabel="Other Expenses Section"
             >
               {otherExpenses.costs?.length > 0 ? (
@@ -576,16 +595,18 @@ const LCdetails = () => {
                             >
                               <Download size={18} />
                             </Button>
-                            <Button
-                              onClick={() => handleDeleteDoc(doc._id)}
-                              variant="subtle"
-                              size="sm"
-                              className="!p-2 text-gray-500 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] rounded-full"
-                              aria-label="Delete document"
-                              disabled={deleteDocMutation.isLoading}
-                            >
-                              <Trash2 size={18} />
-                            </Button>
+                            {hasPermission("LC_UPDATE") && (
+                              <Button
+                                onClick={() => handleDeleteDoc(doc._id)}
+                                variant="subtle"
+                                size="sm"
+                                className="!p-2 text-gray-500 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] rounded-full"
+                                aria-label="Delete document"
+                                disabled={deleteDocMutation.isLoading}
+                              >
+                                <Trash2 size={18} />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))}

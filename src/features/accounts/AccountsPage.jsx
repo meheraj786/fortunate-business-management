@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Building,
   Smartphone,
@@ -17,10 +17,11 @@ import TransactionList from "./TransactionListPage";
 import AddAccountForm from "./AddAccountForm";
 import AddTransactionForm from "./AddTransactionFormPage";
 import { useAuth } from "../../context/AuthContext";
-import { Link } from "react-router"; // Corrected import
+import { Link, useNavigate } from "react-router"; // Corrected import
 // import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 import Button from "@/components/ui/Button"; // Import Button
 import { motion } from "framer-motion"; // Import motion
+import toast from "react-hot-toast";
 
 // Custom Skeleton for StatBox
 const StatBoxSkeleton = () => (
@@ -29,7 +30,8 @@ const StatBoxSkeleton = () => (
 );
 
 const Accounts = () => {
-  const { isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
+  const navigate = useNavigate();
   const { data: transactionStatsResponse, isLoading: isLoadingStats } =
     useTransactionStats();
   const transactionStats = transactionStatsResponse?.data;
@@ -39,6 +41,13 @@ const Accounts = () => {
   const [preselectedAccountType, setPreselectedAccountType] = useState("Bank");
   const [editingAccount, setEditingAccount] = useState(null);
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+
+  useEffect(() => {
+    if (!hasPermission("ACCOUNT_VIEW_ALL")) {
+      toast.error("You don't have permission to view accounts.");
+      navigate("/");
+    }
+  }, [hasPermission, navigate]);
 
   // Handlers for Add/Edit Account Form
   const handleEditClick = (account) => {
@@ -117,43 +126,30 @@ const Accounts = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                onClick={() => setIsTransactionFormOpen(true)}
-                variant="success" // Changed from native button with bg-green-600
-                size="sm"
-                className="flex items-center gap-2 justify-center" // Added justify-center for mobile
-                aria-label="Add new transaction"
-              >
-                <Plus className="w-4 h-4" />
-                <span> Transaction</span>
-              </Button>
-              {isSuperAdmin && (
-                <Link to="/trash/account" className="flex items-center">
-                  {" "}
-                  {/* Added flex items-center for styling */}
-                  <Button
-                    variant="danger" // Changed from native button with bg-red-600
-                    size="sm"
-                    className="flex items-center gap-2 justify-center" // Added justify-center for mobile
-                    aria-label="View trash accounts"
-                  >
-                    <Trash />
-                    <span>Trash Account</span>
-                  </Button>
-                </Link>
+              {hasPermission("TRANSACTION_CREATE") && (
+                <Button
+                  onClick={() => setIsTransactionFormOpen(true)}
+                  variant="success" // Changed from native button with bg-green-600
+                  size="sm"
+                  className="flex items-center gap-2 justify-center" // Added justify-center for mobile
+                  aria-label="Add new transaction"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span> Transaction</span>
+                </Button>
               )}
             </div>
           </div>
         </div>
 
-        {renderTransactionStats()}
-
-        <AccountList
-          onEdit={handleEditClick}
-          onAddAccount={handleOpenAddAccountForm}
-        />
-
-        <TransactionList />
+        {hasPermission("TRANSACTION_VIEW_ALL") && renderTransactionStats()}
+        {hasPermission("ACCOUNT_VIEW_ALL") && (
+          <AccountList
+            onEdit={handleEditClick}
+            onAddAccount={handleOpenAddAccountForm}
+          />
+        )}
+        {hasPermission("TRANSACTION_VIEW_ALL") && <TransactionList />}
       </div>
 
       {/* Unified Add/Edit Account Form */}

@@ -1,0 +1,14 @@
+export const MODULES_ORDER = [
+  "USER",
+  "WAREHOUSE",
+  "PRODUCT",
+  "LC",
+  "SALE",
+  "CASH",
+  "ACCOUNT",
+  "TRANSACTION",
+  "CUSTOMER",
+  "CATEGORY",
+  "UNIT",
+  "TRASH",
+];

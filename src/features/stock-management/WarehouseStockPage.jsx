@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router"; // Changed to react-router
 import {
   Search,
@@ -27,6 +27,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import { useDebounce } from "@/hooks/useDebounce";
 import Pagination from "@/components/ui/Pagination";
 import Button from "@/components/ui/Button"; // Import Button component
+import toast from "react-hot-toast";
 
 const sortOptions = [
   { value: "createdAt", label: "Creation Date" },
@@ -47,8 +48,7 @@ const stockStatusOptions = [
 const WarehouseStock = () => {
   const { warehouseId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
+  const { hasPermission } = useAuth();
 
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,6 +60,13 @@ const WarehouseStock = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
   const [showAddProductForm, setShowAddProductForm] = useState(false);
+
+  useEffect(() => {
+    if (!hasPermission("WAREHOUSE_VIEW")) {
+      toast.error("You don't have permission to view warehouses.");
+      navigate("/stock-management");
+    }
+  }, [hasPermission, navigate]);
 
   const {
     data: warehouseData,
@@ -189,15 +196,17 @@ const WarehouseStock = () => {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                onClick={() => setShowAddProductForm(true)}
-                variant="primary"
-                size="sm"
-                className="flex items-center gap-2 w-full sm:w-auto justify-center"
-              >
-                <Plus size={20} /> Add Product
-              </Button>
-              {isSuperAdmin && (
+              {hasPermission("PRODUCT_CREATE") && (
+                <Button
+                  onClick={() => setShowAddProductForm(true)}
+                  variant="primary"
+                  size="sm"
+                  className="flex items-center gap-2 w-full sm:w-auto justify-center"
+                >
+                  <Plus size={20} /> Add Product
+                </Button>
+              )}
+              {hasPermission("TRASH_VIEW_PRODUCT") && (
                 <Link to={`/trash/product?warehouseId=${warehouseId}`}>
                   <Button
                     variant="secondary"

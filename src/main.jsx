@@ -17,9 +17,8 @@ const queryClient = new QueryClient({
   },
 });
 
-
 createRoot(document.getElementById("root")).render(
-  
+  <StrictMode>
     <QueryClientProvider client={queryClient}>
       <UrlProvider>
         <AuthProvider>
@@ -28,5 +27,5 @@ createRoot(document.getElementById("root")).render(
       </UrlProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
-
+  </StrictMode>
 );

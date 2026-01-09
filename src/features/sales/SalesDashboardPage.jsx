@@ -29,7 +29,7 @@ const Sales = () => {
   const [sortOrder, setSortOrder] = useState("desc");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  const { isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
 
   const {
     data: salesResponse,
@@ -114,101 +114,84 @@ const Sales = () => {
               Manage and track your product sales in real-time
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              onClick={() => setShowAddSale(true)}
-              variant="primary"
-              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto"
-              aria-label="Add new sale"
-            >
-              <Plus className="w-4 h-4" aria-hidden="true" /> Add Sale
-            </Button>
-            {isSuperAdmin && (
-              <Link to="/trash/sale" className="sm:w-auto w-full">
-                <Button
-                  variant="secondary" // Changed to secondary variant
-                  className="inline-flex items-center justify-center gap-2 w-full"
-                >
-                  <Trash className="text-[var(--color-danger)]" size={20} />{" "}
-                  View Sale Trash
-                </Button>
-              </Link>
-            )}
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <SalesStatCard
-            title="Not Invoiced"
-            count={salesStats.notInvoiced}
-            linkTo="/sales/not-invoiced"
-            icon={FileWarning}
-            color="yellow"
-          />
-          <SalesStatCard
-            title="Due Invoices"
-            count={salesStats.due}
-            linkTo="/sales/due-invoices"
-            icon={FileClock}
-            color="orange"
-          />
-          <SalesStatCard
-            title="Paid Invoices"
-            count={salesStats.paid}
-            linkTo="/sales/paid-invoices"
-            icon={FileCheck}
-            color="green"
-          />
-          <SalesStatCard
-            title="Cancelled"
-            count={salesStats.cancelled}
-            linkTo="/sales/cancelled"
-            icon={FileX}
-            color="red"
-          />
-        </div>
+        {hasPermission("SALE_VIEW_TABLE") && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <SalesStatCard
+              title="Not Invoiced"
+              count={salesStats.notInvoiced}
+              linkTo="/sales/not-invoiced"
+              icon={FileWarning}
+              color="yellow"
+            />
+            <SalesStatCard
+              title="Due Invoices"
+              count={salesStats.due}
+              linkTo="/sales/due-invoices"
+              icon={FileClock}
+              color="orange"
+            />
+            <SalesStatCard
+              title="Paid Invoices"
+              count={salesStats.paid}
+              linkTo="/sales/paid-invoices"
+              icon={FileCheck}
+              color="green"
+            />
+            <SalesStatCard
+              title="Cancelled"
+              count={salesStats.cancelled}
+              linkTo="/sales/cancelled"
+              icon={FileX}
+              color="red"
+            />
+          </div>
+        )}
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-6">
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                  All Sales Records
-                </h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  {totalSales?.toLocaleString()} total records
-                </p>
+      {hasPermission("SALE_VIEW_TABLE") && (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="p-4 sm:p-6">
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                    All Sales Records
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {totalSales?.toLocaleString()} total records
+                  </p>
+                </div>
+                <div className="w-full sm:w-64">
+                  <SearchBar
+                    onSearch={setSearchTerm}
+                    placeholder="Search sales..."
+                  />
+                </div>
               </div>
-              <div className="w-full sm:w-64">
-                <SearchBar
-                  onSearch={setSearchTerm}
-                  placeholder="Search sales..."
+              <div className="border-t border-gray-200 pt-4">
+                <SalesTable
+                  sales={salesData}
+                  sortBy={sortBy}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
                 />
               </div>
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={pagination.page}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={totalSales}
+                  itemsPerPage={pagination.limit}
+                  className="pt-4 border-t border-gray-200"
+                />
+              )}
             </div>
-            <div className="border-t border-gray-200 pt-4">
-              <SalesTable
-                sales={salesData}
-                sortBy={sortBy}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-              />
-            </div>
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={pagination.page}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                totalItems={totalSales}
-                itemsPerPage={pagination.limit}
-                className="pt-4 border-t border-gray-200"
-              />
-            )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -9,6 +9,7 @@ import {
   Banknote,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
+import { useAuth } from "@/context/AuthContext";
 
 const getAccountDisplayName = (accountId) => {
   if (!accountId) return "N/A";
@@ -41,8 +42,11 @@ const getPaymentIcon = (paymentMethod) => {
 };
 
 const TransactionTable = ({ transactions, onRowClick }) => {
+  const { hasPermission } = useAuth();
+  const canViewDetails = hasPermission("TRANSACTION_VIEW_DETAILS");
+
   const handleRowClick = (transactionId) => {
-    if (onRowClick) {
+    if (canViewDetails && onRowClick) {
       onRowClick(transactionId);
     }
   };
@@ -94,7 +98,9 @@ const TransactionTable = ({ transactions, onRowClick }) => {
             transactions.map((transaction, index) => (
               <motion.tr
                 key={transaction._id}
-                className="hover:bg-gray-50 cursor-pointer"
+                className={`hover:bg-gray-50 ${
+                  canViewDetails ? "cursor-pointer" : ""
+                }`}
                 onClick={() => handleRowClick(transaction._id)}
                 initial="hidden"
                 animate="visible"

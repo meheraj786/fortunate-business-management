@@ -16,7 +16,7 @@ const DailyCashHeader = ({
   getLocalDateString,
   isToday,
 }) => {
-  const { isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleOpenDay = () => openDay(selectedDate);
@@ -100,46 +100,51 @@ const DailyCashHeader = ({
 
             <div className="space-y-2.5">
               {/* Buttons inside mobile menu */}
-              <Button
-                onClick={() => {
-                  onAddTransaction("income");
-                  setIsMobileMenuOpen(false);
-                }}
-                disabled={dailyCashStatus !== "Open"}
-                variant="success"
-                className="w-full flex items-center justify-center gap-2"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Income</span>
-              </Button>
-              <Button
-                onClick={() => {
-                  onAddTransaction("expense");
-                  setIsMobileMenuOpen(false);
-                }}
-                disabled={dailyCashStatus !== "Open"}
-                variant="danger"
-                className="w-full flex items-center justify-center gap-2"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Expense</span>
-              </Button>
-              {isSuperAdmin && dailyCashStatus === "Open" && (
+              {hasPermission("CASH_ADD_INCOME") && (
                 <Button
                   onClick={() => {
-                    handleCloseDay();
+                    onAddTransaction("income");
                     setIsMobileMenuOpen(false);
                   }}
-                  disabled={isClosingDay}
-                  variant="primary"
+                  disabled={dailyCashStatus !== "Open"}
+                  variant="success"
                   className="w-full flex items-center justify-center gap-2"
-                  isLoading={isClosingDay}
                 >
-                  <Target className="w-3.5 h-3.5" />
-                  <span>{isClosingDay ? "Closing..." : "Close Day"}</span>
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Income</span>
                 </Button>
               )}
-              {isSuperAdmin &&
+              {hasPermission("CASH_ADD_EXPENSE") && (
+                <Button
+                  onClick={() => {
+                    onAddTransaction("expense");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  disabled={dailyCashStatus !== "Open"}
+                  variant="danger"
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Expense</span>
+                </Button>
+              )}
+              {hasPermission("CASH_ACCOUNTS_OPEN_CLOSE") &&
+                dailyCashStatus === "Open" && (
+                  <Button
+                    onClick={() => {
+                      handleCloseDay();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    disabled={isClosingDay}
+                    variant="primary"
+                    className="w-full flex items-center justify-center gap-2"
+                    isLoading={isClosingDay}
+                  >
+                    <Target className="w-3.5 h-3.5" />
+                    <span>{isClosingDay ? "Closing..." : "Close Day"}</span>
+                  </Button>
+                )}
+              {hasPermission("CASH_ACCOUNTS_OPEN_CLOSE") &&
                 (dailyCashStatus === "Closed" ||
                   dailyCashStatus === "Not Opened Yet") && (
                   <Button
@@ -179,40 +184,45 @@ const DailyCashHeader = ({
 
           {/* Desktop Actions */}
           <div className="hidden md:flex flex-shrink-0 flex-wrap gap-2">
-            <Button
-              onClick={() => onAddTransaction("income")}
-              disabled={dailyCashStatus !== "Open"}
-              variant="success"
-              size="sm"
-              className="flex items-center gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Income</span>
-            </Button>
-            <Button
-              onClick={() => onAddTransaction("expense")}
-              disabled={dailyCashStatus !== "Open"}
-              variant="danger"
-              size="sm"
-              className="flex items-center gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Expense</span>
-            </Button>
-            {isSuperAdmin && dailyCashStatus === "Open" && (
+            {hasPermission("CASH_ADD_INCOME") && (
               <Button
-                onClick={handleCloseDay}
-                disabled={isClosingDay}
-                variant="primary"
+                onClick={() => onAddTransaction("income")}
+                disabled={dailyCashStatus !== "Open"}
+                variant="success"
                 size="sm"
                 className="flex items-center gap-1.5"
-                isLoading={isClosingDay}
               >
-                <Target className="w-3.5 h-3.5" />
-                <span>{isClosingDay ? "Closing..." : "Close Day"}</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Income</span>
               </Button>
             )}
-            {isSuperAdmin &&
+            {hasPermission("CASH_ADD_EXPENSE") && (
+              <Button
+                onClick={() => onAddTransaction("expense")}
+                disabled={dailyCashStatus !== "Open"}
+                variant="danger"
+                size="sm"
+                className="flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Expense</span>
+              </Button>
+            )}
+            {hasPermission("CASH_ACCOUNTS_OPEN_CLOSE") &&
+              dailyCashStatus === "Open" && (
+                <Button
+                  onClick={handleCloseDay}
+                  disabled={isClosingDay}
+                  variant="primary"
+                  size="sm"
+                  className="flex items-center gap-1.5"
+                  isLoading={isClosingDay}
+                >
+                  <Target className="w-3.5 h-3.5" />
+                  <span>{isClosingDay ? "Closing..." : "Close Day"}</span>
+                </Button>
+              )}
+            {hasPermission("CASH_ACCOUNTS_OPEN_CLOSE") &&
               (dailyCashStatus === "Closed" ||
                 dailyCashStatus === "Not Opened Yet") && (
                 <Button

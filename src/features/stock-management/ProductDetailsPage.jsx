@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   Calendar,
@@ -21,6 +21,8 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatBox from "@/components/ui/StatBox";
 import AddProductForm from "./AddProductForm";
 import SalesHistory from "./SalesHistory";
+import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
 
 const formatNumber = (num) => {
   if (typeof num !== "number") return num;
@@ -57,9 +59,17 @@ const DetailItem = ({ label, value, unit, icon: Icon }) => (
 const ProductDetails = () => {
   const { warehouseId, productId } = useParams();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  useEffect(() => {
+    if (!hasPermission("PRODUCT_VIEW_DETAILS")) {
+      toast.error("You don't have permission to view product details.");
+      navigate(`/stock/${warehouseId}`);
+    }
+  }, [hasPermission, navigate, warehouseId]);
 
   const {
     data: productData,
@@ -165,20 +175,24 @@ const ProductDetails = () => {
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <button
-                onClick={() => setShowEditForm(true)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Edit size={16} />
-                <span>Edit</span>
-              </button>
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <Trash2 size={16} />
-                <span>Delete</span>
-              </button>
+              {hasPermission("PRODUCT_UPDATE") && (
+                <button
+                  onClick={() => setShowEditForm(true)}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Edit size={16} />
+                  <span>Edit</span>
+                </button>
+              )}
+              {hasPermission("PRODUCT_DELETE") && (
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <Trash2 size={16} />
+                  <span>Delete</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -286,7 +300,9 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
-        <SalesHistory warehouseId={warehouseId} productId={productId} />
+        {hasPermission("SALE_VIEW_TABLE") && (
+          <SalesHistory warehouseId={warehouseId} productId={productId} />
+        )}
       </div>
       {showEditForm && (
         <AddProductForm

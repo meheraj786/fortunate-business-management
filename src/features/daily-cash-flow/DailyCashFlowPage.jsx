@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import AddTransactionDialog from "./components/AddTransactionDialog";
 import TransactionDetailsModal from "@/components/common/TransactionDetailsModal";
 import TransactionTable from "@/components/common/TransactionTable";
@@ -8,9 +9,21 @@ import DailyCashStats from "./components/DailyCashStats";
 import TransactionFilters from "./components/TransactionFilters";
 import Pagination from "@/components/ui/Pagination";
 import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
+import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
 // import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 
 const DailyCashFlow = () => {
+  const { hasPermission } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!hasPermission("CASH_VIEW")) {
+      toast.error("You don't have permission to view daily cash flow.");
+      navigate("/");
+    }
+  }, [hasPermission, navigate]);
+
   const {
     selectedDate,
     handleDateChange,
@@ -69,9 +82,7 @@ const DailyCashFlow = () => {
   const renderTransactionSection = () => {
     if (isError) {
       return (
-        <motion.div
-          className="text-center p-8 bg-[var(--color-danger-light)] rounded-lg border border-[var(--color-danger-light)]"
-        >
+        <motion.div className="text-center p-8 bg-[var(--color-danger-light)] rounded-lg border border-[var(--color-danger-light)]">
           <p className="text-lg font-semibold text-[var(--color-danger)] mb-4">
             Could not load transactions.
           </p>
@@ -82,9 +93,7 @@ const DailyCashFlow = () => {
 
     if (dailyCashStatus === "Not Opened Yet") {
       return (
-        <motion.div
-          className="text-center p-8 bg-[var(--color-warning-light)] rounded-lg border border-[var(--color-warning-light)]"
-        >
+        <motion.div className="text-center p-8 bg-[var(--color-warning-light)] rounded-lg border border-[var(--color-warning-light)]">
           <p className="text-lg font-semibold text-[var(--color-warning)] mb-4">
             Cash for {selectedDate} is not opened yet.
           </p>
@@ -97,9 +106,7 @@ const DailyCashFlow = () => {
 
     if (isInitialLoading) {
       return (
-        <motion.div
-          className="bg-white rounded-lg shadow-sm p-6"
-        >
+        <motion.div className="bg-white rounded-lg shadow-sm p-6">
           <div className="h-8 bg-gray-200 rounded w-2/3 animate-pulse mb-4"></div>
           <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse mb-6"></div>
           <div className="mt-4">
@@ -117,9 +124,7 @@ const DailyCashFlow = () => {
 
     if (transactions.length === 0 && filteredTransactionsCount === 0) {
       return (
-        <motion.div
-          className="text-center py-12 px-4 bg-white rounded-lg shadow-sm"
-        >
+        <motion.div className="text-center py-12 px-4 bg-white rounded-lg shadow-sm">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
             <img
               src="/favicon.jpg"
@@ -138,9 +143,7 @@ const DailyCashFlow = () => {
     }
 
     return (
-      <motion.div
-        className="bg-white rounded-lg shadow-sm overflow-hidden"
-      >
+      <motion.div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="p-4 sm:p-6">
           <TransactionFilters
             searchTerm={searchTerm}
@@ -169,9 +172,7 @@ const DailyCashFlow = () => {
   };
 
   return (
-    <motion.div
-      className="space-y-6"
-    >
+    <motion.div className="space-y-6">
       <DailyCashHeader
         onAddTransaction={handleAddTransactionClick}
         selectedDate={selectedDate}
@@ -186,7 +187,7 @@ const DailyCashFlow = () => {
       />
 
       <DailyCashStats summary={summary} isLoading={isInitialLoading} />
-      
+
       <AnimatePresence mode="wait">
         {renderTransactionSection()}
       </AnimatePresence>
@@ -223,4 +224,3 @@ const DailyCashFlow = () => {
 };
 
 export default DailyCashFlow;
-

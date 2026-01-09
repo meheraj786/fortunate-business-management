@@ -11,7 +11,7 @@ import {
   Users,
   Trash,
 } from "lucide-react";
-import { Link } from "react-router"; // Changed to react-router
+import { Link, useNavigate } from "react-router"; // Changed to react-router
 import { handleError } from "@/utils/handle-error";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCustomerSummary } from "../../api/hooks/customer";
@@ -19,6 +19,7 @@ import { useAuth } from "../../context/AuthContext";
 import Button from "@/components/ui/Button"; // Import Button
 import Pagination from "@/components/ui/Pagination"; // Import Pagination
 import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
+import toast from "react-hot-toast";
 
 const sortOptions = [
   { value: "joinDate", label: "Join Date" },
@@ -84,7 +85,15 @@ const Customers = () => {
     sortOrder: "desc",
   });
   const [showFilters, setShowFilters] = useState(false);
-  const { isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!hasPermission("CUSTOMER_VIEW_TABLE")) {
+      toast.error("You don't have permission to view customers.");
+      navigate("/");
+    }
+  }, [hasPermission, navigate]);
 
   const queryParams = {
     page,
@@ -163,7 +172,7 @@ const Customers = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {isSuperAdmin && (
+          {hasPermission("TRASH_VIEW_CUSTOMER") && (
             <Link to="/trash/customer">
               <Button
                 variant="danger"
@@ -176,18 +185,20 @@ const Customers = () => {
             </Link>
           )}
 
-          <Link to="/customer-form" className="flex-shrink-0">
-            <Button
-              variant="primary"
-              size="sm"
-              className="flex items-center gap-2"
-              aria-label="Add Customer"
-            >
-              <Plus className="w-5 h-5" />
-              <span className="hidden sm:inline">Add Customer</span>
-              <span className="sm:hidden">Add</span>
-            </Button>
-          </Link>
+          {hasPermission("CUSTOMER_CREATE") && (
+            <Link to="/customer-form" className="flex-shrink-0">
+              <Button
+                variant="primary"
+                size="sm"
+                className="flex items-center gap-2"
+                aria-label="Add Customer"
+              >
+                <Plus className="w-5 h-5" />
+                <span className="hidden sm:inline">Add Customer</span>
+                <span className="sm:hidden">Add</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -349,15 +360,17 @@ const Customers = () => {
               >
                 Clear Filters
               </Button>
-              <Link to="/customer-form">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                >
-                  Add Customer
-                </Button>
-              </Link>
+              {hasPermission("CUSTOMER_CREATE") && (
+                <Link to="/customer-form">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                  >
+                    Add Customer
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         )}

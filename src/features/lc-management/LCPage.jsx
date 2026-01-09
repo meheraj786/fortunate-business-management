@@ -30,7 +30,7 @@ const LC = () => {
   const [filterStatus, setFilterStatus] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
-  const { isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
 
   const lcSummaryParams = {
     page: pagination.page,
@@ -115,7 +115,7 @@ const LC = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            {isSuperAdmin && (
+            {hasPermission("TRASH_VIEW_LC") && (
               <Link to="/trash/lc" className="sm:w-auto w-full">
                 <Button
                   variant="danger" // Changed to danger variant
@@ -127,16 +127,18 @@ const LC = () => {
                 </Button>
               </Link>
             )}
-            <Link to="/lc-form" className="sm:w-auto w-full">
-              <Button
-                variant="primary" // Changed to primary variant
-                size="sm"
-                className="inline-flex items-center justify-center gap-2 w-full"
-              >
-                <Plus size={20} aria-hidden="true" />
-                <span>Add LC</span>
-              </Button>
-            </Link>
+            {hasPermission("LC_CREATE") && (
+              <Link to="/lc-form" className="sm:w-auto w-full">
+                <Button
+                  variant="primary" // Changed to primary variant
+                  size="sm"
+                  className="inline-flex items-center justify-center gap-2 w-full"
+                >
+                  <Plus size={20} aria-hidden="true" />
+                  <span>Add LC</span>
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

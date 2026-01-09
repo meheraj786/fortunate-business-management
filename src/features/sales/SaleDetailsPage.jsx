@@ -30,6 +30,7 @@ import {
 } from "@/api/hooks/sales";
 import { useInvoicesBySale, useGenerateInvoice } from "@/api/hooks/invoice";
 import { useAccounts } from "@/api/hooks/account";
+import { useAuth } from "@/context/AuthContext";
 // import { useHover } from "@/hooks/useHover"; // Removed as MotionButton is removed
 
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -78,6 +79,7 @@ const formatShortDate = (dateString) =>
 const SaleDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
 
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -88,6 +90,13 @@ const SaleDetails = () => {
   });
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState({ type: null });
+
+  useEffect(() => {
+    if (!hasPermission("SALE_VIEW_DETAILS")) {
+      toast.error("You don't have permission to view sale details.");
+      navigate("/sales");
+    }
+  }, [hasPermission, navigate]);
 
   const { data: saleData, isLoading, isError, error, refetch } = useSale(id);
   const { data: invoiceData } = useInvoicesBySale(id);
@@ -227,66 +236,79 @@ const SaleDetails = () => {
               </div>
   
               <div className="space-y-2.5">
-                                <Button
-                                  onClick={() => {
-                                    setIsUpdateModalOpen(true);
-                                    setIsMobileMenuOpen(false);
-                                  }}
-                                  disabled={
-                                    isCancelled ||
-                                    deleteSaleMutation.isLoading ||
-                                    cancelSaleMutation.isLoading
-                                  }
-                                  variant="primary"
-                                  className="w-full flex items-center justify-center gap-1.5"
-                                >
-                                  <Edit className="w-3.5 h-3.5" />
-                                  <span>Update Sale</span>
-                                </Button>
-                <Button
-                  onClick={() => {
-                    setConfirmAction({ type: "cancel" });
-                    setIsMobileMenuOpen(false);
-                  }}
-                  disabled={
-                    isCancelled ||
-                    deleteSaleMutation.isLoading ||
-                    cancelSaleMutation.isLoading
-                  }
-                  variant="warning"
-                  className="w-full flex items-center justify-center gap-1.5"
-                >
-                  <XCircle className="w-3.5 h-3.5" />
-                  <span>Cancel Sale</span>
-                </Button>                <Button
-                  onClick={() => {
-                    setConfirmAction({ type: "delete" });
-                    setIsMobileMenuOpen(false);
-                  }}
-                  disabled={
-                    deleteSaleMutation.isLoading || cancelSaleMutation.isLoading
-                  }
-                  variant="danger"
-                  className="w-full flex items-center justify-center gap-1.5"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Delete Sale</span>
-                </Button>                {sale.invoiceStatus !== "Invoiced" && !isCancelled && (
+                {hasPermission("SALE_UPDATE") && (
                   <Button
                     onClick={() => {
-                      handleGenerateInvoice();
+                      setIsUpdateModalOpen(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    disabled={generateInvoiceMutation.isLoading || isCancelled}
-                    isLoading={generateInvoiceMutation.isLoading}
-                    variant="success"
+                    disabled={
+                      isCancelled ||
+                      deleteSaleMutation.isLoading ||
+                      cancelSaleMutation.isLoading
+                    }
+                    variant="primary"
                     className="w-full flex items-center justify-center gap-1.5"
                   >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Generate Invoice</span>
+                    <Edit className="w-3.5 h-3.5" />
+                    <span>Update Sale</span>
                   </Button>
                 )}
-                {canAddPayment && (
+                {hasPermission("SALE_CANCEL") && (
+                  <Button
+                    onClick={() => {
+                      setConfirmAction({ type: "cancel" });
+                      setIsMobileMenuOpen(false);
+                    }}
+                    disabled={
+                      isCancelled ||
+                      deleteSaleMutation.isLoading ||
+                      cancelSaleMutation.isLoading
+                    }
+                    variant="warning"
+                    className="w-full flex items-center justify-center gap-1.5"
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Cancel Sale</span>
+                  </Button>
+                )}
+                {hasPermission("SALE_DELETE") && (
+                  <Button
+                    onClick={() => {
+                      setConfirmAction({ type: "delete" });
+                      setIsMobileMenuOpen(false);
+                    }}
+                    disabled={
+                      deleteSaleMutation.isLoading ||
+                      cancelSaleMutation.isLoading
+                    }
+                    variant="danger"
+                    className="w-full flex items-center justify-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Sale</span>
+                  </Button>
+                )}
+                {hasPermission("SALE_GENERATE_INVOICE") &&
+                  sale.invoiceStatus !== "Invoiced" &&
+                  !isCancelled && (
+                    <Button
+                      onClick={() => {
+                        handleGenerateInvoice();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      disabled={
+                        generateInvoiceMutation.isLoading || isCancelled
+                      }
+                      isLoading={generateInvoiceMutation.isLoading}
+                      variant="success"
+                      className="w-full flex items-center justify-center gap-1.5"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Generate Invoice</span>
+                    </Button>
+                  )}
+                {hasPermission("SALE_ADD_PAYMENT") && canAddPayment && (
                   <Button
                     onClick={() => {
                       setIsPaymentDialogOpen(true);
@@ -349,45 +371,53 @@ const SaleDetails = () => {
   
                 {/* Desktop Actions */}
                 <div className="hidden md:flex flex-shrink-0 flex-wrap gap-2">
-                  <Button
-                    onClick={() => setIsUpdateModalOpen(true)}
-                    disabled={
-                      isCancelled ||
-                      deleteSaleMutation.isLoading ||
-                      cancelSaleMutation.isLoading
-                    }
-                    variant="primary"
-                    size="sm"
-                    className="flex items-center gap-1.5"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                    <span>Update Sale</span>
-                  </Button>
-                  <Button
-                    onClick={() => setConfirmAction({ type: "cancel" })}
-                    disabled={
-                      isCancelled ||
-                      deleteSaleMutation.isLoading ||
-                      cancelSaleMutation.isLoading
-                    }
-                    variant="warning"
-                    size="sm"
-                    className="flex items-center gap-1.5"
-                  >
-                    <XCircle className="w-3.5 h-3.5" />
-                    <span>Cancel Sale</span>
-                  </Button>                  <Button
-                    onClick={() => setConfirmAction({ type: "delete" })}
-                    disabled={
-                      deleteSaleMutation.isLoading || cancelSaleMutation.isLoading
-                    }
-                    variant="danger"
-                    size="sm"
-                    className="flex items-center gap-1.5"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete Sale</span>
-                  </Button>
+                  {hasPermission("SALE_UPDATE") && (
+                    <Button
+                      onClick={() => setIsUpdateModalOpen(true)}
+                      disabled={
+                        isCancelled ||
+                        deleteSaleMutation.isLoading ||
+                        cancelSaleMutation.isLoading
+                      }
+                      variant="primary"
+                      size="sm"
+                      className="flex items-center gap-1.5"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      <span>Update Sale</span>
+                    </Button>
+                  )}
+                  {hasPermission("SALE_CANCEL") && (
+                    <Button
+                      onClick={() => setConfirmAction({ type: "cancel" })}
+                      disabled={
+                        isCancelled ||
+                        deleteSaleMutation.isLoading ||
+                        cancelSaleMutation.isLoading
+                      }
+                      variant="warning"
+                      size="sm"
+                      className="flex items-center gap-1.5"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      <span>Cancel Sale</span>
+                    </Button>
+                  )}
+                  {hasPermission("SALE_DELETE") && (
+                    <Button
+                      onClick={() => setConfirmAction({ type: "delete" })}
+                      disabled={
+                        deleteSaleMutation.isLoading ||
+                        cancelSaleMutation.isLoading
+                      }
+                      variant="danger"
+                      size="sm"
+                      className="flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete Sale</span>
+                    </Button>
+                  )}
                 </div>
   
                 {/* Mobile Actions Button */}
@@ -469,7 +499,7 @@ const SaleDetails = () => {
                     <h2 className="text-lg font-semibold text-gray-900">
                       Financial Summary
                     </h2>
-                    {canAddPayment && (
+                    {hasPermission("SALE_ADD_PAYMENT") && canAddPayment && (
                       <Button
                         onClick={() => setIsPaymentDialogOpen(true)}
                         variant="primary"
@@ -580,15 +610,16 @@ const SaleDetails = () => {
                           <p className="text-gray-900">{sale.customer.address}</p>
                         </div>
                       )}
-                      {isRegisteredCustomer && (
-                        <Link
-                          to={`/customer-details/${sale.customer.customerId._id}`}
-                          className="inline-flex items-center text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
-                        >
-                          View Customer Details
-                          <ExternalLink className="h-4 w-4 ml-1" />
-                        </Link>
-                      )}
+                      {isRegisteredCustomer &&
+                        hasPermission("CUSTOMER_VIEW_DETAILS") && (
+                          <Link
+                            to={`/customer-details/${sale.customer.customerId._id}`}
+                            className="inline-flex items-center text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
+                          >
+                            View Customer Details
+                            <ExternalLink className="h-4 w-4 ml-1" />
+                          </Link>
+                        )}
                     </div>
                   </div>
                 )}
@@ -645,17 +676,20 @@ const SaleDetails = () => {
                   <h2 className="text-lg font-semibold text-gray-900">
                     Invoice History
                   </h2>
-                  <Button
-                    onClick={handleGenerateInvoice}
-                    disabled={generateInvoiceMutation.isLoading}
-                    isLoading={generateInvoiceMutation.isLoading}
-                    variant="primary"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Printer className="h-4 w-4" />
-                    <span>Generate New Invoice</span>
-                  </Button>                </div>
+                  {hasPermission("SALE_GENERATE_INVOICE") && (
+                    <Button
+                      onClick={handleGenerateInvoice}
+                      disabled={generateInvoiceMutation.isLoading}
+                      isLoading={generateInvoiceMutation.isLoading}
+                      variant="primary"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Printer className="h-4 w-4" />
+                      <span>Generate New Invoice</span>
+                    </Button>
+                  )}
+                </div>
                 {invoiceHistory.length > 0 ? (
                   <div className="space-y-3">
                     {invoiceHistory.map((inv) => (
@@ -672,16 +706,19 @@ const SaleDetails = () => {
                             {new Date(inv.invoiceGeneratedDate).toLocaleString()}
                           </p>
                         </div>
-                        <Button
-                          onClick={() =>
-                            navigate(`/sales/${sale._id}/invoice/${inv._id}`)
-                          }
-                          variant="subtle"
-                          size="sm"
-                          className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
-                        >
-                          View Invoice
-                        </Button>                      </div>
+                        {hasPermission("SALE_VIEW_INVOICE") && (
+                          <Button
+                            onClick={() =>
+                              navigate(`/sales/${sale._id}/invoice/${inv._id}`)
+                            }
+                            variant="subtle"
+                            size="sm"
+                            className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
+                          >
+                            View Invoice
+                          </Button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 ) : (

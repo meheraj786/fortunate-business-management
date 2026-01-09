@@ -16,10 +16,14 @@ import { useAccounts } from "@/api/hooks/account"; // Using react-query hook
 import { handleError } from "@/utils/handle-error"; // For clipboard error
 import Button from "@/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
+import { useAuth } from "@/context/AuthContext";
 
 const AccountList = ({ onAddAccount }) => {
   const { data: allAccounts, isLoading, isError, error } = useAccounts();
   const [copiedText, setCopiedText] = useState("");
+  const { hasPermission } = useAuth();
+  const canCreateAccount = hasPermission("ACCOUNT_CREATE");
+  const canViewDetails = hasPermission("ACCOUNT_VIEW_DETAILS");
 
   const { bankAccounts, mobileBankingAccounts, cashAccounts } = useMemo(() => {
     const bank = [];
@@ -62,6 +66,24 @@ const AccountList = ({ onAddAccount }) => {
     );
   }
 
+  const AccountCard = ({ account, children }) => {
+    if (canViewDetails) {
+      return (
+        <Link
+          to={`/accounts/${account._id}`}
+          className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+        >
+          {children}
+        </Link>
+      );
+    }
+    return (
+      <div className="block border border-gray-200 rounded-lg p-4">
+        {children}
+      </div>
+    );
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
       {/* Bank Accounts */}
@@ -71,15 +93,17 @@ const AccountList = ({ onAddAccount }) => {
             <Building className="w-5 h-5 text-[var(--color-primary)]" />
             Bank Accounts
           </h2>
-          <Button
-            onClick={() => onAddAccount("Bank")}
-            variant="primary"
-            size="sm"
-            className="flex items-center gap-1"
-          >
-            <Plus size={16} />
-            <span> Account</span>
-          </Button>
+          {canCreateAccount && (
+            <Button
+              onClick={() => onAddAccount("Bank")}
+              variant="primary"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <Plus size={16} />
+              <span> Account</span>
+            </Button>
+          )}
         </div>
         <AnimatePresence mode="wait">
           {isLoading ? (
@@ -94,10 +118,7 @@ const AccountList = ({ onAddAccount }) => {
             >
               {bankAccounts.map((account) => (
                 <motion.div key={account._id}>
-                  <Link
-                    to={`/accounts/${account._id}`}
-                    className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                  >
+                  <AccountCard account={account}>
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
                         {account.bankName}
@@ -146,7 +167,7 @@ const AccountList = ({ onAddAccount }) => {
                         {account.swiftCode}
                       </div>
                     </div>
-                  </Link>
+                  </AccountCard>
                 </motion.div>
               ))}
             </motion.div>
@@ -165,15 +186,17 @@ const AccountList = ({ onAddAccount }) => {
             <Smartphone className="w-5 h-5 text-[var(--color-primary)]" />
             Mobile Banking
           </h2>
-          <Button
-            onClick={() => onAddAccount("Mobile Banking")}
-            variant="primary"
-            size="sm"
-            className="flex items-center gap-1"
-          >
-            <Plus size={16} />
-            <span> Account</span>
-          </Button>
+          {canCreateAccount && (
+            <Button
+              onClick={() => onAddAccount("Mobile Banking")}
+              variant="primary"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <Plus size={16} />
+              <span> Account</span>
+            </Button>
+          )}
         </div>
         <AnimatePresence mode="wait">
           {isLoading ? (
@@ -188,10 +211,7 @@ const AccountList = ({ onAddAccount }) => {
             >
               {mobileBankingAccounts.map((account) => (
                 <motion.div key={account._id}>
-                  <Link
-                    to={`/accounts/${account._id}`}
-                    className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                  >
+                  <AccountCard account={account}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div>
@@ -232,7 +252,7 @@ const AccountList = ({ onAddAccount }) => {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </AccountCard>
                 </motion.div>
               ))}
             </motion.div>
@@ -251,15 +271,17 @@ const AccountList = ({ onAddAccount }) => {
             <Wallet className="w-5 h-5 text-[var(--color-success)]" />
             Cash Accounts
           </h2>
-          <Button
-            onClick={() => onAddAccount("Cash")}
-            variant="primary"
-            size="sm"
-            className="flex items-center gap-1"
-          >
-            <Plus size={16} />
-            <span> Account</span>
-          </Button>
+          {canCreateAccount && (
+            <Button
+              onClick={() => onAddAccount("Cash")}
+              variant="primary"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <Plus size={16} />
+              <span> Account</span>
+            </Button>
+          )}
         </div>
         <AnimatePresence mode="wait">
           {isLoading ? (
@@ -274,10 +296,7 @@ const AccountList = ({ onAddAccount }) => {
             >
               {cashAccounts.map((account) => (
                 <motion.div key={account._id}>
-                  <Link
-                    to={`/accounts/${account._id}`}
-                    className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                  >
+                  <AccountCard account={account}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div>
@@ -297,7 +316,7 @@ const AccountList = ({ onAddAccount }) => {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </AccountCard>
                 </motion.div>
               ))}
             </motion.div>

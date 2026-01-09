@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router";
+import { useParams, useLocation, useNavigate } from "react-router";
 import { useTrash, useRestoreFromTrash } from "@/api/hooks/trash";
 import Button from "@/components/ui/Button";
 import {
@@ -14,10 +14,14 @@ import {
   FileText,
   Trash2,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
 
 const TrashPage = () => {
   const { moduleName } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { hasPermission } = useAuth();
   const queryParams = new URLSearchParams(location.search);
   const warehouseId = queryParams.get("warehouseId");
 
@@ -34,6 +38,15 @@ const TrashPage = () => {
   };
 
   const currentModule = formatModule(moduleName);
+  const viewPermission = `TRASH_VIEW_${currentModule.toUpperCase()}`;
+  const restorePermission = `TRASH_RESTORE_${currentModule.toUpperCase()}`;
+
+  useEffect(() => {
+    if (!hasPermission(viewPermission)) {
+      toast.error("You don't have permission to view this trash.");
+      navigate("/");
+    }
+  }, [hasPermission, navigate, viewPermission]);
 
   const { data, isLoading, isFetching, refetch } = useTrash({
     module: moduleName ? currentModule : "",
@@ -181,23 +194,28 @@ const TrashPage = () => {
                       </td>
 
                       <td className="text-right">
-                        <button
-                          variant="outline"
-                          className="rounded-lg bg-blue-200 px-4 py-2 text-blue-700 flex items-center justify-center gap-1"
-                          onClick={() =>
-                            restoreMutation.mutate(item._id, {
-                              onSuccess: () => refetch(),
-                            })
-                          }
-                          disabled={restoreMutation.isLoading}
-                        >
-                          {restoreMutation.isLoading ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
-                          ) : (
-                            <RotateCcw className="w-3.5 h-3.5 mr-1" />
-                          )}
-                          Restore
-                        </button>
+                        {hasPermission(restorePermission) && (
+                          <button
+                            variant="outline"
+                            className="rounded-lg bg-blue-200 px-4 py-2 text-blue-700 flex items-center justify-center gap-1"
+                            onClick={() =>
+                              restoreMutation.mutate({ model: item.model, id: item._id }, {
+                                onSuccess: () => {
+                                  toast.success("Item restored successfully!");
+                                  refetch();
+                                },
+                              })
+                            }
+                            disabled={restoreMutation.isLoading}
+                          >
+                            {restoreMutation.isLoading ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                            ) : (
+                              <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                            )}
+                            Restore
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -266,22 +284,27 @@ const TrashPage = () => {
                       </span>
                     </div>
                     <div>
-                      <button
-                        className="rounded-lg bg-blue-200 px-4 py-2 text-blue-700 flex items-center justify-center gap-1"
-                        onClick={() =>
-                          restoreMutation.mutate(item._id, {
-                            onSuccess: () => refetch(),
-                          })
-                        }
-                        disabled={restoreMutation.isLoading}
-                      >
-                        {restoreMutation.isLoading ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        )}
-                        <span className="ml-1">Restore</span>
-                      </button>
+                      {hasPermission(restorePermission) && (
+                        <button
+                          className="rounded-lg bg-blue-200 px-4 py-2 text-blue-700 flex items-center justify-center gap-1"
+                          onClick={() =>
+                            restoreMutation.mutate({ model: item.model, id: item._id }, {
+                              onSuccess: () => {
+                                toast.success("Item restored successfully!");
+                                refetch();
+                              },
+                            })
+                          }
+                          disabled={restoreMutation.isLoading}
+                        >
+                          {restoreMutation.isLoading ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          )}
+                          <span className="ml-1">Restore</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 

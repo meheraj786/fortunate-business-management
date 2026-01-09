@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import FormDialog from "@/components/ui/FormDialog";
 import FormDialogInput from "@/components/ui/FormDialogInput";
@@ -11,7 +11,7 @@ import {
   useUpdateCategory,
 } from "../../api/hooks/category";
 import { useAuth } from "../../context/AuthContext";
-import { Link } from "react-router"; // Changed to react-router
+import { Link, useNavigate } from "react-router"; // Changed to react-router
 import { Trash } from "lucide-react";
 import CategorySettingsSkeleton from "./components/CategorySettingsSkeleton";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -24,12 +24,20 @@ export default function Category() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const { hasPermission } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!hasPermission("CATEGORY_VIEW")) {
+      toast.error("You don't have permission to view categories.");
+      navigate("/settings");
+    }
+  }, [hasPermission, navigate]);
 
   const { data: categoryData, isLoading, isError, error } = useCategories();
   const createCatMutation = useCreateCategory();
   const updateCatMutation = useUpdateCategory();
   const deleteCatMutation = useDeleteCategory();
-  const { isSuperAdmin } = useAuth();
 
   const {
     register,
@@ -130,16 +138,18 @@ export default function Category() {
               Categories
             </h1>
           </div>
-          <div className="sm:mt-0 sm:ml-16 sm:flex-none flex justify-center items-center">
-            <Button
-              type="button"
-              onClick={() => openModal()}
-              variant="primary"
-              className="block px-3 py-2 text-center text-sm font-semibold"
-            >
-              Create New
-            </Button>
-          </div>
+          {hasPermission("CATEGORY_CREATE") && (
+            <div className="sm:mt-0 sm:ml-16 sm:flex-none flex justify-center items-center">
+              <Button
+                type="button"
+                onClick={() => openModal()}
+                variant="primary"
+                className="block px-3 py-2 text-center text-sm font-semibold"
+              >
+                Create New
+              </Button>
+            </div>
+          )}
         </div>
         <div className="mt-8 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -161,7 +171,7 @@ export default function Category() {
           </h1>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 flex flex-wrap items-center gap-4">
-          {isSuperAdmin && (
+          {hasPermission("CATEGORY_DELETE") && (
             <Link
               className="text-sm flex items-center gap-2 text-[var(--color-primary)]" // Themed color
               to="/trash/category"
@@ -169,14 +179,16 @@ export default function Category() {
               <Trash size={16} /> Trash
             </Link>
           )}
-          <Button
-            type="button"
-            onClick={() => openModal()}
-            variant="primary"
-            className="block px-3 py-2 text-center text-sm font-semibold"
-          >
-            Create New
-          </Button>
+          {hasPermission("CATEGORY_CREATE") && (
+            <Button
+              type="button"
+              onClick={() => openModal()}
+              variant="primary"
+              className="block px-3 py-2 text-center text-sm font-semibold"
+            >
+              Create New
+            </Button>
+          )}
         </div>
       </div>
       <div className="-mx-4 mt-10 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg overflow-hidden">
@@ -240,22 +252,26 @@ export default function Category() {
                   )}
                 >
                   <div className="flex justify-center gap-2">
-                    <Button
-                      type="button"
-                      onClick={() => openModal(plan)}
-                      variant="secondary" // Changed to secondary
-                      size="sm"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => openDeleteModal(plan)}
-                      variant="danger" // Changed to danger
-                      size="sm"
-                    >
-                      Delete
-                    </Button>
+                    {hasPermission("CATEGORY_UPDATE") && (
+                      <Button
+                        type="button"
+                        onClick={() => openModal(plan)}
+                        variant="secondary" // Changed to secondary
+                        size="sm"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    {hasPermission("CATEGORY_DELETE") && (
+                      <Button
+                        type="button"
+                        onClick={() => openDeleteModal(plan)}
+                        variant="danger" // Changed to danger
+                        size="sm"
+                      >
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </td>
               </tr>

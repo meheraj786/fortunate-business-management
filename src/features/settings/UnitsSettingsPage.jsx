@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import FormDialog from "@/components/ui/FormDialog";
 import FormDialogInput from "@/components/ui/FormDialogInput";
@@ -11,7 +11,7 @@ import {
   useDeleteUnit,
 } from "@/api/hooks/unit";
 import { useAuth } from "../../context/AuthContext";
-import { Link } from "react-router"; // Changed to react-router
+import { Link, useNavigate } from "react-router"; // Changed to react-router
 import { Trash } from "lucide-react";
 import UnitsSettingsSkeleton from "./components/UnitsSettingsSkeleton";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -23,7 +23,15 @@ export default function UnitsSettings() {
   const [editingUnit, setEditingUnit] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [unitToDelete, setUnitToDelete] = useState(null);
-  const { isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!hasPermission("UNIT_VIEW")) {
+      toast.error("You don't have permission to view units.");
+      navigate("/settings");
+    }
+  }, [hasPermission, navigate]);
 
   /* Queries & Mutations */
   const { data, isLoading, isError, error } = useUnits();
@@ -174,7 +182,7 @@ export default function UnitsSettings() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 flex flex-wrap items-center gap-4">
-          {isSuperAdmin && (
+          {hasPermission("UNIT_DELETE") && (
             <Link
               className="text-sm flex items-center gap-2 text-[var(--color-primary)]" // Themed color
               to="/trash/unit"
@@ -182,14 +190,16 @@ export default function UnitsSettings() {
               <Trash size={16} /> Trash
             </Link>
           )}
-          <Button
-            type="button"
-            onClick={() => openModal()}
-            variant="primary"
-            className="block px-3 py-2 text-center text-sm font-semibold"
-          >
-            Create New
-          </Button>
+          {hasPermission("UNIT_CREATE") && (
+            <Button
+              type="button"
+              onClick={() => openModal()}
+              variant="primary"
+              className="block px-3 py-2 text-center text-sm font-semibold"
+            >
+              Create New
+            </Button>
+          )}
         </div>
       </div>
 
@@ -246,20 +256,24 @@ export default function UnitsSettings() {
                   )}
                 >
                   <div className="flex justify-center gap-2">
-                    <Button
-                      onClick={() => openModal(unit)}
-                      variant="secondary" // Changed to secondary
-                      size="sm"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={() => openDeleteModal(unit)}
-                      variant="danger" // Changed to danger
-                      size="sm"
-                    >
-                      Delete
-                    </Button>
+                    {hasPermission("UNIT_UPDATE") && (
+                      <Button
+                        onClick={() => openModal(unit)}
+                        variant="secondary" // Changed to secondary
+                        size="sm"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    {hasPermission("UNIT_DELETE") && (
+                      <Button
+                        onClick={() => openDeleteModal(unit)}
+                        variant="danger" // Changed to danger
+                        size="sm"
+                      >
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </td>
               </tr>

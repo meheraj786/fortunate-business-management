@@ -2,8 +2,10 @@ import React from "react";
 import { Link } from "react-router"; // Changed to react-router
 import { Check, X, Calendar, Package, ArrowUp, ArrowDown } from "lucide-react";
 import Button from "@/components/ui/Button"; // Import Button component
+import { useAuth } from "@/context/AuthContext";
 
 const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
+  const { hasPermission } = useAuth();
   const SortableHeader = ({ label, value }) => {
     const isSorted = sortBy === value;
 
@@ -109,17 +111,26 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-2 py-4 text-xs sm:px-3 sm:text-sm">
-                    <Link
-                      to={`/sales/${sale._id}`}
-                      className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
-                    >
+                    {hasPermission("SALE_VIEW_DETAILS") ? (
+                      <Link
+                        to={`/sales/${sale._id}`}
+                        className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
+                      >
+                        <div
+                          className="max-w-[80px] sm:max-w-[120px] truncate"
+                          title={sale?.product?.name}
+                        >
+                          {sale?.product?.name}
+                        </div>
+                      </Link>
+                    ) : (
                       <div
                         className="max-w-[80px] sm:max-w-[120px] truncate"
                         title={sale?.product?.name}
                       >
                         {sale?.product?.name}
                       </div>
-                    </Link>
+                    )}
                   </td>
                   <td className="whitespace-nowrap px-2 py-4 text-xs text-gray-500 sm:px-3 sm:text-sm">
                     <div

@@ -1,288 +1,261 @@
-import React, { useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import {
-  FiX,
-  FiUser,
-  FiMail, // Added FiMail for consistency
-  FiPhone,
-  FiMapPin,
-  FiBriefcase,
-  FiImage,
-  FiLock,
-} from "react-icons/fi";
-import Dropdown from "@/components/ui/Dropdown";
-import toast from "react-hot-toast";
-import api from "@/services/apiService";
-import { useAuth } from "../../context/AuthContext";
+import React, { useMemo } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router";
+import { useCreateUser } from "@/api/hooks/user";
+import { useWarehouses } from "@/api/hooks/warehouse";
+import { usePermissions } from "@/api/hooks/permissions";
 import InputField from "@/components/ui/InputField";
-import { useCreateUser, useUpdateUser } from "../../api/hooks/user"; // Import useUpdateUser as well
-import { useForm } from "react-hook-form"; // Import useForm
-import Button from "@/components/ui/Button"; // Import Button component
+import Button from "@/components/ui/Button";
+import FormPageLayout from "@/components/ui/FormPageLayout";
+import MultiSelectField from "@/components/ui/MultiSelectField";
+import FormSection from "@/components/ui/FormSection";
+import { useSectionManager } from "@/hooks/useSectionManager";
 import { handleError } from "@/utils/handle-error";
+import {
+  FileText,
+  Warehouse as WarehouseIcon,
+  ShieldCheck,
+} from "lucide-react";
 
-const AddTeamMemForm = ({ isOpen, onClose, editData = null, onUserAdded, onUserUpdated }) => {
-  const isEditMode = !!editData;
-  
+const SECTIONS_CONFIG = [
+  {
+    id: "basicInfo",
+    title: "Basic Information",
+    icon: FileText,
+    defaultOpen: true,
+  },
+  {
+    id: "warehouseAccess",
+    title: "Warehouse Access",
+    icon: WarehouseIcon,
+    defaultOpen: true,
+  },
+  {
+    id: "permissions",
+    title: "Permissions",
+    icon: ShieldCheck,
+    defaultOpen: true,
+  },
+];
+
+const MODULES_ORDER = [
+  "USER",
+  "WAREHOUSE",
+  "PRODUCT",
+  "LC",
+  "SALE",
+  "CASH",
+  "ACCOUNT",
+  "TRANSACTION",
+  "CUSTOMER",
+  "CATEGORY",
+  "UNIT",
+  "TRASH",
+];
+
+const AddTeamMemForm = () => {
+  const { hasPermission, isSuperAdmin } = useAuth();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    reset,
+    control,
     formState: { errors, isSubmitting },
-    setValue,
-    watch,
-  } = useForm({
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      roleName: "",
-      location: "",
-      avatar: "",
-      password: "",
-    },
-  });
-
+  } = useForm();
   const createUserMutation = useCreateUser();
-  const updateUserMutation = useUpdateUser(); // useUpdateUser hook
+  const { data: warehousesData, isLoading: isWarehousesLoading } =
+    useWarehouses();
+  const { data: permissionsData, isLoading: isPermissionsLoading } =
+    usePermissions();
+  const { expandedSections, toggleSection, setSectionRef } =
+    useSectionManager(SECTIONS_CONFIG);
 
-  const roles = [
-      "MANAGER",
-      "Warehouse Keeper",
-      "Accountant",
-      "Sales Executive",
-      "Operations Coordinator",
-      "Logistics Officer",
-      "Quality Inspector",
-      "Customs Officer",
-      "No Role",
-  ];
+  const ALL_PERMISSIONS_DYNAMIC = useMemo(() => {
+    if (!permissionsData || !permissionsData.data) return {};
 
-  // When editing, pre-fill data
-  useEffect(() => {
-    if (isOpen) {
-      if (isEditMode && editData) {
-        reset({
-          name: editData.name || "",
-          email: editData.email || "",
-          phone: editData.phone || "",
-          roleName: editData.roleName || "",
-          location: editData.location || "",
-          avatar: editData.avatar || "",
-          password: "", // Password should not be pre-filled
-        });
-      } else {
-        reset({
-          name: "", email: "", phone: "", roleName: "", location: "", avatar: "", password: "",
-        });
-      }
-    }
-  }, [editData, isOpen, isEditMode, reset]);
-  
-  const onSubmit = (data) => {
-    const payload = {
-      ...data,
-      avatar:
-        data.avatar || `https://i.pravatar.cc/150?u=${data.name}`,
+    const allPermissionStrings = Object.values(permissionsData.data.permissions);
+
+    const transformed = {};
+    permissionsData.data.modules.forEach(moduleName => {
+        transformed[moduleName] = allPermissionStrings.filter(p => p.startsWith(moduleName + '_'));
+    });
+    return transformed;
+  }, [permissionsData]);
+
+  if (!hasPermission("USER_CREATE")) {
+    navigate("/");
+    return null;
+  }
+
+  const onSubmit = async (data) => {
+    let payload = {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      roleName: data.roleName,
+      description: data.description,
     };
 
-    if (isEditMode) {
-      // Don't send password if it's empty
-      if (!payload.password) {
-        delete payload.password;
-      }
-      updateUserMutation.mutate({ id: editData._id, data: payload }, {
-        onSuccess: () => {
-          toast.success("User Updated Successfully!");
-          onUserUpdated?.();
-          handleClose();
-        },
-        onError: (error) => {
-          handleError(error, "User update failed");
-        },
-      });
-    } else {
-      createUserMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success("User Created Successfully!");
-          onUserAdded?.();
-          handleClose();
-        },
-        onError: (error) => {
-          handleError(error, "User create failed");
-        },
-      });
+    if (isSuperAdmin) {
+      const access = Object.entries(ALL_PERMISSIONS_DYNAMIC)
+        .map(([module, permissions]) => ({
+          module,
+          permissions: permissions.filter((p) => data.permissions?.[p]),
+        }))
+        .filter((m) => m.permissions.length > 0);
+      
+      payload = { ...payload, warehouse: data.warehouse, access };
+    }
+
+    try {
+      await createUserMutation.mutateAsync(payload);
+      navigate("/team");
+    } catch (error) {
+      handleError(error, "Failed to create user.");
     }
   };
 
-
-  // Close & Reset Form
-  const handleClose = () => {
-    reset();
-    onClose();
-  };
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) handleClose();
-  };
-    const { user } = useAuth();
-
-if (!user || user.roleName !== "SUPER_ADMIN") {
-  return null;
-}
-
-  const mutationIsLoading = createUserMutation.isLoading || updateUserMutation.isLoading;
-
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={handleBackdropClick}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <motion.div
-            className="bg-white rounded-lg shadow-2xl w-full max-w-md flex flex-col max-h-[90vh]"
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+    <FormPageLayout
+      title="Add Team Member"
+      subtitle="Create a new user and set their initial details."
+      onSubmit={handleSubmit(onSubmit)}
+      isLoading={isSubmitting}
+      isEditMode={false}
+      submitButtonText="Member"
+      cancelLink="/team"
+    >
+      <FormSection
+        title="Basic Information"
+        icon={FileText}
+        isExpanded={expandedSections.basicInfo}
+        onToggle={() => toggleSection("basicInfo")}
+        sectionRef={(el) => setSectionRef("basicInfo", el)}
+        defaultOpen
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            label="Name"
+            name="name"
+            register={register}
+            validation={{ required: "Name is required" }}
+            error={errors.name}
+          />
+          <InputField
+            label="Email"
+            name="email"
+            type="email"
+            register={register}
+            validation={{ required: "Email is required" }}
+            error={errors.email}
+          />
+          <InputField
+            label="Password"
+            name="password"
+            type="password"
+            register={register}
+            validation={{ required: "Password is required" }}
+            error={errors.password}
+          />
+          <InputField
+            label="Role Name"
+            name="roleName"
+            register={register}
+            validation={{ required: "Role name is required" }}
+            error={errors.roleName}
+          />
+          <InputField
+            label="Description"
+            name="description"
+            register={register}
+            className="md:col-span-2"
+          />
+        </div>
+      </FormSection>
+
+      {isSuperAdmin && (
+        <>
+          <FormSection
+            title="Warehouse Access"
+            icon={WarehouseIcon}
+            isExpanded={expandedSections.warehouseAccess}
+            onToggle={() => toggleSection("warehouseAccess")}
+            sectionRef={(el) => setSectionRef("warehouseAccess", el)}
+            defaultOpen
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {editData ? "Edit Team Member" : "Add New Team Member"}
-              </h2>
-              <Button
-                onClick={handleClose}
-                variant="subtle"
-                size="sm"
-                className="!p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-                aria-label="Close"
-              >
-                <FiX size={20} />
-              </Button>
-            </div>
-
-            {/* Form */}
-            <div className="overflow-y-auto">
-              <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-                {/* Avatar */}
-                <InputField
-                  icon={FiImage}
-                  label="Avatar URL"
-                  name="avatar"
-                  register={register}
-                  error={errors.avatar?.message}
-                  placeholder="Enter image URL or leave blank for default"
-                  disabled={isSubmitting || mutationIsLoading}
-                />
-
-                {/* Name */}
-                <InputField
-                  icon={FiUser}
-                  label="Full Name"
-                  name="name"
-                  register={register}
-                  error={errors.name?.message}
-                  validation={{ required: "Name is required" }}
-                  placeholder="Enter full name"
-                  disabled={isSubmitting || mutationIsLoading}
-                />
-
-                {/* Email */}
-                <InputField
-                  icon={FiMail} // Changed to FiMail
-                  label="Email"
-                  name="email"
-                  type="email"
-                  register={register}
-                  error={errors.email?.message}
-                  validation={{ required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" } }}
-                  placeholder="Enter email address"
-                  disabled={isSubmitting || mutationIsLoading}
-                />
-
-                {/* Phone */}
-                <InputField
-                  icon={FiPhone}
-                  label="Phone"
-                  name="phone"
-                  type="tel"
-                  register={register}
-                  error={errors.phone?.message}
-                  validation={{ required: "Phone number is required" }}
-                  placeholder="+880 XXXX-XXXXXX"
-                  disabled={isSubmitting || mutationIsLoading}
-                />
-
-                {/* Role Dropdown */}
-                <Dropdown
-                  options={roles}
-                  selected={watch("roleName")}
-                  onSelect={(roleName) =>
-                    setValue("roleName", roleName, { shouldValidate: true })
+            <Controller
+              name="warehouse"
+              control={control}
+              defaultValue={[]}
+              render={({ field }) => (
+                <MultiSelectField
+                  label="Warehouses"
+                  name="warehouse"
+                  options={
+                    Array.isArray(warehousesData?.data)
+                      ? warehousesData.data.map((wh) => ({
+                          value: wh._id,
+                          label: wh.name,
+                        }))
+                      : []
                   }
-                  placeholder="Select roleName"
-                  label="Role"
-                  icon={FiBriefcase}
-                  error={errors.roleName?.message}
+                  value={field.value}
+                  onChange={field.onChange}
+                  isLoading={isWarehousesLoading}
                 />
+              )}
+            />
+          </FormSection>
 
-                {/* Location */}
-                <InputField
-                  icon={FiMapPin}
-                  label="Location"
-                  name="location"
-                  register={register}
-                  error={errors.location?.message}
-                  validation={{ required: "Location is required" }}
-                  placeholder="Enter location"
-                  disabled={isSubmitting || mutationIsLoading}
-                />
-
-                {/* Password */}
-                <InputField
-                  icon={FiLock}
-                  label="Password"
-                  name="password"
-                  type="password"
-                  register={register}
-                  error={errors.password?.message}
-                  validation={{ required: !isEditMode ? "Password is required" : false }}
-                  placeholder={isEditMode ? "Leave blank to keep unchanged" : "Enter strong password"}
-                  disabled={isSubmitting || mutationIsLoading}
-                />
-
-                {/* Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="button"
-                    onClick={handleClose}
-                    variant="secondary"
-                    className="flex-1"
-                    disabled={isSubmitting || mutationIsLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    className="flex-1"
-                    isLoading={isSubmitting || mutationIsLoading}
-                    disabled={isSubmitting || mutationIsLoading}
-                  >
-                    {isEditMode ? "Update" : "Add"} Member
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </motion.div>
-        </motion.div>
+          <FormSection
+            title="Permissions"
+            icon={ShieldCheck}
+            isExpanded={expandedSections.permissions}
+            onToggle={() => toggleSection("permissions")}
+            sectionRef={(el) => setSectionRef("permissions", el)}
+            defaultOpen
+          >
+            {isPermissionsLoading ? <p>Loading permissions...</p> : (
+              <div>
+                {MODULES_ORDER.map((moduleName) => {
+                  const permissions = ALL_PERMISSIONS_DYNAMIC[moduleName];
+                  if (!permissions || permissions.length === 0) return null;
+                  return (
+                    <div key={moduleName} className="mt-4">
+                      <h4 className="font-semibold text-gray-800 border-b pb-2 mb-2">
+                        {moduleName}
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {permissions.map((permission) => (
+                          <label
+                            key={permission}
+                            className="flex items-center space-x-2 text-sm"
+                          >
+                            <input
+                              type="checkbox"
+                              {...register(`permissions.${permission}`)}
+                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <span className="text-gray-700">
+                              {permission
+                                .split("_")
+                                .slice(1)
+                                .join(" ")
+                                .toLowerCase()}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </FormSection>
+        </>
       )}
-    </AnimatePresence>
+    </FormPageLayout>
   );
 };
 

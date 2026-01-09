@@ -1,91 +1,23 @@
-import { MapPin, Phone, User, Edit } from "lucide-react";
 import React from "react";
-import { Link } from "react-router"; // Changed to react-router
+import { Link } from "react-router";
+import Button from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
-import Button from "@/components/ui/Button"; // Import Button component
 
-const TeamMemberCard = ({ member, onEdit }) => {
-  const { user } = useAuth();
-  const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
-  const getRoleColor = (role) => {
-    if (!role) return "bg-gray-100 text-gray-800";
-    switch (role.toLowerCase()) {
-      case "manager":
-        return "bg-[var(--color-primary-light)] text-[var(--color-primary)]";
-      case "admin":
-        return "bg-[var(--color-danger-light)] text-[var(--color-danger)]";
-      case "warehouse keeper":
-        return "bg-[var(--color-success-light)] text-[var(--color-success)]";
-      case "accountant":
-        return "bg-purple-100 text-purple-800";
-      case "sales executive":
-        return "bg-orange-100 text-orange-800";
-      case "operations coordinator":
-        return "bg-pink-100 text-pink-800";
-      case "logistics officer":
-        return "bg-[var(--color-warning-light)] text-[var(--color-warning)]";
-      case "quality inspector":
-        return "bg-teal-100 text-teal-800";
-      case "customs officer":
-        return "bg-indigo-100 text-indigo-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+const TeamMemberCard = ({ user }) => {
+  const { isSuperAdmin } = useAuth();
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 relative">
+    <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex justify-between items-center">
+      <div>
+        <h3 className="text-lg font-semibold">{user.name}</h3>
+        <p className="text-gray-600">{user.email}</p>
+        <p className="text-gray-500">{user.roleName}</p>
+      </div>
       {isSuperAdmin && (
-        <Button
-          onClick={() => onEdit(member)}
-          variant="subtle"
-          size="sm"
-          className="absolute top-2 right-2 !p-1 bg-gray-100 rounded-full hover:bg-gray-200"
-          aria-label={`Edit ${member?.name}`}
-        >
-          <Edit size={16} />
-        </Button>
+        <Link to={`/team/${user._id}`}>
+          <Button variant="outline">View Details</Button>
+        </Link>
       )}
-
-      <Link to={`/team/${member._id}`}>
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                <User size={16} className="sm:hidden text-gray-600" />
-                <User size={20} className="hidden sm:block text-gray-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                  {member?.name}
-                </h3>
-              </div>
-            </div>
-            <span
-              className={`inline-flex px-2 py-1 sm:px-3 text-xs font-medium rounded-full ${getRoleColor(
-                member?.role
-              )}`}
-            >
-              {member?.role}
-            </span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-gray-600">
-            <Phone size={12} className="sm:hidden flex-shrink-0" />
-            <Phone size={14} className="hidden sm:block flex-shrink-0" />
-            <span className="text-xs sm:text-sm truncate">{member?.phone}</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-600">
-            <MapPin size={12} className="sm:hidden flex-shrink-0" />
-            <MapPin size={14} className="hidden sm:block flex-shrink-0" />
-            <span className="text-xs sm:text-sm truncate">
-              {member?.location}
-            </span>
-          </div>
-        </div>
-      </Link>
     </div>
   );
 };

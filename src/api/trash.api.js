@@ -8,8 +8,8 @@ export const getAllTrash = (params) =>
   api.get("/trash/get", { params });
 
 
-export const restoreFromTrash = (id) =>
-  api.post(`/trash/restore/${id}`);
+export const restoreFromTrash = ({model, id}) =>
+  api.post(`/trash/${model}/${id}/restore`);
 
 
 export const deleteTrashPermanently = (id) =>

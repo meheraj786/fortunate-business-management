@@ -35,8 +35,7 @@ const Warehouses = () => {
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [warehouseToDelete, setWarehouseToDelete] = useState(null);
 
-  const { user } = useAuth();
-  const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
+  const { hasPermission } = useAuth();
 
   const warehouses = warehouseData?.data?.warehouses || [];
   const totalStats = warehouseData?.data?.stats || {};
@@ -116,7 +115,7 @@ const Warehouses = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            {isSuperAdmin && (
+            {hasPermission("PRODUCT_CREATE") && (
               <Button
                 onClick={handleAddClick}
                 variant="primary"
@@ -126,7 +125,7 @@ const Warehouses = () => {
                 <Plus size={20} /> Add Warehouse
               </Button>
             )}
-            {isSuperAdmin && (
+            {hasPermission("TRASH_VIEW_WAREHOUSE") && (
               <Link to="/trash/warehouse">
                 <Button
                   variant="secondary"
@@ -182,13 +181,15 @@ const Warehouses = () => {
               Start by adding your first warehouse to organize and manage your
               inventory efficiently.
             </p>
-            <Button
-              onClick={handleAddClick}
-              variant="primary"
-              className="flex items-center gap-2 mx-auto"
-            >
-              <Plus size={20} /> Add Your First Warehouse
-            </Button>
+            {hasPermission("PRODUCT_CREATE") && (
+              <Button
+                onClick={handleAddClick}
+                variant="primary"
+                className="flex items-center gap-2 mx-auto"
+              >
+                <Plus size={20} /> Add Your First Warehouse
+              </Button>
+            )}
           </div>
         )}
 
@@ -199,51 +200,94 @@ const Warehouses = () => {
                 key={warehouse._id}
                 className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col border border-gray-200/60 hover:border-gray-300 group"
               >
-                <Link
-                  to={`/stock/${warehouse._id}`}
-                  className="p-6 flex-grow block hover:bg-gray-50/50 transition-colors duration-200"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg group-hover:scale-105 transition-transform duration-200">
-                      <Warehouse
-                        className="text-[var(--color-primary)]"
-                        size={24}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-semibold text-gray-900 truncate mb-1 group-hover:text-[var(--color-primary)] transition-colors">
-                        {warehouse.name}
-                      </h2>
-                      <div className="flex items-center gap-2 text-gray-600 mb-3">
-                        <MapPin size={14} className="flex-shrink-0 mt-0.5" />
-                        <span className="text-sm truncate">
-                          {warehouse.location}
-                        </span>
+                {hasPermission("WAREHOUSE_VIEW") ? (
+                  <Link
+                    to={`/stock/${warehouse._id}`}
+                    className="p-6 flex-grow block hover:bg-gray-50/50 transition-colors duration-200"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg group-hover:scale-105 transition-transform duration-200">
+                        <Warehouse
+                          className="text-[var(--color-primary)]"
+                          size={24}
+                        />
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-700 mt-4 border-t border-gray-100 pt-4">
-                        <div className="flex items-center gap-2">
-                          <Package size={16} className="text-gray-500" />{" "}
-                          <span className="font-medium">
-                            {warehouse.stats?.totalProducts || 0}
-                          </span>{" "}
-                          <span className="text-gray-500">Products</span>
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-lg font-semibold text-gray-900 truncate mb-1 group-hover:text-[var(--color-primary)] transition-colors">
+                          {warehouse.name}
+                        </h2>
+                        <div className="flex items-center gap-2 text-gray-600 mb-3">
+                          <MapPin size={14} className="flex-shrink-0 mt-0.5" />
+                          <span className="text-sm truncate">
+                            {warehouse.location}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <CheckCircle
-                            size={16}
-                            className="text-[var(--color-success)]"
-                          />{" "}
-                          <span className="font-medium">
-                            {warehouse.stats?.totalInStock || 0}
-                          </span>{" "}
-                          <span className="text-gray-500">In Stock</span>
+                        <div className="flex items-center gap-4 text-sm text-gray-700 mt-4 border-t border-gray-100 pt-4">
+                          <div className="flex items-center gap-2">
+                            <Package size={16} className="text-gray-500" />{" "}
+                            <span className="font-medium">
+                              {warehouse.stats?.totalProducts || 0}
+                            </span>{" "}
+                            <span className="text-gray-500">Products</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle
+                              size={16}
+                              className="text-[var(--color-success)]"
+                            />{" "}
+                            <span className="font-medium">
+                              {warehouse.stats?.totalInStock || 0}
+                            </span>{" "}
+                            <span className="text-gray-500">In Stock</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="p-6 flex-grow">
+                    <div className="flex items-start gap-4">
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg">
+                        <Warehouse
+                          className="text-[var(--color-primary)]"
+                          size={24}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-lg font-semibold text-gray-900 truncate mb-1">
+                          {warehouse.name}
+                        </h2>
+                        <div className="flex items-center gap-2 text-gray-600 mb-3">
+                          <MapPin size={14} className="flex-shrink-0 mt-0.5" />
+                          <span className="text-sm truncate">
+                            {warehouse.location}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-700 mt-4 border-t border-gray-100 pt-4">
+                          <div className="flex items-center gap-2">
+                            <Package size={16} className="text-gray-500" />{" "}
+                            <span className="font-medium">
+                              {warehouse.stats?.totalProducts || 0}
+                            </span>{" "}
+                            <span className="text-gray-500">Products</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle
+                              size={16}
+                              className="text-[var(--color-success)]"
+                            />{" "}
+                            <span className="font-medium">
+                              {warehouse.stats?.totalInStock || 0}
+                            </span>{" "}
+                            <span className="text-gray-500">In Stock</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </Link>
-                {isSuperAdmin && (
-                  <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
+                )}
+                <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
+                  {hasPermission("PRODUCT_UPDATE") && (
                     <Button
                       onClick={() => handleEditClick(warehouse)}
                       variant="subtle"
@@ -254,6 +298,8 @@ const Warehouses = () => {
                     >
                       <Edit size={16} />
                     </Button>
+                  )}
+                  {hasPermission("PRODUCT_DELETE") && (
                     <Button
                       onClick={() => handleDeleteClick(warehouse)}
                       disabled={
@@ -272,8 +318,8 @@ const Warehouses = () => {
                     >
                       <Trash2 size={16} />
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             ))}
           </div>

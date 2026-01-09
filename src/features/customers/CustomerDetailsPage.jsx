@@ -48,12 +48,14 @@ import Button from "@/components/ui/Button"; // Import Button
 import { useUrl } from "@/context/UrlProvider";
 import { useCustomerData, useSalesData } from "@/hooks/useCustomerOperations";
 import { useDeleteCustomer } from "../../api/hooks/customer";
+import { useAuth } from "@/context/AuthContext";
 
 const CustomerDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { baseUrl } = useUrl();
   const deleteCustomerMutation = useDeleteCustomer();
+  const { hasPermission } = useAuth();
 
   // State
   const [confirmModal, setConfirmModal] = useState({
@@ -61,6 +63,13 @@ const CustomerDetails = () => {
     title: "",
     description: "",
   });
+
+  useEffect(() => {
+    if (!hasPermission("CUSTOMER_VIEW_DETAILS")) {
+      toast.error("You don't have permission to view customer details.");
+      navigate("/customers");
+    }
+  }, [hasPermission, navigate]);
 
   // Custom Hooks
   const {
@@ -238,26 +247,30 @@ const CustomerDetails = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button
-                onClick={() => navigate(`/customer-form/${id}`)}
-                variant="primary"
-                size="sm"
-                className="flex items-center"
-                aria-label="Edit customer"
-              >
-                <Edit className="mr-2 w-4 h-4" aria-hidden="true" />
-                Edit
-              </Button>
-              <Button
-                onClick={handleOpenDeleteModal}
-                variant="danger"
-                size="sm"
-                className="flex items-center"
-                aria-label="Delete customer"
-              >
-                <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
-                Delete
-              </Button>
+              {hasPermission("CUSTOMER_UPDATE") && (
+                <Button
+                  onClick={() => navigate(`/customer-form/${id}`)}
+                  variant="primary"
+                  size="sm"
+                  className="flex items-center"
+                  aria-label="Edit customer"
+                >
+                  <Edit className="mr-2 w-4 h-4" aria-hidden="true" />
+                  Edit
+                </Button>
+              )}
+              {hasPermission("CUSTOMER_DELETE") && (
+                <Button
+                  onClick={handleOpenDeleteModal}
+                  variant="danger"
+                  size="sm"
+                  className="flex items-center"
+                  aria-label="Delete customer"
+                >
+                  <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
+                  Delete
+                </Button>
+              )}
             </div>
           </div>
         </motion.div>
@@ -448,152 +461,154 @@ const CustomerDetails = () => {
         </div>
 
         {/* Recent Purchases - Full Width */}
-        <div className="mt-4 sm:mt-6">
-          <CollapsibleCard
-            title="Recent Purchases"
-            icon={<DollarSign className="text-[var(--color-primary)]" />}
-            defaultOpen={true}
-            ariaLabel="Recent Purchases Section"
-          >
-            {loadingSales ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" />
-                <span className="ml-3 text-gray-600">Loading purchases...</span>
-              </div>
-            ) : salesData.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>No purchases found for this customer</p>
-              </div>
-            ) : (
-              <>
-                {/* Mobile View */}
-                <div className="block sm:hidden space-y-3">
-                  {salesData.map((sale) => (
-                    <div
-                      key={sale._id}
-                      className="border border-gray-200 rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
-                      onClick={() => navigate(`/sales/${sale._id}`)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          navigate(`/sales/${sale._id}`);
-                        }
-                      }}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 text-sm">
-                            {sale.product?.name || "N/A"}
-                          </h4>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(sale.saleDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-gray-900 text-sm">
-                            {formatCurrency(sale.totalAmountToBePaid)}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Qty: {sale.quantity} {sale.unit?.name || ""}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                        <StatusBadge status={sale.invoiceStatus} />
-                        <StatusBadge status={sale.paymentStatus} />
-                      </div>
-                    </div>
-                  ))}
+        {hasPermission("SALE_VIEW_TABLE") && (
+          <div className="mt-4 sm:mt-6">
+            <CollapsibleCard
+              title="Recent Purchases"
+              icon={<DollarSign className="text-[var(--color-primary)]" />}
+              defaultOpen={true}
+              ariaLabel="Recent Purchases Section"
+            >
+              {loadingSales ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" />
+                  <span className="ml-3 text-gray-600">Loading purchases...</span>
                 </div>
-
-                {/* Desktop View */}
-                <div className="hidden sm:block overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Date
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Product
-                        </th>
-                        <th className="px4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          LC Number
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Quantity
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Unit Price
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Total
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Invoice Status
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Payment Status
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {salesData.map((sale) => (
-                        <tr
-                          key={sale._id}
-                          className="hover:bg-gray-50 cursor-pointer"
-                          onClick={() => navigate(`/sales/${sale._id}`)}
-                        >
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(sale.saleDate).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-[var(--color-primary)]">
+              ) : salesData.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                  <p>No purchases found for this customer</p>
+                </div>
+              ) : (
+                <>
+                  {/* Mobile View */}
+                  <div className="block sm:hidden space-y-3">
+                    {salesData.map((sale) => (
+                      <div
+                        key={sale._id}
+                        className="border border-gray-200 rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/sales/${sale._id}`)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            navigate(`/sales/${sale._id}`);
+                          }
+                        }}
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 text-sm">
                               {sale.product?.name || "N/A"}
+                            </h4>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(sale.saleDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-gray-900 text-sm">
+                              {formatCurrency(sale.totalAmountToBePaid)}
                             </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {sale.product?.LC?.basicInfo?.lcNumber || "N/A"}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {sale.quantity} {sale.unit?.name || ""}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {formatCurrency(sale.pricePerUnit)}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {formatCurrency(sale.totalAmountToBePaid)}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <StatusBadge status={sale.invoiceStatus} />
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <StatusBadge status={sale.paymentStatus} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                {pagination.totalPages > 1 && (
-                  <div className="mt-4">
-                    <Pagination
-                      currentPage={pagination.currentPage}
-                      totalPages={pagination.totalPages}
-                      onPageChange={handleSalesPageChange}
-                      isLoading={loadingSales}
-                      totalItems={pagination.totalItems}
-                    />
+                            <div className="text-xs text-gray-500 mt-1">
+                              Qty: {sale.quantity} {sale.unit?.name || ""}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                          <StatusBadge status={sale.invoiceStatus} />
+                          <StatusBadge status={sale.paymentStatus} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </>
-            )}
-          </CollapsibleCard>
-        </div>
+
+                  {/* Desktop View */}
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Product
+                          </th>
+                          <th className="px4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            LC Number
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Quantity
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Unit Price
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Total
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Invoice Status
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Payment Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {salesData.map((sale) => (
+                          <tr
+                            key={sale._id}
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => navigate(`/sales/${sale._id}`)}
+                          >
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(sale.saleDate).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm font-medium text-[var(--color-primary)]">
+                                {sale.product?.name || "N/A"}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                              {sale.product?.LC?.basicInfo?.lcNumber || "N/A"}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                              {sale.quantity} {sale.unit?.name || ""}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                              {formatCurrency(sale.pricePerUnit)}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {formatCurrency(sale.totalAmountToBePaid)}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <StatusBadge status={sale.invoiceStatus} />
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <StatusBadge status={sale.paymentStatus} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination */}
+                  {pagination.totalPages > 1 && (
+                    <div className="mt-4">
+                      <Pagination
+                        currentPage={pagination.currentPage}
+                        totalPages={pagination.totalPages}
+                        onPageChange={handleSalesPageChange}
+                        isLoading={loadingSales}
+                        totalItems={pagination.totalItems}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </CollapsibleCard>
+          </div>
+        )}
       </div>
 
       {/* Confirmation Modal */}

@@ -11,6 +11,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Button  from "../../../components/ui/Button";
+import { useAuth } from "../../../context/AuthContext";
 
 const LCTable = ({
   lcData = [],
@@ -26,6 +27,7 @@ const LCTable = ({
   onSortChange,
   statusOptions,
 }) => {
+  const { hasPermission } = useAuth();
   const getStatusColor = React.useCallback((status) => {
     if (!status) return "bg-gray-100 text-gray-800";
     const statusLower = status.toLowerCase();
@@ -162,13 +164,17 @@ const LCTable = ({
       return (
         <tr key={lc._id} className="hover:bg-gray-50 transition-colors group">
           <td className="py-4 pl-4 pr-3 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6">
-            <Link
-              to={`/lc-details/${lc._id}`}
-              className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
-              aria-label={`View LC ${lc.lcNumber || "details"}`}
-            >
-              {lc.lcNumber || "N/A"}
-            </Link>
+            {hasPermission("LC_VIEW_DETAILS") ? (
+              <Link
+                to={`/lc-details/${lc._id}`}
+                className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
+                aria-label={`View LC ${lc.lcNumber || "details"}`}
+              >
+                {lc.lcNumber || "N/A"}
+              </Link>
+            ) : (
+              <span className="text-gray-900">{lc.lcNumber || "N/A"}</span>
+            )}
           </td>
           <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
             {lc.supplierName || "N/A"}

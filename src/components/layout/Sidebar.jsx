@@ -1,3 +1,14 @@
+import { RiTeamFill } from "react-icons/ri";
+import { useAuth } from "../../context/AuthContext";
+import { useLogout } from "../../api/hooks/user";
+import {
+  ChartColumnIncreasing,
+  CreditCard,
+  LogOut,
+  Trash,
+  WalletMinimal,
+} from "lucide-react";
+import ConfirmationModal from "../ui/ConfirmationModal";
 import { MdInventory } from "react-icons/md";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
@@ -6,16 +17,6 @@ import { BsFillCreditCardFill } from "react-icons/bs";
 import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings3Fill, RiMenuLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  ChartColumnIncreasing,
-  CreditCard,
-  LogOut,
-  Trash,
-  WalletMinimal,
-} from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { useLogout } from "../../api/hooks/user";
-import ConfirmationModal from "../ui/ConfirmationModal";
 
 const SidebarItem = ({
   icon: Icon,
@@ -70,7 +71,7 @@ const SidebarItem = ({
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission, isSuperAdmin } = useAuth();
   const logoutMutation = useLogout();
 
   const [collapsed, setCollapsed] = useState(
@@ -89,45 +90,41 @@ const Sidebar = () => {
       icon: BsFillCreditCardFill,
       label: "LC management",
       path: "/lc-management",
-      module: "LC",
+      permission: "LC_VIEW_TABLE",
     },
-    { icon: MdInventory, label: "Stock Management", path: "/stock-management" },
+    { icon: MdInventory, label: "Stock Management", path: "/stock-management", permission: "PRODUCT_VIEW_TABLE" },
     {
       icon: ChartColumnIncreasing,
       label: "Sales",
       path: "/sales",
-      module: "SALE",
+      permission: "SALE_VIEW_TABLE",
     },
     {
       icon: WalletMinimal,
       label: "Daily Cash",
       path: "/daily-cash-flow",
-      module: "CASH",
+      permission: "CASH_VIEW_TABLE",
     },
     {
       icon: CreditCard,
       label: "Accounts",
       path: "/accounts",
-      module: "ACCOUNTS",
+      permission: "ACCOUNT_VIEW_TABLE",
     },
-    { icon: MdPeopleAlt, label: "Team", path: "/team", module: "CUSTOMER" },
+    { icon: RiTeamFill, label: "Team", path: "/team", permission: "USER_VIEW_TABLE" },
     {
       icon: MdPeopleAlt,
       label: "Customers",
       path: "/customers",
-      module: "CUSTOMER",
+      permission: "CUSTOMER_VIEW_TABLE",
     },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
-    // { icon: Trash, label: "Trash", path: "/trash", module: "TRASH" },
+    // { icon: Trash, label: "Trash", path: "/trash", permission: "TRASH_VIEW" },
   ];
 
-  const menuItems =
-    user?.roleName === "ADMIN" || user?.roleName === "SUPER_ADMIN"
-      ? allMenuItems
-      : allMenuItems.filter(
-          (item) =>
-            !item.module || user?.access?.some((a) => a.module === item.module)
-        );
+  const menuItems = isSuperAdmin 
+    ? allMenuItems 
+    : allMenuItems.filter(item => !item.permission || hasPermission(item.permission));
 
   const getActive = () => {
     const path = location.pathname;

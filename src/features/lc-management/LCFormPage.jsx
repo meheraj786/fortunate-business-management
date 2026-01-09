@@ -22,6 +22,7 @@ import { useUnits } from "@/api/hooks/unit";
 import { useAccounts } from "@/api/hooks/account";
 import { useLC, useCreateLC, useUpdateLC } from "@/api/hooks/lc";
 import { handleError } from "@/utils/handle-error"; // Import handleError
+import { useAuth } from "@/context/AuthContext";
 
 // Components
 import FormSection from "@/components/ui/FormSection";
@@ -82,8 +83,25 @@ const SECTIONS_CONFIG = [
 const LCFormWrapper = ({ onSave }) => {
   const { id } = useParams();
   const isEditMode = !!id;
+  const { hasPermission, isSuperAdmin } = useAuth();
+  const navigate = useNavigate();
 
   const { data: lcData, isLoading: isLcDataLoading, isError } = useLC(id);
+
+  useEffect(() => {
+    if (isEditMode) {
+      if (!hasPermission("LC_UPDATE")) {
+        toast.error("You don't have permission to edit LCs.");
+        navigate("/lc-management");
+      }
+    } else {
+      if (!hasPermission("LC_CREATE")) {
+        toast.error("You don't have permission to create LCs.");
+        navigate("/lc-management");
+      }
+    }
+  }, [isEditMode, hasPermission, navigate]);
+
 
   // If in edit mode and data is loading, show skeleton.
   if (isEditMode && isLcDataLoading) {
@@ -118,11 +136,12 @@ const LCFormWrapper = ({ onSave }) => {
       isEditMode={isEditMode}
       id={id}
       initialData={lcData?.data}
+      hasPermission={hasPermission}
     />
   );
 };
 
-const LCForm = ({ onSave, isEditMode, id, initialData }) => {
+const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
   const navigate = useNavigate();
 
   const { data: unitsData, isLoading: unitsLoading } = useUnits();
@@ -388,7 +407,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
         exit={{ opacity: 0, height: 0 }}
         className="p-4 border border-gray-200 rounded-lg relative bg-gray-50 mb-4"
       >
-        {productFields.length > 1 && (
+        {productFields.length > 1 && hasPermission("LC_UPDATE") && (
           <Button
             type="button"
             onClick={() => removeProductField(index)}
@@ -640,29 +659,31 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                   renderProductFields(field, index)
                 )}
               </AnimatePresence>
-              <Button
-                type="button"
-                onClick={() =>
-                  appendProduct({
-                    id: Math.random(),
-                    itemName: "",
-                    thickness: "",
-                    width: "",
-                    length: "",
-                    grade: "",
-                    quantityUnit: "",
-                    quantity: 0,
-                    unitPriceUsd: 0,
-                    totalValueUsd: 0,
-                  })
-                }
-                variant="secondary" // Use secondary variant
-                className="w-full border-dashed border-gray-300 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-                disabled={isSubmitting}
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                <span>Add Another Product</span>
-              </Button>
+              {hasPermission("LC_UPDATE") && (
+                <Button
+                  type="button"
+                  onClick={() =>
+                    appendProduct({
+                      id: Math.random(),
+                      itemName: "",
+                      thickness: "",
+                      width: "",
+                      length: "",
+                      grade: "",
+                      quantityUnit: "",
+                      quantity: 0,
+                      unitPriceUsd: 0,
+                      totalValueUsd: 0,
+                    })
+                  }
+                  variant="secondary" // Use secondary variant
+                  className="w-full border-dashed border-gray-300 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                  disabled={isSubmitting}
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  <span>Add Another Product</span>
+                </Button>
+              )}
             </div>
           )}
           {section.id === "shippingCustomsInfo" && (
@@ -749,16 +770,18 @@ const LCForm = ({ onSave, isEditMode, id, initialData }) => {
                               {doc.originalName}
                             </span>
                           </div>
-                          <Button
-                            type="button"
-                            onClick={() => handleExistingFileRemove(doc._id)}
-                            variant="subtle"
-                            className="!p-1.5 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]" // Themed colors
-                            aria-label="Remove document"
-                            disabled={formSubmitting}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {hasPermission("LC_UPDATE") && (
+                            <Button
+                              type="button"
+                              onClick={() => handleExistingFileRemove(doc._id)}
+                              variant="subtle"
+                              className="!p-1.5 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]" // Themed colors
+                              aria-label="Remove document"
+                              disabled={formSubmitting}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -797,6 +820,7 @@ LCForm.propTypes = {
   isEditMode: PropTypes.bool.isRequired,
   id: PropTypes.string,
   initialData: PropTypes.object,
+  hasPermission: PropTypes.func.isRequired,
 };
 
 LCFormWrapper.propTypes = {

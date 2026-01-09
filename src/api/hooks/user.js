@@ -7,8 +7,8 @@ import {
   getUsers,
   getUserById,
   updateUser,
+  registerUser
 } from "@/api/user.api";
-import { registerUser } from "../user.api";
 
 export const useProfile = () =>
   useQuery({
@@ -16,7 +16,7 @@ export const useProfile = () =>
     queryFn: async () => {
       try {
         const response = await getProfile();
-        return response.data;
+        return response.data.data;
       } catch (error) {
         // If unauthorized or token invalid, return null
         if (error.response?.status === 401) {
@@ -46,13 +46,13 @@ export const useLogout = () =>
 export const useUsers = () =>
   useQuery({
     queryKey: ["users"],
-    queryFn: async () => (await getUsers()).data,
+    queryFn: async () => (await getUsers()).data.data,
   });
 
 export const useUser = (id) =>
   useQuery({
     queryKey: ["users", id],
-    queryFn: async () => (await getUserById(id)).data,
+    queryFn: async () => (await getUserById(id)).data.data,
     enabled: !!id,
   });
 
@@ -61,40 +61,14 @@ export const useUpdateUser = () => {
   return useMutation({
     mutationFn: ({ id, data }) => updateUser(id, data),
     onSuccess: (response, variables) => {
-      // Extract updated user data - adjust based on your API response structure
-      const updatedUser = response?.data?.data || response?.data;
-      
-      console.log("Update response:", response);
-      console.log("Updated user:", updatedUser);
-      
       // Invalidate and refetch users list
       qc.invalidateQueries({ queryKey: ["users"] });
       
-      // Invalidate the specific user query
+      // Invalidate the specific user query that was edited
       qc.invalidateQueries({ queryKey: ["users", variables.id] });
       
-      // Get current profile from cache
-      const currentProfile = qc.getQueryData(["profile"]);
-      
-      console.log("Current profile:", currentProfile);
-      
-      // If updating current logged-in user's profile, update profile cache
-      if (currentProfile && updatedUser) {
-        // Check if IDs match (handle both nested and direct id)
-        const currentProfileId = currentProfile?.data?.id || currentProfile?.id;
-        const updatedUserId = updatedUser?.id;
-        
-        if (currentProfileId === updatedUserId) {
-          console.log("Updating profile cache for logged-in user");
-          
-          // Match the structure of currentProfile
-          const updatedProfileData = currentProfile?.data 
-            ? { ...currentProfile, data: { ...currentProfile.data, ...updatedUser } }
-            : { ...currentProfile, ...updatedUser };
-          
-          qc.setQueryData(["profile"], updatedProfileData);
-        }
-      }
+      // Always invalidate and refetch the current user's profile to ensure permissions are up-to-date
+      qc.invalidateQueries({ queryKey: ["profile"] });
     },
     onError: (error) => handleError(error, "Failed to update user.", "userError"),
   });
