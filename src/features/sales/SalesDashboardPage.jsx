@@ -114,6 +114,30 @@ const Sales = () => {
               Manage and track your product sales in real-time
             </p>
           </div>
+          <div className="flex gap-2">
+            {hasPermission("SALE_CREATE") && (
+              <Button
+                onClick={() => setShowAddSale(true)}
+                variant="primary"
+                className="flex items-center gap-2"
+              >
+                <Plus size={20} />
+                <span>Add Sale</span>
+              </Button>
+            )}
+             {hasPermission("TRASH_VIEW_SALE") && (
+              <Link to="/trash/sale">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="flex items-center gap-2 w-full sm:w-auto justify-center"
+                >
+                  <Trash className="text-[var(--color-danger)]" size={20} />{" "}
+                  Sales Trash
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
         {hasPermission("SALE_VIEW_TABLE") && (

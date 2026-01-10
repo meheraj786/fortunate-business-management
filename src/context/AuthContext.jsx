@@ -12,11 +12,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await loginMutation.mutateAsync({ email, password });
-    const userFromLogin = response.data.data; // Corrected extraction
-    
-    // Manually set the query data for 'profile' to avoid race conditions
-    queryClient.setQueryData(["profile"], userFromLogin);
-    
     return response;
   };
 

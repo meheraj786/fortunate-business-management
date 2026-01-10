@@ -13,10 +13,7 @@ const MultiSelectField = ({
   disabled = false,
   required = false,
 }) => {
-  const selectOptions = options.map((option) => ({
-    value: option._id || option.value,
-    label: option.name || option.label,
-  }));
+  const selectOptions = options;
 
   const handleChange = (selectedOptions) => {
     onChange(selectedOptions.map((option) => option.value));
@@ -72,7 +69,9 @@ const MultiSelectField = ({
                 color: "white",
               },
             }),
+            menuPortal: (base) => ({ ...base, zIndex: 9999 })
           }}
+          menuPortalTarget={document.body}
       />
       {error && <p className="text-sm text-[var(--color-danger)] mt-1">{error}</p>}
     </div>

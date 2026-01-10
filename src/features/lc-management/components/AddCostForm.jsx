@@ -134,7 +134,7 @@ const AddCostForm = ({
           onChange={handleInputChange}
           placeholder="e.g., Bank Fees"
           required
-          error={errors.name}
+          error={errors.name?.message}
           autoFocus
         />
 
@@ -148,7 +148,7 @@ const AddCostForm = ({
             placeholder="Enter amount"
             required
             icon={DollarSign}
-            error={errors.amount}
+            error={errors.amount?.message}
             min="0.01"
             step="0.01"
           />
@@ -164,7 +164,7 @@ const AddCostForm = ({
             { value: "Mobile Banking", label: "Mobile Banking" },
           ]}
           required
-          error={errors.paymentMethod}
+          error={errors.paymentMethod?.message}
         />
 
         {(expense.paymentMethod === "Bank" ||
@@ -189,7 +189,7 @@ const AddCostForm = ({
             placeholder="Select an account"
             required
             loading={accountsLoading}
-            error={errors.accountId}
+            error={errors.accountId?.message}
           />
         )}
       </div>

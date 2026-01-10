@@ -115,7 +115,7 @@ const Warehouses = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            {hasPermission("PRODUCT_CREATE") && (
+            {hasPermission("WAREHOUSE_CREATE") && (
               <Button
                 onClick={handleAddClick}
                 variant="primary"
@@ -181,7 +181,7 @@ const Warehouses = () => {
               Start by adding your first warehouse to organize and manage your
               inventory efficiently.
             </p>
-            {hasPermission("PRODUCT_CREATE") && (
+            {hasPermission("WAREHOUSE_CREATE") && (
               <Button
                 onClick={handleAddClick}
                 variant="primary"
@@ -287,7 +287,7 @@ const Warehouses = () => {
                   </div>
                 )}
                 <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
-                  {hasPermission("PRODUCT_UPDATE") && (
+                  {hasPermission("WAREHOUSE_UPDATE") && (
                     <Button
                       onClick={() => handleEditClick(warehouse)}
                       variant="subtle"
@@ -299,7 +299,7 @@ const Warehouses = () => {
                       <Edit size={16} />
                     </Button>
                   )}
-                  {hasPermission("PRODUCT_DELETE") && (
+                  {hasPermission("WAREHOUSE_DELETE") && (
                     <Button
                       onClick={() => handleDeleteClick(warehouse)}
                       disabled={

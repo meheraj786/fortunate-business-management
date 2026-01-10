@@ -156,7 +156,7 @@ const EditTeamMemForm = () => {
                     name="name"
                     register={register}
                     validation={{ required: "Name is required" }}
-                    error={errors.name}
+                    error={errors.name?.message}
                   />
                   <InputField
                     label="Email"
@@ -164,14 +164,14 @@ const EditTeamMemForm = () => {
                     type="email"
                     register={register}
                     validation={{ required: "Email is required" }}
-                    error={errors.email}
+                    error={errors.email?.message}
                   />
                   <InputField
                     label="Role Name"
                     name="roleName"
                     register={register}
                     validation={{ required: "Role name is required" }}
-                    error={errors.roleName}
+                    error={errors.roleName?.message}
                   />
                   <InputField
                     label="Description"
@@ -196,7 +196,7 @@ const EditTeamMemForm = () => {
                     <MultiSelectField
                       label="Warehouses"
                       name="warehouse"
-                      options={Array.isArray(warehousesData.data) ? warehousesData.data.map(wh => ({ value: wh._id, label: wh.name })) : []}
+                      options={Array.isArray(warehousesData?.data?.warehouses) ? warehousesData.data.warehouses.map(wh => ({ value: wh._id, label: wh.name })) : []}
                       value={field.value}
                       onChange={field.onChange}
                     />

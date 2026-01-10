@@ -5,7 +5,7 @@ export const moveToTrash = (data) =>
   api.post("/trash/move-to-trash", data);
 
 export const getAllTrash = (params) =>
-  api.get("/trash/get", { params });
+  api.get("/trash", { params });
 
 
 export const restoreFromTrash = ({model, id}) =>

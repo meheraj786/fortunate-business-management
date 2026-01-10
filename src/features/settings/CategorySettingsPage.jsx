@@ -301,7 +301,7 @@ export default function Category() {
             type="text"
             placeholder="Enter category name"
             register={register}
-            error={errors.name}
+            error={errors.name?.message}
             validation={{ required: "Category name is required" }}
           />
           <FormDialogTextarea

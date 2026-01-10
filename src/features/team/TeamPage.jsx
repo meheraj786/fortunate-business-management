@@ -32,7 +32,7 @@ const TeamPage = () => {
         subtitle="Manage your team members and their permissions."
       >
         <div className="flex items-center gap-2">
-          <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          <SearchBar onSearch={setSearchTerm} />
           {hasPermission("USER_CREATE") && (
             <Link to="/team/add">
               <Button>Add Member</Button>

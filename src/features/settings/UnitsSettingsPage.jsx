@@ -300,7 +300,7 @@ export default function UnitsSettings() {
             name="name"
             label="Unit Name"
             register={register}
-            error={errors.name}
+            error={errors.name?.message}
             validation={{ required: "Unit name is required" }}
           />
 
@@ -323,7 +323,7 @@ export default function UnitsSettings() {
               type="number"
               label="Conversion Factor"
               register={register}
-              error={errors.conversionFactor}
+              error={errors.conversionFactor?.message}
               validation={{
                 required: "Conversion factor is required",
                 min: { value: 0.001, message: "Must be greater than 0" },

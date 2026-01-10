@@ -31,11 +31,16 @@ export const useProfile = () =>
     refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 
-export const useLogin = () =>
-  useMutation({
+export const useLogin = () => {
+  const qc = useQueryClient();
+  return useMutation({
     mutationFn: loginUser,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
     onError: (error) => handleError(error, "Login failed.", "userError"),
   });
+};
 
 export const useLogout = () =>
   useMutation({

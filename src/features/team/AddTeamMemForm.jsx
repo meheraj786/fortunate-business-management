@@ -140,7 +140,7 @@ const AddTeamMemForm = () => {
             name="name"
             register={register}
             validation={{ required: "Name is required" }}
-            error={errors.name}
+            error={errors.name?.message}
           />
           <InputField
             label="Email"
@@ -148,7 +148,7 @@ const AddTeamMemForm = () => {
             type="email"
             register={register}
             validation={{ required: "Email is required" }}
-            error={errors.email}
+            error={errors.email?.message}
           />
           <InputField
             label="Password"
@@ -156,14 +156,14 @@ const AddTeamMemForm = () => {
             type="password"
             register={register}
             validation={{ required: "Password is required" }}
-            error={errors.password}
+            error={errors.password?.message}
           />
           <InputField
             label="Role Name"
             name="roleName"
             register={register}
             validation={{ required: "Role name is required" }}
-            error={errors.roleName}
+            error={errors.roleName?.message}
           />
           <InputField
             label="Description"
@@ -193,8 +193,8 @@ const AddTeamMemForm = () => {
                   label="Warehouses"
                   name="warehouse"
                   options={
-                    Array.isArray(warehousesData?.data)
-                      ? warehousesData.data.map((wh) => ({
+                    Array.isArray(warehousesData?.data?.warehouses)
+                      ? warehousesData.data.warehouses.map((wh) => ({
                           value: wh._id,
                           label: wh.name,
                         }))

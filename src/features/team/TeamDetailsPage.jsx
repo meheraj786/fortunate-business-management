@@ -21,16 +21,16 @@ const TeamDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: warehousesData } = useWarehouses();
-    const { user } = useAuth();
+    const { user, hasPermission } = useAuth();
   
     const { data: member, isLoading, isError } = useUser(id);
   
     useEffect(() => {
-      if (user.roleName !== "SUPER_ADMIN") {
+      if (!hasPermission("USER_VIEW_ALL")) {
         toast.error("You don't have permission to view this page.");
         navigate("/team");
       }
-    }, [user, navigate]);
+    }, [user, hasPermission, navigate]);
   
     const copyToClipboard = (text, type) => {
     if (!text) return;
@@ -84,7 +84,7 @@ const TeamDetails = () => {
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
-            {user.roleName === "SUPER_ADMIN" ? (
+            {hasPermission("USER_UPDATE") ? (
               <Link
                 to={`/team/edit/${id}`}
                 className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
