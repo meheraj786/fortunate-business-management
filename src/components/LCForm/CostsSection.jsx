@@ -89,9 +89,9 @@ const CostsSection = ({
           <motion.div
             key={cost.id}
             {...sectionAnimation}
-            className="grid grid-cols-1 sm:grid-cols-12 gap-3 p-3 bg-gray-50 rounded-lg"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 p-4 bg-gray-50 rounded-lg"
           >
-            <div className="sm:col-span-3">
+            <div className="lg:col-span-3 md:col-span-1">
               <InputField
                 label={`Cost Name ${index + 1}`}
                 name={`${section}[${index}].name`}
@@ -102,7 +102,7 @@ const CostsSection = ({
                 disabled={isSubmitting}
               />
             </div>
-            <div className="sm:col-span-3">
+            <div className="lg:col-span-3 md:col-span-1">
               <InputField
                 label="Amount (BDT)"
                 name={`${section}[${index}].amount`}
@@ -118,7 +118,7 @@ const CostsSection = ({
                 disabled={isSubmitting}
               />
             </div>
-            <div className="sm:col-span-3">
+            <div className="lg:col-span-3 md:col-span-1">
               <SelectField
                 label="Payment Method"
                 name={`${section}[${index}].paymentMethod`}
@@ -134,7 +134,7 @@ const CostsSection = ({
                 disabled={isSubmitting}
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="lg:col-span-2 md:col-span-1">
               {watch(`${section}[${index}].paymentMethod`) && ( // Watch the paymentMethod for this specific cost
                 <SelectField
                   label="Select Account"
@@ -172,7 +172,7 @@ const CostsSection = ({
                 />
               )}
             </div>
-            <div className="sm:col-span-1 flex items-end justify-end">
+            <div className="lg:col-span-1 flex items-end justify-start sm:justify-end">
               <Button
                 type="button"
                 onClick={() => remove(index)}
@@ -181,7 +181,7 @@ const CostsSection = ({
                 aria-label="Remove cost"
                 disabled={isSubmitting}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-5 h-5" />
               </Button>
             </div>
           </motion.div>

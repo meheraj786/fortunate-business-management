@@ -4,7 +4,7 @@ export const createCustomer = (data) =>
   api.post("/customer/create-customer", data);
 
 export const getCustomers = () =>
-  api.get("/customer/get-customers");
+  api.get("/customer/get-active-customers");
 
 export const getCustomerById = (id) =>
   api.get(`/customer/get-customer/${id}`);

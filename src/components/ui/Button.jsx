@@ -14,16 +14,16 @@ const buttonVariants = {
 
 const buttonSizes = {
   // Small button
-  sm: "px-3 py-1 sm:px-3 sm:py-2 md:px-3 md:py-2 text-sm",
+  sm: "px-4 py-2 text-sm",
 
   // Medium button (default)
-  md: "px-3 py-1 sm:px-3 sm:py-2 md:px-3 md:py-2 text-sm",
+  md: "px-5 py-2.5 text-base sm:px-4 sm:py-2 sm:text-sm",
 
   // Large button
-  lg: "px-3 py-1 sm:px-3 sm:py-2 md:px-3 md:py-2 text-sm",
+  lg: "px-6 py-3 text-lg sm:px-5 sm:py-2.5 sm:text-base",
 
   // Full width button
-  full: "px-3 py-1 sm:px-3 sm:py-2 md:px-3 md:py-2 text-sm",
+  full: "w-full px-5 py-2.5 text-base sm:text-sm",
 };
 
 
@@ -34,7 +34,7 @@ const Button = React.forwardRef(
       className,
       onClick,
       variant = 'primary',
-      size = 'sm',
+      size = 'md', // Default to md for better mobile experience
       isLoading = false,
       disabled = false,
       type = 'button',
@@ -51,7 +51,8 @@ const Button = React.forwardRef(
         onClick={onClick}
         disabled={disabledState}
         className={clsx(
-          'inline-flex items-center justify-center rounded-md font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] gap-2', // Added gap-2 for default spacing
+          'inline-flex items-center justify-center rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] gap-2', // increased border-radius
+          'min-h-[44px]', // Ensure minimum touch target height
           buttonVariants[variant],
           buttonSizes[size],
           {
@@ -59,7 +60,7 @@ const Button = React.forwardRef(
           },
           className
         )}
-        whileHover={!disabledState ? { scale: 1.01 } : {}}
+        whileHover={!disabledState ? { scale: 1.02 } : {}}
         whileTap={!disabledState ? { scale: 0.98 } : {}}
         {...props}
       >

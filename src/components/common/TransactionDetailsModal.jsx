@@ -73,10 +73,10 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
 
         {/* Details */}
         {transaction && !isLoading && !isError && (
-          <div className="space-y-4">
+          <div className="space-y-4 sm:space-y-5">
             {/* Amount Banner */}
             <div
-              className={`p-4 rounded-lg border ${
+              className={`p-4 sm:p-5 rounded-lg border ${
                 transaction.transactionType === "Income"
                   ? "bg-green-50 border-green-200"
                   : "bg-red-50 border-red-200"
@@ -92,19 +92,19 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
                     }`}
                   >
                     {transaction.transactionType === "Income" ? (
-                      <ArrowUpRight />
+                      <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6" />
                     ) : (
-                      <ArrowDownRight />
+                      <ArrowDownRight className="w-5 h-5 sm:w-6 sm:h-6" />
                     )}
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Transaction Type</p>
-                    <p className="font-bold">{transaction.transactionType}</p>
+                    <p className="font-bold text-base sm:text-lg">{transaction.transactionType}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Amount</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl sm:text-3xl font-bold">
                     {formatCurrency(transaction.amount)}
                   </p>
                 </div>
@@ -112,10 +112,10 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
             </div>
 
             {/* Info Grid */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <Info
                 label="Date"
-                icon={<Calendar />}
+                icon={<Calendar className="w-5 h-5" />}
                 value={formatDate(transaction.date)}
               />
               <Info
@@ -125,12 +125,12 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
               />
               <Info
                 label="Category"
-                icon={<CircleDashed />}
+                icon={<CircleDashed className="w-5 h-5" />}
                 value={transaction.category}
               />
               <Info
                 label="Account"
-                icon={<User />}
+                icon={<User className="w-5 h-5" />}
                 value={transaction.accountId?.accountName}
               />
             </div>
@@ -139,9 +139,9 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
             <div className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold">Description</h3>
+                <h3 className="font-semibold text-base sm:text-lg">Description</h3>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg min-h-[80px]">
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg min-h-[80px] text-sm sm:text-base">
                 {transaction.description ? (
                   transaction.description
                 ) : (
@@ -161,12 +161,12 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
 };
 
 const Info = ({ label, icon, value }) => (
-  <div className="bg-gray-50 p-3 rounded-lg">
-    <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+  <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-1">
       {icon}
       {label}
     </div>
-    <div className="font-medium text-gray-900 truncate">{value || "N/A"}</div>
+    <div className="font-medium text-sm sm:text-base text-gray-900 truncate">{value || "N/A"}</div>
   </div>
 );
 

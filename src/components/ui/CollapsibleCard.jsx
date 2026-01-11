@@ -69,7 +69,7 @@ const CollapsibleCard = ({
                 {icon}
               </span>
             )}
-            <h2 className="text-lg font-semibold text-gray-800 truncate">
+            <h2 className="text-xl sm:text-lg font-semibold text-gray-800 truncate">
               {title}
             </h2>
           </button>
