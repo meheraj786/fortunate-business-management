@@ -43,7 +43,7 @@ const TeamDetails = () => {
   if (isLoading) {
     return (
       <div className="  flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2  border-primary"></div>
       </div>
     );
   }
@@ -101,12 +101,12 @@ const TeamDetails = () => {
           <div className="lg:col-span-1">
             <div className="bg-white shadow-md rounded-lg p-6 sticky top-6">
               <div className="flex flex-col items-center mb-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center overflow-hidden mb-4 shadow-lg text-3xl font-bold text-white">
+                <div className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden mb-4 bg-gray-200 text-3xl font-bold text-white">
                   {member.avatar ? (
                     <img
                       src={member.avatar}
                       alt=""
-                      className="w-full h-full object-cover"
+                      className="w-[90%] h-[90%] object-cover"
                     />
                   ) : (
                     member.name?.charAt(0).toUpperCase()
@@ -120,7 +120,7 @@ const TeamDetails = () => {
                 </p>
               </div>
 
-              <div className="space-y-3 pt-4 border-t">
+              <div className="space-y-3 pt-4 border-t border-gray-200">
                 <div
                   onClick={() => copyToClipboard(member.email, "Email")}
                   className="flex items-start p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
@@ -151,7 +151,7 @@ const TeamDetails = () => {
             {/* Warehouse Access Section */}
             {/* Warehouse Access Section */}
             <div className="bg-white shadow-md rounded-lg p-6">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b">
+              <div className="flex items-center justify-between mb-6 pb-4 border-gray-200 border-b">
                 <div className="flex items-center gap-2">
                   <WarehouseIcon className="text-primary" size={24} />
                   <div>
@@ -169,7 +169,7 @@ const TeamDetails = () => {
                 {member?.warehouse?.map((wh) => (
                   <div
                     key={wh._id}
-                    className="flex items-center justify-between p-4 border rounded-lg bg-gray-50/30"
+                    className="flex items-center justify-between p-4 border rounded-lg border-gray-200 bg-gray-50/30"
                   >
                     <div className="flex items-center gap-3">
                       <div
@@ -199,7 +199,7 @@ const TeamDetails = () => {
 
             {/* Access Permissions Section */}
             <div className="bg-white shadow-md rounded-lg p-6">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900">
                   Module Permissions
                 </h2>
@@ -220,7 +220,7 @@ const TeamDetails = () => {
                   return (
                     <div
                       key={module.module}
-                      className="border rounded-lg p-5 border-green-200 bg-green-50/20"
+                      className="border rounded-lg p-5 border-gray-200 bg-green-50/20"
                     >
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-md font-bold text-gray-800">
@@ -231,7 +231,7 @@ const TeamDetails = () => {
                         {module.permissions.map((permission) => (
                           <div
                             key={permission}
-                            className="flex items-center gap-2 p-2 border rounded-md bg-green-50"
+                            className="flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-green-50"
                           >
                             <CheckCheck className="w-4 h-4 text-green-600" />
                             <span className="text-xs font-semibold uppercase">

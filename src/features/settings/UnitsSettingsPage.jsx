@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import FormDialog from "@/components/ui/FormDialog";
 import FormDialogInput from "@/components/ui/FormDialogInput";
+import SelectField from "@/components/ui/SelectField";
 import toast from "react-hot-toast";
 import { handleError } from "@/utils/handle-error";
 import {
@@ -302,34 +303,44 @@ export default function UnitsSettings() {
             register={register}
             error={errors.name?.message}
             validation={{ required: "Unit name is required" }}
+            placeholder="e.g., Kilogram, Liter, Piece"
           />
 
-          <div>
-            <label className="block text-sm font-medium">Type</label>
-            <select
-              {...register("type", { required: true })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent sm:text-sm" // Themed focus
-            >
-              <option value="Weight">Weight</option>
-              <option value="Countable">Countable</option>
-              <option value="Volume">Volume</option>
-            </select>
-          </div>
+          <SelectField
+            className="mt-4"
+            id="type"
+            name="type"
+            label="Type"
+            register={register}
+            error={errors.type?.message}
+            validation={{ required: "Unit type is required" }}
+            options={[
+              { value: "Weight", label: "Weight" },
+              { value: "Countable", label: "Countable" },
+              { value: "Volume", label: "Volume" },
+            ]}
+          />
 
           {selectedType !== "Countable" && (
-            <FormDialogInput
-              id="conversionFactor"
-              name="conversionFactor"
-              type="number"
-              label="Conversion Factor"
-              register={register}
-              error={errors.conversionFactor?.message}
-              validation={{
-                required: "Conversion factor is required",
-                min: { value: 0.001, message: "Must be greater than 0" },
-                valueAsNumber: true,
-              }}
-            />
+            <div>
+              <FormDialogInput
+                id="conversionFactor"
+                name="conversionFactor"
+                type="number"
+                label="Conversion Factor"
+                register={register}
+                error={errors.conversionFactor?.message}
+                validation={{
+                  required: "Conversion factor is required",
+                  min: { value: 0.001, message: "Must be greater than 0" },
+                  valueAsNumber: true,
+                }}
+                placeholder="e.g., 1000 for kg to g"
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                The factor by which this unit converts to its base unit (e.g., 1000 for Kilogram if base is Gram).
+              </p>
+            </div>
           )}
         </FormDialog>
       )}
@@ -342,7 +353,7 @@ export default function UnitsSettings() {
           title="Delete Unit"
           description="Are you sure you want to delete this unit? This action cannot be undone."
           confirmText="Delete"
-          isSubmitting={deleteUnitMutation.isLoading}
+          isConfirming={deleteUnitMutation.isLoading}
         />
       )}
     </div>

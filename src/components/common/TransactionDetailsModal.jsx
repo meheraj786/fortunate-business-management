@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import FormDialog from "@/components/ui/FormDialog";
 import {
@@ -13,22 +13,17 @@ import {
   ArrowDownRight,
   RefreshCw,
   User,
-  Hash,
   XCircle,
-  Trash,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Button from "../ui/Button";
-import { useDeleteTransaction, useTransaction } from "@/api/hooks/transaction";
+import { useTransaction } from "@/api/hooks/transaction";
 
 const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
   // Use react-query hook to fetch transaction details
   const { data: response, isLoading, isError } = useTransaction(transactionId);
   const transaction = response?.data;
 
-  const deleteMutation = useDeleteTransaction();
 
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("en-US", {
@@ -59,9 +54,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
       open={isOpen}
       onClose={onClose}
       title={transaction?.name || "Transaction Details"}
-      hideButtons
-      size="md"
-      maxWidth="max-w-2xl"
+      secondaryButtonText="Close"
     >
       <div className="space-y-4">
         {/* Loading */}
@@ -160,61 +153,6 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="pt-3 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500">
-              <div className="flex items-center gap-1">
-                <Hash className="w-3 h-3" />
-                <span className="font-mono">{transaction._id}</span>
-              </div>
-
-              <Button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="flex items-center gap-1 !px-3 !py-2"
-              >
-                <Trash className="w-4 h-4" />
-                Delete
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Confirm Popup */}
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-lg w-full max-w-sm p-5">
-              <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Are you sure you want to delete this transaction? This action
-                cannot be undone.
-              </p>
-
-              <div className="flex justify-end gap-3">
-                <Button
-                  variant="secondary" // Changed from outline to secondary
-                  onClick={() => setShowDeleteConfirm(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="danger" // Changed to danger variant
-                  onClick={() => {
-                    deleteMutation.mutate(transaction._id, {
-                      onSuccess: () => {
-                        toast.success("Transaction deleted");
-                        setShowDeleteConfirm(false);
-                        onClose();
-                      },
-                      onError: () => {
-                        // The hook's default onError should already show a toast
-                      },
-                    });
-                  }}
-                  isLoading={deleteMutation.isLoading}
-                >
-                  {deleteMutation.isLoading ? "Deleting..." : "Confirm Delete"}
-                </Button>
-              </div>
-            </div>
           </div>
         )}
       </div>

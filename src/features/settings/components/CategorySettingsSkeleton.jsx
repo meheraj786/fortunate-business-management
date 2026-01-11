@@ -11,25 +11,25 @@ const CategorySettingsSkeleton = () => {
           <div className="h-10 bg-gray-200 rounded w-24 animate-pulse" />
         </div>
       </div>
-      <div className="-mx-4 mt-10 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg dark:ring-black/15">
-        <table className="min-w-full divide-y divide-gray-300 dark:divide-black/15 bg-white">
+      <div className="-mx-4 mt-10 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg ">
+        <table className="min-w-full divide-y divide-gray-300">
           <thead>
             <tr>
               <th
                 scope="col"
-                className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-black"
+                className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6"
               >
                 Name
               </th>
               <th
                 scope="col"
-                className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell dark:text-black"
+                className="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
               >
                 Description
               </th>
               <th
                 scope="col"
-                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:pr-6 dark:text-black"
+                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:pr-6"
               >
                 Actions
               </th>
@@ -41,7 +41,7 @@ const CategorySettingsSkeleton = () => {
                 <td className="py-4 pr-3 pl-4 text-sm sm:pl-6">
                   <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
                 </td>
-                <td className="hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell dark:text-gray-400">
+                <td className="hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell">
                   <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
                 </td>
                 <td className="py-3.5 pr-4 pl-3 text-sm sm:pr-6">

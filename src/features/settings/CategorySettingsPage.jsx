@@ -323,7 +323,7 @@ export default function Category() {
           title="Delete Category"
           description="Are you sure you want to delete this category? This action cannot be undone."
           confirmText="Delete"
-          isSubmitting={deleteCatMutation.isLoading}
+          isConfirming={deleteCatMutation.isLoading}
         />
       )}
     </div>

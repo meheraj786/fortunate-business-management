@@ -42,25 +42,29 @@ export default function FormDialog({
               </div>
             </div>
             <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse sm:gap-3">
-              <Button
-                type="submit" // Changed to submit as it's typically used in forms
-                onClick={onSubmit}
-                disabled={isPrimaryButtonDisabled || isSubmitting}
-                isLoading={isSubmitting}
-                variant="primary"
-                className="w-full sm:w-auto"
-              >
-                {primaryButtonText}
-              </Button>
-              <Button
-                type="button"
-                onClick={onClose}
-                disabled={isSubmitting}
-                variant="secondary"
-                className="w-full sm:w-auto mt-3 sm:mt-0"
-              >
-                {secondaryButtonText}
-              </Button>
+              {primaryButtonText && (
+                <Button
+                  type="submit" // Changed to submit as it's typically used in forms
+                  onClick={onSubmit}
+                  disabled={isPrimaryButtonDisabled || isSubmitting}
+                  isLoading={isSubmitting}
+                  variant="primary"
+                  className="w-full sm:w-auto"
+                >
+                  {primaryButtonText}
+                </Button>
+              )}
+              {secondaryButtonText && (
+                <Button
+                  type="button"
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                  variant="secondary"
+                  className="w-full sm:w-auto mt-3 sm:mt-0"
+                >
+                  {secondaryButtonText}
+                </Button>
+              )}
             </div>
           </DialogPanel>
         </div>
