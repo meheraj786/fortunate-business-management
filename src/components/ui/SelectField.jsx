@@ -21,21 +21,22 @@ const SelectField = ({
   const id = useId();
   const errorId = `${id}-error`;
 
-  const selectProps = register
-    ? { ...register(name, { required, ...validation }) }
-    : {
-        value: value || "",
-        onChange,
-        id: `${id}-${name}`,
-      };
+  const { onChange: rhfOnChange, ...restRhfProps } = register
+    ? register(name, { required, ...validation })
+    : {};
 
-  const displayValue = useMemo(() => {
-    if (!value) return placeholder || `Select ${label}`;
-    const option = options.find(
-      (opt) => opt._id === value || opt.value === value || opt === value
-    );
-    return option?.name || option?.label || option || value;
-  }, [value, options, label, placeholder]);
+  const selectProps = {
+    ...(register ? restRhfProps : { value: value || "" }),
+    onChange: (e) => {
+      if (rhfOnChange) {
+        rhfOnChange(e);
+      }
+      if (onChange) {
+        onChange(e);
+      }
+    },
+  };
+
 
   return (
     <div className={`space-y-2 relative ${className}`}>

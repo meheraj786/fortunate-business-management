@@ -9,7 +9,7 @@ import { useWarehouses } from "@/api/hooks/warehouse";
 import { useCategories } from "@/api/hooks/category";
 import { useAccounts } from "@/api/hooks/account";
 import { useUnits } from "@/api/hooks/unit";
-import { useProducts } from "@/api/hooks/products";
+import { useProductsForSale } from "@/api/hooks/products";
 import { useCreateSale, useUpdateSale } from "@/api/hooks/sales";
 import { handleError } from "@/utils/handle-error"; // Import handleError
 
@@ -46,14 +46,14 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
         editedSaleDate.setMinutes(editedSaleDate.getMinutes() - editedSaleDate.getTimezoneOffset());
 
         return {
-          warehouseId: editData.warehouse?._id || "",
-          productId: editData.product?._id || "",
-          categoryId: editData.category?._id || "",
+          warehouseId: editData.warehouse?.id || "",
+          productId: editData.product?.id || "",
+          categoryId: editData.product?.category?.id || "",
           quantity: editData.quantity || "",
-          unit: editData.unit?._id || editData.unit || "",
+          unit: editData.unit?.id || editData.unit || "",
           pricePerUnit: editData.pricePerUnit || "",
-          customerType: editData.customer?.customerId ? "existing" : "manual",
-          customerId: editData.customer?.customerId?._id || "", // For existing customer
+          customerType: editData.customer?.id ? "existing" : "manual",
+          customerId: editData.customer?.id || "", // For existing customer
           customerName: editData.customer?.name || "",
           customerPhone: editData.customer?.phone || "",
           customerAddress: editData.customer?.address || "",
@@ -101,8 +101,11 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
   const units = unitsData?.data || [];
 
   const watchedWarehouseId = watch("warehouseId");
-  const { data: productsData, isLoading: productsLoading } = useProducts(watchedWarehouseId, { limit: 10000 }, { enabled: !!watchedWarehouseId });
-  const products = productsData?.data?.docs || [];
+  const watchedCategoryId = watch("categoryId");
+  const { data: productsData, isLoading: productsLoading } = useProductsForSale(watchedWarehouseId, watchedCategoryId, { 
+    enabled: !!watchedWarehouseId
+  });
+  const products = Array.isArray(productsData?.data) ? productsData.data : [];
 
   const createSaleMutation = useCreateSale();
   const updateSaleMutation = useUpdateSale(editData?._id);
@@ -128,12 +131,12 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
         // Reset form with default values from editData
         reset({
           ...editData,
-          warehouseId: editData.warehouse?._id || "",
-          productId: editData.product?._id || "",
-          categoryId: editData.category?._id || "",
-          unit: editData.unit?._id || editData.unit || "",
-          customerType: editData.customer?.customerId ? "existing" : "manual",
-          customerId: editData.customer?.customerId?._id || "",
+          warehouseId: editData.warehouse?.id || "",
+          productId: editData.product?.id || "",
+          categoryId: editData.product?.category?.id || "",
+          unit: editData.unit?.id || editData.unit || "",
+          customerType: editData.customer?.id ? "existing" : "manual",
+          customerId: editData.customer?.id || "",
           customerName: editData.customer?.name || "",
           customerPhone: editData.customer?.phone || "",
           customerAddress: editData.customer?.address || "",
@@ -190,15 +193,14 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
     setValue("pricePerUnit", "");
   }, [setValue]);
 
-  const handleProductChange = useCallback((productId) => {
+  const handleProductChange = (productId) => {
+    setValue("productId", productId, { shouldValidate: true });
     const product = products.find(p => p._id === productId);
     if (product) {
-      setValue("productId", productId);
       setValue("unit", product.unit?._id || "");
-      setValue("pricePerUnit", product.unitPrice || "");
-      setValue("categoryId", product.category?._id || "");
+      setValue("pricePerUnit", product.unitPrice ?? "");
     }
-  }, [products, setValue]);
+  };
   
   const handleUnitChange = useCallback((unitId) => {
     const productId = watch("productId");
@@ -219,6 +221,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
     if (status === "Not-invoiced") {
       setValue("paymentStatus", "");
       setValue("payments", []);
+
     } else if (status === "Invoiced") {
       setValue("paymentStatus", "Due payment");
     }
@@ -236,17 +239,21 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
     }
   }, [totalAmountToBePaid, setValue]);
 
-  const handleCustomerSelect = useCallback((customerId) => {
+  const handleCustomerSelect = (customerId) => {
     const customer = customers.find(c => c._id === customerId);
     if (customer) {
       setValue("customerId", customer._id);
-      setValue("customerName", customer.name);
-      setValue("customerPhone", customer.phone);
-      setValue("customerAddress", customer.address);
+      setValue("customerName", customer.name || "");
+      setValue("customerPhone", customer.phone || "");
+      setValue("customerAddress", customer.address || "");
     }
-  }, [customers, setValue]);
+  };
 
   const handleSubmitForm = async (data) => {
+    const selectedCustomer = data.customerType === 'existing' 
+      ? customers.find(c => c._id === data.customerId)
+      : null;
+
     const salesData = {
       quantity: parseFloat(data.quantity),
       unit: data.unit,
@@ -266,8 +273,17 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
       warehouse: data.warehouseId,
       category: data.categoryId,
       customer: data.customerType === 'existing'
-        ? { customerId: data.customerId, name: data.customerName }
-        : { customerId: null, name: data.customerName, phone: data.customerPhone, address: data.customerAddress },
+        ? { 
+            customerId: selectedCustomer?._id, 
+            name: selectedCustomer?.name || "", 
+            phone: selectedCustomer?.phone || ""
+          }
+        : { 
+            customerId: null, 
+            name: data.customerName, 
+            phone: data.customerPhone, 
+            address: data.customerAddress 
+          },
       paymentStatus: data.paymentStatus,
       payments: data.payments.map(p => ({
         amount: parseFloat(p.amount) || 0,
@@ -293,7 +309,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
     }
   };
   
-  const isLoadingData = customersLoading || warehousesLoading || categoriesLoading || accountsLoading || unitsLoading || productsLoading;
+  const isInitialLoading = customersLoading || warehousesLoading || categoriesLoading || accountsLoading || unitsLoading;
 
   const getFilteredAccounts = useCallback((method) => {
     if (!accounts) return [];
@@ -318,7 +334,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed p-4 inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
           <FormHeader title={isEditMode ? "Edit Sale" : "Add New Sale"} subtitle="Enter the details of the sale" onClose={onClose} />
-          {isLoadingData ? <FormSkeleton /> : (
+          {isInitialLoading ? <FormSkeleton /> : (
             <form onSubmit={handleSubmit(handleSubmitForm)} className="p-5 space-y-4 sm:space-y-6 overflow-y-auto flex-grow">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <SelectField
@@ -329,7 +345,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
                   options={warehouses.map(w => ({ value: w._id, label: w.name }))}
                   validation={{ required: "Warehouse is required" }}
                   icon={Home}
-                  disabled={isEditMode || isLoadingData}
+                  disabled={isEditMode || isInitialLoading}
                   onChange={(e) => {
                     setValue("warehouseId", e.target.value, { shouldValidate: true });
                     handleWarehouseChange(e.target.value);
@@ -342,20 +358,26 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
                   error={errors.categoryId?.message}
                   options={categories.map(c => ({ value: c._id, label: c.name }))}
                   icon={Tag}
-                  disabled={isEditMode || !watchedWarehouseId || isLoadingData}
+                  disabled={isEditMode || !watchedWarehouseId || productsLoading}
                   validation={{ required: "Category is required" }}
+                  onChange={(e) => {
+                    setValue("categoryId", e.target.value, { shouldValidate: true });
+                    setValue("productId", "");
+                    setValue("unit", "");
+                    setValue("pricePerUnit", "");
+                  }}
                 />
                 <SelectField
                   label="Product"
                   name="productId"
                   register={register}
                   error={errors.productId?.message}
-                  options={products.map(p => ({ value: p._id, label: p.name }))}
+                  options={products.map(p => ({ value: p._id, label: `${p.name} (Qty: ${p.quantity})` }))}
                   validation={{ required: "Product is required" }}
                   icon={Package}
-                  disabled={isEditMode || !watchedWarehouseId || isLoadingData}
+                  disabled={isEditMode || !watchedWarehouseId || productsLoading}
+                  loading={productsLoading}
                   onChange={(e) => {
-                    setValue("productId", e.target.value, { shouldValidate: true });
                     handleProductChange(e.target.value);
                   }}
                 />
@@ -382,7 +404,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
                   options={units.map(u => ({ value: u._id, label: u.name }))}
                   validation={{ required: "Unit is required" }}
                   icon={Ruler}
-                  disabled={isLoadingData}
+                  disabled={isInitialLoading}
                   onChange={(e) => {
                     setValue("unit", e.target.value, { shouldValidate: true });
                     handleUnitChange(e.target.value);
@@ -445,7 +467,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
                   options={customers.map(c => ({ value: c._id, label: `${c.name} - ${c.phone}` }))}
                   validation={{ required: "Customer is required" }}
                   icon={User}
-                  disabled={isEditMode || isLoadingData}
+                  disabled={isEditMode || isInitialLoading}
                   onChange={(e) => {
                     setValue("customerId", e.target.value, { shouldValidate: true });
                     handleCustomerSelect(e.target.value);
@@ -634,7 +656,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
                 options={[{ value: "Invoiced", label: "Invoiced" }, { value: "Not-invoiced", label: "Not Invoiced" }]}
                 validation={{ required: "Invoice Status is required" }}
                 icon={FileText}
-                disabled={isEditMode || isSubmitting}
+                disabled={isSubmitting}
                 onChange={(e) => {
                   setValue("invoiceStatus", e.target.value, { shouldValidate: true });
                   handleInvoiceStatusChange(e.target.value);

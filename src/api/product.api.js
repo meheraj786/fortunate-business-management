@@ -18,3 +18,10 @@ export const deleteProduct = (warehouseId, productId) =>
 export const getProductSalesHistory = (warehouseId, productId, params) =>
   api.get(`/warehouses/${warehouseId}/products/${productId}/sales`, { params });
 
+export const getProductsForSale = (warehouseId, categoryId) => {
+  const params = {};
+  if (categoryId) {
+    params.categoryId = categoryId;
+  }
+  return api.get(`/warehouses/${warehouseId}/products/for-sale`, { params });
+};

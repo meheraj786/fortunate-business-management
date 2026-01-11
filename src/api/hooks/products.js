@@ -32,6 +32,16 @@ export const useProductSalesHistory = (warehouseId, productId, params) =>
     keepPreviousData: true,
   });
 
+// Fetch products for sale dropdown
+export const useProductsForSale = (warehouseId, categoryId, options) =>
+  useQuery({
+    queryKey: ["products", "for-sale", warehouseId, categoryId],
+    queryFn: async () =>
+      (await api.getProductsForSale(warehouseId, categoryId)).data,
+    enabled: !!warehouseId,
+    ...options,
+  });
+
 // Create product
 export const useCreateProduct = (warehouseId) => {
   const qc = useQueryClient();
