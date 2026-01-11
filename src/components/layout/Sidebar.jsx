@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import ConfirmationModal from "../ui/ConfirmationModal";
 import { MdInventory } from "react-icons/md";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { IoHome } from "react-icons/io5";
 import { BsFillCreditCardFill } from "react-icons/bs";
@@ -92,7 +92,7 @@ const Sidebar = () => {
       path: "/lc-management",
       permission: "LC_VIEW_TABLE",
     },
-    { icon: MdInventory, label: "Stock Management", path: "/stock-management", permission: "PRODUCT_VIEW_TABLE" },
+    { icon: MdInventory, label: "Stock Management", path: "/stock-management", permission: "WAREHOUSE_VIEW" },
     {
       icon: ChartColumnIncreasing,
       label: "Sales",
@@ -103,15 +103,15 @@ const Sidebar = () => {
       icon: WalletMinimal,
       label: "Daily Cash",
       path: "/daily-cash-flow",
-      permission: "CASH_VIEW_TABLE",
+      permission: "CASH_VIEW",
     },
     {
       icon: CreditCard,
       label: "Accounts",
       path: "/accounts",
-      permission: "ACCOUNT_VIEW_TABLE",
+      permission: "ACCOUNT_VIEW_ALL",
     },
-    { icon: RiTeamFill, label: "Team", path: "/team", permission: "USER_VIEW_TABLE" },
+    { icon: RiTeamFill, label: "Team", path: "/team", permission: "USER_VIEW_ALL" },
     {
       icon: MdPeopleAlt,
       label: "Customers",
@@ -119,12 +119,16 @@ const Sidebar = () => {
       permission: "CUSTOMER_VIEW_TABLE",
     },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
-    // { icon: Trash, label: "Trash", path: "/trash", permission: "TRASH_VIEW" },
   ];
 
   const menuItems = isSuperAdmin 
     ? allMenuItems 
-    : allMenuItems.filter(item => !item.permission || hasPermission(item.permission));
+    : allMenuItems.filter(item => {
+        if (item.path === "/settings") {
+          return true; // Settings is always shown
+        }
+        return item.permission ? hasPermission(item.permission) : false;
+      });
 
   const getActive = () => {
     const path = location.pathname;

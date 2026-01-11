@@ -200,6 +200,11 @@ const AccountDetails = () => {
     setIsTransactionModalOpen(true);
   };
 
+  const handleCloseTransactionModal = () => {
+    setIsTransactionModalOpen(false);
+    setSelectedTransactionId(null);
+  };
+
   const renderStats = () => {
     if (isLoadingDetails) {
       return (
@@ -591,7 +596,7 @@ const AccountDetails = () => {
       />
       <TransactionDetailsModal
         isOpen={isTransactionModalOpen}
-        onClose={() => setSelectedTransactionId(null)}
+        onClose={handleCloseTransactionModal}
         transactionId={selectedTransactionId}
       />
     </motion.div>
