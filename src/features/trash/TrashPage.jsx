@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router";
-import { useTrash, useRestoreFromTrash } from "@/api/hooks/trash";
+import { useTrash, useRestoreFromTrash, useDeleteTrashPermanently } from "@/api/hooks/trash";
 import Button from "@/components/ui/Button";
 import {
   Loader2,
@@ -15,7 +15,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import toast from "react-hot-toast";
+
 
 const TrashPage = () => {
   const { moduleName } = useParams();
@@ -39,7 +41,12 @@ const TrashPage = () => {
 
   const currentModule = formatModule(moduleName);
   const viewPermission = `TRASH_VIEW_${currentModule.toUpperCase()}`;
+
   const restorePermission = `TRASH_RESTORE_${currentModule.toUpperCase()}`;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const deleteMutation = useDeleteTrashPermanently();
+  const deletePermission = `TRASH_DELETE_${currentModule.toUpperCase()}`;
+
 
   useEffect(() => {
     if (!hasPermission(viewPermission)) {
@@ -48,12 +55,17 @@ const TrashPage = () => {
     }
   }, [hasPermission, navigate, viewPermission]);
 
-  const { data, isLoading, isFetching, refetch } = useTrash({
+  const params = {
     module: moduleName ? currentModule : "",
     page,
     limit,
-    warehouseId,
-  });
+  };
+
+  if (warehouseId) {
+    params.warehouseId = warehouseId;
+  }
+
+  const { data, isLoading, isFetching, refetch } = useTrash(params);
 
   const restoreMutation = useRestoreFromTrash();
 
@@ -216,6 +228,20 @@ const TrashPage = () => {
                             Restore
                           </button>
                         )}
+                        {hasPermission(deletePermission) && (
+                          <button
+                            className="rounded-lg bg-red-200 px-4 py-2 text-red-700 flex items-center justify-center gap-1 ml-2"
+                            onClick={() => setShowDeleteConfirm(item)}
+                            disabled={deleteMutation.isLoading && showDeleteConfirm?._id === item._id}
+                          >
+                            {deleteMutation.isLoading && showDeleteConfirm?._id === item._id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5 mr-1" />
+                            )}
+                            Delete
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -283,7 +309,7 @@ const TrashPage = () => {
                         {item.model}
                       </span>
                     </div>
-                    <div>
+                    <div className="flex gap-2">
                       {hasPermission(restorePermission) && (
                         <button
                           className="rounded-lg bg-blue-200 px-4 py-2 text-blue-700 flex items-center justify-center gap-1"
@@ -303,6 +329,20 @@ const TrashPage = () => {
                             <RotateCcw className="w-3.5 h-3.5" />
                           )}
                           <span className="ml-1">Restore</span>
+                        </button>
+                      )}
+                      {hasPermission(deletePermission) && (
+                        <button
+                          className="rounded-lg bg-red-200 px-4 py-2 text-red-700 flex items-center justify-center gap-1"
+                          onClick={() => setShowDeleteConfirm(item)}
+                          disabled={deleteMutation.isLoading && showDeleteConfirm?._id === item._id}
+                        >
+                          {deleteMutation.isLoading && showDeleteConfirm?._id === item._id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                          <span className="ml-1">Delete</span>
                         </button>
                       )}
                     </div>
@@ -365,9 +405,7 @@ const TrashPage = () => {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                 <div className="flex flex-col items-center gap-4">
                   <div className="text-sm text-gray-500 text-center">
-                    Showing page{" "}
-                    <span className="font-medium text-gray-900">{page}</span> of{" "}
-                    <span className="font-medium text-gray-900">{totalPages}</span>
+                    Showing page <span className="font-medium text-gray-900">{page}</span> of <span className="font-medium text-gray-900">{totalPages}</span>
                   </div>
                   <div className="flex gap-2 w-full justify-center">
                     <Button
@@ -397,6 +435,26 @@ const TrashPage = () => {
           </div>
         )}
       </div>
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          isOpen={!!showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(null)}
+          onConfirm={() => {
+            deleteMutation.mutate({ model: showDeleteConfirm.model, id: showDeleteConfirm._id }, {
+              onSuccess: () => {
+                setShowDeleteConfirm(null);
+                toast.success("Item deleted permanently!");
+                refetch();
+              },
+            });
+          }}
+          title="Delete Permanently"
+          description="Are you sure you want to delete this item permanently? This action cannot be undone."
+          confirmText="Delete"
+          isConfirming={deleteMutation.isLoading}
+          confirmingText="Deleting..."
+        />
+      )}
     </div>
   );
 };

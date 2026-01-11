@@ -50,9 +50,10 @@ export const useDeleteTrashPermanently = () => {
 };
 
 
-export const useGetDetailById = (id) =>
+export const useGetDetailById = ({ model, id }) =>
   useQuery({
-    queryKey: ["trash", id],
-    queryFn: async () => (await api.getTrashDetailById(id)).data,
+    queryKey: ["trash", model, id],
+    queryFn: async () => (await api.getTrashDetailById({ model, id })).data,
     keepPreviousData: true,
+    enabled: !!model && !!id,
   });
