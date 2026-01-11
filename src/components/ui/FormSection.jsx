@@ -80,7 +80,7 @@ const FormSection = ({
             }}
             className="overflow-hidden"
           >
-            <div className="p-4 sm:p-6 border-t border-gray-200">
+            <div className="p-4 sm:p-5 border-t border-gray-200">
               {children}
             </div>
           </motion.div>

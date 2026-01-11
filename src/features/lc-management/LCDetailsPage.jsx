@@ -202,7 +202,7 @@ const LCdetails = () => {
     <div className="">
       <div className="max-w-7xl mx-auto">
         <motion.div
-          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-200"
+          className="mb-4 sm:mb-6 p-5 bg-white rounded-lg shadow-sm border border-gray-200"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -214,7 +214,7 @@ const LCdetails = () => {
                   className="p-2 bg-[var(--color-primary)] rounded-lg flex-shrink-0"
                   aria-hidden="true"
                 >
-                  <FileText className="text-white text-xl" />
+                  <FileText className="text-white w-6 h-6" />
                 </div>
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
                   {basicInfo.lcNumber || "Letter of Credit Details"}

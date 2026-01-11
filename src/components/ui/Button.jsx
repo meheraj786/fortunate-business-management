@@ -14,16 +14,16 @@ const buttonVariants = {
 
 const buttonSizes = {
   // Small button
-  sm: "px-4 py-2 text-sm",
+  sm: "px-4 py-2 text-sm sm:px-3 sm:py-1.5 sm:text-xs",
 
   // Medium button (default)
-  md: "px-5 py-2.5 text-base sm:px-4 sm:py-2 sm:text-sm",
+  md: "px-6 py-3 text-base sm:px-4 sm:py-2 sm:text-sm",
 
   // Large button
-  lg: "px-6 py-3 text-lg sm:px-5 sm:py-2.5 sm:text-base",
+  lg: "px-8 py-4 text-lg sm:px-5 sm:py-2.5 sm:text-base",
 
   // Full width button
-  full: "w-full px-5 py-2.5 text-base sm:text-sm",
+  full: "w-full px-6 py-3 text-base sm:text-sm",
 };
 
 
@@ -52,7 +52,7 @@ const Button = React.forwardRef(
         disabled={disabledState}
         className={clsx(
           'inline-flex items-center justify-center rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] gap-2', // increased border-radius
-          'min-h-[44px]', // Ensure minimum touch target height
+          'min-h-[48px] sm:min-h-[44px]', // Ensure minimum touch target height, detailed for mobile
           buttonVariants[variant],
           buttonSizes[size],
           {

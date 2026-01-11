@@ -23,6 +23,7 @@ import AddProductForm from "./AddProductForm";
 import SalesHistory from "./SalesHistory";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
+import Button  from "@/components/ui/button";
 
 const formatNumber = (num) => {
   if (typeof num !== "number") return num;
@@ -176,22 +177,26 @@ const ProductDetails = () => {
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               {hasPermission("PRODUCT_UPDATE") && (
-                <button
+                <Button
                   onClick={() => setShowEditForm(true)}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                  variant="primary"
+                  size="sm"
+                  className="flex-1 sm:flex-auto flex items-center justify-center gap-2"
                 >
                   <Edit size={16} />
                   <span>Edit</span>
-                </button>
+                </Button>
               )}
               {hasPermission("PRODUCT_DELETE") && (
-                <button
+                <Button
                   onClick={() => setShowDeleteModal(true)}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                  variant="danger"
+                  size="sm"
+                  className="flex-1 sm:flex-auto flex items-center justify-center gap-2"
                 >
                   <Trash2 size={16} />
                   <span>Delete</span>
-                </button>
+                </Button>
               )}
             </div>
           </div>

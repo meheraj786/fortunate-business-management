@@ -89,7 +89,7 @@ const TextAreaField = ({
           aria-invalid={!!error}
           aria-describedby={error ? errorId : undefined}
           className={`
-            w-full px-3 py-2.5 sm:py-2
+            w-full px-4 py-3 sm:px-3 sm:py-2
             border rounded-lg
             focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
             transition-all duration-200

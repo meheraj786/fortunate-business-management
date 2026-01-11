@@ -343,7 +343,7 @@ const AccountDetails = () => {
           <Info className="w-5 h-5 text-[var(--color-primary)]" /> Account
           Information
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-base sm:text-sm text-gray-700">
           <div className="flex items-center gap-2">
             <strong>Balance:</strong> ৳{account.balance.toLocaleString()}
           </div>
@@ -421,14 +421,14 @@ const AccountDetails = () => {
                   placeholder="Search by description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base transition-shadow"
+                  className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm transition-shadow"
                 />
               </div>
               <div className="relative w-full md:w-48">
                 <select
                   value={sorting.sortBy}
                   onChange={handleSortByChange}
-                  className="w-full appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                  className="w-full appearance-none pl-3 pr-10 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
                 >
                   {sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -479,7 +479,7 @@ const AccountDetails = () => {
                     onChange={(e) =>
                       handleFilterChange("transactionType", e.target.value)
                     }
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
                   >
                     {transactionTypeOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -493,7 +493,7 @@ const AccountDetails = () => {
                     onChange={(e) =>
                       handleFilterChange("paymentMethod", e.target.value)
                     }
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
                   >
                     {paymentMethodOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -507,7 +507,7 @@ const AccountDetails = () => {
                     onChange={(e) =>
                       handleFilterChange("category", e.target.value)
                     }
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
                     disabled={categories.length === 0}
                   >
                     <option value="all">All Categories</option>

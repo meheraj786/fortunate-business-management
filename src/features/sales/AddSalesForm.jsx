@@ -319,7 +319,7 @@ const AddSales = ({ onClose, onSaleAdded, editData = null, isOpen = false }) => 
         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
           <FormHeader title={isEditMode ? "Edit Sale" : "Add New Sale"} subtitle="Enter the details of the sale" onClose={onClose} />
           {isLoadingData ? <FormSkeleton /> : (
-            <form onSubmit={handleSubmit(handleSubmitForm)} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-grow">
+            <form onSubmit={handleSubmit(handleSubmitForm)} className="p-5 space-y-4 sm:space-y-6 overflow-y-auto flex-grow">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <SelectField
                   label="Warehouse"

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Button  from "../../../components/ui/Button";
 import { useAuth } from "../../../context/AuthContext";
+import Pagination from "../../../components/ui/Pagination";
 
 const LCTable = ({
   lcData = [],
@@ -65,60 +66,6 @@ const LCTable = ({
     totalDocuments = 0,
     limit = 10,
   } = pagination;
-  const startDocument =
-    totalDocuments === 0 ? 0 : (currentPage - 1) * limit + 1;
-  const endDocument = Math.min(currentPage * limit, totalDocuments);
-
-  const renderPagination = React.useMemo(() => {
-    if (!totalPages || totalPages <= 1) return null;
-
-    return (
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-gray-700 order-2 sm:order-1">
-          Showing <span className="font-medium">{startDocument}</span> to{" "}
-          <span className="font-medium">{endDocument}</span> of{" "}
-          <span className="font-medium">
-            {totalDocuments?.toLocaleString()}
-          </span>{" "}
-          results
-        </div>
-        <div className="flex items-center gap-2 order-1 sm:order-2">
-          <Button
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage <= 1}
-            variant="secondary"
-            size="sm"
-            className="inline-flex items-center justify-center"
-            aria-label="Previous page"
-          >
-            <ChevronLeft size={16} className="mr-1" aria-hidden="true" />
-            <span className="hidden sm:inline">Previous</span>
-          </Button>
-          <span className="text-sm text-gray-700 px-2">
-            {currentPage} / {totalPages}
-          </span>
-          <Button
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage >= totalPages}
-            variant="secondary"
-            size="sm"
-            className="inline-flex items-center justify-center"
-            aria-label="Next page"
-          >
-            <span className="hidden sm:inline">Next</span>
-            <ChevronRight size={16} className="ml-1" aria-hidden="true" />
-          </Button>
-        </div>
-      </div>
-    );
-  }, [
-    currentPage,
-    totalPages,
-    startDocument,
-    endDocument,
-    totalDocuments,
-    onPageChange,
-  ]);
 
   const renderTableContent = React.useMemo(() => {
     if (loading) {
@@ -176,10 +123,10 @@ const LCTable = ({
               <span className="text-gray-900">{lc.lcNumber || "N/A"}</span>
             )}
           </td>
-          <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500">
             {lc.supplierName || "N/A"}
           </td>
-          <td className="px-3 py-4 text-sm whitespace-nowrap">
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-center">
             <span
               className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
                 lc.status
@@ -188,15 +135,15 @@ const LCTable = ({
               {lc.status || "N/A"}
             </span>
           </td>
-          <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 text-center">
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-center">
             {lc.lcOpeningDate
               ? new Date(lc.lcOpeningDate).toLocaleDateString()
               : "N/A"}
           </td>
-          <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 text-center">
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-center">
             {lc.dueDate ? new Date(lc.dueDate).toLocaleDateString() : "N/A"}
           </td>
-          <td className="px-3 py-4 text-sm text-gray-500 max-w-xs">
+          <td className="px-4 py-4 text-sm text-gray-500 max-w-xs">
             <div className="space-y-1">
               {lc.products?.slice(0, 2).map((product, idx) => (
                 <div key={idx} className="truncate">
@@ -210,11 +157,11 @@ const LCTable = ({
               )}
             </div>
           </td>
-          <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-500 text-center">
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-right">
             {totalQuantity.toLocaleString()}
             {unitString}
           </td>
-          <td className="px-3 py-4 text-sm whitespace-nowrap font-medium text-gray-900">
+          <td className="py-4 pl-4 pr-4 text-sm whitespace-nowrap font-medium text-gray-900 text-right sm:pr-6">
             ৳{(lc.totalCost || 0).toLocaleString()}
           </td>
         </tr>
@@ -239,7 +186,7 @@ const LCTable = ({
               id="lc-search"
               type="text"
               placeholder="Search LC number, supplier, or products..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base bg-white placeholder-gray-500"
+              className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm bg-white placeholder-gray-500"
               value={searchQuery}
               onChange={onSearchChange}
             />
@@ -248,7 +195,7 @@ const LCTable = ({
             <select
               value={filterStatus}
               onChange={onStatusChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base appearance-none bg-white pr-10"
+              className="w-full px-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm appearance-none bg-white pr-10"
               aria-label="Filter by status"
             >
               {statusOptions.map((option) => (
@@ -271,7 +218,7 @@ const LCTable = ({
               <tr>
                 <th
                   scope="col"
-                  className="py-3.5 pl-4 pr-3 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider sm:pl-6"
+                  className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                 >
                   <Button
                     variant="subtle"
@@ -291,7 +238,7 @@ const LCTable = ({
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
+                  className="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 min-w-[150px]"
                 >
                   <Button
                     variant="subtle"
@@ -311,13 +258,13 @@ const LCTable = ({
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
+                  className="px-4 py-3.5 text-center text-sm font-semibold text-gray-900 w-1/12"
                 >
                   Status
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
+                  className="px-4 py-3.5 text-center text-sm font-semibold text-gray-900"
                 >
                   <Button
                     variant="subtle"
@@ -337,7 +284,7 @@ const LCTable = ({
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
+                  className="px-4 py-3.5 text-center text-sm font-semibold text-gray-900"
                 >
                   <Button
                     variant="subtle"
@@ -357,19 +304,19 @@ const LCTable = ({
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
+                  className="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
                 >
                   Products
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
+                  className="px-4 py-3.5 text-right text-sm font-semibold text-gray-900"
                 >
                   Quantity
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider"
+                  className="py-3.5 pl-4 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6"
                 >
                   <Button
                     variant="subtle"
@@ -396,7 +343,18 @@ const LCTable = ({
         </div>
       </div>
 
-      <div className="p-4 border-t border-gray-200">{renderPagination}</div>
+      {totalPages > 1 && (
+        <div className="p-4 border-t border-gray-200">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            isLoading={loading}
+            totalItems={totalDocuments}
+            itemsPerPage={limit}
+          />
+        </div>
+      )}
     </div>
   );
 };

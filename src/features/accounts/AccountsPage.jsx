@@ -83,7 +83,7 @@ const Accounts = () => {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
         <StatBox
           title="Total Transactions"
           number={transactionStats?.totalTransactionsCount || 0}
@@ -115,7 +115,7 @@ const Accounts = () => {
   return (
     <motion.div>
       <div className="mx-auto">
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-5 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">

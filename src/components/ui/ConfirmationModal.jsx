@@ -75,7 +75,7 @@ const ConfirmationModal = ({
         <div className="flex min-h-full items-center justify-center p-3 sm:p-4 text-center">
           <DialogPanel
             transition
-            className={`relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-closed:scale-95 data-enter:duration-300 data-enter:ease-out data-enter:opacity-100 data-enter:scale-100 data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full ${getSizeClasses()} sm:p-6 data-closed:sm:translate-y-0`}
+            className={`relative transform overflow-hidden rounded-lg bg-white p-6 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-closed:scale-95 data-enter:duration-300 data-enter:ease-out data-enter:opacity-100 data-enter:scale-100 data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full ${getSizeClasses()} data-closed:sm:translate-y-0`}
           >
             {showCloseButton && (
               <Button

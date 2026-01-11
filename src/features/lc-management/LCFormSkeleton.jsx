@@ -39,9 +39,9 @@ const FileInputSkeleton = () => (
 
 const LCFormSkeleton = () => {
     return (
-        <div className="max-w-6xl mx-auto px-2 sm:px-3">
+        <div className="max-w-6xl mx-auto px-4">
             {/* Header Skeleton */}
-            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-6">
+            <div className="bg-white rounded-lg shadow-lg p-5 mb-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="min-w-0">
                         <div className="h-7 bg-gray-200 rounded w-2/3 animate-pulse"></div>

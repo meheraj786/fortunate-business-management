@@ -173,7 +173,7 @@ const Sidebar = () => {
     return (
       <>
         <button
-          className="fixed top-4 right-4 z-30 p-2 rounded-lg bg-[#003b75] text-white shadow-md"
+          className="fixed top-4 right-4 z-30 p-3 rounded-lg bg-[#003b75] text-white shadow-md touch-manipulation"
           onClick={toggleSidebar}
         >
           <RiMenuLine size={20} />

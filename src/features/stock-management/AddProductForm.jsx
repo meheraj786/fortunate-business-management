@@ -196,7 +196,7 @@ const AddProductForm = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
         onClick={onClose}
       >
         <motion.div
@@ -207,7 +207,7 @@ const AddProductForm = ({
           className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-[var(--color-primary)] text-white p-4 sm:p-6">
+          <div className="bg-[var(--color-primary)] text-white p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white/20 rounded-lg">
@@ -235,7 +235,7 @@ const AddProductForm = ({
               </Button>
             </div>
           </div>
-          <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          <div className="p-5 overflow-y-auto max-h-[calc(90vh-140px)]">
             {isLoadingData ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
@@ -472,7 +472,7 @@ const AddProductForm = ({
             )}
           </div>
         </motion.div>
-      </motion.div>
+         </motion.div>
     </AnimatePresence>
   );
 };

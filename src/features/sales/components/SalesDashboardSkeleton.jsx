@@ -37,7 +37,7 @@ const SalesDashboardSkeleton = () => {
         </div>
       </div>
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-6">
+        <div className="p-5">
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>

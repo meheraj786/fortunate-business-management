@@ -154,7 +154,7 @@ const TransactionList = () => {
   return (
     <motion.div>
       <div className="bg-white rounded-lg shadow-sm mt-6">
-        <div className="p-4 sm:p-6 border-gray-200 border-b">
+        <div className="p-5 border-gray-200 border-b">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-[var(--color-primary)]" />
             All Transactions
@@ -177,14 +177,14 @@ const TransactionList = () => {
                 placeholder="Search by description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-sm sm:text-base transition-shadow"
+                className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm transition-shadow"
               />
             </div>
             <div className="relative w-full md:w-48">
               <select
                 value={sorting.sortBy}
                 onChange={handleSortByChange}
-                className="w-full appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                className="w-full appearance-none pl-3 pr-10 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
               >
                 {sortOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -236,7 +236,7 @@ const TransactionList = () => {
                   onChange={(e) =>
                     handleFilterChange("transactionType", e.target.value)
                   }
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
                 >
                   {transactionTypeOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -250,7 +250,7 @@ const TransactionList = () => {
                   onChange={(e) =>
                     handleFilterChange("paymentMethod", e.target.value)
                   }
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
                 >
                   {paymentMethodOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -264,7 +264,7 @@ const TransactionList = () => {
                   onChange={(e) =>
                     handleFilterChange("category", e.target.value)
                   }
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-sm sm:text-base"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
                   disabled={categories.length === 0}
                 >
                   <option value="all">All Categories</option>

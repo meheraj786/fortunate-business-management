@@ -46,30 +46,45 @@ const MultiSelectField = ({
         styles={{
             control: (base, state) => ({
               ...base,
-              borderColor: error ? "var(--color-danger-light)" : "hsl(0, 0%, 80%)",
+              minHeight: "48px",
+              borderColor: error
+                ? "var(--color-danger-light)"
+                : state.isFocused
+                ? primaryColor
+                : "hsl(0, 0%, 80%)",
               "&:hover": {
                 borderColor: state.isFocused ? primaryColor : "hsl(0, 0%, 70%)",
               },
               boxShadow: state.isFocused ? `0 0 0 1px ${primaryColor}` : "none",
+              "@media (min-width: 640px)": {
+                minHeight: "42px",
+              },
+            }),
+            input: (base) => ({
+              ...base,
+              fontSize: "1rem",
+              "@media (min-width: 640px)": {
+                fontSize: "0.875rem",
+              },
             }),
             multiValue: (base) => ({
               ...base,
-              backgroundColor: primaryColor,
-              color: "white",
+              backgroundColor: "var(--color-primary-light)",
+              color: "var(--color-primary)",
             }),
             multiValueLabel: (base) => ({
               ...base,
-              color: "white",
+              color: "var(--color-primary)",
             }),
             multiValueRemove: (base) => ({
               ...base,
-              color: "white",
+              color: "var(--color-primary)",
               ":hover": {
                 backgroundColor: "var(--color-danger)",
                 color: "white",
               },
             }),
-            menuPortal: (base) => ({ ...base, zIndex: 9999 })
+            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
           }}
           menuPortalTarget={document.body}
       />

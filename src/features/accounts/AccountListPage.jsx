@@ -87,7 +87,7 @@ const AccountList = ({ onAddAccount }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
       {/* Bank Accounts */}
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+      <div className="bg-white rounded-lg shadow-sm p-5">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
             <Building className="w-5 h-5 text-[var(--color-primary)]" />
@@ -180,7 +180,7 @@ const AccountList = ({ onAddAccount }) => {
       </div>
 
       {/* Mobile Banking Accounts */}
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+      <div className="bg-white rounded-lg shadow-sm p-5">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
             <Smartphone className="w-5 h-5 text-[var(--color-primary)]" />
@@ -265,7 +265,7 @@ const AccountList = ({ onAddAccount }) => {
       </div>
 
       {/* Cash Accounts */}
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+      <div className="bg-white rounded-lg shadow-sm p-5">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
             <Wallet className="w-5 h-5 text-[var(--color-success)]" />

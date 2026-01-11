@@ -63,32 +63,32 @@ const TransactionTable = ({ transactions, onRowClick }) => {
         <thead className="bg-gray-50">
           <tr>
             {/* Description/Source - Always visible */}
-            <th className="px-4 pr-0 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
+            <th className="px-5 pr-0 py-4 sm:px-4 sm:pr-0 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
               Description
             </th>
 
             {/* Category - Hidden on small screens, visible on medium+ */}
-            <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+            <th className="hidden sm:table-cell px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Category
             </th>
 
             {/* Amount - Always visible */}
-            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+            <th className="px-5 py-4 sm:px-4 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Amount
             </th>
 
             {/* Payment Method - Always visible */}
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+            <th className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Payment
             </th>
 
             {/* Account - Hidden on extra small, visible on small+ */}
-            <th className="hidden xs:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
+            <th className="hidden xs:table-cell px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
               Account
             </th>
 
             {/* Date - Always visible but compact */}
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+            <th className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
               Date
             </th>
           </tr>
@@ -110,7 +110,7 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                   transition={{ duration: 0.2, delay: index * 0.03 }} // Staggered animation
                 >
                   {/* Description/Source Column */}
-                  <td className="px-4 pr-0 py-3">
+                  <td className="px-5 pr-0 py-4 sm:px-4 sm:pr-0 sm:py-3">
                     <div className="flex flex-col">
                       <div className="text-sm font-medium text-gray-900 line-clamp-2">
                         {transaction.description}
@@ -122,7 +122,7 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                   </td>
 
                   {/* Category Column - Hidden on small screens */}
-                  <td className="hidden sm:table-cell px-4 py-3">
+                  <td className="hidden sm:table-cell px-5 py-4 sm:px-4 sm:py-3">
                     <span className="text-sm text-gray-700 whitespace-nowrap">
                       {transaction.category}
                     </span>
@@ -133,7 +133,7 @@ const TransactionTable = ({ transactions, onRowClick }) => {
 
                   {/* Amount Column */}
                   <td
-                    className={`px-4 py-3 text-sm font-semibold text-right whitespace-nowrap ${
+                    className={`px-5 py-4 sm:px-4 sm:py-3 text-sm font-semibold text-right whitespace-nowrap ${
                       transaction.transactionType === "Income"
                         ? "text-[var(--color-success)]" // Themed success
                         : "text-[var(--color-danger)]" // Themed danger
@@ -144,7 +144,7 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                   </td>
 
                   {/* Payment Method Column */}
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4 sm:px-4 sm:py-3">
                     <div className="flex flex-col gap-1">
                       {/* First line: Icon + Payment Method */}
                       <div className="flex items-center gap-2">
@@ -177,14 +177,14 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                   </td>
 
                   {/* Account Column - Hidden on extra small screens */}
-                  <td className="hidden xs:table-cell px-4 py-3">
+                  <td className="hidden xs:table-cell px-5 py-4 sm:px-4 sm:py-3">
                     <div className="text-sm text-gray-700 line-clamp-2 min-h-[40px]">
                       {getAccountDisplayName(transaction.accountId)}
                     </div>
                   </td>
 
                   {/* Date Column - Always visible */}
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4 sm:px-4 sm:py-3">
                     <div className="flex flex-col text-sm text-gray-500 whitespace-nowrap">
                       <span>
                         {new Date(transaction.date).toLocaleDateString("en-GB")}

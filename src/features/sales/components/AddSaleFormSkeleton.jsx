@@ -4,7 +4,7 @@ const Skeleton = ({ className }) => <div className={`bg-gray-200 rounded animate
 
 const AddSaleFormSkeleton = () => {
   return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-grow">
+    <div className="p-5 space-y-4 sm:space-y-6 overflow-y-auto flex-grow">
       {/* Product Selection Skeletons */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Skeleton className="h-10 w-full" />

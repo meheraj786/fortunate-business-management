@@ -13,19 +13,19 @@ const StatBox = ({ title, number, Icon, textColor = "default" }) => {
   })();
   return (
     <motion.div
-      className="xl:flex-1 xl:w-auto w-full relative group hover:shadow-xl transition-shadow duration-300 cursor-pointer rounded-xl sm:rounded-lg bg-white p-4 sm:p-5"
+      className="xl:flex-1 xl:w-auto w-full relative group hover:shadow-xl transition-shadow duration-300 cursor-pointer rounded-xl sm:rounded-lg bg-white p-4"
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >
       <div className="flex justify-between items-center relative z-10">
         <div>
-          <h4 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base text-gray-700">{title}</h4>
-          <h3 className={`text-3xl sm:text-4xl font-bold ${textColorClass}`}>
+          <h4 className="font-semibold mb-1 sm:mb-2 text-base sm:text-sm text-gray-700">{title}</h4>
+          <h3 className={`text-4xl sm:text-3xl font-bold ${textColorClass}`}>
             {number}
           </h3>
         </div>
         {Icon && (
-          <span className={`p-3 sm:p-4 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-lg`}>
+          <span className={`p-3 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-lg`}>
             <Icon size={24} />
           </span>
         )}
