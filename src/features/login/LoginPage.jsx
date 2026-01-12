@@ -1,18 +1,21 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import "@/styles/Login.css";
 import { handleError } from "@/utils/handle-error";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router"; // Changed to react-router
+import { useNavigate, useLocation } from "react-router"; // Changed to react-router
 import { useForm } from "react-hook-form"; // Import useForm
 import InputField from "@/components/ui/InputField"; // Import InputField
 import Button from "@/components/ui/Button"; // Import Button
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
 
   const {
     register,
@@ -25,14 +28,22 @@ const Login = () => {
     },
   });
 
-  const onSubmit = useCallback(async (data) => {
-    try {
-      await login(data.email, data.password);
-      navigate("/");
-    } catch (error) {
-      handleError(error, "Login failed. Please check your credentials.");
+  const onSubmit = useCallback(
+    async (data) => {
+      try {
+        await login(data.email, data.password);
+      } catch (error) {
+        handleError(error, "Login failed. Please check your credentials.");
+      }
+    },
+    [login],
+  );
+
+  useEffect(() => {
+    if (user) {
+      navigate(from, { replace: true });
     }
-  }, [login, navigate]);
+  }, [user, navigate, from]);
 
   const emailValidation = useMemo(() => ({
     required: "Email is required",

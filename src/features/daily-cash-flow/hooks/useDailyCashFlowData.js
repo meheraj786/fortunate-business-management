@@ -274,6 +274,7 @@ export const useDailyCashFlowData = () => {
 
     // Transactions
     transactions: paginatedTransactions,
+    totalTransactions: transactions.length,
     filteredTransactionsCount: filteredTransactions.length,
     refetchDailyCashData: () => {
       queryClient.invalidateQueries({

@@ -54,6 +54,7 @@ const DailyCashFlow = () => {
     isOpeningDay,
     isClosingDay,
     getLocalDateString,
+    totalTransactions,
     isToday,
   } = useDailyCashFlowData();
 
@@ -122,7 +123,7 @@ const DailyCashFlow = () => {
       );
     }
 
-    if (transactions.length === 0 && filteredTransactionsCount === 0) {
+    if (totalTransactions === 0) {
       return (
         <motion.div className="text-center py-12 px-4 bg-white rounded-lg shadow-sm">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
@@ -154,10 +155,30 @@ const DailyCashFlow = () => {
             filteredTransactionsCount={filteredTransactionsCount}
           />
         </div>
-        <TransactionTable
-          transactions={transactions}
-          onRowClick={handleTransactionClick}
-        />
+
+        {filteredTransactionsCount > 0 ? (
+          <TransactionTable
+            transactions={transactions}
+            onRowClick={handleTransactionClick}
+          />
+        ) : (
+          <div className="text-center py-12 px-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+              <img
+                src="/favicon.jpg"
+                alt="No matching transactions"
+                className="w-8 h-8 opacity-50 rounded-full"
+              />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No transactions match your search
+            </h3>
+            <p className="text-gray-500 max-w-md mx-auto">
+              Try clearing the filters or using a different search term.
+            </p>
+          </div>
+        )}
+
         {totalPages > 1 && (
           <div className="border-t border-gray-200 p-4 flex justify-center">
             <Pagination

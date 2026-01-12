@@ -35,8 +35,9 @@ export const useLogin = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: loginUser,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["profile"] });
+    onSuccess: (response) => {
+      // Manually set the profile data from the login response
+      qc.setQueryData(["profile"], response.data);
     },
     onError: (error) => handleError(error, "Login failed.", "userError"),
   });
