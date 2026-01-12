@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 
 const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
   const { hasPermission } = useAuth();
-  const SortableHeader = ({ label, value, align = 'left' }) => {
+  const SortableHeader = ({ label, value, align = "left" }) => {
     const isSorted = sortBy === value;
 
     return (
@@ -14,16 +14,16 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
         variant="subtle"
         onClick={() => onSort(value)}
         className={`flex items-center whitespace-nowrap hover:text-gray-700 !p-0 w-full ${
-          align === 'right' ? 'justify-end' : 'justify-start'
+          align === "right" ? "justify-end" : "justify-start"
         }`}
         aria-label={`Sort by ${label} ${
-          isSorted ? (sortOrder === 'asc' ? 'ascending' : 'descending') : ''
+          isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
         }`}
       >
         {label}
         {isSorted && (
           <span className="ml-1">
-            {sortOrder === 'desc' ? (
+            {sortOrder === "desc" ? (
               <ArrowDown size={14} aria-hidden="true" />
             ) : (
               <ArrowUp size={14} aria-hidden="true" />
@@ -49,8 +49,86 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
   }
 
   return (
-    <div className="overflow-x-auto -mx-4 sm:mx-0">
-      <div className="inline-block min-w-full align-middle">
+    <div className="-mx-4 sm:mx-0">
+      {/* Mobile View - Cards */}
+      <div className="block sm:hidden space-y-4 px-4 sm:px-0">
+        {sales.map((sale) => (
+          <div
+            key={sale._id}
+            className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1 min-w-0 mr-2">
+                <Link
+                  to={`/sales/${sale._id}`}
+                  className="text-base font-semibold text-[var(--color-primary)] truncate block"
+                >
+                  {sale.product?.name || "Unknown Product"}
+                </Link>
+                <div className="text-sm text-gray-600 truncate mt-0.5">
+                  {sale.customer?.name || "Unknown Customer"}
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <div className="font-bold text-gray-900">
+                  ${Math.floor(sale.totalAmountToBePaid || 0).toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {sale.saleDate
+                    ? new Date(sale.saleDate).toLocaleDateString()
+                    : "N/A"}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+              <Package size={14} />
+              <span>
+                {sale.quantity} {sale.unit?.name}
+              </span>
+              {sale.lc?.number && (
+                <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                  LC: {sale.lc.number}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+              <div className="flex gap-2">
+                {sale.invoiceStatus === "Invoiced" ? (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-success-light)] text-[var(--color-success)]">
+                    Invoiced
+                  </span>
+                ) : sale.invoiceStatus === "Not-invoiced" ? (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-danger-light)] text-[var(--color-danger)]">
+                    Not Inv.
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-warning-light)] text-[var(--color-warning)]">
+                    {sale.invoiceStatus}
+                  </span>
+                )}
+              </div>
+              <div>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                    sale.paymentStatus === "Paid payment"
+                      ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                      : sale.paymentStatus === "Due payment"
+                        ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                        : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {sale.paymentStatus}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop View - Table */}
+      <div className="hidden sm:block overflow-x-auto min-w-full">
         <div className="overflow-hidden sm:rounded-lg">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -77,7 +155,11 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                   scope="col"
                   className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900"
                 >
-                  <SortableHeader label="Quantity" value="quantity" align="right" />
+                  <SortableHeader
+                    label="Quantity"
+                    value="quantity"
+                    align="right"
+                  />
                 </th>
                 <th
                   scope="col"
@@ -89,7 +171,11 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                   scope="col"
                   className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900"
                 >
-                  <SortableHeader label="Total" value="totalAmountToBePaid" align="right" />
+                  <SortableHeader
+                    label="Total"
+                    value="totalAmountToBePaid"
+                    align="right"
+                  />
                 </th>
                 <th
                   scope="col"
@@ -191,8 +277,8 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                         sale.paymentStatus === "Paid payment"
                           ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
                           : sale.paymentStatus === "Due payment"
-                          ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                          : "bg-gray-100 text-gray-800"
+                            ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                            : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       <div

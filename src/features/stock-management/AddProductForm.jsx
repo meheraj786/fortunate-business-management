@@ -67,7 +67,7 @@ const AddProductForm = ({
 
   const createProductMutation = useCreateProduct(currentWarehouseId);
   const updateProductMutation = useUpdateProduct(
-    editingProduct?.warehouse?._id,
+    editingProduct?.warehouse?.id,
     editingProduct?._id
   );
 
@@ -82,17 +82,17 @@ const AddProductForm = ({
       if (isEditMode && editingProduct) {
         return {
           name: editingProduct.name || "",
-          category: editingProduct.category?._id || "",
-          LC: editingProduct.LC?._id || "",
+          category: editingProduct.category?.id || "",
+          LC: editingProduct.LC?.id || "",
           thickness: editingProduct.thickness || "",
           width: editingProduct.width || "",
           length: editingProduct.length || "",
           grade: editingProduct.grade || "",
           color: editingProduct.color || "",
           quantity: editingProduct.quantity || "",
-          unit: editingProduct.unit?._id || "",
+          unit: editingProduct.unit?.id || "",
           unitPrice: editingProduct.unitPrice || "",
-          warehouse: editingProduct.warehouse?._id || currentWarehouseId || "",
+          warehouse: editingProduct.warehouse?.id || currentWarehouseId || "",
           productDescription: editingProduct.productDescription || "",
           supplierName: editingProduct.supplierName || "",
         };
@@ -121,17 +121,17 @@ const AddProductForm = ({
       if (isEditMode && editingProduct) {
         reset({
           name: editingProduct.name || "",
-          category: editingProduct.category?._id || "",
-          LC: editingProduct.LC?._id || "",
+          category: editingProduct.category?.id || "",
+          LC: editingProduct.LC?.id || "",
           thickness: editingProduct.thickness || "",
           width: editingProduct.width || "",
           length: editingProduct.length || "",
           grade: editingProduct.grade || "",
           color: editingProduct.color || "",
           quantity: editingProduct.quantity || "",
-          unit: editingProduct.unit?._id || "",
+          unit: editingProduct.unit?.id || "",
           unitPrice: editingProduct.unitPrice || "",
-          warehouse: editingProduct.warehouse?._id || currentWarehouseId || "",
+          warehouse: editingProduct.warehouse?.id || currentWarehouseId || "",
           productDescription: editingProduct.productDescription || "",
           supplierName: editingProduct.supplierName || "",
         });
@@ -158,9 +158,20 @@ const AddProductForm = ({
 
   const onSubmit = async (data) => {
     const dataToSave = {
-      ...data,
+      name: data.name,
+      category: data.category,
+      LC: data.LC,
+      supplierName: data.supplierName,
+      thickness: data.thickness,
+      width: data.width,
+      length: data.length,
+      grade: data.grade,
+      color: data.color,
       quantity: Number(data.quantity),
+      unit: data.unit,
       unitPrice: Number(data.unitPrice),
+      warehouse: data.warehouse,
+      productDescription: data.productDescription,
     };
 
     try {

@@ -19,11 +19,25 @@ import toast from "react-hot-toast";
 import Button from "../ui/Button";
 import { useTransaction } from "@/api/hooks/transaction";
 
+const getAccountDisplayName = (accountId) => {
+  if (!accountId) return "N/A";
+
+  switch (accountId.accountType) {
+    case "Bank":
+      return `${accountId.bankName} (${accountId.accountHolderName})`;
+    case "Mobile Banking":
+      return `${accountId.serviceName} (${accountId.accountHolderName})`;
+    case "Cash":
+      return `${accountId.accountName} (${accountId.accountHolderName})`;
+    default:
+      return accountId.accountName || "N/A";
+  }
+};
+
 const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
   // Use react-query hook to fetch transaction details
   const { data: response, isLoading, isError } = useTransaction(transactionId);
   const transaction = response?.data;
-
 
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("en-US", {
@@ -99,7 +113,9 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Transaction Type</p>
-                    <p className="font-bold text-base sm:text-lg">{transaction.transactionType}</p>
+                    <p className="font-bold text-base sm:text-lg">
+                      {transaction.transactionType}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -131,7 +147,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
               <Info
                 label="Account"
                 icon={<User className="w-5 h-5" />}
-                value={transaction.accountId?.accountName}
+                value={getAccountDisplayName(transaction.accountId)}
               />
             </div>
 
@@ -139,7 +155,9 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
             <div className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold text-base sm:text-lg">Description</h3>
+                <h3 className="font-semibold text-base sm:text-lg">
+                  Description
+                </h3>
               </div>
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg min-h-[80px] text-sm sm:text-base">
                 {transaction.description ? (
@@ -152,7 +170,6 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
                 )}
               </div>
             </div>
-
           </div>
         )}
       </div>
@@ -166,7 +183,9 @@ const Info = ({ label, icon, value }) => (
       {icon}
       {label}
     </div>
-    <div className="font-medium text-sm sm:text-base text-gray-900 truncate">{value || "N/A"}</div>
+    <div className="font-medium text-sm sm:text-base text-gray-900 truncate">
+      {value || "N/A"}
+    </div>
   </div>
 );
 

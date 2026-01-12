@@ -30,9 +30,9 @@ const ProductCard = ({ product, warehouseId }) => {
 
   const formatSize = (product) => {
     const parts = [];
-    if (product.thickness) parts.push(`${product.thickness}mm`);
-    if (product.width) parts.push(`${product.width}mm`);
-    if (product.length) parts.push(`${product.length}mm`);
+    if (product.thickness) parts.push(product.thickness);
+    if (product.width) parts.push(product.width);
+    if (product.length) parts.push(product.length);
     return parts.join(" x ");
   };
 
@@ -49,7 +49,7 @@ const ProductCard = ({ product, warehouseId }) => {
         </div>
         <span
           className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStockColor(
-            product.stockStatus
+            product.stockStatus,
           )}`}
         >
           {product.stockStatus || "N/A"}

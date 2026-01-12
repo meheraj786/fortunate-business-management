@@ -21,21 +21,25 @@ const SelectField = ({
   const id = useId();
   const errorId = `${id}-error`;
 
-  const { onChange: rhfOnChange, ...restRhfProps } = register
+  const registeredProps = register
     ? register(name, { required, ...validation })
     : {};
 
   const selectProps = {
-    ...(register ? restRhfProps : { value: value || "" }),
+    ...registeredProps,
     onChange: (e) => {
-      if (rhfOnChange) {
-        rhfOnChange(e);
+      if (registeredProps.onChange) {
+        registeredProps.onChange(e);
       }
       if (onChange) {
         onChange(e);
       }
     },
   };
+
+  if (!register) {
+    selectProps.value = value || '';
+  }
 
 
   return (

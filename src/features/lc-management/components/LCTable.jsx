@@ -10,7 +10,7 @@ import {
   ArrowDown,
   ChevronDown,
 } from "lucide-react";
-import Button  from "../../../components/ui/Button";
+import Button from "../../../components/ui/Button";
 import { useAuth } from "../../../context/AuthContext";
 import Pagination from "../../../components/ui/Pagination";
 
@@ -57,7 +57,7 @@ const LCTable = ({
       }
       return null;
     },
-    [sortBy, sortOrder]
+    [sortBy, sortOrder],
   );
 
   const {
@@ -129,7 +129,7 @@ const LCTable = ({
           <td className="px-4 py-4 text-sm whitespace-nowrap text-center">
             <span
               className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                lc.status
+                lc.status,
               )}`}
             >
               {lc.status || "N/A"}
@@ -211,7 +211,86 @@ const LCTable = ({
         </div>
       </div>
 
-      <div className="overflow-x-auto -mx-4 sm:mx-0">
+      {/* Mobile Card View */}
+      <div className="sm:hidden space-y-4 px-4 pb-4">
+        {loading ? (
+          <div className="text-center py-8">
+            <Loader2
+              className="mx-auto animate-spin h-8 w-8 text-[var(--color-primary)]"
+              aria-label="Loading"
+            />
+            <p className="mt-2 text-sm text-gray-500">Loading LC data...</p>
+          </div>
+        ) : lcData.length === 0 ? (
+          <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-100">
+            <Grid2x2Check className="mx-auto w-10 h-10 text-gray-400" />
+            <p className="mt-2 text-sm font-medium text-gray-500">
+              No LC records found
+            </p>
+          </div>
+        ) : (
+          lcData.map((lc) => (
+            <div
+              key={lc._id}
+              className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow relative"
+            >
+              {hasPermission("LC_VIEW_DETAILS") && (
+                <Link
+                  to={`/lc-details/${lc._id}`}
+                  className="absolute inset-0 z-10"
+                  aria-label={`View LC ${lc.lcNumber}`}
+                />
+              )}
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <h3 className="text-base font-semibold text-[var(--color-primary)]">
+                    {lc.lcNumber || "N/A"}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {lc.supplierName || "No Supplier"}
+                  </p>
+                </div>
+                <span
+                  className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                    lc.status,
+                  )}`}
+                >
+                  {lc.status || "N/A"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-600 mb-3">
+                <div>
+                  <span className="block text-xs text-gray-400">
+                    Opening Date
+                  </span>
+                  {lc.lcOpeningDate
+                    ? new Date(lc.lcOpeningDate).toLocaleDateString()
+                    : "N/A"}
+                </div>
+                <div className="text-right">
+                  <span className="block text-xs text-gray-400">
+                    Total Cost
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    ৳{(lc.totalCost || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                <div className="truncate max-w-[70%]">
+                  {lc.products?.length || 0} Products
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden sm:block overflow-x-auto -mx-4 sm:mx-0">
         <div className="inline-block min-w-full align-middle px-4 sm:px-2 lg:px-0">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
