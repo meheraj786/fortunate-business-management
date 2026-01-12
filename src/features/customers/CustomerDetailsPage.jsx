@@ -332,15 +332,6 @@ const CustomerDetails = () => {
                     icon={MapPin}
                   />
                 </div>
-                {customerData.customerNote && (
-                  <div className="sm:col-span-2">
-                    <DataField
-                      label="Notes"
-                      value={customerData.customerNote}
-                      icon={FileText}
-                    />
-                  </div>
-                )}
               </div>
             </CollapsibleCard>
 
@@ -420,41 +411,57 @@ const CustomerDetails = () => {
 
             {/* Documents */}
             <CollapsibleCard
-              title="Documents"
+              title="Documents & Note"
               icon={<FileText className="text-[var(--color-primary)]" />}
               defaultOpen={true}
-              ariaLabel="Documents Section"
+              ariaLabel="Documents & Note Section"
             >
               <div className="space-y-3">
-                {customerData.documents?.map((doc, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
-                  >
-                    <FileText className="text-gray-400 mr-3 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-700 truncate">
-                        {doc.name}
+                {customerData.documents?.length > 0 && (
+                  <div className="space-y-3">
+                    {customerData.documents.map((doc, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
+                      >
+                        <FileText className="text-gray-400 mr-3 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-700 truncate">
+                            {doc.name}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {(doc.size / 1024).toFixed(2)} KB
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() =>
+                            handleDownload(
+                              customerData._id,
+                              doc.storedName || doc.name
+                            )
+                          }
+                          variant="subtle"
+                          size="sm"
+                          className="!p-2 text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full"
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {(doc.size / 1024).toFixed(2)} KB
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() =>
-                        handleDownload(
-                          customerData._id,
-                          doc.storedName || doc.name
-                        )
-                      }
-                      variant="subtle"
-                      size="sm"
-                      className="!p-2 text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full"
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
+                    ))}
                   </div>
-                ))}
+                )}
+                {customerData.customerNote && (
+                  <div className="border-t border-gray-200 pt-3">
+                    <DataField
+                      label="Customer Note"
+                      value={customerData.customerNote}
+                      icon={FileText}
+                    />
+                  </div>
+                )}
+                {!customerData.customerNote && customerData.documents?.length === 0 && (
+                  <p className="text-sm text-gray-500 py-4 text-center">No documents or notes available.</p>
+                )}
               </div>
             </CollapsibleCard>
           </div>
