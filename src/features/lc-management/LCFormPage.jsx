@@ -141,6 +141,127 @@ const LCFormWrapper = ({ onSave }) => {
   );
 };
 
+const ProductFields = ({ field, index, removeProductField, hasPermission, register, errors, control, setValue, watch, units, unitsLoading }) => {
+  const productQuantity = watch(`productInfo.${index}.quantity`);
+  const productUnitPriceUsd = watch(`productInfo.${index}.unitPriceUsd`);
+
+  useEffect(() => {
+    const quantity = Number(productQuantity) || 0;
+    const unitPrice = Number(productUnitPriceUsd) || 0;
+    const total = quantity * unitPrice;
+    setValue(`productInfo.${index}.totalValueUsd`, total.toFixed(2));
+  }, [productQuantity, productUnitPriceUsd, index, setValue]);
+
+  const watchedTotalValue = watch(`productInfo.${index}.totalValueUsd`);
+  const productErrors = errors.productInfo?.[index];
+
+  return (
+    <motion.div
+      key={field.id}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, height: 0 }}
+      className="p-4 border border-gray-200 rounded-lg relative bg-gray-50 mb-4"
+    >
+      {hasPermission("LC_UPDATE") && (
+        <Button
+          type="button"
+          onClick={() => removeProductField(index)}
+          variant="subtle"
+          className="absolute top-2 right-2 !p-2 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]"
+          aria-label="Remove product"
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      )}
+      <h4 className="font-semibold text-gray-900 mb-4">
+        Product {index + 1}
+      </h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <InputField
+          label="Item Name"
+          name={`productInfo.${index}.itemName`}
+          register={register}
+          error={productErrors?.itemName?.message}
+          validation={{ required: "Item name is required" }}
+          placeholder="e.g., Hot Rolled Steel Coil"
+        />
+        <InputField
+          label="Thickness"
+          name={`productInfo.${index}.thickness`}
+          register={register}
+          error={productErrors?.thickness?.message}
+          placeholder="e.g., 2.5mm"
+        />
+        <InputField
+          label="Width"
+          name={`productInfo.${index}.width`}
+          register={register}
+          error={productErrors?.width?.message}
+          placeholder="e.g., 1250mm"
+        />
+        <InputField
+          label="Length"
+          name={`productInfo.${index}.length`}
+          register={register}
+          error={productErrors?.length?.message}
+          placeholder="e.g., 2500mm or C"
+        />
+        <InputField
+          label="Grade"
+          name={`productInfo.${index}.grade`}
+          register={register}
+          error={productErrors?.grade?.message}
+          placeholder="e.g., JIS G3131 SPHC"
+        />
+        <SelectField
+          label="Unit"
+          name={`productInfo.${index}.quantityUnit`}
+          register={register}
+          error={productErrors?.quantityUnit?.message}
+          options={units.map((u) => ({ value: u._id, label: u.name })) || []}
+          validation={{ required: "Unit is required" }}
+          loading={unitsLoading}
+        />
+        <InputField
+          label="Quantity"
+          name={`productInfo.${index}.quantity`}
+          type="number"
+          register={register}
+          error={productErrors?.quantity?.message}
+          validation={{
+            required: "Quantity is required",
+            min: { value: 0, message: "Quantity cannot be negative" },
+            valueAsNumber: true,
+          }}
+          step="any"
+          placeholder="e.g., 25"
+        />
+        <InputField
+          label="Price (USD)"
+          name={`productInfo.${index}.unitPriceUsd`}
+          type="number"
+          register={register}
+          error={productErrors?.unitPriceUsd?.message}
+          validation={{
+            required: "Price is required",
+            min: { value: 0, message: "Price cannot be negative" },
+            valueAsNumber: true,
+          }}
+          step="any"
+          placeholder="e.g., 850"
+        />
+        <InputField
+          label="Total (USD)"
+          name={`productInfo.${index}.totalValueUsd`}
+          value={watchedTotalValue || 0}
+          disabled
+        />
+      </div>
+    </motion.div>
+  );
+};
+
 const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
   const navigate = useNavigate();
 
@@ -323,25 +444,6 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
     }
   }, [lcAmountUsd, exchangeRate, setValue]);
 
-  const handleProductInfoChange = useCallback(
-    (index, fieldName, value) => {
-      setValue(`productInfo.${index}.${fieldName}`, value, {
-        shouldValidate: true,
-      });
-      // Recalculate totalValueUsd
-      const product = watch(`productInfo.${index}`);
-      if (fieldName === "quantity" || fieldName === "unitPriceUsd") {
-        const newQuantity = parseFloat(product.quantity) || 0;
-        const newUnitPriceUsd = parseFloat(product.unitPriceUsd) || 0;
-        setValue(
-          `productInfo.${index}.totalValueUsd`,
-          (newQuantity * newUnitPriceUsd).toFixed(2)
-        );
-      }
-    },
-    [setValue, watch]
-  );
-
   const handleExistingFileRemove = (fileId) => {
     // Remove from react-hook-form state
     const currentUploadedDocuments = watch("documentsNotes.uploadedDocuments");
@@ -394,121 +496,6 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
   const isLoading = unitsLoading || accountsLoading; // General loading for external data
   const formSubmitting =
     createLCMutation.isLoading || updateLCMutation.isLoading;
-
-  const renderProductFields = (field, index) => {
-    const productErrors = errors.productInfo?.[index];
-    const watchedProduct = watch(`productInfo.${index}`);
-
-    return (
-      <motion.div
-        key={field.id}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, height: 0 }}
-        className="p-4 border border-gray-200 rounded-lg relative bg-gray-50 mb-4"
-      >
-        {productFields.length > 1 && hasPermission("LC_UPDATE") && (
-          <Button
-            type="button"
-            onClick={() => removeProductField(index)}
-            variant="subtle"
-            className="absolute top-2 right-2 !p-2 text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]"
-            aria-label="Remove product"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        )}
-        <h4 className="font-semibold text-gray-900 mb-4">
-          Product {index + 1}
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <InputField
-            label="Item Name"
-            name={`productInfo.${index}.itemName`}
-            register={register}
-            error={productErrors?.itemName?.message}
-            validation={{ required: "Item name is required" }}
-            placeholder="e.g., Hot Rolled Steel Coil"
-          />
-          <InputField
-            label="Thickness"
-            name={`productInfo.${index}.thickness`}
-            register={register}
-            error={productErrors?.thickness?.message}
-            placeholder="e.g., 2.5mm"
-          />
-          <InputField
-            label="Width"
-            name={`productInfo.${index}.width`}
-            register={register}
-            error={productErrors?.width?.message}
-            placeholder="e.g., 1250mm"
-          />
-          <InputField
-            label="Length"
-            name={`productInfo.${index}.length`}
-            register={register}
-            error={productErrors?.length?.message}
-            placeholder="e.g., 2500mm or C"
-          />
-          <InputField
-            label="Grade"
-            name={`productInfo.${index}.grade`}
-            register={register}
-            error={productErrors?.grade?.message}
-            placeholder="e.g., JIS G3131 SPHC"
-          />
-          <SelectField
-            label="Unit"
-            name={`productInfo.${index}.quantityUnit`}
-            register={register}
-            error={productErrors?.quantityUnit?.message}
-            options={units.map((u) => ({ value: u._id, label: u.name })) || []}
-            validation={{ required: "Unit is required" }}
-            loading={unitsLoading}
-          />
-          <InputField
-            label="Quantity"
-            name={`productInfo.${index}.quantity`}
-            type="number"
-            register={register}
-            error={productErrors?.quantity?.message}
-            validation={{
-              required: "Quantity is required",
-              min: { value: 0, message: "Quantity must be positive" },
-              valueAsNumber: true,
-            }}
-            onChange={(e) =>
-              handleProductInfoChange(index, "quantity", e.target.value)
-            }
-            placeholder="e.g., 25"
-          />
-          <InputField
-            label="Price (USD)"
-            name={`productInfo.${index}.unitPriceUsd`}
-            type="number"
-            register={register}
-            error={productErrors?.unitPriceUsd?.message}
-            validation={{
-              required: "Price is required",
-              min: { value: 0, message: "Price must be positive" },
-              valueAsNumber: true,
-            }}
-            onChange={(e) =>
-              handleProductInfoChange(index, "unitPriceUsd", e.target.value)
-            }
-            placeholder="e.g., 850"
-          />
-          <InputField
-            label="Total (USD)"
-            name={`productInfo.${index}.totalValueUsd`}
-            value={watchedProduct?.totalValueUsd || 0} // Watch to display calculated value
-            disabled
-          />
-        </div>
-      </motion.div>
-    );
-  };
 
   return (
     <FormPageLayout
@@ -615,6 +602,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                     min: { value: 0, message: "Amount cannot be negative" },
                     valueAsNumber: true,
                   }}
+                  step="any"
                   placeholder="e.g., 50000"
                 />
                 <InputField
@@ -628,6 +616,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                     min: { value: 0, message: "Rate cannot be negative" },
                     valueAsNumber: true,
                   }}
+                  step="any"
                   placeholder="e.g., 115.50"
                 />
                 <InputField
@@ -655,9 +644,22 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
           {section.id === "productInfo" && (
             <div className="space-y-4 sm:space-y-6">
               <AnimatePresence>
-                {productFields.map((field, index) =>
-                  renderProductFields(field, index)
-                )}
+                {productFields.map((field, index) => (
+                  <ProductFields
+                    key={field.id}
+                    field={field}
+                    index={index}
+                    removeProductField={removeProductField}
+                    hasPermission={hasPermission}
+                    register={register}
+                    errors={errors}
+                    control={control}
+                    setValue={setValue}
+                    watch={watch}
+                    units={units}
+                    unitsLoading={unitsLoading}
+                  />
+                ))}
               </AnimatePresence>
               {hasPermission("LC_UPDATE") && (
                 <Button
