@@ -39,6 +39,7 @@ import InputField from "@/components/ui/InputField";
 import FileInput from "@/components/ui/FileInput";
 import SelectField from "@/components/ui/SelectField";
 import AddSalesForm from "./AddSalesForm";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
 const SaleDetails = () => {
   const { id } = useParams();

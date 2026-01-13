@@ -7,19 +7,31 @@ import {
   FileX,
   Trash,
 } from "lucide-react";
-import { Link } from "react-router"; // Changed to react-router
+import { Link } from "react-router"; 
 
 import AddSalesForm from "./AddSalesForm";
 import SalesTable from "./components/SalesTable";
 import SalesStatCard from "./components/SalesStatCard";
-import SalesDashboardSkeleton from "./components/SalesDashboardSkeleton";
+import SalesTableSkeleton from "./components/SalesTableSkeleton";
 import SearchBar from "@/components/ui/SearchBar";
-import Button from "@/components/ui/Button"; // Import Button component
-
-import { useAuth } from "../../context/AuthContext";
-import { useDebounce } from "@/hooks/useDebounce";
+import Button from "@/components/ui/Button";
+import { useAuth } from "@/context/AuthContext";
 import { usePaginatedSales, useInvoiceStatusCount } from "@/api/hooks/sales";
 import Pagination from "@/components/ui/Pagination";
+
+const StatCardSkeleton = () => (
+  <div className="bg-white p-4 rounded-lg shadow-sm animate-pulse">
+    <div className="flex items-center">
+      <div className="p-3 rounded-full bg-gray-100">
+        <div className="h-6 w-6 rounded-full bg-gray-200"></div>
+      </div>
+      <div className="ml-4 flex-1">
+        <div className="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>
+        <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+      </div>
+    </div>
+  </div>
+);
 
 const Sales = () => {
   const [showAddSale, setShowAddSale] = useState(false);
@@ -28,7 +40,6 @@ const Sales = () => {
   const [sortBy, setSortBy] = useState("saleDate");
   const [sortOrder, setSortOrder] = useState("desc");
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const { hasPermission } = useAuth();
 
   const {
@@ -39,7 +50,7 @@ const Sales = () => {
   } = usePaginatedSales({
     page: pagination.page,
     limit: pagination.limit,
-    search: debouncedSearchTerm,
+    search: searchTerm,
     sortBy,
     sortOrder,
   });
@@ -77,24 +88,6 @@ const Sales = () => {
       }
     });
   }, []);
-
-  if (salesLoading || statsLoading) {
-    return <SalesDashboardSkeleton />;
-  }
-
-  if (isError) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="text-[var(--color-danger)] text-4xl mb-4">⚠️</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Error Loading Sales Data
-          </h3>
-          <p className="text-[var(--color-danger)] mb-4">{error.message}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -142,34 +135,45 @@ const Sales = () => {
 
         {hasPermission("SALE_VIEW_TABLE") && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <SalesStatCard
-              title="Not Invoiced"
-              count={salesStats.notInvoiced}
-              linkTo="/sales/not-invoiced"
-              icon={FileWarning}
-              color="yellow"
-            />
-            <SalesStatCard
-              title="Due Invoices"
-              count={salesStats.due}
-              linkTo="/sales/due-invoices"
-              icon={FileClock}
-              color="orange"
-            />
-            <SalesStatCard
-              title="Paid Invoices"
-              count={salesStats.paid}
-              linkTo="/sales/paid-invoices"
-              icon={FileCheck}
-              color="green"
-            />
-            <SalesStatCard
-              title="Cancelled"
-              count={salesStats.cancelled}
-              linkTo="/sales/cancelled"
-              icon={FileX}
-              color="red"
-            />
+            {statsLoading ? (
+              <>
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+              </>
+            ) : (
+              <>
+                <SalesStatCard
+                  title="Not Invoiced"
+                  count={salesStats.notInvoiced}
+                  linkTo="/sales/not-invoiced"
+                  icon={FileWarning}
+                  color="yellow"
+                />
+                <SalesStatCard
+                  title="Due Invoices"
+                  count={salesStats.due}
+                  linkTo="/sales/due-invoices"
+                  icon={FileClock}
+                  color="orange"
+                />
+                <SalesStatCard
+                  title="Paid Invoices"
+                  count={salesStats.paid}
+                  linkTo="/sales/paid-invoices"
+                  icon={FileCheck}
+                  color="green"
+                />
+                <SalesStatCard
+                  title="Cancelled"
+                  count={salesStats.cancelled}
+                  linkTo="/sales/cancelled"
+                  icon={FileX}
+                  color="red"
+                />
+              </>
+            )}
           </div>
         )}
       </div>
@@ -184,7 +188,9 @@ const Sales = () => {
                     All Sales Records
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    {totalSales?.toLocaleString()} total records
+                    {!salesLoading &&
+                      !isError &&
+                      `${totalSales?.toLocaleString()} total records`}
                   </p>
                 </div>
                 <div className="w-full sm:w-64">
@@ -194,24 +200,44 @@ const Sales = () => {
                   />
                 </div>
               </div>
-              <div className="border-t border-gray-200 pt-4">
-                <SalesTable
-                  sales={salesData}
-                  sortBy={sortBy}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                />
+              <div className="border-t border-gray-200 pt-4 min-h-[400px]">
+                {salesLoading ? (
+                  <SalesTableSkeleton />
+                ) : isError ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center max-w-md">
+                      <div className="text-[var(--color-danger)] text-4xl mb-4">
+                        ⚠️
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Error Loading Sales Data
+                      </h3>
+                      <p className="text-[var(--color-danger)] mb-4">
+                        {error.message}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <SalesTable
+                      sales={salesData}
+                      sortBy={sortBy}
+                      sortOrder={sortOrder}
+                      onSort={handleSort}
+                    />
+                    {totalPages > 1 && (
+                      <Pagination
+                        currentPage={pagination.page}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        totalItems={totalSales}
+                        itemsPerPage={pagination.limit}
+                        className="pt-4 border-t border-gray-200"
+                      />
+                    )}
+                  </>
+                )}
               </div>
-              {totalPages > 1 && (
-                <Pagination
-                  currentPage={pagination.page}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  totalItems={totalSales}
-                  itemsPerPage={pagination.limit}
-                  className="pt-4 border-t border-gray-200"
-                />
-              )}
             </div>
           </div>
         </div>
