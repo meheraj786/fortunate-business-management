@@ -43,7 +43,9 @@ const InputField = ({
           className="flex items-start text-sm font-medium text-gray-700"
         >
           {label}
-          {(required || validation?.required) && <span className="text-[var(--color-danger)] ml-1">*</span>}
+          {(required || validation?.required) && (
+            <span className="text-[var(--color-danger)] ml-1">*</span>
+          )}
         </label>
       )}
       <motion.div className="relative" whileFocus={{ scale: 1.02 }}>
@@ -110,6 +112,7 @@ InputField.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func,
   required: PropTypes.bool,
+  validation: PropTypes.object,
   placeholder: PropTypes.string,
   icon: PropTypes.elementType,
   min: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

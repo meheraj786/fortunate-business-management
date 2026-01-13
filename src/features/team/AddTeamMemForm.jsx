@@ -12,6 +12,7 @@ import MultiSelectField from "@/components/ui/MultiSelectField";
 import FormSection from "@/components/ui/FormSection";
 import { useSectionManager } from "@/hooks/useSectionManager";
 import { handleError } from "@/utils/handle-error";
+import { MODULES_ORDER } from "./constants"; // Import MODULES_ORDER
 import {
   FileText,
   Warehouse as WarehouseIcon,
@@ -37,21 +38,6 @@ const SECTIONS_CONFIG = [
     icon: ShieldCheck,
     defaultOpen: true,
   },
-];
-
-const MODULES_ORDER = [
-  "USER",
-  "WAREHOUSE",
-  "PRODUCT",
-  "LC",
-  "SALE",
-  "CASH",
-  "ACCOUNT",
-  "TRANSACTION",
-  "CUSTOMER",
-  "CATEGORY",
-  "UNIT",
-  "TRASH",
 ];
 
 const AddTeamMemForm = () => {

@@ -505,9 +505,20 @@ const CustomerDetails = () => {
                       >
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 text-sm">
-                              {sale.product?.name || "N/A"}
-                            </h4>
+                            {sale.saleId?.startsWith("OPEN-BAL-") ? (
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold text-gray-900 text-sm">
+                                  Opening Balance
+                                </h4>
+                                <span className="px-2 py-0.5 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
+                                  Automated
+                                </span>
+                              </div>
+                            ) : (
+                              <h4 className="font-semibold text-gray-900 text-sm">
+                                {sale.product?.name || "N/A"}
+                              </h4>
+                            )}
                             <p className="text-xs text-gray-500 mt-1">
                               {new Date(sale.saleDate).toLocaleDateString()}
                             </p>
@@ -570,14 +581,34 @@ const CustomerDetails = () => {
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                               {new Date(sale.saleDate).toLocaleDateString()}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="text-sm font-medium text-[var(--color-primary)]">
-                                {sale.product?.name || "N/A"}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                              {sale.product?.LC?.basicInfo?.lcNumber || "N/A"}
-                            </td>
+                            {sale.saleId?.startsWith("OPEN-BAL-") ? (
+                              <>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-900">
+                                      Opening Balance
+                                    </span>
+                                    <span className="px-2 py-0.5 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
+                                      Automated
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                  N/A
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <div className="text-sm font-medium text-[var(--color-primary)]">
+                                    {sale.product?.name || "N/A"}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                  {sale.product?.LC?.basicInfo?.lcNumber || "N/A"}
+                                </td>
+                              </>
+                            )}
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                               {sale.quantity} {sale.unit?.name || ""}
                             </td>

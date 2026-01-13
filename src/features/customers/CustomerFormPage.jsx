@@ -59,6 +59,7 @@ const CustomerForm = ({ onSave }) => {
       email: "",
       billingAddress: "",
       customerNote: "",
+      openingDue: "",
     },
   });
 
@@ -170,6 +171,11 @@ const CustomerForm = ({ onSave }) => {
       })),
     };
 
+    // Only add openingDue for new customers
+    if (!isEditMode) {
+      payload.openingDue = parseFloat(data.openingDue) || 0;
+    }
+
     try {
       if (isEditMode && id) {
         // Ensure id is available for update
@@ -277,6 +283,20 @@ const CustomerForm = ({ onSave }) => {
                 step="0.01"
                 error={errors.creditLimit?.message}
               />
+              {!isEditMode && (
+                <InputField
+                  label="Opening Due"
+                  name="openingDue"
+                  register={register}
+                  type="number"
+                  placeholder="20000"
+                  icon={DollarSign}
+                  min="0"
+                  step="any"
+                  error={errors.openingDue?.message}
+                  validation={{ valueAsNumber: true }}
+                />
+              )}
             </div>
           )}
 
