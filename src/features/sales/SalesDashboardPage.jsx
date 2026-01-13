@@ -125,7 +125,7 @@ const Sales = () => {
                 <span>Add Sale</span>
               </Button>
             )}
-             {hasPermission("TRASH_VIEW_SALE") && (
+            {hasPermission("TRASH_VIEW_SALE") && (
               <Link to="/trash/sale">
                 <Button
                   variant="secondary"

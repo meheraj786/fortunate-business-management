@@ -15,7 +15,7 @@ import {
   Ruler,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { useForm, useFieldArray } from "react-hook-form"; // Import useForm and useFieldArray
+import { useForm, useFieldArray, useWatch } from "react-hook-form"; // Import useForm, useFieldArray, and useWatch
 
 import { useCustomers } from "@/api/hooks/customer";
 import { useWarehouses } from "@/api/hooks/warehouse";
@@ -24,6 +24,7 @@ import { useAccounts } from "@/api/hooks/account";
 import { useUnits } from "@/api/hooks/unit";
 import { useProductsForSale } from "@/api/hooks/products";
 import { useCreateSale, useUpdateSale } from "@/api/hooks/sales";
+import { formatCurrency } from "@/utils/format";
 import { handleError } from "@/utils/handle-error"; // Import handleError
 
 import FormHeader from "@/components/ui/FormHeader";
@@ -93,7 +94,7 @@ const AddSales = ({
               return {
                 ...p,
                 id: p._id || Math.random(), // Add unique ID for useFieldArray
-                date: paymentDate ? paymentDate.toISOString().slice(0, 16) : "",
+                date: paymentDate ? paymentDate.toISOString().slice(0, 10) : "",
                 accountId: p.accountId?._id || p.accountId,
               };
             }) || [],
@@ -114,7 +115,7 @@ const AddSales = ({
         customerAddress: "",
         saleDate,
         invoiceStatus: "Not-invoiced",
-        charges: [{ id: Math.random(), name: "", amount: "" }], // Initial charge
+        charges: [], // Initial charge
         costs: [],
         discount: "",
         payments: [],
@@ -198,7 +199,7 @@ const AddSales = ({
             editData.payments?.map((p) => ({
               ...p,
               id: p._id || Math.random(),
-              date: p.date ? new Date(p.date).toISOString().slice(0, 16) : "",
+              date: p.date ? new Date(p.date).toISOString().slice(0, 10) : "",
               accountId: p.accountId?._id || p.accountId,
             })) || [],
         });
@@ -223,7 +224,7 @@ const AddSales = ({
           customerAddress: "",
           saleDate,
           invoiceStatus: "Not-invoiced",
-          charges: [{ id: Math.random(), name: "", amount: "" }],
+          charges: [],
           costs: [],
           discount: "",
           payments: [],
@@ -236,14 +237,17 @@ const AddSales = ({
   // Calculations
   const watchedQuantity = watch("quantity");
   const watchedPricePerUnit = watch("pricePerUnit");
-  const watchedCharges = watch("charges");
-  const watchedCosts = watch("costs");
   const watchedDiscount = watch("discount");
+
+  // Use useWatch for dynamic fields to ensure reactivity
+  const watchedCharges = useWatch({ control, name: "charges", defaultValue: [] });
+  const watchedCosts = useWatch({ control, name: "costs", defaultValue: [] });
 
   const { totalAmount, totalAmountToBePaid } = useMemo(() => {
     const quantity = parseFloat(watchedQuantity) || 0;
     const pricePerUnit = parseFloat(watchedPricePerUnit) || 0;
     const total = quantity * pricePerUnit;
+
     const chargesTotal = (watchedCharges || []).reduce(
       (acc, charge) => acc + (parseFloat(charge.amount) || 0),
       0,
@@ -253,6 +257,7 @@ const AddSales = ({
       0,
     );
     const discount = parseFloat(watchedDiscount) || 0;
+
     return {
       totalAmount: total,
       totalAmountToBePaid: total + chargesTotal + costsTotal - discount,
@@ -260,9 +265,9 @@ const AddSales = ({
   }, [
     watchedQuantity,
     watchedPricePerUnit,
-    watchedCharges,
-    watchedCosts,
     watchedDiscount,
+    watchedCharges, // Depend on the useWatch outputs
+    watchedCosts,   // Depend on the useWatch outputs
   ]);
 
   // Handlers
@@ -280,10 +285,15 @@ const AddSales = ({
 
   const handleProductChange = (productId) => {
     setValue("productId", productId, { shouldValidate: true });
-    const product = products.find(p => p._id === productId);
+    const product = products.find((p) => p._id === productId);
     if (product) {
-      setValue("unit", product.unit?.id || "", { shouldValidate: true }); // Fixed _id to id
-      setValue("pricePerUnit", product.unitPrice ?? "", { shouldValidate: true });
+      setValue("categoryId", product.category?._id || "", {
+        shouldValidate: true,
+      });
+      setValue("unit", product.unit?._id || "", { shouldValidate: true }); // Fixed _id to id
+      setValue("pricePerUnit", product.unitPrice ?? "", {
+        shouldValidate: true,
+      });
     } else {
       setValue("unit", "", { shouldValidate: true });
       setValue("pricePerUnit", "", { shouldValidate: true });
@@ -332,13 +342,12 @@ const AddSales = ({
       setValue("paymentStatus", status);
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      const paymentDate = now.toISOString().slice(0, 16);
       if (status === "Paid payment") {
         setValue("payments", [
           {
             id: Math.random(),
             amount: totalAmountToBePaid.toFixed(2),
-            date: paymentDate,
+            date: new Date().toISOString(),
             method: "",
             accountId: "",
           },
@@ -370,7 +379,7 @@ const AddSales = ({
       quantity: parseFloat(data.quantity),
       unit: data.unit,
       pricePerUnit: parseFloat(data.pricePerUnit),
-      saleDate: data.saleDate,
+      saleDate: new Date(data.saleDate).toISOString(),
       invoiceStatus: data.invoiceStatus,
       charges: data.charges
         .filter((c) => c.name && c.amount)
@@ -382,6 +391,7 @@ const AddSales = ({
           amount: parseFloat(c.amount),
           accountId: c.accountId,
           paymentMethod: c.method,
+          date: new Date().toISOString(),
         })),
       discount: parseFloat(data.discount) || 0,
       notes: data.notes,
@@ -405,7 +415,7 @@ const AddSales = ({
       payments: data.payments
         .map((p) => ({
           amount: parseFloat(p.amount) || 0,
-          date: p.date,
+          date: new Date(p.date).toISOString(),
           method: p.method,
           accountId: p.accountId,
         }))
@@ -611,6 +621,7 @@ const AddSales = ({
                   label="Unit"
                   name="unit"
                   register={register}
+                  value={watch("unit")}
                   error={errors.unit?.message}
                   options={units.map((u) => ({ value: u._id, label: u.name }))}
                   validation={{ required: "Unit is required" }}
@@ -637,7 +648,7 @@ const AddSales = ({
                 <div className="p-3 bg-[var(--color-primary-light)] rounded-lg border border-[var(--color-primary-light)]">
                   <p className="text-sm font-medium text-gray-700">Subtotal</p>
                   <p className="text-lg font-semibold text-[var(--color-primary)]">
-                    ${totalAmount.toFixed(2)}
+                    {formatCurrency(totalAmount)}
                   </p>
                 </div>
               </div>
@@ -672,17 +683,8 @@ const AddSales = ({
                   error={errors.saleDate?.message}
                   validation={{
                     required: "Sale Date is required",
-                    validate: (value) => {
-                      const selectedDate = new Date(value);
-                      const now = new Date();
-                      if (selectedDate > now) {
-                        return "Sale date cannot be in the future";
-                      }
-                      return true;
-                    },
                   }}
                   icon={Calendar}
-                  max={new Date().toISOString().slice(0, 16)}
                 />
               </div>
               {watchedCustomerType === "existing" ? (
@@ -834,23 +836,22 @@ const AddSales = ({
                           validation={{ required: "Cost name is required" }}
                           disabled={isSubmitting}
                         />
-                        <InputField
-                          label="Amount"
-                          name={`costs.${index}.amount`}
-                          type="number"
-                          register={register}
-                          error={errors.costs?.[index]?.amount?.message}
-                          validation={{
-                            required: "Cost amount is required",
-                            min: {
-                              value: 0,
-                              message: "Amount cannot be negative",
-                            },
-                            valueAsNumber: true,
-                          }}
-                          disabled={isSubmitting}
-                        />
-                        <SelectField
+                                                                            <InputField
+                                                                              label="Amount"
+                                                                              name={`costs.${index}.amount`}
+                                                                              type="number"
+                                                                              register={register}
+                                                                              error={errors.costs?.[index]?.amount?.message}
+                                                                              validation={{
+                                                                                required: "Cost amount is required",
+                                                                                min: {
+                                                                                  value: 0,
+                                                                                  message: "Amount cannot be negative",
+                                                                                },
+                                                                                valueAsNumber: true,
+                                                                              }}
+                                                                              disabled={isSubmitting}
+                                                                            />                        <SelectField
                           label="Payment Method"
                           name={`costs.${index}.method`}
                           register={register}
@@ -931,7 +932,7 @@ const AddSales = ({
                     Total Amount to be Paid
                   </p>
                   <p className="text-xl font-bold text-[var(--color-primary)]">
-                    ${totalAmountToBePaid.toFixed(2)}
+                    {formatCurrency(totalAmountToBePaid)}
                   </p>
                 </div>
               </div>
@@ -985,6 +986,15 @@ const AddSales = ({
 
                     {watchedPaymentStatus === "Paid payment" && (
                       <>
+                        <InputField
+                          label="Amount"
+                          name="payments.0.amount"
+                          type="number"
+                          register={register}
+                          error={errors.payments?.[0]?.amount?.message}
+                          value={totalAmountToBePaid.toFixed(2)} // Always display the full amount
+                          disabled={isSubmitting || watchedPaymentStatus === "Paid payment"} // Disable when paid status is selected
+                        />
                         <SelectField
                           label="Payment Method"
                           name="payments.0.method"
@@ -993,7 +1003,7 @@ const AddSales = ({
                           options={[
                             { value: "Cash", label: "Cash" },
                             { value: "Bank", label: "Bank Transfer" },
-                            {
+                            { 
                               value: "Mobile Banking",
                               label: "Mobile Banking",
                             },
@@ -1055,27 +1065,6 @@ const AddSales = ({
                               disabled={isSubmitting}
                             />
 
-                            <InputField
-                              label="Date"
-                              name={`payments.${index}.date`}
-                              type="datetime-local"
-                              register={register}
-                              error={errors.payments?.[index]?.date?.message}
-                              validation={{
-                                required: "Date is required",
-                                validate: (value) => {
-                                  const selectedDate = new Date(value);
-                                  const now = new Date();
-                                  if (selectedDate > now) {
-                                    return "Payment date cannot be in the future";
-                                  }
-                                  return true;
-                                },
-                              }}
-                              disabled={isSubmitting}
-                              max={new Date().toISOString().slice(0, 16)}
-                            />
-
                             <SelectField
                               label="Method"
                               name={`payments.${index}.method`}
@@ -1135,11 +1124,10 @@ const AddSales = ({
                           now.setMinutes(
                             now.getMinutes() - now.getTimezoneOffset(),
                           );
-                          const newPaymentDate = now.toISOString().slice(0, 16);
                           appendPayment({
                             id: Math.random(),
                             amount: "",
-                            date: newPaymentDate,
+                            date: new Date().toISOString(),
                             method: "",
                             accountId: "",
                           });

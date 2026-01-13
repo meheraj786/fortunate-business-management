@@ -1,15 +1,15 @@
 import { useNavigate, useParams } from "react-router";
 import { getInvoiceAsPNG, getInvoiceAsPDF } from "@/api/invoice.api.js";
 import DisplayInvoiceSkeleton from "./components/DisplayInvoiceSkeleton";
-import { formatDate, formatNumber } from "@/utils/format";
+import { formatDate, formatCurrency } from "@/utils/format";
 import { useInvoice } from "@/api/hooks/invoice";
 import { AlertTriangle, ArrowLeft, FileX, Printer, Share2 } from "lucide-react";
 import React from "react";
 import Button from "@/components/ui/Button";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import toast from "react-hot-toast";
 
-// Helper to format currency
-const formatCurrency = (amount) => `BDT ${formatNumber(amount)}`;
+
 
 const DisplayInvoice = () => {
   const navigate = useNavigate();
@@ -31,33 +31,40 @@ const DisplayInvoice = () => {
     try {
       const response = await getInvoiceAsPDF(invoiceId);
 
-      // --- TEMPORARY DEBUGGING ---
-      // Check if the backend sent a PDF or an HTML error page
-      if (response.headers['content-type'].includes('text/html')) {
-        console.error('Backend did not return a PDF. It returned HTML, likely an error page.');
-        const errorText = await response.data.text(); // Read the HTML content
-        console.error('HTML content from backend:', errorText);
-        alert('Backend Error: The server failed to generate the PDF and returned an error page. Check the browser console for details.');
-        setIsDownloadingPDF(false);
-        return; // Stop execution
+      // Check if the response is a PDF
+      if (response.headers["content-type"] === "application/pdf") {
+        const pdfBlob = new Blob([response.data], {
+          type: "application/pdf",
+        });
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `invoice-${invoice.invoiceId}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        // If not a PDF, it might be a JSON error from our API
+        // Try to parse it as text first to see what it is
+        const responseText = await new Response(response.data).text();
+        try {
+          const errorJson = JSON.parse(responseText);
+          toast.error(
+            `Failed to generate PDF: ${errorJson.message || "Unknown error"}`,
+          );
+        } catch (e) {
+          // If it's not JSON, it might be an HTML error page from the server
+          console.error("Received non-PDF, non-JSON response:", responseText);
+          toast.error(
+            "Failed to generate PDF. The server returned an unexpected response.",
+          );
+        }
       }
-      // --- END OF DEBUGGING ---
-
-      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
-
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `invoice-${invoice.invoiceId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
     } catch (err) {
-      console.error('PDF Download request failed:', err);
-      alert('Could not download the PDF. Please try again.');
+      console.error("PDF Download request failed:", err);
+      toast.error("Could not download the PDF. Please try again.");
     } finally {
       setIsDownloadingPDF(false);
     }

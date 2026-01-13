@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router"; // Changed to react-router
 import { Check, X, Calendar, Package, ArrowUp, ArrowDown } from "lucide-react";
 import Button from "@/components/ui/Button"; // Import Button component
+import { formatCurrency, formatDate } from "@/utils/format";
 import { useAuth } from "@/context/AuthContext";
 
 const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
@@ -71,12 +72,10 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
               </div>
               <div className="text-right flex-shrink-0">
                 <div className="font-bold text-gray-900">
-                  ${Math.floor(sale.totalAmountToBePaid || 0).toLocaleString()}
+                  {formatCurrency(sale.totalAmountToBePaid)}
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
-                  {sale.saleDate
-                    ? new Date(sale.saleDate).toLocaleDateString()
-                    : "N/A"}
+                  {formatDate(sale.saleDate)}
                 </div>
               </div>
             </div>
@@ -242,11 +241,10 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                     {sale.quantity} {sale?.unit?.name}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
-                    ${sale.pricePerUnit}
+                    {formatCurrency(sale.pricePerUnit)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 text-right">
-                    $
-                    {Math.floor(sale.totalAmountToBePaid || 0).toLocaleString()}
+                    {formatCurrency(sale.totalAmountToBePaid)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
                     {sale.invoiceStatus === "Invoiced" ? (
@@ -290,13 +288,7 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                     </span>
                   </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-4 text-sm text-gray-500 sm:pr-6">
-                    {sale.saleDate
-                      ? new Date(sale.saleDate).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "2-digit",
-                        })
-                      : "N/A"}
+                    {formatDate(sale.saleDate)}
                   </td>
                 </tr>
               ))}
