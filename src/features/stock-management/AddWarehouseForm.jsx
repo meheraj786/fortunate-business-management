@@ -2,11 +2,9 @@ import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Save, Warehouse, MapPin, Loader2 } from "lucide-react";
 import { useCreateWarehouse, useUpdateWarehouse } from "@/api/hooks/warehouse";
-import toast from "react-hot-toast";
-import { useForm } from "react-hook-form"; // Import useForm
+import { useForm } from "react-hook-form";
 import InputField from "@/components/ui/InputField";
-import Button from "@/components/ui/Button"; // Import Button component
-import { handleError } from "@/utils/handle-error"; // Import handleError
+import Button from "@/components/ui/Button";
 
 const AddWarehouseForm = ({
   onClose,
@@ -51,21 +49,24 @@ const AddWarehouseForm = ({
       location: data.address,
     };
 
-    try {
-      if (isEditMode) {
-        await updateWarehouseMutation.mutateAsync(
-          { id: editingWarehouse._id, data: payload }
-        );
-        onWarehouseUpdated?.(); // Optional callback
-        toast.success("Warehouse updated successfully!");
-      } else {
-        await createWarehouseMutation.mutateAsync(payload);
-        onWarehouseAdded?.(); // Optional callback
-        toast.success("Warehouse created successfully!");
-      }
-      onClose();
-    } catch (error) {
-      handleError(error, `Failed to ${isEditMode ? "update" : "create"} warehouse.`);
+    const mutationOptions = {
+      onSuccess: () => {
+        if (isEditMode) {
+          onWarehouseUpdated?.();
+        } else {
+          onWarehouseAdded?.();
+        }
+        onClose();
+      },
+    };
+
+    if (isEditMode) {
+      updateWarehouseMutation.mutate(
+        { id: editingWarehouse._id, data: payload },
+        mutationOptions,
+      );
+    } else {
+      createWarehouseMutation.mutate(payload, mutationOptions);
     }
   };
 

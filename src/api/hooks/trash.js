@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/trash.api";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 
 export const useTrash = (params) =>
@@ -13,13 +13,13 @@ export const useTrash = (params) =>
 export const useMoveToTrash = () => {
   const qc = useQueryClient();
 
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.moveToTrash,
+    successMessage: "Item moved to trash.",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["trash"] });
       qc.invalidateQueries(); 
     },
-    onError: (error) => handleError(error, "Failed to move to trash.", "trashError"),
   });
 };
 
@@ -27,25 +27,25 @@ export const useMoveToTrash = () => {
 export const useRestoreFromTrash = () => {
   const qc = useQueryClient();
 
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.restoreFromTrash,
+    successMessage: "Item restored successfully!",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["trash"] });
       qc.invalidateQueries();
     },
-    onError: (error) => handleError(error, "Failed to restore from trash.", "trashError"),
   });
 };
 
 export const useDeleteTrashPermanently = () => {
   const qc = useQueryClient();
 
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.deleteTrashPermanently,
+    successMessage: "Item deleted permanently!",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["trash"] });
     },
-    onError: (error) => handleError(error, "Failed to delete permanently.", "trashError"),
   });
 };
 

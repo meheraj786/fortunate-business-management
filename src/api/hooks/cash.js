@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { showErrorToast } from "@/utils/notifications";
+
 import * as api from "@/api/cash.api";
 
 export const useDailyCash = () =>

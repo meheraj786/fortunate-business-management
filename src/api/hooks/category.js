@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/category.api";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 export const useCategories = () =>
   useQuery({
@@ -17,27 +17,30 @@ export const useCategory = (id) =>
 
 export const useCreateCategory = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.createCategory,
+    successMessage: "Category created successfully!",
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
-    onError: (error) => handleError(error, "Failed to create category.", "categoryError"),
   });
 };
 
 export const useUpdateCategory = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: ({ id, data }) => api.updateCategory(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
-    onError: (error) => handleError(error, "Failed to update category.", "categoryError"),
+    successMessage: "Category updated successfully!",
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["categories"] });
+      qc.invalidateQueries({ queryKey: ["categories", id] });
+    }
   });
 };
 
 export const useDeleteCategory = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.deleteCategory,
+    successMessage: "Category deleted successfully!",
     onSuccess: () => qc.invalidateQueries({ queryKey: ["categories"] }),
-    onError: (error) => handleError(error, "Failed to delete category.", "categoryError"),
   });
 };

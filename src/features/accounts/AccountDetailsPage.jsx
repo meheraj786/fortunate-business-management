@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router"; // Changed to react-router
+import { useParams, Link, useNavigate } from "react-router";
 import {
   ArrowLeft,
   Building,
@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useAccountDetails, useDeleteAccount } from "@/api/hooks/account";
 import { useAccountTransactions } from "@/api/hooks/transaction";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/utils/notifications";
 
 import StatBox from "@/components/ui/StatBox";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -30,11 +30,10 @@ import AddAccountForm from "./AddAccountForm";
 import TransactionDetailsModal from "@/components/common/TransactionDetailsModal";
 import TransactionTable from "@/components/common/TransactionTable";
 import Pagination from "@/components/ui/Pagination";
-import { useDebounce } from "@/hooks/useDebounce";
-// import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
-import Button from "@/components/ui/Button"; // Import Button
-import { motion } from "framer-motion"; // Import motion
+import Button from "@/components/ui/Button";
+import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const sortOptions = [
   { value: "date", label: "Date" },
@@ -106,7 +105,7 @@ const AccountDetails = () => {
 
   useEffect(() => {
     if (!hasPermission("ACCOUNT_VIEW_DETAILS")) {
-      toast.error("You don't have permission to view account details.");
+      showErrorToast("You don't have permission to view account details.");
       navigate("/accounts");
     }
   }, [hasPermission, navigate]);
@@ -185,7 +184,6 @@ const AccountDetails = () => {
   const confirmDelete = () => {
     deleteAccountMutation.mutate(accountId, {
       onSuccess: () => {
-        toast.success("Account deleted successfully!");
         navigate("/accounts");
       },
     });
@@ -288,8 +286,7 @@ const AccountDetails = () => {
   const isMobile = account.accountType === "Mobile Banking";
 
   return (
-    <motion.div
-    >
+    <motion.div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         {/* Left side */}
@@ -365,8 +362,8 @@ const AccountDetails = () => {
             {isBank
               ? account.bankName
               : isMobile
-              ? account.serviceName
-              : account.accountName}
+                ? account.serviceName
+                : account.accountName}
           </div>
           {isBank && (
             <>

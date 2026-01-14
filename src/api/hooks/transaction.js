@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/transaction.api";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 // Hook to fetch a paginated, sorted, and filtered list of all transactions
 export const useTransactions = (params) =>
@@ -35,18 +35,18 @@ export const useTransactionStats = () =>
 
 export const useCreateTransaction = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.createTransaction,
+    successMessage: "Transaction created successfully!",
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
-    onError: (error) => handleError(error, "Failed to create transaction.", "transactionError"),
   });
 };
 
 export const useDeleteTransaction = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.deleteTransaction,
+    successMessage: "Transaction deleted successfully!",
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
-    onError: (error) => handleError(error, "Failed to delete transaction.", "transactionError"),
   });
 };

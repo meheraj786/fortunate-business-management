@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation, useNavigate } from "react-router"; // Usereact-router
-import { handleError } from "@/utils/handle-error";
-import api from "@/services/apiService"; // Assuming apiService.js handles axios setup
-import toast from "react-hot-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocation, useNavigate } from "react-router";
+import { showErrorToast, showSuccessToast } from "@/utils/notifications";
+import api from "@/services/apiService";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import {
   INCOME_CATEGORIES,
   EXPENSE_CATEGORIES,
   ITEMS_PER_PAGE,
 } from "../constants";
-import { useAccounts } from "@/api/hooks/account"; // Import useAccounts from src/api/hooks/account.js
+import { useAccounts } from "@/api/hooks/account";
 
 // Helper to get local date string in YYYY-MM-DD format
 const getLocalDateString = (date) => {
@@ -95,7 +95,6 @@ export const useDailyCashFlowData = () => {
     queryFn: () => fetchDailyCashStatus(selectedDate),
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 10 * 60 * 1000, // 10 minutes
-    onError: (err) => handleError(err, "Failed to fetch daily cash status."),
   });
 
   const {
@@ -112,7 +111,6 @@ export const useDailyCashFlowData = () => {
       dailyCashStatusData?.status === "Closed", // Only fetch summary if status is open or closed
     staleTime: 5 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
-    onError: (err) => handleError(err, "Failed to fetch daily cash summary."),
   });
 
   const {
@@ -125,18 +123,16 @@ export const useDailyCashFlowData = () => {
     staleTime: 10 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     enabled: false, // Only fetch when needed (e.g., when AddTransactionDialog is opened)
-    onError: (err) =>
-      handleError(err, "Failed to load LCs or Sales for transaction linking."),
   });
 
   // Fetch Accounts using useAccounts from @/api/hooks/account
   const { data: accountsData, isLoading: accountsLoading } = useAccounts();
 
   // --- Mutations ---
-  const openDayMutation = useMutation({
+  const openDayMutation = useApiMutation({
     mutationFn: openDailyCash,
-    onSuccess: (data) => {
-      toast.success(data.message || "Cash opened successfully!");
+    successMessage: "Cash opened successfully!",
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["dailyCashStatus", selectedDate],
       });
@@ -144,13 +140,12 @@ export const useDailyCashFlowData = () => {
         queryKey: ["dailyCashSummary", selectedDate],
       });
     },
-    onError: (err) => handleError(err, "Failed to open cash."),
   });
 
-  const closeDayMutation = useMutation({
+  const closeDayMutation = useApiMutation({
     mutationFn: closeDailyCash,
-    onSuccess: (data) => {
-      toast.success(data.message || "Cash closed successfully!");
+    successMessage: "Cash closed successfully!",
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["dailyCashStatus", selectedDate],
       });
@@ -158,7 +153,6 @@ export const useDailyCashFlowData = () => {
         queryKey: ["dailyCashSummary", selectedDate],
       });
     },
-    onError: (err) => handleError(err, "Failed to close cash."),
   });
 
   // --- Filter and Pagination ---
@@ -179,30 +173,30 @@ export const useDailyCashFlowData = () => {
         (transaction) =>
           transaction.description?.toLowerCase().includes(term) ||
           transaction.category?.toLowerCase().includes(term) ||
-          transaction.name?.toLowerCase().includes(term)
+          transaction.name?.toLowerCase().includes(term),
       );
     }
 
     if (categoryFilter !== "all") {
       filtered = filtered.filter(
-        (transaction) => transaction.category === categoryFilter
+        (transaction) => transaction.category === categoryFilter,
       );
     }
     // Sort by createdAt descending, assuming createdAt exists on transaction objects
     return filtered.sort(
       (a, b) =>
-        new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
+        new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date),
     );
   }, [transactions, searchTerm, categoryFilter]);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE)
+    Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE),
   );
 
   const paginatedTransactions = filteredTransactions.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    currentPage * ITEMS_PER_PAGE,
   );
 
   const allCategories = useMemo(() => {
@@ -229,7 +223,7 @@ export const useDailyCashFlowData = () => {
         setCurrentPage(newPage);
       }
     },
-    [totalPages]
+    [totalPages],
   );
 
   const handleDateChange = useCallback((dateString) => {

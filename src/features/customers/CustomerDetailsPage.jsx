@@ -7,7 +7,7 @@ import React, {
   useContext,
 } from "react";
 import PropTypes from "prop-types";
-import { useParams, useNavigate } from "react-router"; // Changed to react-router
+import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import {
   User,
@@ -33,8 +33,7 @@ import {
   Loader2,
 } from "lucide-react";
 import CustomerDetailsSkeleton from "./components/CustomerDetailsSkeleton";
-import { handleError } from "@/utils/handle-error";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/utils/notifications";
 
 // Components
 import CollapsibleCard from "@/components/ui/CollapsibleCard";
@@ -42,7 +41,7 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatusBadge from "@/components/ui/StatusBadge";
 import DataField from "@/components/ui/DataField";
 import Pagination from "@/components/ui/Pagination";
-import Button from "@/components/ui/Button"; // Import Button
+import Button from "@/components/ui/Button";
 
 // Custom Hooks
 import { useUrl } from "@/context/UrlProvider";
@@ -66,7 +65,7 @@ const CustomerDetails = () => {
 
   useEffect(() => {
     if (!hasPermission("CUSTOMER_VIEW_DETAILS")) {
-      toast.error("You don't have permission to view customer details.");
+      showErrorToast("You don't have permission to view customer details.");
       navigate("/customers");
     }
   }, [hasPermission, navigate]);
@@ -101,14 +100,14 @@ const CustomerDetails = () => {
       if (!baseUrl || !documentName) return "#";
       return `${baseUrl}documents/${documentName}`;
     },
-    [baseUrl]
+    [baseUrl],
   );
 
   // Handlers
-  const handleDelete = useCallback(async () => {
-    await deleteCustomerMutation.mutateAsync(id);
-    toast.success("Customer deleted successfully!");
-    navigate("/customers");
+  const handleDelete = useCallback(() => {
+    deleteCustomerMutation.mutate(id, {
+      onSuccess: () => navigate("/customers"),
+    });
   }, [id, navigate]);
 
   const handleOpenDeleteModal = useCallback(() => {
@@ -123,7 +122,7 @@ const CustomerDetails = () => {
     (page) => {
       fetchSales(page);
     },
-    [fetchSales]
+    [fetchSales],
   );
 
   const formatCurrency = useCallback((amount) => {
@@ -141,13 +140,13 @@ const CustomerDetails = () => {
       notInvoiced: customerData?.stats?.notInvoiced || 0,
       outstandingDues: formatCurrency(customerData?.stats?.outstandingDues),
     }),
-    [customerData?.stats, formatCurrency]
+    [customerData?.stats, formatCurrency],
   );
 
   const handleDownload = async (customerId, fileName) => {
     try {
       const downloadUrl = `${baseUrl}customers/${customerId}/documents/${encodeURIComponent(
-        fileName
+        fileName,
       )}`;
 
       const link = document.createElement("a");
@@ -157,7 +156,7 @@ const CustomerDetails = () => {
       document.body.appendChild(link);
       link.remove();
     } catch (error) {
-      handleError(error, "Download trigger failed");
+      showErrorToast(error, "Download trigger failed");
     }
   };
 
@@ -321,7 +320,7 @@ const CustomerDetails = () => {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
-                    }
+                    },
                   )}
                   icon={Calendar}
                 />
@@ -437,7 +436,7 @@ const CustomerDetails = () => {
                           onClick={() =>
                             handleDownload(
                               customerData._id,
-                              doc.storedName || doc.name
+                              doc.storedName || doc.name,
                             )
                           }
                           variant="subtle"
@@ -459,9 +458,12 @@ const CustomerDetails = () => {
                     />
                   </div>
                 )}
-                {!customerData.customerNote && customerData.documents?.length === 0 && (
-                  <p className="text-sm text-gray-500 py-4 text-center">No documents or notes available.</p>
-                )}
+                {!customerData.customerNote &&
+                  customerData.documents?.length === 0 && (
+                    <p className="text-sm text-gray-500 py-4 text-center">
+                      No documents or notes available.
+                    </p>
+                  )}
               </div>
             </CollapsibleCard>
           </div>
@@ -479,7 +481,9 @@ const CustomerDetails = () => {
               {loadingSales ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" />
-                  <span className="ml-3 text-gray-600">Loading purchases...</span>
+                  <span className="ml-3 text-gray-600">
+                    Loading purchases...
+                  </span>
                 </div>
               ) : salesData.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
@@ -605,7 +609,8 @@ const CustomerDetails = () => {
                                   </div>
                                 </td>
                                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                  {sale.product?.LC?.basicInfo?.lcNumber || "N/A"}
+                                  {sale.product?.LC?.basicInfo?.lcNumber ||
+                                    "N/A"}
                                 </td>
                               </>
                             )}

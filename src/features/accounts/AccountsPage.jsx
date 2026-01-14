@@ -9,7 +9,7 @@ import {
   Wallet,
   ArrowUp,
   ArrowDown,
-} from "lucide-react"; // Import necessary icons for StatBox
+} from "lucide-react";
 import { useTransactionStats } from "@/api/hooks/transaction";
 import StatBox from "@/components/ui/StatBox";
 import AccountList from "./AccountListPage";
@@ -17,11 +17,10 @@ import TransactionList from "./TransactionListPage";
 import AddAccountForm from "./AddAccountForm";
 import AddTransactionForm from "./AddTransactionFormPage";
 import { useAuth } from "../../context/AuthContext";
-import { Link, useNavigate } from "react-router"; // Corrected import
-// import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
-import Button from "@/components/ui/Button"; // Import Button
-import { motion } from "framer-motion"; // Import motion
-import toast from "react-hot-toast";
+import { Link, useNavigate } from "react-router";
+import Button from "@/components/ui/Button";
+import { motion } from "framer-motion";
+import { showErrorToast } from "@/utils/notifications";
 
 // Custom Skeleton for StatBox
 const StatBoxSkeleton = () => (
@@ -44,7 +43,7 @@ const Accounts = () => {
 
   useEffect(() => {
     if (!hasPermission("ACCOUNT_VIEW_ALL")) {
-      toast.error("You don't have permission to view accounts.");
+      showErrorToast("You don't have permission to view accounts.");
       navigate("/");
     }
   }, [hasPermission, navigate]);
@@ -135,7 +134,7 @@ const Accounts = () => {
                   aria-label="Add new transaction"
                 >
                   <Plus className="w-4 h-4" />
-                  <span> Transaction</span>
+                  <span>Transaction</span>
                 </Button>
               )}
             </div>

@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
 import {
   loginUser,
   logoutUser,
@@ -9,6 +8,7 @@ import {
   updateUser,
   registerUser
 } from "@/api/user.api";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 export const useProfile = () =>
   useQuery({
@@ -33,20 +33,20 @@ export const useProfile = () =>
 
 export const useLogin = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: loginUser,
     onSuccess: (response) => {
       // Manually set the profile data from the login response
       qc.setQueryData(["profile"], response.data);
     },
-    onError: (error) => handleError(error, "Login failed.", "userError"),
+    successMessage: "Logged in successfully!",
   });
 };
 
 export const useLogout = () =>
-  useMutation({
+  useApiMutation({
     mutationFn: logoutUser,
-    onError: (error) => handleError(error, "Logout failed.", "userError"),
+    successMessage: "Logged out successfully!",
   });
 
 export const useUsers = () =>
@@ -64,7 +64,7 @@ export const useUser = (id) =>
 
 export const useUpdateUser = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: ({ id, data }) => updateUser(id, data),
     onSuccess: (response, variables) => {
       // Invalidate and refetch users list
@@ -76,18 +76,18 @@ export const useUpdateUser = () => {
       // Always invalidate and refetch the current user's profile to ensure permissions are up-to-date
       qc.invalidateQueries({ queryKey: ["profile"] });
     },
-    onError: (error) => handleError(error, "Failed to update user.", "userError"),
+    successMessage: "User updated successfully!",
   });
 };
 
 export const useCreateUser = () => {
   const qc = useQueryClient();
 
-  return useMutation({
+  return useApiMutation({
     mutationFn: registerUser, 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: (error) => handleError(error, "Failed to create user.", "userError"),
+    successMessage: "User created successfully!",
   });
 };

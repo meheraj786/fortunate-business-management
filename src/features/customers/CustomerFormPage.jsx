@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate, useParams, Link } from "react-router"; // Changed Link import
+import { useNavigate, useParams, Link } from "react-router";
 import { useForm } from "react-hook-form";
 import PropTypes from "prop-types";
-import { handleError } from "@/utils/handle-error";
-import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 
 // Components
 import FormSection from "@/components/ui/FormSection";
@@ -31,7 +30,7 @@ import {
   useCreateCustomer,
   useCustomer,
   useUpdateCustomer,
-} from "../../api/hooks/customer"; // Removed useDeleteCustomer as it's not used here
+} from "../../api/hooks/customer";
 
 const CustomerForm = ({ onSave }) => {
   const { id } = useParams();
@@ -85,7 +84,7 @@ const CustomerForm = ({ onSave }) => {
       }, // Always open contact info
       { id: "others", title: "Others", icon: FileText, defaultOpen: true }, // Always open others
     ],
-    []
+    [],
   );
 
   const { expandedSections, toggleSection, setSectionRef } =
@@ -97,7 +96,7 @@ const CustomerForm = ({ onSave }) => {
       { value: "Retail", label: "Retail" },
       { value: "Wholesale", label: "Wholesale" },
     ],
-    []
+    [],
   );
 
   const statusOptions = useMemo(
@@ -105,7 +104,7 @@ const CustomerForm = ({ onSave }) => {
       { value: "Active", label: "Active" },
       { value: "Suspended", label: "Suspended" },
     ],
-    []
+    [],
   );
 
   const { data: customerData, isLoading: isCustomerDataLoading } =
@@ -176,23 +175,17 @@ const CustomerForm = ({ onSave }) => {
       payload.openingDue = parseFloat(data.openingDue) || 0;
     }
 
-    try {
-      if (isEditMode && id) {
-        // Ensure id is available for update
-        await updateCustomerMutation.mutateAsync({ id: id, ...payload });
-        toast.success("Customer updated successfully");
-      } else {
-        await createCustomerMutation.mutateAsync(payload);
-        toast.success("Customer created successfully");
-      }
+    const mutationOptions = {
+      onSuccess: (responseData) => {
+        if (onSave) onSave(responseData);
+        navigate("/customers");
+      },
+    };
 
-      if (onSave) onSave(payload);
-      navigate("/customers");
-    } catch (error) {
-      handleError(
-        error,
-        `Failed to ${isEditMode ? "update" : "create"} customer`
-      );
+    if (isEditMode && id) {
+      updateCustomerMutation.mutate({ id: id, ...payload }, mutationOptions);
+    } else {
+      createCustomerMutation.mutate(payload, mutationOptions);
     }
   };
 

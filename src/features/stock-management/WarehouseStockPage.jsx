@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router"; // Changed to react-router
+import { useParams, useNavigate, Link } from "react-router";
 import {
   Search,
   Plus,
@@ -14,7 +14,7 @@ import {
   X,
   ChevronDown,
   Trash,
-  Loader2, // Changed from Loader
+  Loader2,
 } from "lucide-react";
 import { useWarehouse } from "@/api/hooks/warehouse";
 import { useProducts as useProductsFromProductHook } from "@/api/hooks/products";
@@ -24,10 +24,10 @@ import ProductCard from "./components/ProductCard";
 import StatBox from "@/components/ui/StatBox";
 import AddProductForm from "./AddProductForm";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { useDebounce } from "@/hooks/useDebounce";
 import Pagination from "@/components/ui/Pagination";
-import Button from "@/components/ui/Button"; // Import Button component
-import toast from "react-hot-toast";
+import Button from "@/components/ui/Button";
+import { showErrorToast } from "@/utils/notifications";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const sortOptions = [
   { value: "createdAt", label: "Creation Date" },
@@ -63,7 +63,7 @@ const WarehouseStock = () => {
 
   useEffect(() => {
     if (!hasPermission("WAREHOUSE_VIEW")) {
-      toast.error("You don't have permission to view warehouses.");
+      showErrorToast("You don't have permission to view warehouses.");
       navigate("/stock-management");
     }
   }, [hasPermission, navigate]);
@@ -139,7 +139,7 @@ const WarehouseStock = () => {
       { label: "Stock", path: "/stock-management" },
       { label: warehouse?.name || "Loading..." },
     ],
-    [warehouse?.name]
+    [warehouse?.name],
   );
 
   if (warehouseLoading) {

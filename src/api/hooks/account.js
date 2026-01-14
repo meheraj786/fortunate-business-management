@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/account.api";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 export const useAccounts = () =>
   useQuery({
@@ -24,30 +24,31 @@ export const useAccountDetails = (id) =>
 
 export const useCreateAccount = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.createAccount,
+    successMessage: "Account created successfully!",
     onSuccess: () => qc.invalidateQueries({ queryKey: ["accounts"] }),
-    onError: (error) => handleError(error, "Failed to create account."),
   });
 };
 
 export const useUpdateAccount = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: ({ id, data }) => api.updateAccount(id, data),
+    successMessage: "Account updated successfully!",
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["accounts"] });
       qc.invalidateQueries({ queryKey: ["accounts", "details", id] });
     },
-    onError: (error) => handleError(error, "Failed to update account."),
   });
 };
 
 export const useDeleteAccount = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.deleteAccount,
+    successMessage: "Account deleted successfully!",
     onSuccess: () => qc.invalidateQueries({ queryKey: ["accounts"] }),
-    onError: (error) => handleError(error, "Failed to delete account."),
   });
 };
+

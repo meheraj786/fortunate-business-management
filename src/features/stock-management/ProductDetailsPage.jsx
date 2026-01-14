@@ -22,8 +22,8 @@ import StatBox from "@/components/ui/StatBox";
 import AddProductForm from "./AddProductForm";
 import SalesHistory from "./SalesHistory";
 import { useAuth } from "@/context/AuthContext";
-import toast from "react-hot-toast";
-import Button  from "@/components/ui/button";
+import { showErrorToast } from "@/utils/notifications";
+import Button from "@/components/ui/button";
 
 const formatNumber = (num) => {
   if (typeof num !== "number") return num;
@@ -67,7 +67,7 @@ const ProductDetails = () => {
 
   useEffect(() => {
     if (!hasPermission("PRODUCT_VIEW_DETAILS")) {
-      toast.error("You don't have permission to view product details.");
+      showErrorToast("You don't have permission to view product details.");
       navigate(`/stock/${warehouseId}`);
     }
   }, [hasPermission, navigate, warehouseId]);
@@ -83,7 +83,7 @@ const ProductDetails = () => {
 
   const deleteProductMutation = useDeleteProduct(warehouseId, productId);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     deleteProductMutation.mutate(undefined, {
       onSuccess: () => {
         setShowDeleteModal(false);
@@ -101,7 +101,7 @@ const ProductDetails = () => {
       },
       { label: product?.name || "Product" },
     ],
-    [product]
+    [product],
   );
 
   if (isLoading) {
@@ -167,7 +167,7 @@ const ProductDetails = () => {
                   <p className="text-gray-600">{product?.category?.name}</p>
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStockStatusBadgeStyle(
-                      product.stockStatus
+                      product.stockStatus,
                     )}`}
                   >
                     {product.stockStatus}
@@ -285,7 +285,7 @@ const ProductDetails = () => {
               <StatBox
                 title="Total Revenue"
                 number={`৳${formatNumber(
-                  product.totalRevenue
+                  product.totalRevenue,
                 ).toLocaleString()}`}
                 Icon={DollarSign}
                 textColor="green"

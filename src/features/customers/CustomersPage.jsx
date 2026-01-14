@@ -11,15 +11,14 @@ import {
   Users,
   Trash,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router"; // Changed to react-router
-import { handleError } from "@/utils/handle-error";
-import { useDebounce } from "@/hooks/useDebounce";
+import { Link, useNavigate } from "react-router";
 import { useCustomerSummary } from "../../api/hooks/customer";
 import { useAuth } from "../../context/AuthContext";
-import Button from "@/components/ui/Button"; // Import Button
-import Pagination from "@/components/ui/Pagination"; // Import Pagination
-import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
-import toast from "react-hot-toast";
+import Button from "@/components/ui/Button";
+import Pagination from "@/components/ui/Pagination";
+import { motion, AnimatePresence } from "framer-motion";
+import { showErrorToast } from "@/utils/notifications";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const sortOptions = [
   { value: "joinDate", label: "Join Date" },
@@ -90,7 +89,7 @@ const Customers = () => {
 
   useEffect(() => {
     if (!hasPermission("CUSTOMER_VIEW_TABLE")) {
-      toast.error("You don't have permission to view customers.");
+      showErrorToast("You don't have permission to view customers.");
       navigate("/");
     }
   }, [hasPermission, navigate]);
@@ -109,6 +108,7 @@ const Customers = () => {
     data: apiResponse,
     isLoading: loading,
     isError,
+    error,
   } = useCustomerSummary(queryParams);
 
   const customers =
@@ -118,9 +118,9 @@ const Customers = () => {
 
   useEffect(() => {
     if (isError) {
-      handleError(isError, "Could not load customers. Please try again.");
+      showErrorToast(error, "Could not load customers. Please try again.");
     }
-  }, [isError]);
+  }, [isError, error]);
 
   const handleFilterChange = useCallback((name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
@@ -154,9 +154,8 @@ const Customers = () => {
         setPage(newPage);
       }
     },
-    [totalPages]
+    [totalPages],
   );
-
 
   return (
     <motion.div

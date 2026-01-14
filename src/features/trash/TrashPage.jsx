@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/utils/notifications";
 
 
 const TrashPage = () => {
@@ -50,7 +50,7 @@ const TrashPage = () => {
 
   useEffect(() => {
     if (!hasPermission(viewPermission)) {
-      toast.error("You don't have permission to view this trash.");
+      showErrorToast("You don't have permission to view this trash.");
       navigate("/");
     }
   }, [hasPermission, navigate, viewPermission]);
@@ -212,10 +212,7 @@ const TrashPage = () => {
                             className="rounded-lg bg-blue-200 px-4 py-2 text-blue-700 flex items-center justify-center gap-1"
                             onClick={() =>
                               restoreMutation.mutate({ model: item.model, id: item._id }, {
-                                onSuccess: () => {
-                                  toast.success("Item restored successfully!");
-                                  refetch();
-                                },
+                                onSuccess: refetch,
                               })
                             }
                             disabled={restoreMutation.isLoading}
@@ -315,10 +312,7 @@ const TrashPage = () => {
                           className="rounded-lg bg-blue-200 px-4 py-2 text-blue-700 flex items-center justify-center gap-1"
                           onClick={() =>
                             restoreMutation.mutate({ model: item.model, id: item._id }, {
-                              onSuccess: () => {
-                                toast.success("Item restored successfully!");
-                                refetch();
-                              },
+                              onSuccess: refetch,
                             })
                           }
                           disabled={restoreMutation.isLoading}
@@ -443,7 +437,6 @@ const TrashPage = () => {
             deleteMutation.mutate({ model: showDeleteConfirm.model, id: showDeleteConfirm._id }, {
               onSuccess: () => {
                 setShowDeleteConfirm(null);
-                toast.success("Item deleted permanently!");
                 refetch();
               },
             });

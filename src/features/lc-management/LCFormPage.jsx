@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useMemo, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router"; // Changed Link import
+import { useNavigate, useParams, Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -12,16 +12,15 @@ import {
   Clipboard,
   FileIcon,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 import PropTypes from "prop-types";
-import { useForm, useFieldArray } from "react-hook-form"; // Import useForm and useFieldArray
+import { useForm, useFieldArray } from "react-hook-form";
 
 // Custom Hooks & API
 import { useSectionManager } from "@/hooks/useSectionManager";
 import { useUnits } from "@/api/hooks/unit";
 import { useAccounts } from "@/api/hooks/account";
 import { useLC, useCreateLC, useUpdateLC } from "@/api/hooks/lc";
-import { handleError } from "@/utils/handle-error"; // Import handleError
 import { useAuth } from "@/context/AuthContext";
 
 // Components
@@ -32,8 +31,8 @@ import TextAreaField from "@/components/ui/TextAreaField";
 import FileInput from "@/components/ui/FileInput";
 import FormPageLayout from "@/components/ui/FormPageLayout";
 import CostsSection from "@/components/LCForm/CostsSection";
-import Button from "@/components/ui/Button"; // Import Button component
-import LCFormSkeleton from "./LCFormSkeleton"; // Import LCFormSkeleton
+import Button from "@/components/ui/Button";
+import LCFormSkeleton from "./LCFormSkeleton";
 
 const SECTIONS_CONFIG = [
   {
@@ -91,17 +90,16 @@ const LCFormWrapper = ({ onSave }) => {
   useEffect(() => {
     if (isEditMode) {
       if (!hasPermission("LC_UPDATE")) {
-        toast.error("You don't have permission to edit LCs.");
+        showErrorToast("You don't have permission to edit LCs.");
         navigate("/lc-management");
       }
     } else {
       if (!hasPermission("LC_CREATE")) {
-        toast.error("You don't have permission to create LCs.");
+        showErrorToast("You don't have permission to create LCs.");
         navigate("/lc-management");
       }
     }
   }, [isEditMode, hasPermission, navigate]);
-
 
   // If in edit mode and data is loading, show skeleton.
   if (isEditMode && isLcDataLoading) {
@@ -120,13 +118,13 @@ const LCFormWrapper = ({ onSave }) => {
   }
 
   if (isError) {
-    toast.error("Failed to load LC data.");
+    showErrorToast("Failed to load LC data.");
     return null; // Or navigate to error page
   }
 
   // If in edit mode and data is not found after loading, handle that case.
   if (isEditMode && !lcData) {
-    toast.error("LC not found.");
+    showErrorToast("LC not found.");
     return null; // Or show a specific message/navigate
   }
 
@@ -141,7 +139,19 @@ const LCFormWrapper = ({ onSave }) => {
   );
 };
 
-const ProductFields = ({ field, index, removeProductField, hasPermission, register, errors, control, setValue, watch, units, unitsLoading }) => {
+const ProductFields = ({
+  field,
+  index,
+  removeProductField,
+  hasPermission,
+  register,
+  errors,
+  control,
+  setValue,
+  watch,
+  units,
+  unitsLoading,
+}) => {
   const productQuantity = watch(`productInfo.${index}.quantity`);
   const productUnitPriceUsd = watch(`productInfo.${index}.unitPriceUsd`);
 
@@ -174,9 +184,7 @@ const ProductFields = ({ field, index, removeProductField, hasPermission, regist
           <Trash2 className="w-4 h-4" />
         </Button>
       )}
-      <h4 className="font-semibold text-gray-900 mb-4">
-        Product {index + 1}
-      </h4>
+      <h4 className="font-semibold text-gray-900 mb-4">Product {index + 1}</h4>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <InputField
           label="Item Name"
@@ -311,32 +319,31 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
             costs:
               initialData.financialInfo?.costs?.map(mapCostAccountIds) || [],
           },
-          productInfo:
-            initialData.productInfo?.map((p) => ({
-              ...p,
-              id: p._id || p.id || Math.random(),
-              quantityUnit: p.quantityUnit?._id || p.quantityUnit || "",
-              totalValueUsd:
-                p.totalValueUsd ||
-                (p.quantity && p.unitPriceUsd
-                  ? (
-                      parseFloat(p.quantity) * parseFloat(p.unitPriceUsd)
-                    ).toFixed(2)
-                  : 0),
-            })) || [
-              {
-                id: Math.random(),
-                itemName: "",
-                thickness: "",
-                width: "",
-                length: "",
-                grade: "",
-                quantityUnit: "",
-                quantity: 0,
-                unitPriceUsd: 0,
-                totalValueUsd: 0,
-              },
-            ],
+          productInfo: initialData.productInfo?.map((p) => ({
+            ...p,
+            id: p._id || p.id || Math.random(),
+            quantityUnit: p.quantityUnit?._id || p.quantityUnit || "",
+            totalValueUsd:
+              p.totalValueUsd ||
+              (p.quantity && p.unitPriceUsd
+                ? (parseFloat(p.quantity) * parseFloat(p.unitPriceUsd)).toFixed(
+                    2,
+                  )
+                : 0),
+          })) || [
+            {
+              id: Math.random(),
+              itemName: "",
+              thickness: "",
+              width: "",
+              length: "",
+              grade: "",
+              quantityUnit: "",
+              quantity: 0,
+              unitPriceUsd: 0,
+              totalValueUsd: 0,
+            },
+          ],
           shippingCustomsInfo: {
             portOfShipment:
               initialData.shippingCustomsInfo?.portOfShipment || "",
@@ -356,7 +363,8 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
               [],
           },
           otherExpenses: {
-            costs: initialData.otherExpenses?.costs?.map(mapCostAccountIds) || [],
+            costs:
+              initialData.otherExpenses?.costs?.map(mapCostAccountIds) || [],
           },
           documentsNotes: {
             note: initialData.documentsNotes?.note || "",
@@ -449,12 +457,12 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
     const currentUploadedDocuments = watch("documentsNotes.uploadedDocuments");
     setValue(
       "documentsNotes.uploadedDocuments",
-      currentUploadedDocuments.filter((doc) => doc._id !== fileId)
+      currentUploadedDocuments.filter((doc) => doc._id !== fileId),
     );
-    toast.success("Existing file marked for removal.");
+    showSuccessToast("Existing file marked for removal.");
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = (data) => {
     const payloadData = {
       ...data,
       productInfo: data.productInfo.map((product) => ({
@@ -474,22 +482,24 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
     const formDataToSend = new FormData();
     formDataToSend.append("lc_data", JSON.stringify(payloadData));
     newUploadedFiles.forEach((file) =>
-      formDataToSend.append("documents", file)
+      formDataToSend.append("documents", file),
     );
 
-    try {
-      if (isEditMode) {
-        await updateLCMutation.mutateAsync(formDataToSend);
-        toast.success("LC updated successfully");
-        navigate(`/lc-details/${id}`);
-      } else {
-        await createLCMutation.mutateAsync(formDataToSend);
-        toast.success("LC created successfully");
-        navigate("/lc-management");
-      }
-      onSave?.(data); // Call onSave if provided
-    } catch (error) {
-      handleError(error, `Failed to ${isEditMode ? "update" : "create"} LC`);
+    const mutationOptions = {
+      onSuccess: (responseData) => {
+        onSave?.(responseData);
+        if (isEditMode) {
+          navigate(`/lc-details/${id}`);
+        } else {
+          navigate("/lc-management");
+        }
+      },
+    };
+
+    if (isEditMode) {
+      updateLCMutation.mutate(formDataToSend, mutationOptions);
+    } else {
+      createLCMutation.mutate(formDataToSend, mutationOptions);
     }
   };
 
@@ -800,7 +810,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                   }
                   onFileRemove={(index) =>
                     setNewUploadedFiles((prev) =>
-                      prev.filter((_, i) => i !== index)
+                      prev.filter((_, i) => i !== index),
                     )
                   }
                   maxSize={10}

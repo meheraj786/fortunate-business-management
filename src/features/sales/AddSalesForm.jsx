@@ -14,8 +14,8 @@ import {
   MinusCircle,
   Ruler,
 } from "lucide-react";
-import toast from "react-hot-toast";
-import { useForm, useFieldArray, useWatch } from "react-hook-form"; // Import useForm, useFieldArray, and useWatch
+import { showSuccessToast, showErrorToast } from "@/utils/notifications";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 
 import { useCustomers } from "@/api/hooks/customer";
 import { useWarehouses } from "@/api/hooks/warehouse";
@@ -25,7 +25,6 @@ import { useUnits } from "@/api/hooks/unit";
 import { useProductsForSale } from "@/api/hooks/products";
 import { useCreateSale, useUpdateSale } from "@/api/hooks/sales";
 import { formatCurrency } from "@/utils/format";
-import { handleError } from "@/utils/handle-error"; // Import handleError
 
 import FormHeader from "@/components/ui/FormHeader";
 import FormActions from "@/components/ui/FormActions";
@@ -33,7 +32,7 @@ import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
 import FormSkeleton from "./components/AddSaleFormSkeleton";
-import Button from "@/components/ui/Button"; // Import Button component
+import Button from "@/components/ui/Button";
 
 const AddSales = ({
   onClose,
@@ -422,30 +421,29 @@ const AddSales = ({
         .filter((p) => p.amount > 0 && p.method && p.accountId),
     };
 
-    try {
-      if (isEditMode) {
-        const {
-          customer,
-          costs,
-          payments,
-          product,
-          warehouse,
-          category,
-          ...updatableData
-        } = salesData;
-        await updateSaleMutation.mutateAsync({
-          id: editData._id,
-          ...updatableData,
-        });
-        toast.success("Sale updated successfully");
-      } else {
-        await createSaleMutation.mutateAsync(salesData);
-        toast.success("Sale created successfully");
-      }
-      onSaleAdded?.(); // Call onSaleAdded if provided
-      onClose();
-    } catch (error) {
-      handleError(error, `Failed to ${isEditMode ? "update" : "create"} sale.`);
+    const mutationOptions = {
+      onSuccess: () => {
+        onSaleAdded?.();
+        onClose();
+      },
+    };
+
+    if (isEditMode) {
+      const {
+        customer,
+        costs,
+        payments,
+        product,
+        warehouse,
+        category,
+        ...updatableData
+      } = salesData;
+      updateSaleMutation.mutate(
+        { id: editData._id, ...updatableData },
+        mutationOptions,
+      );
+    } else {
+      createSaleMutation.mutate(salesData, mutationOptions);
     }
   };
 

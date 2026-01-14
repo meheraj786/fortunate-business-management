@@ -20,7 +20,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
 import {
   useSale,
@@ -58,7 +58,7 @@ const SaleDetails = () => {
 
   useEffect(() => {
     if (!hasPermission("SALE_VIEW_DETAILS")) {
-      toast.error("You don't have permission to view sale details.");
+      showErrorToast("You don't have permission to view sale details.");
       navigate("/sales");
     }
   }, [hasPermission, navigate]);
@@ -76,7 +76,7 @@ const SaleDetails = () => {
   const generateInvoiceMutation = useGenerateInvoice();
   const addPaymentMutation = useAddPartialPayment(id);
 
-  const handleConfirmAction = async () => {
+  const handleConfirmAction = () => {
     const { type } = confirmAction;
     if (!type) return;
 
@@ -84,9 +84,6 @@ const SaleDetails = () => {
       type === "delete" ? deleteSaleMutation : cancelSaleMutation;
     mutation.mutate(id, {
       onSuccess: () => {
-        toast.success(
-          `Sale ${type === "delete" ? "deleted" : "cancelled"} successfully`,
-        );
         if (type === "delete") navigate("/sales");
         else refetch();
         setConfirmAction({ type: null });
@@ -94,7 +91,7 @@ const SaleDetails = () => {
     });
   };
 
-  const handleGenerateInvoice = async () => {
+  const handleGenerateInvoice = () => {
     generateInvoiceMutation.mutate(
       { saleId: id },
       {
@@ -104,7 +101,7 @@ const SaleDetails = () => {
     );
   };
 
-  const handleAddPayment = async () => {
+  const handleAddPayment = () => {
     const amount = Number(paymentData.amount);
 
     addPaymentMutation.mutate(
@@ -116,7 +113,6 @@ const SaleDetails = () => {
       },
       {
         onSuccess: () => {
-          toast.success("Payment added successfully");
           refetch();
           setIsPaymentDialogOpen(false);
           setPaymentData({
@@ -124,11 +120,6 @@ const SaleDetails = () => {
             method: "Cash",
             account: "",
           });
-        },
-        onError: (error) => {
-          const errorMessage =
-            error.response?.data?.message || "Failed to add payment.";
-          toast.error(errorMessage);
         },
       },
     );

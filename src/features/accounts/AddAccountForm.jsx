@@ -1,10 +1,8 @@
 import React, { useEffect } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
-import { handleError } from "@/utils/handle-error";
-import toast from "react-hot-toast";
 import { useCreateAccount, useUpdateAccount } from "@/api/hooks/account";
-import { useForm } from "react-hook-form"; // Import useForm
+import { useForm } from "react-hook-form";
 
 const AddAccountForm = ({
   isOpen,
@@ -105,19 +103,9 @@ const AddAccountForm = ({
       : payload;
 
     mutation.mutate(mutationPayload, {
-      onSuccess: (response) => {
-        toast.success(
-          response.data.message ||
-            `Account ${isEditing ? "updated" : "created"} successfully!`
-        );
+      onSuccess: () => {
         onSuccess();
         onClose();
-      },
-      onError: (error) => {
-        handleError(
-          error,
-          `Failed to ${isEditing ? "update" : "create"} account.`
-        );
       },
     });
   };

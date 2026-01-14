@@ -1,7 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/product.api";
-import toast from "react-hot-toast";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 // Products by warehouse with filtering and pagination
 export const useProducts = (warehouseId, params) =>
@@ -45,43 +44,40 @@ export const useProductsForSale = (warehouseId, categoryId, options) =>
 // Create product
 export const useCreateProduct = (warehouseId) => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (data) => api.createProduct(warehouseId, data),
+    successMessage: "Product created successfully!",
     onSuccess: () => {
-      toast.success("Product created successfully!");
       qc.invalidateQueries({ queryKey: ["products", warehouseId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
     },
-    onError: (error) => handleError(error, "Failed to create product.", "productError"),
   });
 };
 
 // Update product
 export const useUpdateProduct = (warehouseId, productId) => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (data) => api.updateProduct(warehouseId, productId, data),
+    successMessage: "Product updated successfully!",
     onSuccess: () => {
-      toast.success("Product updated successfully!");
       qc.invalidateQueries({ queryKey: ["products", warehouseId] });
       qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
     },
-    onError: (error) => handleError(error, "Failed to update product.", "productError"),
   });
 };
 
 // Delete product
 export const useDeleteProduct = (warehouseId, productId) => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: () => api.deleteProduct(warehouseId, productId),
+    successMessage: "Product deleted successfully!",
     onSuccess: () => {
-      toast.success("Product deleted successfully!");
       qc.invalidateQueries({ queryKey: ["products", warehouseId] });
       qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
     },
-    onError: (error) => handleError(error, "Failed to delete product.", "productError"),
   });
 };

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { handleError } from "@/utils/handle-error";
+import { showErrorToast } from "@/utils/notifications";
 import api from "@/services/apiService";
 
 export const useCustomerData = (id) => {

@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await loginMutation.mutateAsync({ email, password });
+    await queryClient.invalidateQueries();
     return response;
   };
 
@@ -49,6 +50,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
+    isLoggingOut: logoutMutation.isPending,
     isSuperAdmin,
     hasPermission,
   };

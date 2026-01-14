@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
-import { handleError } from "@/utils/handle-error";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/utils/notifications";
 import { useAccounts } from "@/api/hooks/account";
 import { useCreateTransaction } from "@/api/hooks/transaction";
 
@@ -35,7 +34,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   const handleAddTransaction = async () => {
     const { account, date, description, type, amount } = transactionFormData;
     if (!account || !description || !type || !amount) {
-      toast.error("Please fill all required fields.");
+      showErrorToast("Please fill all required fields.");
       return;
     }
 
@@ -45,13 +44,9 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
     };
 
     createTransactionMutation.mutate(payload, {
-      onSuccess: (response) => {
-        toast.success(
-          response.data.message || "Transaction created successfully!"
-        );
+      onSuccess: () => {
         onSuccess();
       },
-      // onError is handled by the hook definition
     });
   };
 

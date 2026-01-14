@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/customer.api";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import { getCustomersSummary } from "../customer.api";
 
 export const useCustomers = () =>
@@ -36,27 +36,27 @@ export const useCustomerSummary = (params) => {
 
 export const useCreateCustomer = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.createCustomer,
+    successMessage: "Customer created successfully!",
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
-    onError: (error) => handleError(error, "Failed to create customer.", "customerError"),
   });
 };
 
 export const useUpdateCustomer = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: ({ id, data }) => api.updateCustomer(id, data),
+    successMessage: "Customer updated successfully!",
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
-    onError: (error) => handleError(error, "Failed to update customer.", "customerError"),
   });
 };
 
 export const useDeleteCustomer = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.deleteCustomer,
+    successMessage: "Customer deleted successfully!",
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
-    onError: (error) => handleError(error, "Failed to delete customer.", "customerError"),
   });
 };

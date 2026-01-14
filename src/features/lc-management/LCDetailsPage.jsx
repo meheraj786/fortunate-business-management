@@ -22,8 +22,7 @@ import {
   Building,
   File,
 } from "lucide-react";
-import { handleError } from "@/utils/handle-error";
-import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 
 // Components
 import CollapsibleCard from "@/components/ui/CollapsibleCard";
@@ -34,7 +33,12 @@ import DataField from "@/components/ui/DataField";
 import CostField from "@/components/ui/CostField";
 import LCDetailsPageSkeleton from "./components/LCDetailsPageSkeleton";
 
-import { useLC, useDeleteLC, useExportLC, useDeleteLCDocument } from "@/api/hooks/lc";
+import {
+  useLC,
+  useDeleteLC,
+  useExportLC,
+  useDeleteLCDocument,
+} from "@/api/hooks/lc";
 import { useUrl } from "@/context/UrlProvider";
 import { formatNumber, formatDate } from "@/utils/format";
 import { useAuth } from "@/context/AuthContext";
@@ -68,7 +72,7 @@ const LCdetails = () => {
     if (!lcData?.productInfo) return 0;
     return lcData.productInfo.reduce(
       (total, p) => total + (p.totalValueUsd || 0),
-      0
+      0,
     );
   }, [lcData?.productInfo]);
 
@@ -129,9 +133,9 @@ const LCdetails = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      toast.success("Downloading started...");
+      showSuccessToast("Downloading started...");
     } catch (err) {
-      handleError(err, "Failed to download file");
+      showErrorToast(err, "Failed to download file");
     }
   };
 
@@ -148,7 +152,7 @@ const LCdetails = () => {
           setDeleteDocModal({ isOpen: false, docId: null });
           refetch(); // Refetch LC data to update the documents list
         },
-      }
+      },
     );
   };
 
@@ -194,7 +198,8 @@ const LCdetails = () => {
       className="flex items-center gap-1"
       aria-label={`Add cost to ${category}`}
     >
-      <Plus size={14} aria-hidden="true" /> Cost
+      <Plus size={14} aria-hidden="true" />
+      Cost
     </Button>
   );
 
@@ -585,7 +590,7 @@ const LCdetails = () => {
                                 handleDownload(
                                   lcData._id,
                                   doc.storedName,
-                                  doc.originalName
+                                  doc.originalName,
                                 )
                               }
                               variant="subtle"
@@ -663,13 +668,13 @@ const LCdetails = () => {
                             {cost.paymentMethod === "Cash"
                               ? "Cash"
                               : cost.accountId
-                              ? `${cost.paymentMethod}: ${
-                                  cost.accountId.accountHolderName
-                                } (${
-                                  cost.accountId.accountNumber ||
-                                  cost.accountId.mobileNumber
-                                })`
-                              : cost.paymentMethod}
+                                ? `${cost.paymentMethod}: ${
+                                    cost.accountId.accountHolderName
+                                  } (${
+                                    cost.accountId.accountNumber ||
+                                    cost.accountId.mobileNumber
+                                  })`
+                                : cost.paymentMethod}
                           </div>
                         )}
                       </div>

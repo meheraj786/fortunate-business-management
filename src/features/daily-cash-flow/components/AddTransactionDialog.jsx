@@ -3,9 +3,8 @@ import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
-import { handleError } from "@/utils/handle-error";
+import { showErrorToast, showSuccessToast, showLoadingToast, dismissToast } from "@/utils/notifications";
 import api from "@/services/apiService";
-import toast from "react-hot-toast";
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, INITIAL_TRANSACTION_STATE } from "../constants";
 import { useForm } from "react-hook-form";
 
@@ -56,10 +55,10 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
 
 
   const onSubmit = async (data) => {
-    setIsSubmittingMutation(true); // Manually manage mutation submission state
+    setIsSubmittingMutation(true);
 
     const endpoint = transactionType === "income" ? "income" : "expense";
-    const toastId = toast.loading(`Adding ${transactionType}...`);
+    const toastId = showLoadingToast(`Adding ${transactionType}...`);
 
     const payload = {
       date: selectedDate,
@@ -83,7 +82,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
 
     try {
       await api.post(`/cash/${endpoint}`, payload);
-      toast.success(
+      showSuccessToast(
         `${
           transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
         } added successfully!`,
@@ -92,9 +91,9 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
       onSuccess();
       onClose();
     } catch (err) {
-      handleError(err, `Failed to add ${transactionType}.`, toastId);
-      // toast.dismiss(toastId); // Dismissing is now handled by handleError if toastId is passed
+      showErrorToast(err, `Failed to add ${transactionType}.`, { id: toastId });
     } finally {
+      dismissToast(toastId);
       setIsSubmittingMutation(false);
     }
   };

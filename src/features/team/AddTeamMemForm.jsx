@@ -11,7 +11,7 @@ import FormPageLayout from "@/components/ui/FormPageLayout";
 import MultiSelectField from "@/components/ui/MultiSelectField";
 import FormSection from "@/components/ui/FormSection";
 import { useSectionManager } from "@/hooks/useSectionManager";
-import { handleError } from "@/utils/handle-error";
+import { showErrorToast } from "@/utils/notifications";
 import { MODULES_ORDER } from "./constants"; // Import MODULES_ORDER
 import {
   FileText,

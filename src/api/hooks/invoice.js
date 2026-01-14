@@ -1,7 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/invoice.api";
-import toast from "react-hot-toast";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 export const useInvoice = (id) =>
   useQuery({
@@ -19,12 +18,12 @@ export const useInvoicesBySale = (saleId) =>
 
 export const useGenerateInvoice = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.generateInvoice,
+    successMessage: "Invoice generated successfully!",
     onSuccess: (_, { saleId }) => {
       qc.invalidateQueries({ queryKey: ["invoices", "sale", saleId] });
       qc.invalidateQueries({ queryKey: ["sales", saleId] });
     },
-    onError: (error) => handleError(error, "Failed to generate invoice.", "invoiceError"),
   });
 };

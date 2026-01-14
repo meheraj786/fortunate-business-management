@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import TeamMemberCard from "./components/TeamMemberCard";
 import SearchBar from "@/components/ui/SearchBar";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/utils/notifications";
 
 const TeamPage = () => {
   const { data: users, isLoading, error } = useUsers();
@@ -16,13 +16,13 @@ const TeamPage = () => {
 
   useEffect(() => {
     if (!isSuperAdmin) {
-      toast.error("You don't have permission to view this page.");
+      showErrorToast("You don't have permission to view this page.");
       navigate("/");
     }
   }, [isSuperAdmin, navigate]);
 
   const filteredUsers = users?.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (

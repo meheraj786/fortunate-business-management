@@ -1,7 +1,6 @@
 import React, { useState, useEffect, memo } from "react";
 import PropTypes from "prop-types";
-import { handleError } from "@/utils/handle-error";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/utils/notifications";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
@@ -86,7 +85,7 @@ const AddCostForm = ({
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      toast.error("Please fix the errors in the form");
+      showErrorToast("Please fix the errors in the form");
       return;
     }
 

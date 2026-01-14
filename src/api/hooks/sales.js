@@ -1,7 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/sales.api";
-import toast from "react-hot-toast";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 // For paginated, filtered, and sorted sales data
 export const usePaginatedSales = (params) =>
@@ -39,58 +38,56 @@ export const useSalesByCustomer = (customerId, params) =>
 
 export const useCreateSale = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.createSale,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sales"] });
     },
-    onError: (error) => handleError(error, "Failed to create sale.", "salesError"),
   });
 };
 
 export const useUpdateSale = (id) => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (data) => api.updateSale(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["sales", id] });
     },
-    onError: (error) => handleError(error, "Failed to update sale.", "salesError"),
   });
 };
 
 export const useDeleteSale = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.deleteSale,
+    successMessage: "Sale deleted successfully.",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sales"] });
     },
-    onError: (error) => handleError(error, "Failed to delete sale.", "salesError"),
   });
 };
 
 export const useCancelSale = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.cancelSale,
+    successMessage: "Sale cancelled successfully.",
     onSuccess: (_, saleId) => {
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["sales", saleId] });
     },
-    onError: (error) => handleError(error, "Failed to cancel sale.", "salesError"),
   });
 };
 
 export const useAddPartialPayment = (saleId) => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (data) => api.addPartialPayment(saleId, data),
+    successMessage: "Payment added successfully.",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sales", saleId] });
       qc.invalidateQueries({ queryKey: ["sales", "summary"] });
     },
-    onError: (error) => handleError(error, "Failed to add payment.", "salesError"),
   });
 };

@@ -12,7 +12,7 @@ import {
   Warehouse as WarehouseIcon,
 } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import toast from "react-hot-toast";
+import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 import { useAuth } from "../../context/AuthContext";
 import { useUser, useUpdateUser } from "../../api/hooks/user";
 import { useWarehouses } from "../../api/hooks/warehouse";
@@ -21,23 +21,23 @@ const TeamDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: warehousesData } = useWarehouses();
-    const { user, hasPermission } = useAuth();
-  
-    const { data: member, isLoading, isError } = useUser(id);
-  
-    useEffect(() => {
-      if (!hasPermission("USER_VIEW_ALL")) {
-        toast.error("You don't have permission to view this page.");
-        navigate("/team");
-      }
-    }, [user, hasPermission, navigate]);
-  
-    const copyToClipboard = (text, type) => {
+  const { user, hasPermission } = useAuth();
+
+  const { data: member, isLoading, isError } = useUser(id);
+
+  useEffect(() => {
+    if (!hasPermission("USER_VIEW_ALL")) {
+      showErrorToast("You don't have permission to view this page.");
+      navigate("/team");
+    }
+  }, [user, hasPermission, navigate]);
+
+  const copyToClipboard = (text, type) => {
     if (!text) return;
     navigator.clipboard
       .writeText(text)
-      .then(() => toast.success(`${type} copied!`))
-      .catch(() => toast.error("Failed to copy"));
+      .then(() => showSuccessToast(`${type} copied!`))
+      .catch(() => showErrorToast("Failed to copy"));
   };
 
   if (isLoading) {
@@ -115,9 +115,7 @@ const TeamDetails = () => {
                 <h2 className="text-2xl font-bold text-gray-900 text-center">
                   {member.name}
                 </h2>
-                <p className="text-gray-600 text-sm mt-1">
-                  {member.roleName}
-                </p>
+                <p className="text-gray-600 text-sm mt-1">{member.roleName}</p>
               </div>
 
               <div className="space-y-3 pt-4 border-t border-gray-200">
@@ -172,9 +170,7 @@ const TeamDetails = () => {
                     className="flex items-center justify-between p-4 border rounded-lg border-gray-200 bg-gray-50/30"
                   >
                     <div className="flex items-center gap-3">
-                      <div
-                        className="p-2 rounded-lg bg-gray-200 text-gray-500"
-                      >
+                      <div className="p-2 rounded-lg bg-gray-200 text-gray-500">
                         <WarehouseIcon size={18} />
                       </div>
                       <div>
@@ -207,7 +203,7 @@ const TeamDetails = () => {
                   <span className="text-xl font-bold text-primary">
                     {member.access.reduce(
                       (sum, module) => sum + module.permissions.length,
-                      0
+                      0,
                     )}
                   </span>
                   <p className="text-xs text-gray-500">active</p>

@@ -1,7 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/warehouse.api";
-import toast from "react-hot-toast";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 export const useWarehouses = () =>
   useQuery({
@@ -18,34 +17,34 @@ export const useWarehouse = (id) =>
 
 export const useCreateWarehouse = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.createWarehouse,
+    successMessage: "Warehouse created successfully!",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["warehouses"] });
     },
-    onError: (error) => handleError(error, "Failed to create warehouse.", "warehouseError"),
   });
 };
 
 export const useUpdateWarehouse = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: ({ id, data }) => api.updateWarehouse(id, data),
+    successMessage: "Warehouse updated successfully!",
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["warehouses"] });
       qc.invalidateQueries({ queryKey: ["warehouses", id] });
     },
-    onError: (error) => handleError(error, "Failed to update warehouse.", "warehouseError"),
   });
 };
 
 export const useDeleteWarehouse = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.deleteWarehouse,
+    successMessage: "Warehouse deleted successfully!",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["warehouses"] });
     },
-    onError: (error) => handleError(error, "Failed to delete warehouse.", "warehouseError"),
   });
 };

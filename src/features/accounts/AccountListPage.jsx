@@ -13,7 +13,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useAccounts } from "@/api/hooks/account"; // Using react-query hook
-import { handleError } from "@/utils/handle-error"; // For clipboard error
+import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
 import { useAuth } from "@/context/AuthContext";

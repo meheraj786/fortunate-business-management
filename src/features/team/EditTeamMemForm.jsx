@@ -12,7 +12,7 @@ import FormPageLayout from "@/components/ui/FormPageLayout";
 import MultiSelectField from "@/components/ui/MultiSelectField";
 import FormSection from "@/components/ui/FormSection"; // New import
 import { useSectionManager } from "@/hooks/useSectionManager"; // New import
-import { handleError } from "@/utils/handle-error";
+import { showErrorToast } from "@/utils/notifications";
 import {
   FileText,
   Warehouse as WarehouseIcon,

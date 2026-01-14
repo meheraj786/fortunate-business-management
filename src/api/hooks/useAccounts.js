@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { handleError } from "@/utils/handle-error";
+
 import api from '@/services/apiService';
 
 const useAccounts = () => {

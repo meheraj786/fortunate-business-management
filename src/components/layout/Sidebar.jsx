@@ -1,6 +1,5 @@
 import { RiTeamFill } from "react-icons/ri";
 import { useAuth } from "../../context/AuthContext";
-import { useLogout } from "../../api/hooks/user";
 import {
   ChartColumnIncreasing,
   CreditCard,
@@ -71,8 +70,7 @@ const SidebarItem = ({
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, hasPermission, isSuperAdmin } = useAuth();
-  const logoutMutation = useLogout();
+  const { user, logout, hasPermission, isSuperAdmin, isLoggingOut } = useAuth();
 
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem("sidebar-collapsed")) || false
@@ -160,13 +158,8 @@ const Sidebar = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await logoutMutation.mutateAsync();
-      await logout();
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    await logout();
+    navigate("/login");
   };
 
   if (isMobile) {
@@ -241,7 +234,7 @@ const Sidebar = () => {
                     onConfirm={handleLogout}
                     title="Confirm Logout"
                     description="Are you sure you want to log out?"
-                    isConfirming={logoutMutation.isPending}
+                    isConfirming={isLoggingOut}
                     confirmingText="Logging out..."
                     variant="primary"
                     icon={LogOut}        />
@@ -318,7 +311,7 @@ const Sidebar = () => {
                   onConfirm={handleLogout}
                   title="Confirm Logout"
                   description="Are you sure you want to log out?"
-                  isConfirming={logoutMutation.isPending}
+                  isConfirming={isLoggingOut}
                   confirmingText="Logging out..."
                   variant="primary"
                   icon={LogOut}      />

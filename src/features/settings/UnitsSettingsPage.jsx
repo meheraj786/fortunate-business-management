@@ -3,8 +3,7 @@ import { useForm } from "react-hook-form";
 import FormDialog from "@/components/ui/FormDialog";
 import FormDialogInput from "@/components/ui/FormDialogInput";
 import SelectField from "@/components/ui/SelectField";
-import toast from "react-hot-toast";
-import { handleError } from "@/utils/handle-error";
+import { showErrorToast } from "@/utils/notifications";
 import {
   useUnits,
   useCreateUnit,
@@ -12,12 +11,12 @@ import {
   useDeleteUnit,
 } from "@/api/hooks/unit";
 import { useAuth } from "../../context/AuthContext";
-import { Link, useNavigate } from "react-router"; // Changed to react-router
+import { Link, useNavigate } from "react-router";
 import { Trash } from "lucide-react";
 import UnitsSettingsSkeleton from "./components/UnitsSettingsSkeleton";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import classNames from "@/utils/classNames";
-import Button from "@/components/ui/Button"; // Import Button component
+import Button from "@/components/ui/Button";
 
 export default function UnitsSettings() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,7 +28,7 @@ export default function UnitsSettings() {
 
   useEffect(() => {
     if (!hasPermission("UNIT_VIEW")) {
-      toast.error("You don't have permission to view units.");
+      showErrorToast("You don't have permission to view units.");
       navigate("/settings");
     }
   }, [hasPermission, navigate]);
@@ -74,7 +73,7 @@ export default function UnitsSettings() {
       }
       setIsModalOpen(true);
     },
-    [reset, setValue]
+    [reset, setValue],
   );
 
   const closeModal = () => {
@@ -93,13 +92,7 @@ export default function UnitsSettings() {
     };
 
     createUnitMutation.mutate(payload, {
-      onSuccess: () => {
-        closeModal();
-        toast.success("Unit created successfully!");
-      },
-      onError: (error) => {
-        handleError(error, "Failed to create unit");
-      },
+      onSuccess: closeModal,
     });
   };
 
@@ -120,14 +113,8 @@ export default function UnitsSettings() {
         data: payload,
       },
       {
-        onSuccess: () => {
-          closeModal();
-          toast.success("Unit updated successfully!");
-        },
-        onError: (error) => {
-          handleError(error, "Failed to update unit");
-        },
-      }
+        onSuccess: closeModal,
+      },
     );
   };
 
@@ -145,14 +132,7 @@ export default function UnitsSettings() {
   const handleDeleteUnit = () => {
     if (!unitToDelete) return;
     deleteUnitMutation.mutate(unitToDelete._id, {
-      onSuccess: () => {
-        toast.success("Unit deleted successfully!");
-        closeDeleteModal();
-      },
-      onError: (error) => {
-        handleError(error, "Failed to delete unit");
-        closeDeleteModal();
-      },
+      onSuccess: closeDeleteModal,
     });
   };
 
@@ -162,7 +142,7 @@ export default function UnitsSettings() {
   }
 
   if (isError) {
-    handleError(error, "Failed to load units");
+    showErrorToast(error, "Failed to load units");
     return (
       <div className="text-[var(--color-danger)] text-center">
         Failed to load units.
@@ -175,9 +155,7 @@ export default function UnitsSettings() {
       {/* Header */}
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Units
-          </h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Units</h1>
           <p className="mt-2 text-sm text-gray-700">
             Manage measurement units for your inventory.
           </p>
@@ -229,7 +207,7 @@ export default function UnitsSettings() {
                 <td
                   className={classNames(
                     unitIdx === 0 ? "" : "border-t border-gray-200",
-                    "py-4 pl-4 pr-3 text-sm sm:pl-6"
+                    "py-4 pl-4 pr-3 text-sm sm:pl-6",
                   )}
                 >
                   {unit.name}
@@ -237,7 +215,7 @@ export default function UnitsSettings() {
                 <td
                   className={classNames(
                     unitIdx === 0 ? "" : "border-t border-gray-200",
-                    "hidden px-3 py-3.5 text-sm lg:table-cell"
+                    "hidden px-3 py-3.5 text-sm lg:table-cell",
                   )}
                 >
                   {unit.type}
@@ -245,7 +223,7 @@ export default function UnitsSettings() {
                 <td
                   className={classNames(
                     unitIdx === 0 ? "" : "border-t border-gray-200",
-                    "hidden px-3 py-3.5 text-sm lg:table-cell"
+                    "hidden px-3 py-3.5 text-sm lg:table-cell",
                   )}
                 >
                   {unit.conversionFactor}
@@ -253,7 +231,7 @@ export default function UnitsSettings() {
                 <td
                   className={classNames(
                     unitIdx === 0 ? "" : "border-t border-gray-200",
-                    "py-3.5 pl-3 pr-4 text-sm sm:pr-6"
+                    "py-3.5 pl-3 pr-4 text-sm sm:pr-6",
                   )}
                 >
                   <div className="flex justify-center gap-2">
@@ -292,7 +270,7 @@ export default function UnitsSettings() {
           primaryButtonText={editingUnit ? "Update" : "Create"}
           secondaryButtonText="Cancel"
           onSubmit={handleSubmit(
-            editingUnit ? handleUpdateUnit : handleCreateUnit
+            editingUnit ? handleUpdateUnit : handleCreateUnit,
           )}
           isSubmitting={isSubmitting}
         >
@@ -338,7 +316,8 @@ export default function UnitsSettings() {
                 placeholder="e.g., 1000 for kg to g"
               />
               <p className="mt-1 text-sm text-gray-500">
-                The factor by which this unit converts to its base unit (e.g., 1000 for Kilogram if base is Gram).
+                The factor by which this unit converts to its base unit (e.g.,
+                1000 for Kilogram if base is Gram).
               </p>
             </div>
           )}

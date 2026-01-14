@@ -2,12 +2,11 @@ import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import "@/styles/Login.css";
-import { handleError } from "@/utils/handle-error";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate, useLocation } from "react-router"; // Changed to react-router
-import { useForm } from "react-hook-form"; // Import useForm
-import InputField from "@/components/ui/InputField"; // Import InputField
-import Button from "@/components/ui/Button"; // Import Button
+import { useNavigate, useLocation } from "react-router";
+import { useForm } from "react-hook-form";
+import InputField from "@/components/ui/InputField";
+import Button from "@/components/ui/Button";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,11 +29,7 @@ const Login = () => {
 
   const onSubmit = useCallback(
     async (data) => {
-      try {
-        await login(data.email, data.password);
-      } catch (error) {
-        handleError(error, "Login failed. Please check your credentials.");
-      }
+      await login(data.email, data.password);
     },
     [login],
   );
@@ -45,13 +40,16 @@ const Login = () => {
     }
   }, [user, navigate, from]);
 
-  const emailValidation = useMemo(() => ({
-    required: "Email is required",
-    pattern: {
-      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-      message: "Invalid email address",
-    },
-  }), []);
+  const emailValidation = useMemo(
+    () => ({
+      required: "Email is required",
+      pattern: {
+        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+        message: "Invalid email address",
+      },
+    }),
+    [],
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative">
@@ -110,7 +108,9 @@ const Login = () => {
                 validation={{ required: "Password is required" }}
                 autoComplete="current-password"
                 aria-invalid={errors.password ? "true" : "false"}
-                aria-describedby={errors.password ? "password-error" : undefined}
+                aria-describedby={
+                  errors.password ? "password-error" : undefined
+                }
                 className="relative"
               >
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">

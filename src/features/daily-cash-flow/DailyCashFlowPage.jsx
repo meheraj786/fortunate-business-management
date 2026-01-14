@@ -8,9 +8,9 @@ import DailyCashHeader from "./components/DailyCashHeader";
 import DailyCashStats from "./components/DailyCashStats";
 import TransactionFilters from "./components/TransactionFilters";
 import Pagination from "@/components/ui/Pagination";
-import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/utils/notifications";
 // import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 
 const DailyCashFlow = () => {
@@ -19,7 +19,7 @@ const DailyCashFlow = () => {
 
   useEffect(() => {
     if (!hasPermission("CASH_VIEW")) {
-      toast.error("You don't have permission to view daily cash flow.");
+      showErrorToast("You don't have permission to view daily cash flow.");
       navigate("/");
     }
   }, [hasPermission, navigate]);

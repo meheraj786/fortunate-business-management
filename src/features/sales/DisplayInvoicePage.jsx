@@ -7,9 +7,7 @@ import { AlertTriangle, ArrowLeft, FileX, Printer, Share2 } from "lucide-react";
 import React from "react";
 import Button from "@/components/ui/Button";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import toast from "react-hot-toast";
-
-
+import { showErrorToast } from "@/utils/notifications";
 
 const DisplayInvoice = () => {
   const navigate = useNavigate();
@@ -24,7 +22,6 @@ const DisplayInvoice = () => {
     error,
   } = useInvoice(invoiceId);
   const invoice = invoiceData?.data;
-
 
   const handleDownloadPDF = async () => {
     setIsDownloadingPDF(true);
@@ -51,30 +48,30 @@ const DisplayInvoice = () => {
         const responseText = await new Response(response.data).text();
         try {
           const errorJson = JSON.parse(responseText);
-          toast.error(
+          showErrorToast(
             `Failed to generate PDF: ${errorJson.message || "Unknown error"}`,
           );
         } catch (e) {
           // If it's not JSON, it might be an HTML error page from the server
           console.error("Received non-PDF, non-JSON response:", responseText);
-          toast.error(
+          showErrorToast(
             "Failed to generate PDF. The server returned an unexpected response.",
           );
         }
       }
     } catch (err) {
       console.error("PDF Download request failed:", err);
-      toast.error("Could not download the PDF. Please try again.");
+      showErrorToast("Could not download the PDF. Please try again.");
     } finally {
       setIsDownloadingPDF(false);
     }
   };
 
-
-
   const shareInvoice = async () => {
     if (!navigator.share) {
-      alert('Web Share is not supported on your browser. Try on a mobile device.');
+      showErrorToast(
+        "Web Share is not supported on your browser. Try on a mobile device.",
+      );
       return;
     }
 
@@ -84,7 +81,11 @@ const DisplayInvoice = () => {
       const response = await getInvoiceAsPNG(invoiceId);
       const imageBlob = response.data; // Axios wraps the blob in the 'data' property
 
-      const imageFile = new File([imageBlob], `invoice-${invoice.invoiceId}.png`, { type: 'image/png' });
+      const imageFile = new File(
+        [imageBlob],
+        `invoice-${invoice.invoiceId}.png`,
+        { type: "image/png" },
+      );
 
       if (!navigator.canShare || !navigator.canShare({ files: [imageFile] })) {
         throw new Error("Your browser doesn't support sharing this file type.");
@@ -95,12 +96,10 @@ const DisplayInvoice = () => {
         title: `Invoice ${invoice.invoiceId}`,
         text: `Invoice for ${invoice.customerDetails.name}`,
       });
-
     } catch (err) {
-      console.error('Share failed:', err);
-      alert(`Could not share invoice: ${err.message}`);
-    }
-    finally {
+      console.error("Share failed:", err);
+      showErrorToast(`Could not share invoice: ${err.message}`);
+    } finally {
       setIsSharing(false);
     }
   };
@@ -118,12 +117,10 @@ const DisplayInvoice = () => {
           Error Loading Invoice
         </h2>
         <p className="text-gray-600 mb-6 max-w-md">
-          {error?.message || "Something went wrong while fetching the invoice data."}
+          {error?.message ||
+            "Something went wrong while fetching the invoice data."}
         </p>
-        <Button
-          onClick={() => navigate(-1)}
-          variant="primary"
-        >
+        <Button onClick={() => navigate(-1)} variant="primary">
           <ArrowLeft size={16} className="mr-2" /> Go Back
         </Button>
       </div>
@@ -140,10 +137,7 @@ const DisplayInvoice = () => {
         <p className="text-gray-600 mb-6 max-w-md">
           The invoice you are looking for does not exist or could not be loaded.
         </p>
-        <Button
-          onClick={() => navigate("/sales")}
-          variant="primary"
-        >
+        <Button onClick={() => navigate("/sales")} variant="primary">
           <ArrowLeft size={16} className="mr-2" /> Back to Sales
         </Button>
       </div>
@@ -174,11 +168,7 @@ const DisplayInvoice = () => {
   const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
   const balanceDue = totalAmountToBePaid - totalPayments;
   const paymentStatus =
-    balanceDue <= 0
-      ? "Paid"
-      : totalPayments > 0
-      ? "Partially Paid"
-      : "Unpaid";
+    balanceDue <= 0 ? "Paid" : totalPayments > 0 ? "Partially Paid" : "Unpaid";
 
   // --- JSX ---
   return (
@@ -186,8 +176,8 @@ const DisplayInvoice = () => {
       {/* --- Actions Bar (No Print) --- */}
       <div className="py-4 px-4 sm:px-6 lg:px-8 bg-white border-b print:hidden">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
-           <div className="flex items-center gap-4">
-             <Button
+          <div className="flex items-center gap-4">
+            <Button
               variant="subtle"
               onClick={() => navigate(-1)}
               className="flex items-center text-gray-700 hover:text-black"
@@ -195,14 +185,24 @@ const DisplayInvoice = () => {
               <ArrowLeft size={18} className="mr-1" />
               Back
             </Button>
-             <p className="text-lg font-bold">Invoice {invoiceNumber}</p>
-           </div>
+            <p className="text-lg font-bold">Invoice {invoiceNumber}</p>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="primary" onClick={handleDownloadPDF} isLoading={isDownloadingPDF}>
-                <Printer size={14} /><span>Print / Save as PDF</span>
+            <Button
+              variant="primary"
+              onClick={handleDownloadPDF}
+              isLoading={isDownloadingPDF}
+            >
+              <Printer size={14} />
+              <span>Print / Save as PDF</span>
             </Button>
-            <Button variant="secondary" onClick={shareInvoice} isLoading={isSharing}>
-                <Share2 size={14} /><span>Share</span>
+            <Button
+              variant="secondary"
+              onClick={shareInvoice}
+              isLoading={isSharing}
+            >
+              <Share2 size={14} />
+              <span>Share</span>
             </Button>
           </div>
         </div>
@@ -214,24 +214,34 @@ const DisplayInvoice = () => {
           items={[
             { label: "Home", path: "/" },
             { label: "Sales", path: "/sales" },
-            { label: `Invoice ${invoiceNumber}`, path: `/sales/invoice/${invoiceId}` },
+            {
+              label: `Invoice ${invoiceNumber}`,
+              path: `/sales/invoice/${invoiceId}`,
+            },
           ]}
         />
       </div>
 
       {/* --- Invoice Paper --- */}
       <main className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto bg-white shadow-lg" id="invoice-paper">
-           <article className="p-6 sm:p-12 text-sm">
+        <div
+          className="max-w-5xl mx-auto bg-white shadow-lg"
+          id="invoice-paper"
+        >
+          <article className="p-6 sm:p-12 text-sm">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
               <div className="flex flex-col mb-4 sm:mb-0">
-                 <h1 className="text-3xl font-bold text-black">INVOICE</h1>
-                 <p className="text-gray-600"># {invoiceNumber}</p>
+                <h1 className="text-3xl font-bold text-black">INVOICE</h1>
+                <p className="text-gray-600"># {invoiceNumber}</p>
               </div>
               <div className="text-left sm:text-right">
-                <h2 className="text-xl font-bold text-black">Fortunate Business Management</h2>
-                <p className="text-gray-600">123 Business Rd, Dhaka, Bangladesh</p>
+                <h2 className="text-xl font-bold text-black">
+                  Fortunate Business Management
+                </h2>
+                <p className="text-gray-600">
+                  123 Business Rd, Dhaka, Bangladesh
+                </p>
                 <p className="text-gray-600">contact@yourcompany.com</p>
               </div>
             </div>
@@ -246,9 +256,24 @@ const DisplayInvoice = () => {
               </div>
               <div className="text-left sm:text-right">
                 <div>
-                    <p><span className="font-semibold text-gray-800">Invoice Date:</span> {formatDate(invoiceGeneratedDate)}</p>
-                    <p><span className="font-semibold text-gray-800">Sale Date:</span> {formatDate(salesDate)}</p>
-                    <p><span className="font-semibold text-gray-800">Sale ID:</span> #{salesId.slice(-6)}</p>
+                  <p>
+                    <span className="font-semibold text-gray-800">
+                      Invoice Date:
+                    </span>{" "}
+                    {formatDate(invoiceGeneratedDate)}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-gray-800">
+                      Sale Date:
+                    </span>{" "}
+                    {formatDate(salesDate)}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-gray-800">
+                      Sale ID:
+                    </span>{" "}
+                    #{salesId.slice(-6)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -258,21 +283,39 @@ const DisplayInvoice = () => {
               <table className="w-full">
                 <thead className="border-b-2 border-black">
                   <tr>
-                    <th className="p-1 sm:p-2 text-left font-bold text-black">Item</th>
-                    <th className="p-1 sm:p-2 text-center font-bold text-black">Qty</th>
-                    <th className="p-1 sm:p-2 text-right font-bold text-black">Unit Price</th>
-                    <th className="p-1 sm:p-2 text-right font-bold text-black">Total</th>
+                    <th className="p-1 sm:p-2 text-left font-bold text-black">
+                      Item
+                    </th>
+                    <th className="p-1 sm:p-2 text-center font-bold text-black">
+                      Qty
+                    </th>
+                    <th className="p-1 sm:p-2 text-right font-bold text-black">
+                      Unit Price
+                    </th>
+                    <th className="p-1 sm:p-2 text-right font-bold text-black">
+                      Total
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b border-gray-200">
                     <td className="p-1 sm:p-2 align-top">
-                      <p className="font-semibold text-black">{productDetails.name}</p>
+                      <p className="font-semibold text-black">
+                        {productDetails.name}
+                      </p>
                       <p className="text-gray-600">{productDetails.category}</p>
                     </td>
-                    <td className="p-1 sm:p-2 text-center align-top">{productDetails.quantity} {productDetails.unit?.name}</td>
-                    <td className="p-1 sm:p-2 text-right align-top">{formatCurrency(productDetails.pricePerUnit)}</td>
-                    <td className="p-1 sm:p-2 text-right align-top">{formatCurrency(productDetails.pricePerUnit * productDetails.quantity)}</td>
+                    <td className="p-1 sm:p-2 text-center align-top">
+                      {productDetails.quantity} {productDetails.unit?.name}
+                    </td>
+                    <td className="p-1 sm:p-2 text-right align-top">
+                      {formatCurrency(productDetails.pricePerUnit)}
+                    </td>
+                    <td className="p-1 sm:p-2 text-right align-top">
+                      {formatCurrency(
+                        productDetails.pricePerUnit * productDetails.quantity,
+                      )}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -280,73 +323,95 @@ const DisplayInvoice = () => {
 
             {/* Financial Summary */}
             <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4 sm:gap-x-12 sm:gap-y-8 mb-12">
-               {/* Payments Section */}
+              {/* Payments Section */}
               <div>
                 {payments.length > 0 && (
-                    <>
-                      <h3 className="font-semibold text-gray-800 mb-3 border-b pb-1">Payments Received</h3>
-                      <div className="space-y-2">
-                        {payments.map(p => (
-                          <div key={p._id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                            <p className="text-gray-600">{formatDate(p.date)} - {p.method} ({p.accountDetails.accountName})</p>
-                            <p className="font-semibold text-black text-left sm:text-right">{formatCurrency(p.amount)}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </>
+                  <>
+                    <h3 className="font-semibold text-gray-800 mb-3 border-b pb-1">
+                      Payments Received
+                    </h3>
+                    <div className="space-y-2">
+                      {payments.map((p) => (
+                        <div
+                          key={p._id}
+                          className="flex flex-col sm:flex-row sm:justify-between sm:items-center"
+                        >
+                          <p className="text-gray-600">
+                            {formatDate(p.date)} - {p.method} (
+                            {p.accountDetails.accountName})
+                          </p>
+                          <p className="font-semibold text-black text-left sm:text-right">
+                            {formatCurrency(p.amount)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
 
               {/* Totals Section */}
               <div className="space-y-2">
-                 <div className="flex justify-between">
-                    <p className="text-gray-600">Subtotal:</p>
-                    <p className="font-semibold text-black">{formatCurrency(totalAmount)}</p>
+                <div className="flex justify-between">
+                  <p className="text-gray-600">Subtotal:</p>
+                  <p className="font-semibold text-black">
+                    {formatCurrency(totalAmount)}
+                  </p>
                 </div>
                 {[...charges, ...costs].map((item, i) => (
-                    <div key={i} className="flex justify-between">
-                        <p className="text-gray-600">{item.name}:</p>
-                        <p className="font-semibold text-black">{formatCurrency(item.amount)}</p>
-                    </div>
+                  <div key={i} className="flex justify-between">
+                    <p className="text-gray-600">{item.name}:</p>
+                    <p className="font-semibold text-black">
+                      {formatCurrency(item.amount)}
+                    </p>
+                  </div>
                 ))}
                 {discount > 0 && (
-                    <div className="flex justify-between">
-                        <p className="text-gray-600">Discount:</p>
-                        <p className="font-semibold text-black">-{formatCurrency(discount)}</p>
-                    </div>
+                  <div className="flex justify-between">
+                    <p className="text-gray-600">Discount:</p>
+                    <p className="font-semibold text-black">
+                      -{formatCurrency(discount)}
+                    </p>
+                  </div>
                 )}
                 <div className="flex justify-between pt-2 border-t-2 border-black">
-                    <p className="font-bold text-black text-base">Net Amount:</p>
-                    <p className="font-bold text-black text-base">{formatCurrency(totalAmountToBePaid)}</p>
+                  <p className="font-bold text-black text-base">Net Amount:</p>
+                  <p className="font-bold text-black text-base">
+                    {formatCurrency(totalAmountToBePaid)}
+                  </p>
                 </div>
                 <div className="flex justify-between">
-                    <p className="text-gray-600">Total Paid:</p>
-                    <p className="font-semibold text-black">{formatCurrency(totalPayments)}</p>
+                  <p className="text-gray-600">Total Paid:</p>
+                  <p className="font-semibold text-black">
+                    {formatCurrency(totalPayments)}
+                  </p>
                 </div>
-                 <div className="flex justify-between bg-gray-100 p-2 rounded-md">
-                    <p className="font-bold text-black text-base">Balance Due:</p>
-                    <p className="font-bold text-black text-base">{formatCurrency(balanceDue)}</p>
+                <div className="flex justify-between bg-gray-100 p-2 rounded-md">
+                  <p className="font-bold text-black text-base">Balance Due:</p>
+                  <p className="font-bold text-black text-base">
+                    {formatCurrency(balanceDue)}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Notes */}
             {notes && (
-                <div className="mb-12">
-                     <h3 className="font-semibold text-gray-800 mb-2">Notes</h3>
-                     <p className="text-gray-600 whitespace-pre-line">{notes}</p>
-                </div>
+              <div className="mb-12">
+                <h3 className="font-semibold text-gray-800 mb-2">Notes</h3>
+                <p className="text-gray-600 whitespace-pre-line">{notes}</p>
+              </div>
             )}
-            
+
             {/* Footer */}
             <footer className="text-center pt-8 border-t">
-                 <p className="text-gray-600">Thank you for your business.</p>
+              <p className="text-gray-600">Thank you for your business.</p>
             </footer>
-           </article>
+          </article>
         </div>
       </main>
 
-       {/* --- Print Styles --- */}
+      {/* --- Print Styles --- */}
       <style>{`
         @media print {
           body {
@@ -366,7 +431,5 @@ const DisplayInvoice = () => {
     </div>
   );
 };
-
-
 
 export default DisplayInvoice;

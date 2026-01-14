@@ -15,19 +15,18 @@ import {
   Truck,
   AlertCircle,
 } from "lucide-react";
-import toast from "react-hot-toast";
-import { useForm } from "react-hook-form"; // Import useForm
+import { showSuccessToast, showErrorToast } from "@/utils/notifications";
+import { useForm } from "react-hook-form";
 
 import { useCategories } from "@/api/hooks/category";
 import { useCompletedLCs } from "@/api/hooks/lc";
 import { useUnits } from "@/api/hooks/unit";
 import { useCreateProduct, useUpdateProduct } from "@/api/hooks/products";
-import { handleError } from "@/utils/handle-error"; // Import handleError
 
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
-import Button from "@/components/ui/Button"; // Import Button component
+import Button from "@/components/ui/Button";
 
 const colorOptions = [
   "Silver",
@@ -174,22 +173,21 @@ const AddProductForm = ({
       productDescription: data.productDescription,
     };
 
-    try {
-      if (isEditMode) {
-        await updateProductMutation.mutateAsync(dataToSave);
-        onProductUpdated?.(); // Optional callback
-        toast.success("Product updated successfully!");
-      } else {
-        await createProductMutation.mutateAsync(dataToSave);
-        onProductAdded?.(); // Optional callback
-        toast.success("Product created successfully!");
-      }
-      onClose();
-    } catch (error) {
-      handleError(
-        error,
-        `Failed to ${isEditMode ? "update" : "create"} product.`
-      );
+    const mutationOptions = {
+      onSuccess: () => {
+        if (isEditMode) {
+          onProductUpdated?.(); // Optional callback
+        } else {
+          onProductAdded?.(); // Optional callback
+        }
+        onClose();
+      },
+    };
+
+    if (isEditMode) {
+      updateProductMutation.mutate(dataToSave, mutationOptions);
+    } else {
+      createProductMutation.mutate(dataToSave, mutationOptions);
     }
   };
 

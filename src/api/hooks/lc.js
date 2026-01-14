@@ -1,7 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { handleError } from "@/utils/handle-error";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/lc.api";
-import toast from "react-hot-toast";
+import { useApiMutation } from "@/hooks/useApiMutation";
 
 // Fetch paginated, sorted, and filtered LC summary
 export const useLCSummary = (params) =>
@@ -36,40 +35,39 @@ export const useCompletedLCs = () =>
 // Create a new LC
 export const useCreateLC = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.createLC,
+    successMessage: "LC created successfully!",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lcs", "summary"] });
       qc.invalidateQueries({ queryKey: ["lcs", "counts"] });
     },
-    onError: (error) => handleError(error, "Failed to create LC.", "lcError"),
   });
 };
 
 // Update an existing LC
 export const useUpdateLC = (id) => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: (data) => api.updateLC(id, data),
+    successMessage: "LC updated successfully!",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lcs", "summary"] });
       qc.invalidateQueries({ queryKey: ["lcs", "counts"] });
       qc.invalidateQueries({ queryKey: ["lcs", id] });
     },
-    onError: (error) => handleError(error, "Failed to update LC.", "lcError"),
   });
 };
 
 // Delete an LC
 export const useDeleteLC = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.deleteLC,
+    successMessage: "LC deleted successfully.",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lcs"] });
-      toast.success("LC deleted successfully.");
     },
-    onError: (error) => handleError(error, "Failed to delete LC.", "lcError"),
   });
 };
 
@@ -77,35 +75,33 @@ export const useDeleteLC = () => {
 // Add an expense to an LC
 export const useAddExpenseToLC = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: api.addExpenseToLC,
+    successMessage: "Cost added successfully!",
     onSuccess: (data, variables) => {
       qc.invalidateQueries({ queryKey: ["lcs", variables.lcId] });
       qc.invalidateQueries({ queryKey: ["lcs", "summary"] }); // to update total cost
-      toast.success("Cost added successfully!");
     },
-    onError: (error) => handleError(error, "Failed to add cost.", "lcError"),
   });
 };
 
 // Delete an LC document
 export const useDeleteLCDocument = () => {
   const qc = useQueryClient();
-  return useMutation({
+  return useApiMutation({
     mutationFn: ({ lcId, docId }) => api.deleteLCDocument(lcId, docId),
+    successMessage: "Document deleted successfully.",
     onSuccess: (data, { lcId }) => {
       qc.invalidateQueries({ queryKey: ["lcs", lcId] });
-      toast.success("Document deleted successfully.");
     },
-    onError: (error) =>
-      handleError(error, "Failed to delete document.", "lcError"),
   });
 };
 
 // Export LC as PDF
 export const useExportLC = (lcId, lcNumber) =>
-  useMutation({
+  useApiMutation({
     mutationFn: () => api.exportLCAsPDF(lcId),
+    successMessage: "LC exported as PDF successfully!",
     onSuccess: (data) => {
       const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement("a");
@@ -115,7 +111,5 @@ export const useExportLC = (lcId, lcNumber) =>
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("LC exported as PDF successfully!");
     },
-    onError: (error) => handleError(error, "Failed to export LC.", "lcError"),
   });

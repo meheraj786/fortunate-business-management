@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import FormDialog from "@/components/ui/FormDialog";
 import FormDialogInput from "@/components/ui/FormDialogInput";
 import FormDialogTextarea from "@/components/ui/FormDialogTextarea";
-import toast from "react-hot-toast";
+import { showErrorToast } from "@/utils/notifications";
 import {
   useCategories,
   useCreateCategory,
@@ -11,13 +11,12 @@ import {
   useUpdateCategory,
 } from "../../api/hooks/category";
 import { useAuth } from "../../context/AuthContext";
-import { Link, useNavigate } from "react-router"; // Changed to react-router
+import { Link, useNavigate } from "react-router";
 import { Trash } from "lucide-react";
 import CategorySettingsSkeleton from "./components/CategorySettingsSkeleton";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
-import { handleError } from "@/utils/handle-error";
 import classNames from "@/utils/classNames";
-import Button from "@/components/ui/Button"; // Import Button component
+import Button from "@/components/ui/Button";
 
 export default function Category() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,7 +28,7 @@ export default function Category() {
 
   useEffect(() => {
     if (!hasPermission("CATEGORY_VIEW")) {
-      toast.error("You don't have permission to view categories.");
+      showErrorToast("You don't have permission to view categories.");
       navigate("/settings");
     }
   }, [hasPermission, navigate]);
@@ -71,13 +70,7 @@ export default function Category() {
       categoryData.description = data.description;
     }
     createCatMutation.mutate(categoryData, {
-      onSuccess: () => {
-        toast.success("Category created successfully!");
-        closeModal();
-      },
-      onError: (error) => {
-        handleError(error, "Failed to create category");
-      },
+      onSuccess: closeModal,
     });
   };
 
@@ -90,14 +83,8 @@ export default function Category() {
         data,
       },
       {
-        onSuccess: () => {
-          toast.success("Category updated successfully!");
-          closeModal();
-        },
-        onError: (error) => {
-          handleError(error, "Failed to update category");
-        },
-      }
+        onSuccess: closeModal,
+      },
     );
   };
 
@@ -114,14 +101,7 @@ export default function Category() {
   const handleDeleteCategory = () => {
     if (!categoryToDelete) return;
     deleteCatMutation.mutate(categoryToDelete._id, {
-      onSuccess: () => {
-        toast.success("Category deleted successfully!");
-        closeDeleteModal();
-      },
-      onError: (error) => {
-        handleError(error, "Failed to delete category");
-        closeDeleteModal();
-      },
+      onSuccess: closeDeleteModal,
     });
   };
 
@@ -134,9 +114,7 @@ export default function Category() {
       <div className="px-2">
         <div className="flex justify-between items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Categories
-            </h1>
+            <h1 className="text-2xl font-semibold text-gray-900">Categories</h1>
           </div>
           {hasPermission("CATEGORY_CREATE") && (
             <div className="sm:mt-0 sm:ml-16 sm:flex-none flex justify-center items-center">
@@ -166,9 +144,7 @@ export default function Category() {
     <div className="px-2">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Categories
-          </h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Categories</h1>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 flex flex-wrap items-center gap-4">
           {hasPermission("CATEGORY_DELETE") && (
@@ -220,35 +196,27 @@ export default function Category() {
               <tr key={plan._id}>
                 <td
                   className={classNames(
-                    planIdx === 0
-                      ? ""
-                      : "border-t border-gray-200",
-                    "py-4 pr-3 pl-4 text-sm sm:pl-6"
+                    planIdx === 0 ? "" : "border-t border-gray-200",
+                    "py-4 pr-3 pl-4 text-sm sm:pl-6",
                   )}
                 >
-                  <div className="font-medium text-gray-900">
-                    {plan.name}
-                  </div>
+                  <div className="font-medium text-gray-900">{plan.name}</div>
                   <div className="mt-1 text-gray-500 sm:hidden">
                     <span>{plan.description}</span>
                   </div>
                 </td>
                 <td
                   className={classNames(
-                    planIdx === 0
-                      ? ""
-                      : "border-t border-gray-200",
-                    "hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell"
+                    planIdx === 0 ? "" : "border-t border-gray-200",
+                    "hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell",
                   )}
                 >
                   {plan.description}
                 </td>
                 <td
                   className={classNames(
-                    planIdx === 0
-                      ? ""
-                      : "border-t border-gray-200",
-                    "py-3.5 pr-4 pl-3 text-sm sm:pr-6"
+                    planIdx === 0 ? "" : "border-t border-gray-200",
+                    "py-3.5 pr-4 pl-3 text-sm sm:pr-6",
                   )}
                 >
                   <div className="flex justify-center gap-2">
@@ -288,7 +256,7 @@ export default function Category() {
           primaryButtonText={editingCategory ? "Update" : "Create"}
           secondaryButtonText="Cancel"
           onSubmit={handleSubmit(
-            editingCategory ? handleUpdateCategory : handleCreateCategory
+            editingCategory ? handleUpdateCategory : handleCreateCategory,
           )}
           isSubmitting={
             createCatMutation.isLoading || updateCatMutation.isLoading
