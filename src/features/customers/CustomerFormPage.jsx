@@ -163,6 +163,7 @@ const CustomerForm = ({ onSave }) => {
     const payload = {
       ...data,
       creditLimit: parseFloat(data.creditLimit) || 0,
+      openingDue: parseFloat(data.openingDue) || 0, // Ensure openingDue is always a number and included
       documents: uploadedFiles.map((file) => ({
         name: file.name || file.file?.name,
         type: file.type || file.file?.type,
@@ -170,11 +171,6 @@ const CustomerForm = ({ onSave }) => {
         uploadDate: file.uploadDate || new Date().toISOString().split("T")[0],
       })),
     };
-
-    // Only add openingDue for new customers
-    if (!isEditMode) {
-      payload.openingDue = parseFloat(data.openingDue) || 0;
-    }
 
     const mutationOptions = {
       onSuccess: (responseData) => {
@@ -184,7 +180,7 @@ const CustomerForm = ({ onSave }) => {
     };
 
     if (isEditMode && id) {
-      updateCustomerMutation.mutate({ id: id, ...payload }, mutationOptions);
+      updateCustomerMutation.mutate({ id: id, data: payload }, mutationOptions);
     } else {
       createCustomerMutation.mutate(payload, mutationOptions);
     }
@@ -276,32 +272,23 @@ const CustomerForm = ({ onSave }) => {
                 min="0"
                 step="0.01"
                 error={errors.creditLimit?.message}
+                validation={{
+                  valueAsNumber: true,
+                  min: { value: 0, message: "Credit limit cannot be negative" },
+                }}
               />
-              {!isEditMode ? (
-                <InputField
-                  label="Opening Due"
-                  name="openingDue"
-                  register={register}
-                  type="number"
-                  placeholder="20000"
-                  icon={DollarSign}
-                  min="0"
-                  step="any"
-                  error={errors.openingDue?.message}
-                  validation={{ valueAsNumber: true }}
-                />
-              ) : (
-                <InputField
-                  label="Opening Due"
-                  name="openingDue"
-                  register={register}
-                  type="number"
-                  placeholder="20000"
-                  icon={DollarSign}
-                  disabled
-                  value={customer?.openingDue || 0}
-                />
-              )}
+              <InputField
+                label="Opening Due"
+                name="openingDue"
+                register={register}
+                type="number"
+                placeholder="0"
+                icon={DollarSign}
+                min="0"
+                step="any"
+                error={errors.openingDue?.message}
+                validation={{ valueAsNumber: true }}
+              />
             </div>
           )}
 

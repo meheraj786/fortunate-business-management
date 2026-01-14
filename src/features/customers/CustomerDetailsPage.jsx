@@ -313,6 +313,11 @@ const CustomerDetails = () => {
                   icon={CreditCard}
                 />
                 <DataField
+                  label="Opening Due"
+                  value={formatCurrency(customerData.openingDue)}
+                  icon={DollarSign}
+                />
+                <DataField
                   label="Join Date"
                   value={new Date(customerData.joinDate).toLocaleDateString(
                     "en-US",
