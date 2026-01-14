@@ -14,6 +14,7 @@ import {
   Tag,
   Trash2,
   User,
+  FileText,
 } from "lucide-react";
 import { useProduct, useDeleteProduct } from "@/api/hooks/products";
 import Breadcrumb from "@/components/ui/Breadcrumb";
