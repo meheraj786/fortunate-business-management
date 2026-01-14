@@ -336,27 +336,24 @@ const AddSales = ({
     [setValue],
   );
 
-  const handlePaymentStatusChange = useCallback(
-    (status) => {
-      setValue("paymentStatus", status);
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-      if (status === "Paid payment") {
-        setValue("payments", [
-          {
-            id: Math.random(),
-            amount: totalAmountToBePaid.toFixed(2),
-            date: new Date().toISOString(),
-            method: "",
-            accountId: "",
-          },
-        ]);
-      } else if (status === "Due payment") {
-        setValue("payments", []);
-      }
-    },
-    [totalAmountToBePaid, setValue],
-  );
+  const handlePaymentStatusChange = (status) => {
+    setValue("paymentStatus", status);
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    if (status === "Paid payment") {
+      setValue("payments", [
+        {
+          id: Math.random(),
+          amount: totalAmountToBePaid.toFixed(2),
+          date: new Date().toISOString(),
+          method: "",
+          accountId: "",
+        },
+      ]);
+    } else if (status === "Due payment") {
+      setValue("payments", []);
+    }
+  };
 
   const handleCustomerSelect = (customerId) => {
     const customer = customers.find((c) => c._id === customerId);
@@ -570,6 +567,7 @@ const AddSales = ({
                   label="Quantity"
                   name="quantity"
                   type="number"
+                  step="any"
                   register={register}
                   error={errors.quantity?.message}
                   icon={Hash}
@@ -634,6 +632,7 @@ const AddSales = ({
                   label="Price Per Unit"
                   name="pricePerUnit"
                   type="number"
+                  step="any"
                   register={register}
                   error={errors.pricePerUnit?.message}
                   icon={DollarSign}
@@ -761,6 +760,7 @@ const AddSales = ({
                         label="Amount"
                         name={`charges.${index}.amount`}
                         type="number"
+                        step="any"
                         register={register}
                         error={errors.charges?.[index]?.amount?.message}
                         validation={{
@@ -838,6 +838,7 @@ const AddSales = ({
                                                                               label="Amount"
                                                                               name={`costs.${index}.amount`}
                                                                               type="number"
+                                                                              step="any"
                                                                               register={register}
                                                                               error={errors.costs?.[index]?.amount?.message}
                                                                               validation={{
@@ -916,6 +917,7 @@ const AddSales = ({
                   label="Discount"
                   name="discount"
                   type="number"
+                  step="any"
                   register={register}
                   error={errors.discount?.message}
                   icon={DollarSign}
@@ -988,6 +990,7 @@ const AddSales = ({
                           label="Amount"
                           name="payments.0.amount"
                           type="number"
+                          step="any"
                           register={register}
                           error={errors.payments?.[0]?.amount?.message}
                           value={totalAmountToBePaid.toFixed(2)} // Always display the full amount
@@ -1050,6 +1053,7 @@ const AddSales = ({
                               label="Amount"
                               name={`payments.${index}.amount`}
                               type="number"
+                              step="any"
                               register={register}
                               error={errors.payments?.[index]?.amount?.message}
                               validation={{

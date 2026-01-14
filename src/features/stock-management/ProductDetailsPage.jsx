@@ -229,6 +229,11 @@ const ProductDetails = () => {
                   value={new Date(product.createdAt).toLocaleDateString()}
                   icon={Calendar}
                 />
+                <DetailItem
+                  label="Last Updated"
+                  value={new Date(product.updatedAt).toLocaleDateString()}
+                  icon={Calendar}
+                />
               </div>
             </div>
             <div>
