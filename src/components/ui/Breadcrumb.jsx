@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router"; // Changed to react-router
+import { Link } from "react-router";
 import { ChevronRight } from "lucide-react";
 
 const Breadcrumb = ({ items }) => {

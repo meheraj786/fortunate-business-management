@@ -97,11 +97,11 @@ const ProductDetails = () => {
       { label: "Stock", path: "/stock-management" },
       {
         label: product?.warehouse?.name || "Warehouse",
-        path: `/stock/${product?.warehouse?._id}`,
+        path: `/stock/${warehouseId}`,
       },
       { label: product?.name || "Product" },
     ],
-    [product],
+    [product, warehouseId],
   );
 
   if (isLoading) {
