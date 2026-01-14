@@ -163,9 +163,9 @@ const CustomerDetails = () => {
   if (loadingCustomer) return <CustomerDetailsSkeleton />;
   if (customerError) return (
       <div className="flex flex-col items-center justify-center h-full ">
-        <div className="bg-red-100 border border-red-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-red-700 mb-2">Error Loading Customer</h3>
-          <p className="text-red-600 mb-4">{customerError}</p>
+        <div className="bg-[var(--color-danger-light)] border border-[var(--color-danger-light)] rounded-lg p-6 max-w-md">
+          <h3 className="text-lg font-semibold text-[var(--color-danger)] mb-2">Error Loading Customer</h3>
+          <p className="text-[var(--color-danger)] mb-4">{customerError}</p>
           <div className="flex gap-3">
             <Button onClick={refetchCustomer} variant="primary" size="sm">Retry</Button>
             <Button onClick={() => navigate("/customers")} variant="secondary" size="sm">Back to Customers</Button>
@@ -175,9 +175,9 @@ const CustomerDetails = () => {
   );
   if (!customerData) return (
       <div className="flex flex-col items-center justify-center h-full">
-        <div className="bg-yellow-100 border border-yellow-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-yellow-700 mb-2">Customer Not Found</h3>
-          <p className="text-yellow-600 mb-4">The requested customer could not be found.</p>
+        <div className="bg-[var(--color-warning-light)] border border-[var(--color-warning-light)] rounded-lg p-6 max-w-md">
+          <h3 className="text-lg font-semibold text-[var(--color-warning)] mb-2">Customer Not Found</h3>
+          <p className="text-[var(--color-warning)] mb-4">The requested customer could not be found.</p>
           <Button onClick={() => navigate("/customers")} variant="secondary" size="sm">Back to Customers</Button>
         </div>
       </div>
@@ -189,8 +189,8 @@ const CustomerDetails = () => {
         <motion.div className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-200" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center flex-1 min-w-0">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
-                <User className="text-blue-600 text-xl sm:text-2xl" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+                <User className="text-[var(--color-primary)] text-xl sm:text-2xl" />
               </div>
               <div className="min-w-0">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{customerData.name}</h1>
@@ -210,7 +210,7 @@ const CustomerDetails = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            <CollapsibleCard title="General Information" icon={<User className="text-blue-600" />} defaultOpen={true} ariaLabel="General Information Section">
+            <CollapsibleCard title="General Information" icon={<User className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="General Information Section">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <DataField label="Company Name" value={customerData.companyName} icon={Building} />
                 <DataField label="Customer Type" value={customerData.customerType} />
@@ -223,18 +223,18 @@ const CustomerDetails = () => {
               </div>
             </CollapsibleCard>
 
-            <CollapsibleCard title="Transaction Overview" icon={<PieChart className="text-blue-600" />} defaultOpen={true} ariaLabel="Transaction Overview Section">
+            <CollapsibleCard title="Transaction Overview" icon={<PieChart className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="Transaction Overview Section">
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-blue-50 p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-blue-600">{customerStats.totalPurchases}</div><div className="text-xs sm:text-sm text-blue-500 mt-1">Total Purchases</div></div>
-                <div className="bg-green-50 p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-green-600">{customerStats.totalSpent}</div><div className="text-xs sm:text-sm text-green-500 mt-1">Total Spent</div></div>
-                <div className="bg-yellow-50 p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-yellow-600">{customerStats.notInvoiced}</div><div className="text-xs sm:text-sm text-yellow-500 mt-1">Not Invoiced</div></div>
-                <div className="bg-red-50 p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-red-600">{customerStats.outstandingDues}</div><div className="text-xs sm:text-sm text-red-500 mt-1">Outstanding Dues</div></div>
+                <div className="bg-[var(--color-primary-light)] p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-[var(--color-primary)]">{customerStats.totalPurchases}</div><div className="text-xs sm:text-sm text-[var(--color-primary)] mt-1">Total Purchases</div></div>
+                <div className="bg-[var(--color-success-light)] p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-[var(--color-success)]">{customerStats.totalSpent}</div><div className="text-xs sm:text-sm text-[var(--color-success)] mt-1">Total Spent</div></div>
+                <div className="bg-[var(--color-warning-light)] p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-[var(--color-warning)]">{customerStats.notInvoiced}</div><div className="text-xs sm:text-sm text-[var(--color-warning)] mt-1">Not Invoiced</div></div>
+                <div className="bg-[var(--color-danger-light)] p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-[var(--color-danger)]">{customerStats.outstandingDues}</div><div className="text-xs sm:text-sm text-[var(--color-danger)] mt-1">Outstanding Dues</div></div>
               </div>
             </CollapsibleCard>
           </div>
 
           <div className="space-y-4 sm:space-y-6">
-            <CollapsibleCard title="Status Information" icon={<Star className="text-blue-600" />} defaultOpen={true} ariaLabel="Status Information Section">
+            <CollapsibleCard title="Status Information" icon={<Star className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="Status Information Section">
               <div className="space-y-3">
                 <DataField label="Customer Status" value={<StatusBadge status={customerData.customerStatus} />} />
                 <DataField label="Customer Type" value={customerData.customerType} />
@@ -243,7 +243,7 @@ const CustomerDetails = () => {
               </div>
             </CollapsibleCard>
             
-            <CollapsibleCard title="Documents & Note" icon={<FileText className="text-blue-600" />} defaultOpen={true} ariaLabel="Documents & Note Section">
+            <CollapsibleCard title="Documents & Note" icon={<FileText className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="Documents & Note Section">
               <div className="space-y-3">
                 {customerData.documents?.length > 0 && (
                   <div className="space-y-3">
@@ -251,14 +251,14 @@ const CustomerDetails = () => {
                       <div key={doc._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors">
                         <div className="flex items-center min-w-0">
                           <FileIcon className="text-gray-400 mr-3 flex-shrink-0" />
-                          <a href={getFileUrl(id, doc._id)} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gray-700 truncate hover:text-blue-600" title={`View ${doc.originalName}`}>
+                          <a href={getFileUrl(id, doc._id)} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gray-700 truncate hover:text-[var(--color-primary)]" title={`View ${doc.originalName}`}>
                             {doc.originalName}
                           </a>
                         </div>
                         <div className="flex items-center flex-shrink-0">
-                          <Button onClick={() => handleDownload(id, doc._id, doc.originalName)} variant="subtle" size="sm" className="!p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-full" aria-label="Download document"><Download size={18} /></Button>
+                          <Button onClick={() => handleDownload(id, doc._id, doc.originalName)} variant="subtle" size="sm" className="!p-2 text-gray-500 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full" aria-label="Download document"><Download size={18} /></Button>
                           {hasPermission("CUSTOMER_UPDATE") && (
-                            <Button onClick={() => handleDeleteDoc(doc._id)} variant="subtle" size="sm" className="!p-2 text-gray-500 hover:text-red-600 hover:bg-red-100 rounded-full" aria-label="Delete document" disabled={deleteDocMutation.isLoading}><Trash2 size={18} /></Button>
+                            <Button onClick={() => handleDeleteDoc(doc._id)} variant="subtle" size="sm" className="!p-2 text-gray-500 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] rounded-full" aria-label="Delete document" disabled={deleteDocMutation.isLoading}><Trash2 size={18} /></Button>
                           )}
                         </div>
                       </div>
@@ -274,9 +274,9 @@ const CustomerDetails = () => {
 
         {hasPermission("SALE_VIEW_TABLE") && (
           <div className="mt-4 sm:mt-6">
-            <CollapsibleCard title="Recent Purchases" icon={<DollarSign className="text-blue-600" />} defaultOpen={true} ariaLabel="Recent Purchases Section">
+            <CollapsibleCard title="Recent Purchases" icon={<DollarSign className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="Recent Purchases Section">
               {loadingSales ? (
-                <div className="flex items-center justify-center py-12"><Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /><span className="ml-3 text-gray-600">Loading purchases...</span></div>
+                <div className="flex items-center justify-center py-12"><Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" /><span className="ml-3 text-gray-600">Loading purchases...</span></div>
               ) : salesData.length === 0 ? (
                 <div className="text-center py-12 text-gray-500"><DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" /><p>No purchases found for this customer</p></div>
               ) : (
@@ -302,12 +302,12 @@ const CustomerDetails = () => {
                                 <h4 className="font-semibold text-gray-900 text-sm">
                                   Opening Balance
                                 </h4>
-                                <span className="px-2 py-0.5 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
+                                <span className="px-2 py-0.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full">
                                   Automated
                                 </span>
                               </div>
                             ) : (
-                              <h4 className="font-semibold text-gray-900 text-sm">
+                              <h4 className="font-semibold text-[var(--color-primary)] text-sm">
                                 {sale.product?.name || "N/A"}
                               </h4>
                             )}
@@ -380,7 +380,7 @@ const CustomerDetails = () => {
                                     <span className="text-sm font-medium text-gray-900">
                                       Opening Balance
                                     </span>
-                                    <span className="px-2 py-0.5 text-xs font-medium text-blue-800 bg-blue-100 rounded-full">
+                                    <span className="px-2 py-0.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full">
                                       Automated
                                     </span>
                                   </div>
@@ -392,7 +392,7 @@ const CustomerDetails = () => {
                             ) : (
                               <>
                                 <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="text-sm font-medium text-blue-600">
+                                  <div className="text-sm font-medium text-[var(--color-primary)]">
                                     {sale.product?.name || "N/A"}
                                   </div>
                                 </td>
