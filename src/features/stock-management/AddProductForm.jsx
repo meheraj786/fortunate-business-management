@@ -76,6 +76,7 @@ const AddProductForm = ({
     reset,
     formState: { errors, isSubmitting: formSubmitting },
     setValue,
+    watch, // Add watch
   } = useForm({
     defaultValues: useMemo(() => {
       if (isEditMode && editingProduct) {
@@ -115,6 +116,22 @@ const AddProductForm = ({
     }, [isEditMode, editingProduct, currentWarehouseId]),
   });
 
+  const selectedLcId = watch("LC");
+  const isSupplierNameReadOnly = useMemo(() => !!selectedLcId, [selectedLcId]);
+
+  useEffect(() => {
+    if (selectedLcId) {
+      const selectedLc = completedLcs.find((lc) => lc._id === selectedLcId);
+      if (selectedLc && selectedLc.basicInfo?.supplierName) {
+        setValue("supplierName", selectedLc.basicInfo.supplierName, {
+          shouldValidate: true,
+        });
+      }
+    } else {
+      setValue("supplierName", "", { shouldValidate: true });
+    }
+  }, [selectedLcId, completedLcs, setValue]);
+
   useEffect(() => {
     if (isOpen) {
       if (isEditMode && editingProduct) {
@@ -153,7 +170,7 @@ const AddProductForm = ({
         });
       }
     }
-  }, [isEditMode, editingProduct, isOpen, currentWarehouseId, reset]);
+  }, [isEditMode, editingProduct, isOpen, currentWarehouseId, reset, selectedLcId]);
 
   const onSubmit = async (data) => {
     const dataToSave = {
@@ -306,6 +323,7 @@ const AddProductForm = ({
                       placeholder="Supplier company name"
                       icon={Truck}
                       disabled={isSubmitting}
+                      readOnly={isSupplierNameReadOnly} // Add readOnly prop
                     />
                   </div>
                 </div>
