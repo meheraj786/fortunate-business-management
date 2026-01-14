@@ -82,7 +82,6 @@ const TextAreaField = ({
       <div className="relative">
         <textarea
           id={`${id}-${name}`}
-          name={name}
           required={required}
           placeholder={placeholder}
           rows={rows}

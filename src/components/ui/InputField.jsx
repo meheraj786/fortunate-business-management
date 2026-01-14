@@ -59,7 +59,6 @@ const InputField = ({
         )}
         <input
           id={`${id}-${name}`}
-          name={name}
           type={type}
           required={required}
           placeholder={placeholder}

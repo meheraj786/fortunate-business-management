@@ -127,12 +127,12 @@ const CustomerForm = ({ onSave }) => {
         email: customer.email || "",
         billingAddress: customer.billingAddress || "",
         customerNote: customer.customerNote || "",
+        openingDue: customer.openingDue || "", // Add this line
       });
       if (customer.documents) {
         setUploadedFiles(customer.documents);
       }
     } else if (!isEditMode) {
-      // Reset form to default values when adding a new customer
       reset({
         name: "",
         companyName: "",
@@ -144,8 +144,9 @@ const CustomerForm = ({ onSave }) => {
         email: "",
         billingAddress: "",
         customerNote: "",
+        openingDue: "", // Add this line
       });
-      setUploadedFiles([]); // Clear uploaded files for new customer
+      setUploadedFiles([]);
     }
   }, [isEditMode, customer, reset]);
 
@@ -276,7 +277,7 @@ const CustomerForm = ({ onSave }) => {
                 step="0.01"
                 error={errors.creditLimit?.message}
               />
-              {!isEditMode && (
+              {!isEditMode ? (
                 <InputField
                   label="Opening Due"
                   name="openingDue"
@@ -288,6 +289,17 @@ const CustomerForm = ({ onSave }) => {
                   step="any"
                   error={errors.openingDue?.message}
                   validation={{ valueAsNumber: true }}
+                />
+              ) : (
+                <InputField
+                  label="Opening Due"
+                  name="openingDue"
+                  register={register}
+                  type="number"
+                  placeholder="20000"
+                  icon={DollarSign}
+                  disabled
+                  value={customer?.openingDue || 0}
                 />
               )}
             </div>
