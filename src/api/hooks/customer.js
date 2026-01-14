@@ -60,3 +60,12 @@ export const useDeleteCustomer = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
   });
 };
+
+export const useDeleteCustomerDocument = () => {
+    const qc = useQueryClient();
+    return useApiMutation({
+        mutationFn: ({ customerId, docId }) => api.deleteCustomerDocument(customerId, docId),
+        successMessage: "Document deleted successfully!",
+        onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["customers", vars.customerId] }),
+    });
+};

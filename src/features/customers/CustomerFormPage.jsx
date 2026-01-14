@@ -11,6 +11,7 @@ import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
 import FileInput from "@/components/ui/FileInput";
 import FormPageLayout from "@/components/ui/FormPageLayout";
+import Button from "@/components/ui/Button";
 
 // Icons
 import {
@@ -22,6 +23,8 @@ import {
   Calendar,
   DollarSign,
   Shield,
+  Trash2,
+  FileIcon,
 } from "lucide-react";
 
 // Custom Hooks
@@ -37,6 +40,9 @@ const CustomerForm = ({ onSave }) => {
   const navigate = useNavigate();
   const isEditMode = !!id;
 
+  const { data: customerData, isLoading: isCustomerDataLoading } = useCustomer(id);
+  const customer = customerData?.data;
+
   // Form handling
   const {
     register,
@@ -47,71 +53,42 @@ const CustomerForm = ({ onSave }) => {
     reset,
   } = useForm({
     mode: "onChange",
-    defaultValues: {
-      name: "",
-      companyName: "",
-      customerType: "Retail",
-      customerStatus: "Active",
-      joinDate: new Date().toISOString().split("T")[0],
-      creditLimit: "",
-      phone: "",
-      email: "",
-      billingAddress: "",
-      customerNote: "",
-      openingDue: "",
-    },
+    defaultValues: useMemo(() => {
+        if (isEditMode && customer) {
+            return {
+                name: customer.name || "",
+                companyName: customer.companyName || "",
+                customerType: customer.customerType || "Retail",
+                customerStatus: customer.customerStatus || "Active",
+                joinDate: customer.joinDate
+                  ? new Date(customer.joinDate).toISOString().split("T")[0]
+                  : new Date().toISOString().split("T")[0],
+                creditLimit: customer.creditLimit || "",
+                phone: customer.phone || "",
+                email: customer.email || "",
+                billingAddress: customer.billingAddress || "",
+                customerNote: customer.customerNote || "",
+                openingDue: customer.openingDue || "",
+                documents: customer.documents || [],
+            }
+        }
+        return {
+            name: "",
+            companyName: "",
+            customerType: "Retail",
+            customerStatus: "Active",
+            joinDate: new Date().toISOString().split("T")[0],
+            creditLimit: "",
+            phone: "",
+            email: "",
+            billingAddress: "",
+            customerNote: "",
+            openingDue: "",
+            documents: [],
+        }
+    }, [isEditMode, customer])
   });
-
-  // State
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const updateCustomerMutation = useUpdateCustomer();
-  const createCustomerMutation = useCreateCustomer();
-
-  // Sections
-  const SECTIONS = useMemo(
-    () => [
-      {
-        id: "basic",
-        title: "Basic Information",
-        icon: User,
-        defaultOpen: true,
-      }, // Always open basic info
-      {
-        id: "contact",
-        title: "Contact Information",
-        icon: Phone,
-        defaultOpen: true,
-      }, // Always open contact info
-      { id: "others", title: "Others", icon: FileText, defaultOpen: true }, // Always open others
-    ],
-    [],
-  );
-
-  const { expandedSections, toggleSection, setSectionRef } =
-    useSectionManager(SECTIONS);
-
-  // Data
-  const customerTypes = useMemo(
-    () => [
-      { value: "Retail", label: "Retail" },
-      { value: "Wholesale", label: "Wholesale" },
-    ],
-    [],
-  );
-
-  const statusOptions = useMemo(
-    () => [
-      { value: "Active", label: "Active" },
-      { value: "Suspended", label: "Suspended" },
-    ],
-    [],
-  );
-
-  const { data: customerData, isLoading: isCustomerDataLoading } =
-    useCustomer(id);
-  const customer = customerData?.data;
-
-  // Effects for form initialization
+  
   useEffect(() => {
     if (isEditMode && customer) {
       reset({
@@ -127,50 +104,40 @@ const CustomerForm = ({ onSave }) => {
         email: customer.email || "",
         billingAddress: customer.billingAddress || "",
         customerNote: customer.customerNote || "",
-        openingDue: customer.openingDue || "", // Add this line
+        openingDue: customer.openingDue || "",
+        documents: customer.documents || [],
       });
-      if (customer.documents) {
-        setUploadedFiles(customer.documents);
-      }
-    } else if (!isEditMode) {
-      reset({
-        name: "",
-        companyName: "",
-        customerType: "Retail",
-        customerStatus: "Active",
-        joinDate: new Date().toISOString().split("T")[0],
-        creditLimit: "",
-        phone: "",
-        email: "",
-        billingAddress: "",
-        customerNote: "",
-        openingDue: "", // Add this line
-      });
-      setUploadedFiles([]);
     }
   }, [isEditMode, customer, reset]);
+  
+  const [newUploadedFiles, setNewUploadedFiles] = useState([]);
+  const updateCustomerMutation = useUpdateCustomer();
+  const createCustomerMutation = useCreateCustomer();
 
-  // Event Handlers
-  const handleFileChange = useCallback((files) => {
-    setUploadedFiles((prev) => [...prev, ...files]);
-  }, []);
+  const SECTIONS = useMemo(
+    () => [
+      { id: "basic", title: "Basic Information", icon: User, defaultOpen: true },
+      { id: "contact", title: "Contact Information", icon: Phone, defaultOpen: true },
+      { id: "others", title: "Others", icon: FileText, defaultOpen: true },
+    ],
+    [],
+  );
 
-  const handleFileRemove = useCallback((index) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
-  }, []);
+  const { expandedSections, toggleSection, setSectionRef } = useSectionManager(SECTIONS);
+
+  const customerTypes = useMemo(() => [{ value: "Retail", label: "Retail" }, { value: "Wholesale", label: "Wholesale" }], []);
+  const statusOptions = useMemo(() => [{ value: "Active", label: "Active" }, { value: "Suspended", label: "Suspended" }], []);
+
+  const handleExistingFileRemove = (fileId) => {
+    const currentDocs = watch("documents");
+    setValue("documents", currentDocs.filter((doc) => doc._id !== fileId));
+    showSuccessToast("Existing file marked for removal.");
+  };
 
   const onSubmit = async (data) => {
-    const payload = {
-      ...data,
-      creditLimit: parseFloat(data.creditLimit) || 0,
-      openingDue: parseFloat(data.openingDue) || 0, // Ensure openingDue is always a number and included
-      documents: uploadedFiles.map((file) => ({
-        name: file.name || file.file?.name,
-        type: file.type || file.file?.type,
-        size: file.size,
-        uploadDate: file.uploadDate || new Date().toISOString().split("T")[0],
-      })),
-    };
+    const formData = new FormData();
+    formData.append("customerData", JSON.stringify(data));
+    newUploadedFiles.forEach(file => formData.append("documents", file));
 
     const mutationOptions = {
       onSuccess: (responseData) => {
@@ -180,25 +147,21 @@ const CustomerForm = ({ onSave }) => {
     };
 
     if (isEditMode && id) {
-      updateCustomerMutation.mutate({ id: id, data: payload }, mutationOptions);
+      updateCustomerMutation.mutate({ id: id, data: formData }, mutationOptions);
     } else {
-      createCustomerMutation.mutate(payload, mutationOptions);
+      createCustomerMutation.mutate(formData, mutationOptions);
     }
   };
 
   return (
     <FormPageLayout
       title={isEditMode ? "Edit Customer" : "Add New Customer"}
-      subtitle={
-        isEditMode
-          ? "Update customer information and details"
-          : "Complete the form below to add a new customer"
-      }
+      subtitle={isEditMode ? "Update customer information and details" : "Complete the form below to add a new customer"}
       cancelLink="/customers"
       onSubmit={handleSubmit(onSubmit)}
       isEditMode={isEditMode}
       submitButtonText="Customer"
-      isLoading={isSubmitting || isCustomerDataLoading} // Use isLoading from useCustomer hook
+      isLoading={isSubmitting || isCustomerDataLoading}
       isValid={isValid}
     >
       {SECTIONS.map((section) => (
@@ -214,154 +177,51 @@ const CustomerForm = ({ onSave }) => {
         >
           {section.id === "basic" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <InputField
-                label="Full Name"
-                name="name"
-                register={register}
-                required
-                placeholder="Ahmed Hassan"
-                icon={User}
-                error={errors.name?.message}
-                validation={{ required: "Full name is required" }}
-              />
-              <InputField
-                label="Company Name"
-                name="companyName"
-                register={register}
-                placeholder="Hassan Trading"
-                icon={Building}
-                error={errors.companyName?.message}
-              />
-              <SelectField
-                label="Customer Type"
-                name="customerType"
-                register={register}
-                options={customerTypes}
-                required
-                icon={Building}
-                error={errors.customerType?.message}
-                validation={{ required: "Customer type is required" }}
-              />
-              <SelectField
-                label="Customer Status"
-                name="customerStatus"
-                register={register}
-                options={statusOptions}
-                required
-                icon={Shield}
-                error={errors.customerStatus?.message}
-                validation={{ required: "Customer status is required" }}
-              />
-              <InputField
-                label="Customer Join"
-                name="joinDate"
-                register={register}
-                type="date"
-                required
-                icon={Calendar}
-                error={errors.joinDate?.message}
-                validation={{ required: "Join date is required" }}
-              />
-              <InputField
-                label="Credit Limit"
-                name="creditLimit"
-                register={register}
-                type="number"
-                placeholder="5000"
-                icon={DollarSign}
-                min="0"
-                step="0.01"
-                error={errors.creditLimit?.message}
-                validation={{
-                  valueAsNumber: true,
-                  min: { value: 0, message: "Credit limit cannot be negative" },
-                }}
-              />
-              <InputField
-                label="Opening Due"
-                name="openingDue"
-                register={register}
-                type="number"
-                placeholder="0"
-                icon={DollarSign}
-                min="0"
-                step="any"
-                error={errors.openingDue?.message}
-                validation={{ valueAsNumber: true }}
-              />
+                <InputField label="Full Name" name="name" register={register} required placeholder="Ahmed Hassan" icon={User} error={errors.name?.message} validation={{ required: "Full name is required" }} />
+                <InputField label="Company Name" name="companyName" register={register} placeholder="Hassan Trading" icon={Building} error={errors.companyName?.message} />
+                <SelectField label="Customer Type" name="customerType" register={register} options={customerTypes} required icon={Building} error={errors.customerType?.message} validation={{ required: "Customer type is required" }} />
+                <SelectField label="Customer Status" name="customerStatus" register={register} options={statusOptions} required icon={Shield} error={errors.customerStatus?.message} validation={{ required: "Customer status is required" }} />
+                <InputField label="Customer Join" name="joinDate" register={register} type="date" required icon={Calendar} error={errors.joinDate?.message} validation={{ required: "Join date is required" }} />
+                <InputField label="Credit Limit" name="creditLimit" register={register} type="number" placeholder="5000" icon={DollarSign} min="0" step="0.01" error={errors.creditLimit?.message} validation={{ valueAsNumber: true, min: { value: 0, message: "Credit limit cannot be negative" } }} />
+                <InputField label="Opening Due" name="openingDue" register={register} type="number" placeholder="0" icon={DollarSign} min="0" step="any" error={errors.openingDue?.message} validation={{ valueAsNumber: true }} />
             </div>
           )}
 
           {section.id === "contact" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <InputField
-                label="Phone Number"
-                name="phone"
-                register={register}
-                required
-                placeholder="+880 1712-345678"
-                icon={Phone}
-                error={errors.phone?.message}
-                validation={{
-                  required: "Phone number is required",
-                  pattern: {
-                    value: /^[+]?[0-9\s\-\(\)]+$/,
-                    message: "Invalid phone number format",
-                  },
-                }}
-              />
-              <InputField
-                label="Email Address"
-                name="email"
-                register={register}
-                type="email"
-                placeholder="ahmed.hassan@email.com"
-                icon={Mail}
-                error={errors.email?.message}
-                validation={{
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address",
-                  },
-                }}
-              />
-              <div className="lg:col-span-2">
-                <TextAreaField
-                  label="Billing Address"
-                  name="billingAddress"
-                  register={register}
-                  required
-                  placeholder="45 Dhanmondi Road, Dhaka-1205, Bangladesh"
-                  rows={2}
-                  autoResize
-                  error={errors.billingAddress?.message}
-                  validation={{ required: "Billing address is required" }}
-                />
-              </div>
+                <InputField label="Phone Number" name="phone" register={register} required placeholder="+880 1712-345678" icon={Phone} error={errors.phone?.message} validation={{ required: "Phone number is required", pattern: { value: /^[+]?[0-9\s\-\(\)]+$/, message: "Invalid phone number format" } }} />
+                <InputField label="Email Address" name="email" register={register} type="email" placeholder="ahmed.hassan@email.com" icon={Mail} error={errors.email?.message} validation={{ pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email address" } }} />
+                <div className="lg:col-span-2">
+                    <TextAreaField label="Billing Address" name="billingAddress" register={register} required placeholder="45 Dhanmondi Road, Dhaka-1205, Bangladesh" rows={2} autoResize error={errors.billingAddress?.message} validation={{ required: "Billing address is required" }} />
+                </div>
             </div>
           )}
 
           {section.id === "others" && (
-            <div className="space-y-4 sm:space-y-6">
-              <TextAreaField
-                label="Notes"
-                name="customerNote"
-                register={register}
-                placeholder="Add any relevant notes here..."
-                rows={4}
-                autoResize
-                error={errors.customerNote?.message}
-              />
-
-              <FileInput
-                files={uploadedFiles}
-                onFileChange={handleFileChange}
-                onFileRemove={handleFileRemove}
-                label="Upload Documents"
-                maxSize={10}
-                acceptedTypes="*/*"
-                error={errors.documents?.message}
-              />
+            <div className="space-y-6">
+                <TextAreaField label="Notes" name="customerNote" register={register} placeholder="Add any relevant notes here..." rows={4} autoResize error={errors.customerNote?.message} />
+                {isEditMode && watch("documents")?.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-700">Existing Documents</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {watch("documents").map((doc) => (
+                        <div key={doc._id} className="flex items-center justify-between p-3 bg-gray-100 border border-gray-200 rounded-lg">
+                          <div className="flex items-center min-w-0">
+                            <FileIcon className="w-4 h-4 text-gray-500 mr-2 flex-shrink-0" />
+                            <span className="text-xs text-gray-900 truncate font-medium">{doc.originalName}</span>
+                          </div>
+                          <Button type="button" onClick={() => handleExistingFileRemove(doc._id)} variant="subtle" className="!p-1.5 text-red-600 hover:bg-red-100" aria-label="Remove document" disabled={isSubmitting}>
+                              <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="pt-4 border-t border-gray-100">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">{isEditMode ? "Upload New Documents" : "Upload Documents"}</h4>
+                    <FileInput files={newUploadedFiles} onFileChange={(files) => setNewUploadedFiles((prev) => [...prev, ...files])} onFileRemove={(index) => setNewUploadedFiles((prev) => prev.filter((_, i) => i !== index))} maxSize={10} acceptedTypes="*/*" label="Drop files here or click to upload" disabled={isSubmitting} />
+                </div>
             </div>
           )}
         </FormSection>
