@@ -1,24 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { useParams, useNavigate } from "react-router";
 import {
   ChevronLeft,
-  FileText,
-  User,
-  Calendar,
-  DollarSign,
-  Truck,
-  Info,
   ShoppingCart,
-  Package,
-  Printer,
+  Calendar,
   Edit,
   Trash2,
   XCircle,
-  ExternalLink,
-  CreditCard,
   Menu,
-  X,
 } from "lucide-react";
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
@@ -36,10 +26,15 @@ import SaleDetailsSkeleton from "./components/SaleDetailsSkeleton";
 import Breadcrumb from "@/components/ui/breadcrumb";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
-import FileInput from "@/components/ui/FileInput";
 import SelectField from "@/components/ui/SelectField";
 import AddSalesForm from "./AddSalesForm";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
+
+// Sub-components
+import SaleInfo from "./components/SaleDetails/SaleInfo";
+import SaleFinancialSummary from "./components/SaleDetails/SaleFinancialSummary";
+import SaleInvoiceHistory from "./components/SaleDetails/SaleInvoiceHistory";
+import SaleMobileActions from "./components/SaleDetails/SaleMobileActions";
 
 const SaleDetails = () => {
   const { id } = useParams();
@@ -115,27 +110,19 @@ const SaleDetails = () => {
         onSuccess: () => {
           refetch();
           setIsPaymentDialogOpen(false);
-          setPaymentData({
-            amount: "",
-            method: "Cash",
-            account: "",
-          });
+          setPaymentData({ amount: "", method: "Cash", account: "" });
         },
       },
     );
   };
 
   useEffect(() => {
-    // When the payment dialog opens, pre-select the first available account if none is selected
     if (isPaymentDialogOpen) {
       const availableAccounts = accounts.filter(
         (acc) => acc.accountType === paymentData.method,
       );
       if (availableAccounts.length > 0 && !paymentData.account) {
-        setPaymentData((p) => ({
-          ...p,
-          account: availableAccounts[0]._id,
-        }));
+        setPaymentData((p) => ({ ...p, account: availableAccounts[0]._id }));
       }
     }
   }, [isPaymentDialogOpen, accounts, paymentData.method, paymentData.account]);
@@ -143,7 +130,7 @@ const SaleDetails = () => {
   const breadcrumbItems = useMemo(
     () => [
       { label: "Sales", path: "/sales" },
-      { label: `Sale #${sale?._id.slice(-6) || ""}` },
+      { label: `Sale #${sale?.saleId || ""}` },
     ],
     [sale],
   );
@@ -159,131 +146,14 @@ const SaleDetails = () => {
   const canAddPayment =
     !isCancelled && sale.paymentStatus === "Due payment" && balanceDue > 0;
   const isRegisteredCustomer = !!sale.customer?.customerId?._id;
-
   const validPayments = sale.payments?.filter((p) => p.amount) || [];
 
-  const MobileActionsMenu = () => (
-    <AnimatePresence>
-      {isMobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="md:hidden fixed inset-0 z-40 bg-gray-900/50"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: "0%" }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-5 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-base font-semibold text-gray-900">
-                Sale Actions
-              </h3>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1.5 rounded-full hover:bg-gray-100"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-2.5">
-              {hasPermission("SALE_UPDATE") && (
-                <Button
-                  onClick={() => {
-                    setIsUpdateModalOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  disabled={
-                    isCancelled ||
-                    deleteSaleMutation.isLoading ||
-                    cancelSaleMutation.isLoading
-                  }
-                  variant="primary"
-                  className="w-full flex items-center justify-center gap-1.5"
-                >
-                  <Edit className="w-3.5 h-3.5" />
-                  <span>Update Sale</span>
-                </Button>
-              )}
-              {hasPermission("SALE_CANCEL") && (
-                <Button
-                  onClick={() => {
-                    setConfirmAction({ type: "cancel" });
-                    setIsMobileMenuOpen(false);
-                  }}
-                  disabled={
-                    isCancelled ||
-                    deleteSaleMutation.isLoading ||
-                    cancelSaleMutation.isLoading
-                  }
-                  variant="warning"
-                  className="w-full flex items-center justify-center gap-1.5"
-                >
-                  <XCircle className="w-3.5 h-3.5" />
-                  <span>Cancel Sale</span>
-                </Button>
-              )}
-              {hasPermission("SALE_DELETE") && (
-                <Button
-                  onClick={() => {
-                    setConfirmAction({ type: "delete" });
-                    setIsMobileMenuOpen(false);
-                  }}
-                  disabled={
-                    deleteSaleMutation.isLoading || cancelSaleMutation.isLoading
-                  }
-                  variant="danger"
-                  className="w-full flex items-center justify-center gap-1.5"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Delete Sale</span>
-                </Button>
-              )}
-              {hasPermission("SALE_GENERATE_INVOICE") &&
-                sale.invoiceStatus !== "Invoiced" &&
-                !isCancelled && (
-                  <Button
-                    onClick={() => {
-                      handleGenerateInvoice();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    disabled={generateInvoiceMutation.isLoading || isCancelled}
-                    isLoading={generateInvoiceMutation.isLoading}
-                    variant="success"
-                    className="w-full flex items-center justify-center gap-1.5"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>Generate Invoice</span>
-                  </Button>
-                )}
-              {hasPermission("SALE_ADD_PAYMENT") && canAddPayment && (
-                <Button
-                  onClick={() => {
-                    setIsPaymentDialogOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  variant="primary" // Mapped purple to primary
-                  className="w-full flex items-center justify-center gap-1.5"
-                >
-                  <CreditCard className="w-3.5 h-3.5" />
-                  <span>Add Payment</span>
-                </Button>
-              )}
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="max-w-7xl mx-auto">
         <Breadcrumb items={breadcrumbItems} />
         <div className="mt-6 space-y-6">
@@ -381,205 +251,29 @@ const SaleDetails = () => {
               >
                 <Menu className="w-4 h-4" />
                 <span>Actions</span>
-              </Button>{" "}
+              </Button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              {/* Sale Info, Financial Summary */}
-              <div className="bg-white rounded-lg shadow-sm p-5">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Info className="h-5 w-5 mr-2 text-[var(--color-primary)]" />
-                  Sale Information
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Product
-                    </label>
-                    <div className="flex items-center text-gray-900">
-                      <Package className="h-4 w-4 mr-2 text-gray-400" />
-                      {sale.product?.name || "N/A"}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Quantity
-                    </label>
-                    <p className="text-gray-900">
-                      {sale.quantity?.toLocaleString()}{" "}
-                      {sale.unit?.name || "units"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Unit Price
-                    </label>
-                    <p className="text-gray-900">
-                      {formatCurrency(sale.pricePerUnit)}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Total Amount
-                    </label>
-                    <p className="text-gray-900">
-                      {formatCurrency(sale.totalAmount)}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Invoice Status
-                    </label>
-                    <div className="flex items-center text-gray-900">
-                      <FileText className="h-4 w-4 mr-2 text-gray-400" />
-                      {sale.invoiceStatus}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Payment Status
-                    </label>
-                    <div className="flex items-center text-gray-900">
-                      <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
-                      {sale.paymentStatus || "N/A"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-sm p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Financial Summary
-                  </h2>
-                  {hasPermission("SALE_ADD_PAYMENT") && canAddPayment && (
-                    <Button
-                      onClick={() => setIsPaymentDialogOpen(true)}
-                      variant="primary"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      Add Payment
-                    </Button>
-                  )}
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">
-                      {formatCurrency(sale.totalAmount)}
-                    </span>
-                  </div>
-                  {sale.charges?.map((charge, i) => (
-                    <div
-                      key={`charge-${i}`}
-                      className="flex justify-between items-center py-2"
-                    >
-                      <span className="text-gray-600 flex items-center">
-                        <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
-                        {charge.name}
-                      </span>
-                      <span className="font-medium">
-                        {formatCurrency(charge.amount)}
-                      </span>
-                    </div>
-                  ))}
-                  {sale.costs?.map((cost, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between items-center py-2"
-                    >
-                      <span className="text-gray-600 flex items-center">
-                        <Truck className="h-4 w-4 mr-2 text-gray-400" />
-                        {cost.name}
-                      </span>
-                      <span className="font-medium">
-                        {formatCurrency(cost.amount)}
-                      </span>
-                    </div>
-                  ))}
-                  {sale.discount > 0 && (
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-600">Discount</span>
-                      <span className="font-medium text-[var(--color-success)]">
-                        -{formatCurrency(sale.discount)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="border-t border-gray-200 pt-3 flex justify-between items-center font-semibold">
-                    <span className="text-gray-900">Net Amount</span>
-                    <span className="text-gray-900">
-                      {formatCurrency(sale.totalAmountToBePaid)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600">Payments Made</span>
-                    <span className="font-medium">
-                      {formatCurrency(totalPayments)}
-                    </span>
-                  </div>
-                  <div
-                    className={`border-t border-gray-200 pt-3 flex justify-between items-center text-lg font-semibold ${
-                      balanceDue > 0
-                        ? "text-[var(--color-danger)]"
-                        : "text-[var(--color-success)]"
-                    }`}
-                  >
-                    <span>
-                      {balanceDue > 0 ? "Balance Due" : "Overpayment"}
-                    </span>
-                    <span>{formatCurrency(Math.abs(balanceDue))}</span>
-                  </div>
-                </div>
-              </div>
+              <SaleInfo
+                sale={sale}
+                isRegisteredCustomer={isRegisteredCustomer}
+                hasPermission={hasPermission}
+              />
+              <SaleFinancialSummary
+                sale={sale}
+                totalPayments={totalPayments}
+                balanceDue={balanceDue}
+                canAddPayment={canAddPayment}
+                hasPermission={hasPermission}
+                onAddPaymentClick={() => setIsPaymentDialogOpen(true)}
+              />
             </div>
 
             <div className="space-y-6">
-              {/* Customer & Other Details */}
-              {sale.customer && (
-                <div className="bg-white rounded-lg shadow-sm p-5">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <User className="h-5 w-5 mr-2 text-[var(--color-primary)]" />
-                    Customer Information
-                  </h2>{" "}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Name
-                      </label>
-                      <p className="text-gray-900">{sale.customer.name}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        Phone
-                      </label>
-                      <p className="text-gray-900">
-                        {sale.customer.phone || "N/A"}
-                      </p>
-                    </div>
-                    {!isRegisteredCustomer && sale.customer.address && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
-                          Address
-                        </label>
-                        <p className="text-gray-900">{sale.customer.address}</p>
-                      </div>
-                    )}
-                    {isRegisteredCustomer &&
-                      hasPermission("CUSTOMER_VIEW_DETAILS") && (
-                        <Link
-                          to={`/customer-details/${sale.customer.customerId._id}`}
-                          className="inline-flex items-center text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
-                        >
-                          View Customer Details
-                          <ExternalLink className="h-4 w-4 ml-1" />
-                        </Link>
-                      )}
-                  </div>
-                </div>
-              )}
+              {/* Additional Details (Notes & History) - Kept Inline for now as they are small */}
               <div className="bg-white rounded-lg shadow-sm p-5">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Additional Details
@@ -591,31 +285,37 @@ const SaleDetails = () => {
                         Payment History
                       </h4>
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                        {validPayments.map((p, i) => (
-                          <div
-                            key={i}
-                            className="flex justify-between items-center p-2 bg-gray-50 rounded"
-                          >
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">
-                                {formatDate(p.date, {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                })}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {p.method}{" "}
-                                {p.accountId?.accountName
-                                  ? `(${p.accountId.accountName})`
-                                  : ""}
-                              </p>
-                            </div>
-                            <span className="text-sm font-medium text-[var(--color-success)]">
-                              {formatCurrency(p.amount)}
-                            </span>
-                          </div>
-                        ))}
+                        <AnimatePresence initial={false}>
+                          {validPayments.map((p, i) => (
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
+                              transition={{ duration: 0.12 }}
+                              className="flex justify-between items-center p-2 bg-gray-50 rounded"
+                            >
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {formatDate(p.date, {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  })}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {p.method}{" "}
+                                  {p.accountId?.accountName
+                                    ? `(${p.accountId.accountName})`
+                                    : ""}
+                                </p>
+                              </div>
+                              <span className="text-sm font-medium text-[var(--color-success)]">
+                                {formatCurrency(p.amount)}
+                              </span>
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
                       </div>
                     </div>
                   )}
@@ -631,63 +331,18 @@ const SaleDetails = () => {
               </div>
             </div>
           </div>
+
           {sale.invoiceStatus === "Invoiced" && !isCancelled && (
-            <div className="bg-white rounded-lg shadow-sm p-5">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Invoice History
-                </h2>
-                {hasPermission("SALE_GENERATE_INVOICE") && (
-                  <Button
-                    onClick={handleGenerateInvoice}
-                    disabled={generateInvoiceMutation.isLoading}
-                    isLoading={generateInvoiceMutation.isLoading}
-                    variant="primary"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Printer className="h-4 w-4" />
-                    <span>Generate New Invoice</span>
-                  </Button>
-                )}
-              </div>
-              {invoiceHistory.length > 0 ? (
-                <div className="space-y-3">
-                  {invoiceHistory.map((inv) => (
-                    <div
-                      key={inv._id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          Invoice #{inv._id.slice(-6)}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Generated:{" "}
-                          {new Date(inv.invoiceGeneratedDate).toLocaleString()}
-                        </p>
-                      </div>
-                      {hasPermission("SALE_VIEW_INVOICE") && (
-                        <Button
-                          onClick={() =>
-                            navigate(`/sales/${sale._id}/invoice/${inv._id}`)
-                          }
-                          variant="subtle"
-                          size="sm"
-                          className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
-                        >
-                          View Invoice
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-gray-500 py-4">
-                  No invoices generated yet
-                </p>
-              )}
-            </div>
+            <SaleInvoiceHistory
+              invoiceHistory={invoiceHistory}
+              hasPermission={hasPermission}
+              generateInvoiceLoading={generateInvoiceMutation.isLoading}
+              isCancelled={isCancelled}
+              onGenerateInvoiceClick={handleGenerateInvoice}
+              onViewInvoiceClick={(invoiceId) =>
+                navigate(`/sales/${sale._id}/invoice/${invoiceId}`)
+              }
+            />
           )}
         </div>
       </div>
@@ -739,9 +394,7 @@ const SaleDetails = () => {
             ]}
             required
           />
-          {(paymentData.method === "Bank" ||
-            paymentData.method === "Mobile Banking" ||
-            paymentData.method === "Cash") && (
+          {["Bank", "Mobile Banking", "Cash"].includes(paymentData.method) && (
             <SelectField
               label="Account"
               name="account"
@@ -753,9 +406,7 @@ const SaleDetails = () => {
                 .filter((acc) => acc.accountType === paymentData.method)
                 .map((acc) => ({
                   value: acc._id,
-                  label: `${acc.accountName} (${
-                    acc.bankName || acc.serviceName || "N/A"
-                  })`,
+                  label: `${acc.accountName} (${acc.bankName || acc.serviceName || "N/A"})`,
                 }))}
               required
             />
@@ -793,8 +444,23 @@ const SaleDetails = () => {
           icon={confirmAction.type === "delete" ? Trash2 : XCircle}
         />
       )}
-      <MobileActionsMenu />
-    </div>
+      <SaleMobileActions
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        hasPermission={hasPermission}
+        sale={sale}
+        isCancelled={isCancelled}
+        canAddPayment={canAddPayment}
+        onUpdateClick={() => setIsUpdateModalOpen(true)}
+        onCancelClick={() => setConfirmAction({ type: "cancel" })}
+        onDeleteClick={() => setConfirmAction({ type: "delete" })}
+        onGenerateInvoiceClick={handleGenerateInvoice}
+        onAddPaymentClick={() => setIsPaymentDialogOpen(true)}
+        deleteLoading={deleteSaleMutation.isLoading}
+        cancelLoading={cancelSaleMutation.isLoading}
+        generateInvoiceLoading={generateInvoiceMutation.isLoading}
+      />
+    </motion.div>
   );
 };
 

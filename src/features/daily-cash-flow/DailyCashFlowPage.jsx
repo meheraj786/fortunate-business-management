@@ -55,6 +55,9 @@ const DailyCashFlow = () => {
     getLocalDateString,
     totalTransactions,
     isToday,
+    sortBy,
+    sortOrder,
+    onSort,
   } = useDailyCashFlowData();
 
   const [showAddTransaction, setShowAddTransaction] = useState(false);
@@ -159,6 +162,9 @@ const DailyCashFlow = () => {
           <TransactionTable
             transactions={transactions}
             onRowClick={handleTransactionClick}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={onSort}
           />
         ) : (
           <div className="text-center py-12 px-4">

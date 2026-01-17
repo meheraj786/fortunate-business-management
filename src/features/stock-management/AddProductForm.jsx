@@ -5,43 +5,26 @@ import {
   Save,
   Loader2,
   Package,
-  Tag,
-  Ruler,
-  Palette,
-  Hash,
-  DollarSign,
   Layers,
+  Ruler,
+  Hash,
   FileText,
-  Truck,
   AlertCircle,
 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 
 import { useCategories } from "@/api/hooks/category";
 import { useCompletedLCs } from "@/api/hooks/lc";
 import { useUnits } from "@/api/hooks/unit";
 import { useCreateProduct, useUpdateProduct } from "@/api/hooks/products";
 
-import InputField from "@/components/ui/InputField";
-import SelectField from "@/components/ui/SelectField";
-import TextAreaField from "@/components/ui/TextAreaField";
 import Button from "@/components/ui/Button";
+import TextAreaField from "@/components/ui/TextAreaField";
 
-const colorOptions = [
-  "Silver",
-  "Black",
-  "Gray",
-  "Dark Gray",
-  "Brown",
-  "Galvanized",
-  "Stainless",
-  "Coated",
-  "Painted",
-  "Natural",
-  "Blue",
-  "Green",
-  "Red",
-];
+// Sub-components
+import ProductBasicInfo from "./components/AddProductForm/ProductBasicInfo";
+import ProductDimensions from "./components/AddProductForm/ProductDimensions";
+import ProductPricing from "./components/AddProductForm/ProductPricing";
 
 const AddProductForm = ({
   onClose,
@@ -52,150 +35,124 @@ const AddProductForm = ({
   warehouse = null,
 }) => {
   const isEditMode = !!editingProduct;
-  const currentWarehouseId = warehouse?._id; // Ensure we have a current warehouse ID
+  const currentWarehouseId = warehouse?._id;
 
   const { data: categoriesData, isLoading: categoriesLoading } =
     useCategories();
   const { data: completedLcData, isLoading: lcsLoading } = useCompletedLCs();
   const { data: unitsData, isLoading: unitsLoading } = useUnits();
 
-  const categories = useMemo(() => categoriesData?.data || [], [categoriesData]);
-  const completedLcs = useMemo(() => completedLcData?.data || [], [completedLcData]);
+  const categories = useMemo(
+    () => categoriesData?.data || [],
+    [categoriesData],
+  );
+  const completedLcs = useMemo(
+    () => completedLcData?.data || [],
+    [completedLcData],
+  );
   const units = useMemo(() => unitsData?.data || [], [unitsData]);
 
   const createProductMutation = useCreateProduct(currentWarehouseId);
   const updateProductMutation = useUpdateProduct(
     editingProduct?.warehouse?.id,
-    editingProduct?._id
+    editingProduct?._id,
   );
+
+  const initialValues = useMemo(() => {
+    const getSafeId = (obj) => obj?.id || obj?._id || obj || "";
+
+    if (isEditMode && editingProduct) {
+      return {
+        name: editingProduct.name || "",
+        category: getSafeId(editingProduct.category),
+        LC: getSafeId(editingProduct.LC),
+        thickness: editingProduct.thickness || "",
+        width: editingProduct.width || "",
+        length: editingProduct.length || "",
+        grade: editingProduct.grade || "",
+        color: editingProduct.color || "",
+        quantity: editingProduct.quantity || "",
+        unit: getSafeId(editingProduct.unit),
+        unitPrice: editingProduct.unitPrice || "",
+        warehouse:
+          getSafeId(editingProduct.warehouse) || currentWarehouseId || "",
+        productDescription: editingProduct.productDescription || "",
+        supplierName: editingProduct.supplierName || "",
+      };
+    }
+    return {
+      name: "",
+      category: "",
+      LC: "",
+      thickness: "",
+      width: "",
+      length: "",
+      grade: "",
+      color: "",
+      quantity: "",
+      unit: "",
+      unitPrice: "",
+      warehouse: currentWarehouseId || "",
+      productDescription: "",
+      supplierName: "",
+    };
+  }, [isEditMode, editingProduct, currentWarehouseId]);
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting: formSubmitting },
     setValue,
-    watch, // Add watch
+    watch,
   } = useForm({
-    defaultValues: useMemo(() => {
-      if (isEditMode && editingProduct) {
-        return {
-          name: editingProduct.name || "",
-          category: editingProduct.category?.id || "",
-          LC: editingProduct.LC?.id || "",
-          thickness: editingProduct.thickness || "",
-          width: editingProduct.width || "",
-          length: editingProduct.length || "",
-          grade: editingProduct.grade || "",
-          color: editingProduct.color || "",
-          quantity: editingProduct.quantity || "",
-          unit: editingProduct.unit?.id || "",
-          unitPrice: editingProduct.unitPrice || "",
-          warehouse: editingProduct.warehouse?.id || currentWarehouseId || "",
-          productDescription: editingProduct.productDescription || "",
-          supplierName: editingProduct.supplierName || "",
-        };
-      }
-      return {
-        name: "",
-        category: "",
-        LC: "",
-        thickness: "",
-        width: "",
-        length: "",
-        grade: "",
-        color: "",
-        quantity: "",
-        unit: "",
-        unitPrice: "",
-        warehouse: currentWarehouseId || "",
-        productDescription: "",
-        supplierName: "",
-      };
-    }, [isEditMode, editingProduct, currentWarehouseId]),
+    defaultValues: initialValues,
   });
 
   const selectedLcId = watch("LC");
   const isSupplierNameReadOnly = useMemo(() => !!selectedLcId, [selectedLcId]);
 
+  // Handle supplier name auto-update from LC
   useEffect(() => {
     if (selectedLcId) {
       const selectedLc = completedLcs.find((lc) => lc._id === selectedLcId);
       if (selectedLc && selectedLc.basicInfo?.supplierName) {
-        setValue("supplierName", selectedLc.basicInfo.supplierName, {
-          shouldValidate: true,
-        });
+        // Only set if it's different to avoid unnecessary re-renders or clearing
+        const currentSupplier = watch("supplierName");
+        if (currentSupplier !== selectedLc.basicInfo.supplierName) {
+          setValue("supplierName", selectedLc.basicInfo.supplierName, {
+            shouldValidate: true,
+          });
+        }
       }
-    } else {
-      setValue("supplierName", "", { shouldValidate: true });
+    } else if (!isEditMode) {
+      // Only clear if not in edit mode to avoid clearing existing manual supplier names
+      const currentSupplier = watch("supplierName");
+      if (currentSupplier) {
+        setValue("supplierName", "", { shouldValidate: true });
+      }
     }
-  }, [selectedLcId, completedLcs, setValue]);
+  }, [selectedLcId, completedLcs, setValue, isEditMode, watch]);
 
+  // Sync form when initialValues change (e.g. if prop updates While mounted)
   useEffect(() => {
     if (isOpen) {
-      if (isEditMode && editingProduct) {
-        reset({
-          name: editingProduct.name || "",
-          category: editingProduct.category?.id || "",
-          LC: editingProduct.LC?.id || "",
-          thickness: editingProduct.thickness || "",
-          width: editingProduct.width || "",
-          length: editingProduct.length || "",
-          grade: editingProduct.grade || "",
-          color: editingProduct.color || "",
-          quantity: editingProduct.quantity || "",
-          unit: editingProduct.unit?.id || "",
-          unitPrice: editingProduct.unitPrice || "",
-          warehouse: editingProduct.warehouse?.id || currentWarehouseId || "",
-          productDescription: editingProduct.productDescription || "",
-          supplierName: editingProduct.supplierName || "",
-        });
-      } else {
-        reset({
-          name: "",
-          category: "",
-          LC: "",
-          thickness: "",
-          width: "",
-          length: "",
-          grade: "",
-          color: "",
-          quantity: "",
-          unit: "",
-          unitPrice: "",
-          warehouse: currentWarehouseId || "",
-          productDescription: "",
-          supplierName: "",
-        });
-      }
+      reset(initialValues);
     }
-  }, [isEditMode, editingProduct, isOpen, currentWarehouseId, reset]);
+  }, [initialValues, isOpen, reset]);
 
   const onSubmit = async (data) => {
     const dataToSave = {
-      name: data.name,
-      category: data.category,
-      LC: data.LC,
-      supplierName: data.supplierName,
-      thickness: data.thickness,
-      width: data.width,
-      length: data.length,
-      grade: data.grade,
-      color: data.color,
+      ...data,
       quantity: Number(data.quantity),
-      unit: data.unit,
       unitPrice: Number(data.unitPrice),
-      warehouse: data.warehouse,
-      productDescription: data.productDescription,
     };
 
     const mutationOptions = {
       onSuccess: () => {
-        if (isEditMode) {
-          onProductUpdated?.(); // Optional callback
-        } else {
-          onProductAdded?.(); // Optional callback
-        }
+        if (isEditMode) onProductUpdated?.();
+        else onProductAdded?.();
         onClose();
       },
     };
@@ -268,6 +225,7 @@ const AddProductForm = ({
               </div>
             ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                {/* Basic Info Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Layers className="w-5 h-5 text-[var(--color-primary)]" />
@@ -275,57 +233,20 @@ const AddProductForm = ({
                       Basic Information
                     </h3>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <InputField
-                      label="Product Name"
-                      name="name"
-                      register={register}
-                      error={errors.name?.message}
-                      validation={{ required: "Product Name is required" }}
-                      placeholder="Mild Steel Rod"
-                      icon={Package}
-                      disabled={isSubmitting}
-                    />
-                    <SelectField
-                      label="Category"
-                      name="category"
-                      register={register}
-                      error={errors.category?.message}
-                      options={categories.map((c) => ({
-                        value: c._id,
-                        label: c.name,
-                      }))}
-                      validation={{ required: "Category is required" }}
-                      icon={Tag}
-                      disabled={isSubmitting || categoriesLoading}
-                      loading={categoriesLoading}
-                    />
-                    <SelectField
-                      label="LC"
-                      name="LC"
-                      register={register}
-                      error={errors.LC?.message}
-                      options={completedLcs.map((lc) => ({
-                        value: lc._id,
-                        label: `${lc.basicInfo.lcNumber} - ${lc.basicInfo.supplierName}`,
-                      }))}
-                      validation={{ required: "LC is required" }}
-                      icon={FileText}
-                      disabled={isSubmitting || lcsLoading}
-                      loading={lcsLoading}
-                    />
-                    <InputField
-                      label="Supplier Name"
-                      name="supplierName"
-                      register={register}
-                      error={errors.supplierName?.message}
-                      placeholder="Supplier company name"
-                      icon={Truck}
-                      disabled={isSubmitting}
-                      readOnly={isSupplierNameReadOnly} // Add readOnly prop
-                    />
-                  </div>
+                  <ProductBasicInfo
+                    register={register}
+                    control={control}
+                    errors={errors}
+                    categories={categories}
+                    completedLcs={completedLcs}
+                    isSubmitting={isSubmitting}
+                    categoriesLoading={categoriesLoading}
+                    lcsLoading={lcsLoading}
+                    isSupplierNameReadOnly={isSupplierNameReadOnly}
+                  />
                 </div>
+
+                {/* Specifications Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Ruler className="w-5 h-5 text-[var(--color-primary)]" />
@@ -333,62 +254,15 @@ const AddProductForm = ({
                       Specifications
                     </h3>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <InputField
-                      label="Thickness"
-                      name="thickness"
-                      type="text"
-                      register={register}
-                      error={errors.thickness?.message}
-                      placeholder="e.g., 12mm"
-                      icon={Ruler}
-                      disabled={isSubmitting}
-                    />
-                    <InputField
-                      label="Width"
-                      name="width"
-                      type="text"
-                      register={register}
-                      error={errors.width?.message}
-                      placeholder="e.g., 1.2m"
-                      icon={Ruler}
-                      disabled={isSubmitting}
-                    />
-                    <InputField
-                      label="Length"
-                      name="length"
-                      type="text"
-                      register={register}
-                      error={errors.length?.message}
-                      placeholder="e.g., 2.4m"
-                      icon={Ruler}
-                      disabled={isSubmitting}
-                    />
-                    <InputField
-                      label="Grade"
-                      name="grade"
-                      register={register}
-                      error={errors.grade?.message}
-                      placeholder="ASTM A36"
-                      icon={Tag}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <SelectField
-                      label="Color/Finish"
-                      name="color"
-                      register={register}
-                      error={errors.color?.message}
-                      options={colorOptions.map((c) => ({
-                        value: c,
-                        label: c,
-                      }))}
-                      icon={Palette}
-                      disabled={isSubmitting}
-                    />
-                  </div>
+                  <ProductDimensions
+                    register={register}
+                    control={control}
+                    errors={errors}
+                    isSubmitting={isSubmitting}
+                  />
                 </div>
+
+                {/* Inventory Details Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Hash className="w-5 h-5 text-[var(--color-primary)]" />
@@ -396,59 +270,17 @@ const AddProductForm = ({
                       Inventory Details
                     </h3>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <InputField
-                      label="Quantity"
-                      name="quantity"
-                      type="number"
-                      register={register}
-                      error={errors.quantity?.message}
-                      validation={{
-                        required: "Quantity is required",
-                        min: {
-                          value: 0,
-                          message: "Quantity cannot be negative",
-                        },
-                        valueAsNumber: true,
-                      }}
-                      placeholder="150"
-                      icon={Hash}
-                      disabled={isSubmitting}
-                    />
-                    <SelectField
-                      label="Unit"
-                      name="unit"
-                      register={register}
-                      error={errors.unit?.message}
-                      options={units.map((u) => ({
-                        value: u._id,
-                        label: u.name,
-                      }))}
-                      validation={{ required: "Unit is required" }}
-                      icon={Package}
-                      disabled={isSubmitting || unitsLoading}
-                      loading={unitsLoading}
-                    />
-                    <InputField
-                      label="Unit Price (BDT)"
-                      name="unitPrice"
-                      type="number"
-                      register={register}
-                      error={errors.unitPrice?.message}
-                      validation={{
-                        required: "Unit Price is required",
-                        min: {
-                          value: 0.01,
-                          message: "Unit Price must be greater than 0",
-                        },
-                        valueAsNumber: true,
-                      }}
-                      placeholder="25.50"
-                      icon={DollarSign}
-                      disabled={isSubmitting}
-                    />
-                  </div>
+                  <ProductPricing
+                    register={register}
+                    control={control}
+                    errors={errors}
+                    units={units}
+                    isSubmitting={isSubmitting}
+                    unitsLoading={unitsLoading}
+                  />
                 </div>
+
+                {/* Additional Info Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <FileText className="w-5 h-5 text-[var(--color-primary)]" />
@@ -456,20 +288,27 @@ const AddProductForm = ({
                       Additional Information (Optional)
                     </h3>
                   </div>
-                  <TextAreaField
-                    label="Product Description"
+                  <Controller
                     name="productDescription"
-                    register={register}
-                    error={errors.productDescription?.message}
-                    placeholder="Detailed description, material specifications, standards compliance, special features..."
-                    rows={3}
-                    disabled={isSubmitting}
+                    control={control}
+                    render={({ field }) => (
+                      <TextAreaField
+                        {...field}
+                        label="Product Description"
+                        error={errors.productDescription?.message}
+                        placeholder="Detailed description, material specifications, standards compliance, special features..."
+                        rows={3}
+                        disabled={isSubmitting}
+                      />
+                    )}
                   />
                 </div>
+
                 <div className="flex items-start gap-2 text-sm p-3 rounded-lg bg-[var(--color-primary-light)] text-[var(--color-primary)]">
                   <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--color-primary)]" />
                   <span>Fields marked with * are required</span>
                 </div>
+
                 <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200">
                   <Button
                     type="button"
@@ -490,15 +329,15 @@ const AddProductForm = ({
                         ? "Updating..."
                         : "Creating..."
                       : isEditMode
-                      ? "Update Product"
-                      : "Add Product"}
+                        ? "Update Product"
+                        : "Add Product"}
                   </Button>
                 </div>
               </form>
             )}
           </div>
         </motion.div>
-         </motion.div>
+      </motion.div>
     </AnimatePresence>
   );
 };

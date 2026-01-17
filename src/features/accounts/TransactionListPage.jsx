@@ -151,6 +151,19 @@ const TransactionList = () => {
     setSelectedTransactionId(null);
   };
 
+  const handleSort = (newSortBy) => {
+    setSorting((prev) => ({
+      sortBy: newSortBy,
+      sortOrder:
+        prev.sortBy === newSortBy
+          ? prev.sortOrder === "asc"
+            ? "desc"
+            : "asc"
+          : "desc",
+    }));
+    setPage(1);
+  };
+
   return (
     <motion.div>
       <div className="bg-white rounded-lg shadow-sm mt-6">
@@ -319,6 +332,9 @@ const TransactionList = () => {
             <TransactionTable
               transactions={transactions}
               onRowClick={handleTransactionClick}
+              sortBy={sorting.sortBy}
+              sortOrder={sorting.sortOrder}
+              onSort={handleSort}
             />
           ) : (
             <div className="text-center py-16">

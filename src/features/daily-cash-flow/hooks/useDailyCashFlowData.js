@@ -157,6 +157,10 @@ export const useDailyCashFlowData = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sorting, setSorting] = useState({
+    sortBy: "date",
+    sortOrder: "desc",
+  });
 
   const transactions = useMemo(() => {
     return dailyCashSummaryData?.transactions || [];
@@ -180,12 +184,25 @@ export const useDailyCashFlowData = () => {
         (transaction) => transaction.category === categoryFilter,
       );
     }
-    // Sort by createdAt descending, assuming createdAt exists on transaction objects
-    return filtered.sort(
-      (a, b) =>
-        new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date),
-    );
-  }, [transactions, searchTerm, categoryFilter]);
+
+    // Improved sorting logic
+    return filtered.sort((a, b) => {
+      const aValue = a[sorting.sortBy] || "";
+      const bValue = b[sorting.sortBy] || "";
+
+      let comparison = 0;
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        comparison = aValue - bValue;
+      } else if (sorting.sortBy === "date") {
+        comparison =
+          new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt);
+      } else {
+        comparison = String(aValue).localeCompare(String(bValue));
+      }
+
+      return sorting.sortOrder === "desc" ? -comparison : comparison;
+    });
+  }, [transactions, searchTerm, categoryFilter, sorting]);
 
   const totalPages = Math.max(
     1,
@@ -294,6 +311,22 @@ export const useDailyCashFlowData = () => {
     currentPage,
     totalPages,
     handlePageChange,
+
+    // Sorting
+    sortBy: sorting.sortBy,
+    sortOrder: sorting.sortOrder,
+    onSort: (newSortBy) => {
+      setSorting((prev) => ({
+        sortBy: newSortBy,
+        sortOrder:
+          prev.sortBy === newSortBy
+            ? prev.sortOrder === "asc"
+              ? "desc"
+              : "asc"
+            : "desc",
+      }));
+      setCurrentPage(1);
+    },
 
     // References for AddTransactionDialog
     activeLc: activeReferences?.activeLc || [],

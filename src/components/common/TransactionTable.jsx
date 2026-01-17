@@ -7,9 +7,53 @@ import {
   Landmark,
   Smartphone as Mobile,
   Banknote,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  Filter,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+
+const SortableHeader = ({
+  label,
+  value,
+  align = "left",
+  sortBy,
+  sortOrder,
+  onSort,
+}) => {
+  const isSorted = sortBy === value;
+
+  return (
+    <button
+      onClick={() => onSort(value)}
+      className={`flex items-center gap-1.5 whitespace-nowrap hover:text-[var(--color-primary)] transition-colors w-full group outline-none ${
+        align === "right" ? "justify-end text-right" : "justify-start text-left"
+      }`}
+      aria-label={`Sort by ${label} ${
+        isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
+      }`}
+    >
+      <span
+        className={`text-sm font-semibold ${isSorted ? "text-[var(--color-primary)]" : "text-gray-900"}`}
+      >
+        {label}
+      </span>
+      <span
+        className={`flex-shrink-0 transition-opacity ${isSorted ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}
+      >
+        {isSorted && sortOrder === "asc" ? (
+          <ArrowUp size={14} className="text-[var(--color-primary)]" />
+        ) : isSorted && sortOrder === "desc" ? (
+          <ArrowDown size={14} className="text-[var(--color-primary)]" />
+        ) : (
+          <ArrowUpDown size={14} />
+        )}
+      </span>
+    </button>
+  );
+};
 
 const getAccountDisplayName = (accountId) => {
   if (!accountId) return "N/A";
@@ -41,7 +85,13 @@ const getPaymentIcon = (paymentMethod) => {
   }
 };
 
-const TransactionTable = ({ transactions, onRowClick }) => {
+const TransactionTable = ({
+  transactions,
+  onRowClick,
+  sortBy,
+  sortOrder,
+  onSort,
+}) => {
   const { hasPermission } = useAuth();
   const canViewDetails = hasPermission("TRANSACTION_VIEW_DETAILS");
 
@@ -51,30 +101,21 @@ const TransactionTable = ({ transactions, onRowClick }) => {
     }
   };
 
-  const rowVariants = {
-    hidden: { opacity: 0, y: 0 },
-    visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: 0 },
-  };
-
   return (
     <div className="-mx-4 sm:mx-0">
       {/* Mobile View - Cards */}
-      <div className="block sm:hidden space-y-3 px-4 sm:px-0">
-        <AnimatePresence>
+      <div className="block sm:hidden space-y-4 px-4 sm:px-0">
+        <AnimatePresence initial={false}>
           {transactions && transactions.length > 0 ? (
-            transactions.map((transaction, index) => (
+            transactions.map((transaction) => (
               <motion.div
                 key={transaction._id}
-                className={`bg-white rounded-lg border border-gray-200 p-4 shadow-sm ${
-                  canViewDetails ? "active:bg-gray-50" : ""
-                }`}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm active:bg-gray-50 transition-colors relative`}
                 onClick={() => handleRowClick(transaction._id)}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={rowVariants}
-                transition={{ duration: 0.2, delay: index * 0.03 }}
+                transition={{ duration: 0.12 }}
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1 min-w-0 mr-3">
@@ -150,82 +191,115 @@ const TransactionTable = ({ transactions, onRowClick }) => {
       </div>
 
       {/* Desktop View - Table */}
-      <div className="hidden sm:block overflow-x-auto">
-        <table className="w-full min-w-[700px] lg:min-w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-5 pr-0 py-4 sm:px-4 sm:pr-0 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
-                Description
-              </th>
-              <th className="hidden sm:table-cell px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Category
-              </th>
-              <th className="px-5 py-4 sm:px-4 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Amount
-              </th>
-              <th className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Payment
-              </th>
-              <th className="hidden xs:table-cell px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[220px]">
-                Account
-              </th>
-              <th className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Date
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {transactions && transactions.length > 0 ? (
-                transactions.map((transaction, index) => (
-                  <motion.tr
-                    key={transaction._id}
-                    className={`hover:bg-gray-50 ${
-                      canViewDetails ? "cursor-pointer" : ""
-                    }`}
-                    onClick={() => handleRowClick(transaction._id)}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={rowVariants}
-                    transition={{ duration: 0.2, delay: index * 0.03 }}
-                  >
-                    <td className="px-5 pr-0 py-4 sm:px-4 sm:pr-0 sm:py-3">
-                      <div className="flex flex-col">
-                        <div className="text-sm font-medium text-gray-900 line-clamp-2">
-                          {transaction.description}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {transaction.source}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="hidden sm:table-cell px-5 py-4 sm:px-4 sm:py-3">
-                      <span className="text-sm text-gray-700 whitespace-nowrap">
-                        {transaction.category}
-                      </span>
-                      <div className="text-xs text-gray-500 mt-1 sm:hidden">
-                        {transaction.source}
-                      </div>
-                    </td>
-
-                    <td
-                      className={`px-5 py-4 sm:px-4 sm:py-3 text-sm font-semibold text-right whitespace-nowrap ${
-                        transaction.transactionType === "Income"
-                          ? "text-[var(--color-success)]"
-                          : "text-[var(--color-danger)]"
+      <div className="hidden sm:block overflow-x-auto border border-gray-200 rounded-xl shadow-sm bg-white">
+        <div className="inline-block min-w-full align-middle">
+          <table className="min-w-[1000px] w-full border-separate border-spacing-0">
+            <thead className="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-b border-gray-200"
+                >
+                  <SortableHeader
+                    label="Description"
+                    value="description"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSort}
+                  />
+                </th>
+                <th
+                  scope="col"
+                  className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-b border-gray-200 w-32"
+                >
+                  <SortableHeader
+                    label="Category"
+                    value="category"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSort}
+                  />
+                </th>
+                <th
+                  scope="col"
+                  className="px-5 py-4 sm:px-4 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-b border-gray-200 w-32"
+                >
+                  <SortableHeader
+                    label="Amount"
+                    value="amount"
+                    align="right"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSort}
+                  />
+                </th>
+                <th
+                  scope="col"
+                  className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-b border-gray-200 w-48"
+                >
+                  Payment
+                </th>
+                <th
+                  scope="col"
+                  className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-b border-gray-200 w-32"
+                >
+                  <SortableHeader
+                    label="Date"
+                    value="date"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSort}
+                  />
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white relative">
+              <AnimatePresence initial={false}>
+                {transactions && transactions.length > 0 ? (
+                  transactions.map((transaction) => (
+                    <motion.tr
+                      key={transaction._id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className={`hover:bg-gray-50 group ${
+                        canViewDetails ? "cursor-pointer" : ""
                       }`}
+                      onClick={() => handleRowClick(transaction._id)}
+                      transition={{ duration: 0.12 }}
                     >
-                      {transaction.transactionType === "Income" ? "+ " : "- "}৳
-                      {transaction.amount.toLocaleString()}
-                    </td>
+                      <td className="px-5 pr-0 py-4 sm:px-4 sm:pr-0 sm:py-3 border-b border-gray-100">
+                        <div className="flex flex-col">
+                          <div className="text-sm font-medium text-gray-900 line-clamp-2">
+                            {transaction.description}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {transaction.source}
+                          </div>
+                        </div>
+                      </td>
 
-                    <td className="px-5 py-4 sm:px-4 sm:py-3">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
+                      <td className="px-5 py-4 sm:px-4 sm:py-3 border-b border-gray-100">
+                        <span className="text-sm text-gray-700 whitespace-nowrap">
+                          {transaction.category}
+                        </span>
+                      </td>
+
+                      <td
+                        className={`px-5 py-4 sm:px-4 sm:py-3 text-sm font-semibold text-right whitespace-nowrap border-b border-gray-100 ${
+                          transaction.transactionType === "Income"
+                            ? "text-[var(--color-success)]"
+                            : "text-[var(--color-danger)]"
+                        }`}
+                      >
+                        {transaction.transactionType === "Income" ? "+ " : "- "}
+                        ৳{transaction.amount.toLocaleString()}
+                      </td>
+
+                      <td className="px-5 py-4 sm:px-4 sm:py-3 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
                           <div
-                            className={`p-1 rounded-md ${
+                            className={`p-1.5 rounded-md flex-shrink-0 ${
                               transaction.paymentMethod === "Bank"
                                 ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
                                 : transaction.paymentMethod === "Mobile Banking"
@@ -237,56 +311,52 @@ const TransactionTable = ({ transactions, onRowClick }) => {
                           >
                             {getPaymentIcon(transaction.paymentMethod)}
                           </div>
-                          <span className="text-sm font-medium text-gray-900">
-                            {transaction.paymentMethod}
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-medium text-gray-900 leading-tight">
+                              {transaction.paymentMethod}
+                            </span>
+                            <span className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">
+                              {getAccountDisplayName(transaction.accountId)}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 sm:px-4 sm:py-3 border-b border-gray-100">
+                        <div className="flex flex-col text-sm text-gray-500 whitespace-nowrap">
+                          <span>
+                            {new Date(transaction.date).toLocaleDateString(
+                              "en-GB",
+                            )}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(transaction.date).toLocaleTimeString(
+                              "en-US",
+                              {
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            )}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-600 xs:hidden line-clamp-1">
-                          {getAccountDisplayName(transaction.accountId)}
-                        </div>
-                      </div>
+                      </td>
+                    </motion.tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="5"
+                      className="text-center py-10 text-gray-500 border-b border-gray-100"
+                    >
+                      No transactions found.
                     </td>
-
-                    <td className="hidden xs:table-cell px-5 py-4 sm:px-4 sm:py-3">
-                      <div className="text-sm text-gray-700 line-clamp-2 min-h-[40px]">
-                        {getAccountDisplayName(transaction.accountId)}
-                      </div>
-                    </td>
-
-                    <td className="px-5 py-4 sm:px-4 sm:py-3">
-                      <div className="flex flex-col text-sm text-gray-500 whitespace-nowrap">
-                        <span>
-                          {new Date(transaction.date).toLocaleDateString(
-                            "en-GB",
-                          )}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {new Date(transaction.date).toLocaleTimeString(
-                            "en-US",
-                            {
-                              hour: "numeric",
-                              minute: "2-digit",
-                              hour12: true,
-                            },
-                          )}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-600 sm:hidden mt-1">
-                        {transaction.category}
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="text-center py-10 text-gray-500">
-                    No transactions found.
-                  </td>
-                </tr>
-              )}
-            </AnimatePresence>
-          </tbody>
-        </table>
+                  </tr>
+                )}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

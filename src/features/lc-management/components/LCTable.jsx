@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Grid2x2Check,
   Search,
@@ -8,11 +9,54 @@ import {
   Loader2,
   ArrowUp,
   ArrowDown,
+  ArrowUpDown,
   ChevronDown,
+  Filter,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import Pagination from "@/components/ui/Pagination";
+import { formatDate } from "@/utils/format";
+
+const SortableHeader = ({
+  label,
+  value,
+  align = "left",
+  sortBy,
+  sortOrder,
+  onSort,
+}) => {
+  const isSorted = sortBy === value;
+
+  return (
+    <button
+      onClick={() => onSort(value)}
+      className={`flex items-center gap-1.5 whitespace-nowrap hover:text-[var(--color-primary)] transition-colors w-full group outline-none ${
+        align === "right" ? "justify-end text-right" : "justify-start text-left"
+      }`}
+      aria-label={`Sort by ${label} ${
+        isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
+      }`}
+    >
+      <span
+        className={`text-sm font-semibold ${isSorted ? "text-[var(--color-primary)]" : "text-gray-900"}`}
+      >
+        {label}
+      </span>
+      <span
+        className={`flex-shrink-0 transition-opacity ${isSorted ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}
+      >
+        {isSorted && sortOrder === "asc" ? (
+          <ArrowUp size={14} className="text-[var(--color-primary)]" />
+        ) : isSorted && sortOrder === "desc" ? (
+          <ArrowDown size={14} className="text-[var(--color-primary)]" />
+        ) : (
+          <ArrowUpDown size={14} />
+        )}
+      </span>
+    </button>
+  );
+};
 
 const LCTable = ({
   lcData = [],
@@ -45,20 +89,6 @@ const LCTable = ({
         return "bg-gray-100 text-gray-800";
     }
   }, []);
-
-  const SortIcon = React.useCallback(
-    ({ column }) => {
-      if (sortBy === column) {
-        return sortOrder === "asc" ? (
-          <ArrowUp size={14} className="ml-1" aria-hidden="true" />
-        ) : (
-          <ArrowDown size={14} className="ml-1" aria-hidden="true" />
-        );
-      }
-      return null;
-    },
-    [sortBy, sortOrder],
-  );
 
   const {
     currentPage = 1,
@@ -109,8 +139,15 @@ const LCTable = ({
       const unitString = units.size === 1 ? ` ${Array.from(units)[0]}` : "";
 
       return (
-        <tr key={lc._id} className="hover:bg-gray-50 transition-colors group">
-          <td className="py-4 pl-4 pr-3 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6">
+        <motion.tr
+          key={lc._id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="hover:bg-gray-50 transition-colors group"
+          transition={{ duration: 0.12 }}
+        >
+          <td className="py-4 pl-4 pr-3 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6 border-b border-gray-100">
             {hasPermission("LC_VIEW_DETAILS") ? (
               <Link
                 to={`/lc-details/${lc._id}`}
@@ -123,10 +160,10 @@ const LCTable = ({
               <span className="text-gray-900">{lc.lcNumber || "N/A"}</span>
             )}
           </td>
-          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500">
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 border-b border-gray-100">
             {lc.supplierName || "N/A"}
           </td>
-          <td className="px-4 py-4 text-sm whitespace-nowrap text-center">
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-center border-b border-gray-100">
             <span
               className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
                 lc.status,
@@ -135,15 +172,13 @@ const LCTable = ({
               {lc.status || "N/A"}
             </span>
           </td>
-          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-center">
-            {lc.lcOpeningDate
-              ? new Date(lc.lcOpeningDate).toLocaleDateString()
-              : "N/A"}
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-center border-b border-gray-100">
+            {lc.lcOpeningDate ? formatDate(lc.lcOpeningDate) : "N/A"}
           </td>
-          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-center">
-            {lc.dueDate ? new Date(lc.dueDate).toLocaleDateString() : "N/A"}
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-center border-b border-gray-100">
+            {lc.dueDate ? formatDate(lc.dueDate) : "N/A"}
           </td>
-          <td className="px-4 py-4 text-sm text-gray-500 max-w-xs">
+          <td className="px-4 py-4 text-sm text-gray-500 max-w-xs border-b border-gray-100">
             <div className="space-y-1">
               {lc.products?.slice(0, 2).map((product, idx) => (
                 <div key={idx} className="truncate">
@@ -157,14 +192,14 @@ const LCTable = ({
               )}
             </div>
           </td>
-          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-right">
+          <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-right border-b border-gray-100">
             {totalQuantity.toLocaleString()}
             {unitString}
           </td>
-          <td className="py-4 pl-4 pr-4 text-sm whitespace-nowrap font-medium text-gray-900 text-right sm:pr-6">
+          <td className="py-4 pl-4 pr-4 text-sm whitespace-nowrap font-medium text-gray-900 text-right sm:pr-6 border-b border-gray-100">
             ৳{(lc.totalCost || 0).toLocaleString()}
           </td>
-        </tr>
+        </motion.tr>
       );
     });
   }, [lcData, loading, getStatusColor, hasPermission]);
@@ -229,194 +264,222 @@ const LCTable = ({
             </p>
           </div>
         ) : (
-          lcData.map((lc) => (
-            <div
-              key={lc._id}
-              className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow relative"
+          <>
+            {/* Mobile Sorting Controls */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center justify-between gap-3 mb-4 sticky top-16 z-10 bg-gray-50/95 backdrop-blur-sm p-3 rounded-xl border border-gray-200 shadow-sm"
             >
-              {hasPermission("LC_VIEW_DETAILS") && (
-                <Link
-                  to={`/lc-details/${lc._id}`}
-                  className="absolute inset-0 z-10"
-                  aria-label={`View LC ${lc.lcNumber}`}
-                />
-              )}
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="text-base font-semibold text-[var(--color-primary)]">
-                    {lc.lcNumber || "N/A"}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {lc.supplierName || "No Supplier"}
-                  </p>
-                </div>
-                <span
-                  className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                    lc.status,
-                  )}`}
+              <div className="flex items-center gap-2 flex-1">
+                <Filter size={16} className="text-gray-400" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => onSortChange(e.target.value)}
+                  className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer w-full"
                 >
-                  {lc.status || "N/A"}
-                </span>
+                  <option value="lcNumber">LC Number</option>
+                  <option value="supplierName">Supplier</option>
+                  <option value="openingDate">Opening Date</option>
+                  <option value="totalCost">Total Cost</option>
+                </select>
               </div>
+              <button
+                onClick={() => onSortChange(sortBy)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-gray-700 shadow-sm active:scale-95 transition-all outline-none"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={sortOrder}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="flex items-center gap-1.5"
+                  >
+                    {sortOrder === "desc" ? (
+                      <>
+                        <ArrowDown
+                          size={14}
+                          className="text-[var(--color-primary)]"
+                        />
+                        DESC
+                      </>
+                    ) : (
+                      <>
+                        <ArrowUp
+                          size={14}
+                          className="text-[var(--color-primary)]"
+                        />
+                        ASC
+                      </>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </button>
+            </motion.div>
 
-              <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-600 mb-3">
-                <div>
-                  <span className="block text-xs text-gray-400">
-                    Opening Date
-                  </span>
-                  {lc.lcOpeningDate
-                    ? new Date(lc.lcOpeningDate).toLocaleDateString()
-                    : "N/A"}
-                </div>
-                <div className="text-right">
-                  <span className="block text-xs text-gray-400">
-                    Total Cost
-                  </span>
-                  <span className="font-semibold text-gray-900">
-                    ৳{(lc.totalCost || 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
+            <div className="space-y-4">
+              <AnimatePresence initial={false}>
+                {lcData.map((lc) => (
+                  <motion.div
+                    key={lc._id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow relative"
+                    transition={{ duration: 0.12 }}
+                  >
+                    {hasPermission("LC_VIEW_DETAILS") && (
+                      <Link
+                        to={`/lc-details/${lc._id}`}
+                        className="absolute inset-0 z-10"
+                        aria-label={`View LC ${lc.lcNumber}`}
+                      />
+                    )}
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="text-base font-semibold text-[var(--color-primary)]">
+                          {lc.lcNumber || "N/A"}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {lc.supplierName || "No Supplier"}
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                          lc.status,
+                        )}`}
+                      >
+                        {lc.status || "N/A"}
+                      </span>
+                    </div>
 
-              <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-                <div className="truncate max-w-[70%]">
-                  {lc.products?.length || 0} Products
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              </div>
+                    <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-600 mb-3">
+                      <div>
+                        <span className="block text-xs text-gray-400">
+                          Opening Date
+                        </span>
+                        {lc.lcOpeningDate
+                          ? formatDate(lc.lcOpeningDate)
+                          : "N/A"}
+                      </div>
+                      <div className="text-right">
+                        <span className="block text-xs text-gray-400">
+                          Total Cost
+                        </span>
+                        <span className="font-semibold text-gray-900">
+                          ৳{(lc.totalCost || 0).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                      <div className="truncate max-w-[70%]">
+                        {lc.products?.length || 0} Products
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
-          ))
+          </>
         )}
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden sm:block overflow-x-auto -mx-4 sm:mx-0">
-        <div className="inline-block min-w-full align-middle px-4 sm:px-2 lg:px-0">
-          <table className="min-w-full divide-y divide-gray-200">
+      <div className="hidden sm:block overflow-x-auto border border-gray-200 rounded-xl shadow-sm bg-white">
+        <div className="inline-block min-w-full align-middle">
+          <table className="min-w-[1000px] w-full border-separate border-spacing-0">
             <thead className="bg-gray-50">
               <tr>
                 <th
                   scope="col"
-                  className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                  className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-gray-200"
                 >
-                  <Button
-                    variant="subtle"
-                    onClick={() => onSortChange("lcNumber")}
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
-                    aria-label={`Sort by LC Number ${
-                      sortBy === "lcNumber"
-                        ? sortOrder === "asc"
-                          ? "ascending"
-                          : "descending"
-                        : ""
-                    }`}
-                  >
-                    LC Number
-                    <SortIcon column="lcNumber" />
-                  </Button>
+                  <SortableHeader
+                    label="LC Number"
+                    value="lcNumber"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSortChange}
+                  />
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 min-w-[150px]"
+                  className="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 min-w-[150px] border-b border-gray-200"
                 >
-                  <Button
-                    variant="subtle"
-                    onClick={() => onSortChange("supplierName")}
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
-                    aria-label={`Sort by Supplier ${
-                      sortBy === "supplierName"
-                        ? sortOrder === "asc"
-                          ? "ascending"
-                          : "descending"
-                        : ""
-                    }`}
-                  >
-                    Supplier
-                    <SortIcon column="supplierName" />
-                  </Button>
+                  <SortableHeader
+                    label="Supplier"
+                    value="supplierName"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSortChange}
+                  />
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3.5 text-center text-sm font-semibold text-gray-900 w-1/12"
+                  className="px-4 py-3.5 text-center text-sm font-semibold text-gray-900 w-1/12 border-b border-gray-200"
                 >
                   Status
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3.5 text-center text-sm font-semibold text-gray-900"
+                  className="px-4 py-3.5 text-center text-sm font-semibold text-gray-900 border-b border-gray-200"
                 >
-                  <Button
-                    variant="subtle"
-                    onClick={() => onSortChange("openingDate")}
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
-                    aria-label={`Sort by Opening Date ${
-                      sortBy === "openingDate"
-                        ? sortOrder === "asc"
-                          ? "ascending"
-                          : "descending"
-                        : ""
-                    }`}
-                  >
-                    Opening Date
-                    <SortIcon column="openingDate" />
-                  </Button>
+                  <SortableHeader
+                    label="Opening Date"
+                    value="openingDate"
+                    align="center"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSortChange}
+                  />
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3.5 text-center text-sm font-semibold text-gray-900"
+                  className="px-4 py-3.5 text-center text-sm font-semibold text-gray-900 border-b border-gray-200"
                 >
-                  <Button
-                    variant="subtle"
-                    onClick={() => onSortChange("dueDate")}
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
-                    aria-label={`Sort by Due Date ${
-                      sortBy === "dueDate"
-                        ? sortOrder === "asc"
-                          ? "ascending"
-                          : "descending"
-                        : ""
-                    }`}
-                  >
-                    Due Date
-                    <SortIcon column="dueDate" />
-                  </Button>
+                  <SortableHeader
+                    label="Due Date"
+                    value="dueDate"
+                    align="center"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSortChange}
+                  />
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3.5 text-left text-sm font-semibold text-gray-900"
+                  className="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-200"
                 >
                   Products
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3.5 text-right text-sm font-semibold text-gray-900"
+                  className="px-4 py-3.5 text-right text-sm font-semibold text-gray-900 border-b border-gray-200"
                 >
                   Quantity
                 </th>
                 <th
                   scope="col"
-                  className="py-3.5 pl-4 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6"
+                  className="py-3.5 pl-4 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 border-b border-gray-200"
                 >
-                  <Button
-                    variant="subtle"
-                    onClick={() => onSortChange("totalCost")}
-                    className="flex items-center whitespace-nowrap hover:text-gray-700"
-                    aria-label={`Sort by Total Cost ${
-                      sortBy === "totalCost"
-                        ? sortOrder === "asc"
-                          ? "ascending"
-                          : "descending"
-                        : ""
-                    }`}
-                  >
-                    Total (৳)
-                    <SortIcon column="totalCost" />
-                  </Button>
+                  <SortableHeader
+                    label="Total (৳)"
+                    value="totalCost"
+                    align="right"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSortChange}
+                  />
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {renderTableContent}
+            <tbody className="bg-white relative">
+              <AnimatePresence initial={false}>
+                {renderTableContent}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
