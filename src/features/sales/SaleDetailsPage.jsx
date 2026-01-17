@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -20,7 +20,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { showSuccessToast, showErrorToast } from "@/utils/notifications";
+import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
 import {
   useSale,
@@ -69,7 +69,7 @@ const SaleDetails = () => {
 
   const sale = saleData?.data;
   const invoiceHistory = invoiceData?.data || [];
-  const accounts = accountsData?.data || [];
+  const accounts = useMemo(() => accountsData?.data || [], [accountsData]);
 
   const deleteSaleMutation = useDeleteSale();
   const cancelSaleMutation = useCancelSale();

@@ -40,7 +40,6 @@ const DailyCashFlow = () => {
     handlePageChange,
     activeLc,
     activeSales,
-    isReferencesLoading,
     refetchReferences,
     accounts,
     accountsLoading,

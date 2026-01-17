@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -82,7 +82,7 @@ const SECTIONS_CONFIG = [
 const LCFormWrapper = ({ onSave }) => {
   const { id } = useParams();
   const isEditMode = !!id;
-  const { hasPermission, isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
   const navigate = useNavigate();
 
   const { data: lcData, isLoading: isLcDataLoading, isError } = useLC(id);
@@ -146,7 +146,6 @@ const ProductFields = ({
   hasPermission,
   register,
   errors,
-  control,
   setValue,
   watch,
   units,
@@ -284,7 +283,6 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
   const {
     register,
     handleSubmit,
-    reset,
     control,
     formState: { errors, isValid, isSubmitting },
     watch,

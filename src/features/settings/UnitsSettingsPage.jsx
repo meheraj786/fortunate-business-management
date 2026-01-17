@@ -10,7 +10,7 @@ import {
   useUpdateUnit,
   useDeleteUnit,
 } from "@/api/hooks/unit";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router";
 import { Trash } from "lucide-react";
 import UnitsSettingsSkeleton from "./components/UnitsSettingsSkeleton";

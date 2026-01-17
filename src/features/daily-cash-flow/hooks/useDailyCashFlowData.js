@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router";
-import { showErrorToast, showSuccessToast } from "@/utils/notifications";
+
 import api from "@/services/apiService";
 import { useApiMutation } from "@/hooks/useApiMutation";
 import {
@@ -89,7 +89,6 @@ export const useDailyCashFlowData = () => {
     isLoading: isStatusLoading,
     isError: isStatusError,
     error: statusError,
-    refetch: refetchStatus,
   } = useQuery({
     queryKey: ["dailyCashStatus", selectedDate],
     queryFn: () => fetchDailyCashStatus(selectedDate),
@@ -102,7 +101,6 @@ export const useDailyCashFlowData = () => {
     isLoading: isSummaryLoading,
     isError: isSummaryError,
     error: summaryError,
-    refetch: refetchSummary,
   } = useQuery({
     queryKey: ["dailyCashSummary", selectedDate],
     queryFn: () => fetchDailyCashSummary(selectedDate),

@@ -22,7 +22,6 @@ const AddAccountForm = ({
     reset,
     formState: { errors },
     watch,
-    setValue,
   } = useForm({
     defaultValues: {
       accountName: "",
@@ -135,8 +134,8 @@ const AddAccountForm = ({
             ? "Updating..."
             : "Adding..."
           : isEditing
-          ? "Update Account"
-          : "Add Account"
+            ? "Update Account"
+            : "Add Account"
       }
       secondaryButtonText="Cancel"
       onSubmit={handleSubmit(onSubmit)} // Use handleSubmit from react-hook-form
@@ -153,8 +152,8 @@ const AddAccountForm = ({
             currentAccountType === "Bank"
               ? "e.g., My Personal Checking"
               : currentAccountType === "Mobile Banking"
-              ? "e.g., My Bkash Account"
-              : "e.g., Office Petty Cash"
+                ? "e.g., My Bkash Account"
+                : "e.g., Office Petty Cash"
           }
         />
         <InputField

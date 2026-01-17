@@ -37,12 +37,15 @@ const FileInput = ({
     setIsDragging(false);
   }, []);
 
-  const validateFile = useCallback((file) => {
-    if (file.size > maxSize * 1024 * 1024) {
-      return `File size exceeds ${maxSize}MB limit`;
-    }
-    return "";
-  }, [maxSize]);
+  const validateFile = useCallback(
+    (file) => {
+      if (file.size > maxSize * 1024 * 1024) {
+        return `File size exceeds ${maxSize}MB limit`;
+      }
+      return "";
+    },
+    [maxSize],
+  );
 
   const handleDrop = useCallback(
     (e) => {
@@ -71,7 +74,7 @@ const FileInput = ({
         onFileChange(validFiles);
       }
     },
-    [maxSize, onFileChange, validateFile]
+    [onFileChange, validateFile],
   );
 
   const handleFileInputChange = (e) => {
@@ -111,8 +114,12 @@ const FileInput = ({
 
   return (
     <div className={className}>
-      <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 mb-2">
-        {label} {required && <span className="text-[var(--color-danger)]">*</span>}
+      <label
+        htmlFor="file-upload"
+        className="block text-sm font-medium text-gray-700 mb-2"
+      >
+        {label}{" "}
+        {required && <span className="text-[var(--color-danger)]">*</span>}
       </label>
 
       <div

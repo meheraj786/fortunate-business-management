@@ -3,12 +3,31 @@ import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import TextAreaField from "@/components/ui/TextAreaField";
-import { showErrorToast, showSuccessToast, showLoadingToast, dismissToast } from "@/utils/notifications";
+import {
+  showErrorToast,
+  showSuccessToast,
+  showLoadingToast,
+  dismissToast,
+} from "@/utils/notifications";
 import api from "@/services/apiService";
-import { INCOME_CATEGORIES, EXPENSE_CATEGORIES, INITIAL_TRANSACTION_STATE } from "../constants";
+import {
+  INCOME_CATEGORIES,
+  EXPENSE_CATEGORIES,
+  INITIAL_TRANSACTION_STATE,
+} from "../constants";
 import { useForm } from "react-hook-form";
 
-const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accounts, accountsLoading, activeLc, activeSales, selectedDate }) => {
+const AddTransactionDialog = ({
+  open,
+  onClose,
+  onSuccess,
+  transactionType,
+  accounts,
+  accountsLoading,
+  activeLc,
+  activeSales,
+  selectedDate,
+}) => {
   const {
     register,
     handleSubmit,
@@ -24,7 +43,6 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
 
   const watchedCategory = watch("category");
   const watchedPaymentMethod = watch("paymentMethod");
-  const watchedAmount = watch("amount");
 
   useEffect(() => {
     if (open) {
@@ -32,11 +50,16 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
       // Pre-select category if only one available
       if (transactionType === "income" && INCOME_CATEGORIES.length === 1) {
         setValue("category", INCOME_CATEGORIES[0]);
-      } else if (transactionType === "expense" && EXPENSE_CATEGORIES.length === 1) {
+      } else if (
+        transactionType === "expense" &&
+        EXPENSE_CATEGORIES.length === 1
+      ) {
         setValue("category", EXPENSE_CATEGORIES[0]);
       }
       // Pre-select account if only one available for default method
-      const defaultAccounts = accounts.filter(acc => acc.accountType === "Cash");
+      const defaultAccounts = accounts.filter(
+        (acc) => acc.accountType === "Cash",
+      );
       if (defaultAccounts.length === 1) {
         setValue("accountId", defaultAccounts[0]._id);
       }
@@ -45,14 +68,15 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
 
   useEffect(() => {
     // Auto-select account when payment method changes if only one option
-    const filteredAccounts = accounts.filter(acc => acc.accountType === watchedPaymentMethod);
+    const filteredAccounts = accounts.filter(
+      (acc) => acc.accountType === watchedPaymentMethod,
+    );
     if (filteredAccounts.length === 1) {
       setValue("accountId", filteredAccounts[0]._id);
     } else {
       setValue("accountId", ""); // Clear if multiple or none
     }
   }, [watchedPaymentMethod, accounts, setValue]);
-
 
   const onSubmit = async (data) => {
     setIsSubmittingMutation(true);
@@ -72,7 +96,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
 
     if (data.category === "LC") {
       payload.lcId = data.lcId;
-      if (transactionType === 'expense') {
+      if (transactionType === "expense") {
         payload.lcCostCategory = data.lcCostCategory;
       }
     }
@@ -86,7 +110,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
         `${
           transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
         } added successfully!`,
-        { id: toastId, duration: 3000 }
+        { id: toastId, duration: 3000 },
       );
       onSuccess();
       onClose();
@@ -97,68 +121,97 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
       setIsSubmittingMutation(false);
     }
   };
-  
+
   const getFilteredAccounts = useCallback(() => {
     return accounts.filter((acc) => acc.accountType === watchedPaymentMethod);
   }, [accounts, watchedPaymentMethod]);
 
   const nameLabel = useMemo(() => {
-    if (transactionType === 'income') {
-      return 'Income Name';
+    if (transactionType === "income") {
+      return "Income Name";
     }
-    if (watchedCategory === 'LC' || watchedCategory === 'Sales') {
-      return 'Cost Name';
+    if (watchedCategory === "LC" || watchedCategory === "Sales") {
+      return "Cost Name";
     }
-    return 'Expense Name';
+    return "Expense Name";
   }, [transactionType, watchedCategory]);
 
   const namePlaceholder = useMemo(() => {
-    if (transactionType === 'income') {
+    if (transactionType === "income") {
       switch (watchedCategory) {
-        case 'LC': return "e.g., LC final settlement";
-        case 'Sales': return "e.g., Payment from customer";
-        case 'Donation': return "e.g., From Acme Corp";
-        case 'Commission': return "e.g., Sales commission for Q3";
-        case 'Interest': return "e.g., Bank interest";
-        case 'Service Charge': return "e.g., Consultation fee";
-        default: return "e.g., Miscellaneous income";
+        case "LC":
+          return "e.g., LC final settlement";
+        case "Sales":
+          return "e.g., Payment from customer";
+        case "Donation":
+          return "e.g., From Acme Corp";
+        case "Commission":
+          return "e.g., Sales commission for Q3";
+        case "Interest":
+          return "e.g., Bank interest";
+        case "Service Charge":
+          return "e.g., Consultation fee";
+        default:
+          return "e.g., Miscellaneous income";
       }
-    } else { // expense
+    } else {
+      // expense
       switch (watchedCategory) {
-        case 'LC': return "e.g., Port handling fee";
-        case 'Sales': return "e.g., Return processing fee";
-        case 'Rent': return "e.g., Office rent for May";
-        case 'Salary': return "e.g., Monthly salary for John Doe";
-        case 'Office Expense': return "e.g., Stationery purchase";
-        case 'Transport': return "e.g., Delivery truck fuel";
-        case 'Utility': return "e.g., Electricity bill";
-        default: return "e.g., Miscellaneous expense";
+        case "LC":
+          return "e.g., Port handling fee";
+        case "Sales":
+          return "e.g., Return processing fee";
+        case "Rent":
+          return "e.g., Office rent for May";
+        case "Salary":
+          return "e.g., Monthly salary for John Doe";
+        case "Office Expense":
+          return "e.g., Stationery purchase";
+        case "Transport":
+          return "e.g., Delivery truck fuel";
+        case "Utility":
+          return "e.g., Electricity bill";
+        default:
+          return "e.g., Miscellaneous expense";
       }
-    }
-  }, [transactionType, watchedCategory]);
-  
-  const descriptionPlaceholder = useMemo(() => {
-    if (transactionType === 'income') {
-        switch (watchedCategory) {
-            case 'Donation': return "e.g., Donation for office party";
-            case 'Commission': return "e.g., Commission from sales of product X";
-            case 'Interest': return "e.g., Monthly interest from savings account";
-            case 'Service Charge': return "e.g., Service charge for project Y";
-            default: return "Enter description";
-        }
-    } else { // expense
-        switch (watchedCategory) {
-            case 'Rent': return "e.g., Office rent for the month of May";
-            case 'Salary': return "e.g., Salary for John Doe";
-            case 'Office Expense': return "e.g., Purchase of office supplies";
-            case 'Transport': return "e.g., Fuel for delivery vehicle";
-            case 'Utility': return "e.g., Electricity bill for May";
-            default: return "Enter description";
-        }
     }
   }, [transactionType, watchedCategory]);
 
-  const transactionCategories = transactionType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const descriptionPlaceholder = useMemo(() => {
+    if (transactionType === "income") {
+      switch (watchedCategory) {
+        case "Donation":
+          return "e.g., Donation for office party";
+        case "Commission":
+          return "e.g., Commission from sales of product X";
+        case "Interest":
+          return "e.g., Monthly interest from savings account";
+        case "Service Charge":
+          return "e.g., Service charge for project Y";
+        default:
+          return "Enter description";
+      }
+    } else {
+      // expense
+      switch (watchedCategory) {
+        case "Rent":
+          return "e.g., Office rent for the month of May";
+        case "Salary":
+          return "e.g., Salary for John Doe";
+        case "Office Expense":
+          return "e.g., Purchase of office supplies";
+        case "Transport":
+          return "e.g., Fuel for delivery vehicle";
+        case "Utility":
+          return "e.g., Electricity bill for May";
+        default:
+          return "Enter description";
+      }
+    }
+  }, [transactionType, watchedCategory]);
+
+  const transactionCategories =
+    transactionType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   return (
     <FormDialog
@@ -192,8 +245,8 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
           register={register}
           error={errors.category?.message}
           options={transactionCategories.map((item) => ({
-              value: item,
-              label: item.charAt(0).toUpperCase() + item.slice(1),
+            value: item,
+            label: item.charAt(0).toUpperCase() + item.slice(1),
           }))}
           validation={{ required: "Category is required" }}
           placeholder="Select category"
@@ -207,7 +260,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
           placeholder={namePlaceholder}
           validation={{
             required:
-              (watchedCategory === 'LC' || watchedCategory === 'Sales')
+              watchedCategory === "LC" || watchedCategory === "Sales"
                 ? `A name is required for ${watchedCategory} ${transactionType}`
                 : false, // Optional if not LC/Sales
           }}
@@ -223,12 +276,14 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
               value: lc._id,
               label: lc.basicInfo?.lcNumber || `LC ${lc._id?.slice(-6)}`,
             }))}
-            validation={{ required: "Please select an LC for this transaction" }}
+            validation={{
+              required: "Please select an LC for this transaction",
+            }}
             placeholder="Select an LC"
           />
         )}
 
-        {transactionType === 'expense' && watchedCategory === "LC" && (
+        {transactionType === "expense" && watchedCategory === "LC" && (
           <SelectField
             label="LC Cost Category"
             name="lcCostCategory"
@@ -254,7 +309,9 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
               value: sale._id,
               label: sale.saleId || `Sale ${sale._id?.slice(-6)}`,
             }))}
-            validation={{ required: "Please select a Sale for this transaction" }}
+            validation={{
+              required: "Please select a Sale for this transaction",
+            }}
             placeholder="Select a Sale"
           />
         )}
@@ -268,7 +325,10 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transactionType, accou
             placeholder={descriptionPlaceholder}
             rows="3"
             validation={{
-              required: transactionType === 'expense' ? "Description is required" : false,
+              required:
+                transactionType === "expense"
+                  ? "Description is required"
+                  : false,
             }}
           />
         )}

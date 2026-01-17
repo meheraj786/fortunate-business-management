@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import {
   Edit3,
@@ -14,13 +14,12 @@ import {
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 import { useAuth } from "@/hooks/useAuth";
-import { useUser, useUpdateUser } from "../../api/hooks/user";
-import { useWarehouses } from "../../api/hooks/warehouse";
+import { useUser } from "../../api/hooks/user";
 
 const TeamDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: warehousesData } = useWarehouses();
+
   const { user, hasPermission } = useAuth();
 
   const { data: member, isLoading, isError } = useUser(id);

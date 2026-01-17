@@ -7,7 +7,6 @@ import SelectField from "@/components/ui/SelectField";
 import { DollarSign, Calendar } from "lucide-react";
 import { useAccounts } from "@/api/hooks/account";
 import { useAddExpenseToLC } from "@/api/hooks/lc";
-import { useUrl } from "@/hooks/useUrl";
 
 const INITIAL_EXPENSE_STATE = {
   name: "",
@@ -74,7 +73,9 @@ const AddCostForm = ({
 
   const getFilteredAccounts = () => {
     if (!accounts?.data) return [];
-    return accounts.data.filter((acc) => acc.accountType === expense.paymentMethod);
+    return accounts.data.filter(
+      (acc) => acc.accountType === expense.paymentMethod,
+    );
   };
 
   const handleClose = () => {
@@ -121,7 +122,9 @@ const AddCostForm = ({
       title={`Add Cost to ${categoryTitle}`}
       onSubmit={handleSubmit}
       isSubmitting={addExpenseMutation.isLoading || accountsLoading}
-      primaryButtonText={addExpenseMutation.isLoading ? "Adding..." : "Add Cost"}
+      primaryButtonText={
+        addExpenseMutation.isLoading ? "Adding..." : "Add Cost"
+      }
       secondaryButtonText="Cancel"
       size="md"
     >

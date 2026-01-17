@@ -16,7 +16,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const [transactionFormData, setTransactionFormData] = useState(
-    initialTransactionData
+    initialTransactionData,
   );
 
   // Fetch accounts using react-query hook
@@ -32,7 +32,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleAddTransaction = async () => {
-    const { account, date, description, type, amount } = transactionFormData;
+    const { account, description, type, amount } = transactionFormData;
     if (!account || !description || !type || !amount) {
       showErrorToast("Please fill all required fields.");
       return;

@@ -51,7 +51,7 @@ const DisplayInvoice = () => {
           showErrorToast(
             `Failed to generate PDF: ${errorJson.message || "Unknown error"}`,
           );
-        } catch (e) {
+        } catch {
           // If it's not JSON, it might be an HTML error page from the server
           console.error("Received non-PDF, non-JSON response:", responseText);
           showErrorToast(
@@ -167,8 +167,6 @@ const DisplayInvoice = () => {
 
   const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
   const balanceDue = totalAmountToBePaid - totalPayments;
-  const paymentStatus =
-    balanceDue <= 0 ? "Paid" : totalPayments > 0 ? "Partially Paid" : "Unpaid";
 
   // --- JSX ---
   return (

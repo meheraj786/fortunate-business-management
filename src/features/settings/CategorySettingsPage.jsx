@@ -10,7 +10,7 @@ import {
   useDeleteCategory,
   useUpdateCategory,
 } from "../../api/hooks/category";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router";
 import { Trash } from "lucide-react";
 import CategorySettingsSkeleton from "./components/CategorySettingsSkeleton";

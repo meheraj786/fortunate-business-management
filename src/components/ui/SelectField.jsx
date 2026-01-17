@@ -1,4 +1,4 @@
-import React, { memo, useId, useMemo } from "react";
+import React, { memo, useId } from "react";
 import PropTypes from "prop-types";
 import { ChevronDown, AlertCircle } from "lucide-react";
 
@@ -38,9 +38,8 @@ const SelectField = ({
   };
 
   if (!register) {
-    selectProps.value = value || '';
+    selectProps.value = value || "";
   }
-
 
   return (
     <div className={`space-y-2 relative ${className}`}>
@@ -50,7 +49,9 @@ const SelectField = ({
           className="flex items-start text-sm font-medium text-gray-700"
         >
           {label}
-          {(required || validation?.required) && <span className="text-[var(--color-danger)] ml-1">*</span>}
+          {(required || validation?.required) && (
+            <span className="text-[var(--color-danger)] ml-1">*</span>
+          )}
         </label>
       )}
       <div className="relative">

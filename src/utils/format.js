@@ -33,7 +33,7 @@ export const formatDate = (dateString, options) => {
       "en-GB",
       options || defaultOptions,
     );
-  } catch (error) {
+  } catch {
     return "Invalid Date";
   }
 };

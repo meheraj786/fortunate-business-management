@@ -14,7 +14,7 @@ import {
   MinusCircle,
   Ruler,
 } from "lucide-react";
-import { showSuccessToast, showErrorToast } from "@/utils/notifications";
+
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 
 import { useCustomers } from "@/api/hooks/customer";
@@ -42,14 +42,14 @@ const AddSales = ({
 }) => {
   const isEditMode = !!editData;
 
-  const [newUploadedFiles, setNewUploadedFiles] = useState([]);
+  const [, setNewUploadedFiles] = useState([]);
 
   const {
     register,
     handleSubmit,
     reset,
     control,
-    formState: { errors, isValid, isSubmitting },
+    formState: { errors, isSubmitting },
     watch,
     setValue,
   } = useForm({
@@ -132,11 +132,17 @@ const AddSales = ({
   const { data: accountsData, isLoading: accountsLoading } = useAccounts();
   const { data: unitsData, isLoading: unitsLoading } = useUnits();
 
-  const customers = customersData?.data || [];
-  const warehouses = warehousesData?.data?.warehouses || [];
-  const categories = categoriesData?.data || [];
-  const accounts = accountsData?.data || [];
-  const units = unitsData?.data || [];
+  const customers = useMemo(() => customersData?.data || [], [customersData]);
+  const warehouses = useMemo(
+    () => warehousesData?.data?.warehouses || [],
+    [warehousesData],
+  );
+  const categories = useMemo(
+    () => categoriesData?.data || [],
+    [categoriesData],
+  );
+  const accounts = useMemo(() => accountsData?.data || [], [accountsData]);
+  const units = useMemo(() => unitsData?.data || [], [unitsData]);
 
   const watchedWarehouseId = watch("warehouseId");
   const watchedCategoryId = watch("categoryId");
@@ -147,7 +153,10 @@ const AddSales = ({
       enabled: !!watchedWarehouseId,
     },
   );
-  const products = Array.isArray(productsData?.data) ? productsData.data : [];
+  const products = useMemo(
+    () => (Array.isArray(productsData?.data) ? productsData.data : []),
+    [productsData],
+  );
 
   const createSaleMutation = useCreateSale();
   const updateSaleMutation = useUpdateSale(editData?._id);
@@ -239,7 +248,11 @@ const AddSales = ({
   const watchedDiscount = watch("discount");
 
   // Use useWatch for dynamic fields to ensure reactivity
-  const watchedCharges = useWatch({ control, name: "charges", defaultValue: [] });
+  const watchedCharges = useWatch({
+    control,
+    name: "charges",
+    defaultValue: [],
+  });
   const watchedCosts = useWatch({ control, name: "costs", defaultValue: [] });
 
   const { totalAmount, totalAmountToBePaid } = useMemo(() => {
@@ -266,7 +279,7 @@ const AddSales = ({
     watchedPricePerUnit,
     watchedDiscount,
     watchedCharges, // Depend on the useWatch outputs
-    watchedCosts,   // Depend on the useWatch outputs
+    watchedCosts, // Depend on the useWatch outputs
   ]);
 
   // Handlers
@@ -427,12 +440,12 @@ const AddSales = ({
 
     if (isEditMode) {
       const {
-        customer,
-        costs,
-        payments,
-        product,
-        warehouse,
-        category,
+        customer: _customer,
+        costs: _costs,
+        payments: _payments,
+        product: _product,
+        warehouse: _warehouse,
+        category: _category,
         ...updatableData
       } = salesData;
       updateSaleMutation.mutate(
@@ -834,23 +847,24 @@ const AddSales = ({
                           validation={{ required: "Cost name is required" }}
                           disabled={isSubmitting}
                         />
-                                                                            <InputField
-                                                                              label="Amount"
-                                                                              name={`costs.${index}.amount`}
-                                                                              type="number"
-                                                                              step="any"
-                                                                              register={register}
-                                                                              error={errors.costs?.[index]?.amount?.message}
-                                                                              validation={{
-                                                                                required: "Cost amount is required",
-                                                                                min: {
-                                                                                  value: 0,
-                                                                                  message: "Amount cannot be negative",
-                                                                                },
-                                                                                valueAsNumber: true,
-                                                                              }}
-                                                                              disabled={isSubmitting}
-                                                                            />                        <SelectField
+                        <InputField
+                          label="Amount"
+                          name={`costs.${index}.amount`}
+                          type="number"
+                          step="any"
+                          register={register}
+                          error={errors.costs?.[index]?.amount?.message}
+                          validation={{
+                            required: "Cost amount is required",
+                            min: {
+                              value: 0,
+                              message: "Amount cannot be negative",
+                            },
+                            valueAsNumber: true,
+                          }}
+                          disabled={isSubmitting}
+                        />{" "}
+                        <SelectField
                           label="Payment Method"
                           name={`costs.${index}.method`}
                           register={register}
@@ -994,7 +1008,10 @@ const AddSales = ({
                           register={register}
                           error={errors.payments?.[0]?.amount?.message}
                           value={totalAmountToBePaid.toFixed(2)} // Always display the full amount
-                          disabled={isSubmitting || watchedPaymentStatus === "Paid payment"} // Disable when paid status is selected
+                          disabled={
+                            isSubmitting ||
+                            watchedPaymentStatus === "Paid payment"
+                          } // Disable when paid status is selected
                         />
                         <SelectField
                           label="Payment Method"
@@ -1004,7 +1021,7 @@ const AddSales = ({
                           options={[
                             { value: "Cash", label: "Cash" },
                             { value: "Bank", label: "Bank Transfer" },
-                            { 
+                            {
                               value: "Mobile Banking",
                               label: "Mobile Banking",
                             },

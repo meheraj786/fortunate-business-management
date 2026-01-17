@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { useCustomerSummary } from "../../api/hooks/customer";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import Button from "@/components/ui/Button";
 import Pagination from "@/components/ui/Pagination";
 import { motion, AnimatePresence } from "framer-motion";
