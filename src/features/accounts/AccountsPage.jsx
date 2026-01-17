@@ -16,7 +16,7 @@ import AccountList from "./AccountListPage";
 import TransactionList from "./TransactionListPage";
 import AddAccountForm from "./AddAccountForm";
 import AddTransactionForm from "./AddTransactionFormPage";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router";
 import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
