@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useParams } from "react-router";
 import { useUser, useUpdateUser } from "@/api/hooks/user";
 import { useWarehouses } from "@/api/hooks/warehouse";
@@ -124,7 +124,7 @@ const EditTeamMemForm = () => {
         await updateUserMutation.mutateAsync({ id, data: payload });
         navigate(`/team/${id}`);
       } catch (error) {
-        handleError(error, "Failed to update user.");
+        showErrorToast(error, "Failed to update user.");
       }
     };
   

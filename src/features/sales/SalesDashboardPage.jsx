@@ -15,7 +15,7 @@ import SalesStatCard from "./components/SalesStatCard";
 import SalesTableSkeleton from "./components/SalesTableSkeleton";
 import SearchBar from "@/components/ui/SearchBar";
 import Button from "@/components/ui/Button";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { usePaginatedSales, useInvoiceStatusCount } from "@/api/hooks/sales";
 import Pagination from "@/components/ui/Pagination";
 

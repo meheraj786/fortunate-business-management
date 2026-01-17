@@ -12,7 +12,7 @@ const SidebarItemSkeleton = ({ collapsed }) => (
 );
 
 const SidebarSkeleton = () => {
-    const [collapsed, setCollapsed] = useState(
+    const [collapsed] = useState(
         () => {
             try {
                 return JSON.parse(localStorage.getItem("sidebar-collapsed")) || false

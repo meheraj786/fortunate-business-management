@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useUsers } from "@/api/hooks/user";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";

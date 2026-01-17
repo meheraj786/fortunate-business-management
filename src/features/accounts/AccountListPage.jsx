@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router"; // Corrected import
+import { Link } from "react-router"; // Corrected import
 import {
   Building,
   Smartphone,
@@ -16,10 +16,10 @@ import { useAccounts } from "@/api/hooks/account"; // Using react-query hook
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const AccountList = ({ onAddAccount }) => {
-  const { data: allAccounts, isLoading, isError, error } = useAccounts();
+  const { data: allAccounts, isLoading, isError } = useAccounts();
   const [copiedText, setCopiedText] = useState("");
   const { hasPermission } = useAuth();
   const canCreateAccount = hasPermission("ACCOUNT_CREATE");
@@ -52,7 +52,7 @@ const AccountList = ({ onAddAccount }) => {
         setTimeout(() => setCopiedText(""), 2000);
       },
       (err) => {
-        handleError(err, "Failed to copy text.");
+        showErrorToast(err, "Failed to copy text.");
       }
     );
   };

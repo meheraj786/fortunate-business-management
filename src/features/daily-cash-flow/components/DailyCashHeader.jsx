@@ -1,6 +1,6 @@
 import React from "react";
 import { Calendar, Plus, Target, Menu, X } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/ui/Button"; // Import the standardized Button component
 

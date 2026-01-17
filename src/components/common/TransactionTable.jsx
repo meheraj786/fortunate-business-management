@@ -8,8 +8,8 @@ import {
   Smartphone as Mobile,
   Banknote,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
-import { useAuth } from "@/context/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 const getAccountDisplayName = (accountId) => {
   if (!accountId) return "N/A";

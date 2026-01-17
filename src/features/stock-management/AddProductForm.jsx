@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -15,7 +15,6 @@ import {
   Truck,
   AlertCircle,
 } from "lucide-react";
-import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 import { useForm } from "react-hook-form";
 
 import { useCategories } from "@/api/hooks/category";
@@ -60,9 +59,9 @@ const AddProductForm = ({
   const { data: completedLcData, isLoading: lcsLoading } = useCompletedLCs();
   const { data: unitsData, isLoading: unitsLoading } = useUnits();
 
-  const categories = categoriesData?.data || [];
-  const completedLcs = completedLcData?.data || [];
-  const units = unitsData?.data || [];
+  const categories = useMemo(() => categoriesData?.data || [], [categoriesData]);
+  const completedLcs = useMemo(() => completedLcData?.data || [], [completedLcData]);
+  const units = useMemo(() => unitsData?.data || [], [unitsData]);
 
   const createProductMutation = useCreateProduct(currentWarehouseId);
   const updateProductMutation = useUpdateProduct(
@@ -170,7 +169,7 @@ const AddProductForm = ({
         });
       }
     }
-  }, [isEditMode, editingProduct, isOpen, currentWarehouseId, reset, selectedLcId]);
+  }, [isEditMode, editingProduct, isOpen, currentWarehouseId, reset]);
 
   const onSubmit = async (data) => {
     const dataToSave = {

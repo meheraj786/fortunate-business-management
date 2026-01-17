@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
 import { useCreateUser } from "@/api/hooks/user";
 import { useWarehouses } from "@/api/hooks/warehouse";
@@ -98,7 +98,7 @@ const AddTeamMemForm = () => {
       await createUserMutation.mutateAsync(payload);
       navigate("/team");
     } catch (error) {
-      handleError(error, "Failed to create user.");
+      showErrorToast(error, "Failed to create user.");
     }
   };
 

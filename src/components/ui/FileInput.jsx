@@ -37,12 +37,12 @@ const FileInput = ({
     setIsDragging(false);
   }, []);
 
-  const validateFile = (file) => {
+  const validateFile = useCallback((file) => {
     if (file.size > maxSize * 1024 * 1024) {
       return `File size exceeds ${maxSize}MB limit`;
     }
     return "";
-  };
+  }, [maxSize]);
 
   const handleDrop = useCallback(
     (e) => {
@@ -71,7 +71,7 @@ const FileInput = ({
         onFileChange(validFiles);
       }
     },
-    [maxSize, onFileChange]
+    [maxSize, onFileChange, validateFile]
   );
 
   const handleFileInputChange = (e) => {

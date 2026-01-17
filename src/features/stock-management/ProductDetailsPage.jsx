@@ -22,7 +22,7 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatBox from "@/components/ui/StatBox";
 import AddProductForm from "./AddProductForm";
 import SalesHistory from "./SalesHistory";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/button";
 

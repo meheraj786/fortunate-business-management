@@ -68,7 +68,7 @@ export const useFormData = (initialData) => {
     } else {
       resetForm();
     }
-  }, [initialData]);
+  }, [initialData, processLCData, resetForm]);
 
   const processLCData = (lcData) => {
     const processedData = {
@@ -195,7 +195,10 @@ export const useFormData = (initialData) => {
   const formatFormDataForSubmit = useCallback(() => {
     const dataToSend = JSON.parse(JSON.stringify(formData));
 
-    const cleanCosts = (costs) => costs.map(({ id, date, ...c }) => c);
+    const cleanCosts = (costs) => costs.map((cost) => {
+        const { id, date, ...rest } = cost; // Explicitly discard id and date
+        return rest;
+    });
 
     if (dataToSend.financialInfo?.costs) {
       dataToSend.financialInfo.costs = cleanCosts(dataToSend.financialInfo.costs);
@@ -229,7 +232,7 @@ export const useFormData = (initialData) => {
     setUploadedFiles([]);
     productIdCounter.current = 0;
     costIdCounter.current = 0;
-  }, []);
+  }, [initialFormDataState]);
 
   return {
     formData, setFormData, uploadedFiles, setUploadedFiles, handleInputChange, handleProductChange,

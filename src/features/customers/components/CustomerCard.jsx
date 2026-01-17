@@ -2,7 +2,7 @@ import React from "react";
 import { MapPin, Phone, ShoppingBag, DollarSign, Calendar } from "lucide-react";
 import { Link } from "react-router"; // Changed to react-router
 import { motion } from "framer-motion"; // Import motion
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const CustomerCard = ({ customer }) => {
   const { hasPermission } = useAuth();

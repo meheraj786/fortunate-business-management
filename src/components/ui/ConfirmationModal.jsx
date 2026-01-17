@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useCallback } from "react";
+import React, { memo, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
   Dialog,

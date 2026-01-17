@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FiChevronDown } from "react-icons/fi";
 import CustomScrollbar from "./CustomScrollbar";
 
@@ -148,7 +148,7 @@ const Dropdown = ({
     }
   };
 
-  const handleOptionKeyDown = (event, option, index) => {
+  const handleOptionKeyDown = (event, option) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       handleSelect(option);

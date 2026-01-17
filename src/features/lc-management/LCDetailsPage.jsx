@@ -39,9 +39,9 @@ import {
   useExportLC,
   useDeleteLCDocument,
 } from "@/api/hooks/lc";
-import { useUrl } from "@/context/UrlProvider";
+import { useUrl } from "@/hooks/useUrl";
 import { formatNumber, formatDate } from "@/utils/format";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const LCdetails = () => {
   const { id } = useParams();

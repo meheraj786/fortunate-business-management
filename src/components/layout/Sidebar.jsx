@@ -1,5 +1,5 @@
 import { RiTeamFill } from "react-icons/ri";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import {
   ChartColumnIncreasing,
   CreditCard,
@@ -9,13 +9,13 @@ import {
 } from "lucide-react";
 import ConfirmationModal from "../ui/ConfirmationModal";
 import { MdInventory } from "react-icons/md";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { IoHome } from "react-icons/io5";
 import { BsFillCreditCardFill } from "react-icons/bs";
 import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings3Fill, RiMenuLine } from "react-icons/ri";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const SidebarItem = ({
   icon: Icon,
@@ -70,7 +70,7 @@ const SidebarItem = ({
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, hasPermission, isSuperAdmin, isLoggingOut } = useAuth();
+  const { logout, hasPermission, isSuperAdmin, isLoggingOut } = useAuth();
 
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem("sidebar-collapsed")) || false

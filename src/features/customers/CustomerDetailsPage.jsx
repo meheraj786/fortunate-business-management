@@ -38,10 +38,10 @@ import Pagination from "@/components/ui/Pagination";
 import Button from "@/components/ui/Button";
 
 // Custom Hooks
-import { useUrl } from "@/context/UrlProvider";
+import { useUrl } from "@/hooks/useUrl";
 import { useCustomerData, useSalesData } from "@/hooks/useCustomerOperations";
 import { useDeleteCustomer, useDeleteCustomerDocument } from "../../api/hooks/customer";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { downloadCustomerDocument } from "../../api/customer.api";
 
 const CustomerDetails = () => {

@@ -14,7 +14,7 @@ import {
   FileText,
   Trash2,
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { showErrorToast } from "@/utils/notifications";
 

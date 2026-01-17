@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import LayoutSkeleton from "@/components/layout/LayoutSkeleton"; // Import the layout skeleton
 
 const PrivateRoute = ({ children }) => {

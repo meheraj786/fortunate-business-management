@@ -9,7 +9,7 @@ import DailyCashStats from "./components/DailyCashStats";
 import TransactionFilters from "./components/TransactionFilters";
 import Pagination from "@/components/ui/Pagination";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { showErrorToast } from "@/utils/notifications";
 // import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 

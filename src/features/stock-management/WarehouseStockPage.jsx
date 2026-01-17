@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useWarehouse } from "@/api/hooks/warehouse";
 import { useProducts as useProductsFromProductHook } from "@/api/hooks/products";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 import ProductCard from "./components/ProductCard";
 import StatBox from "@/components/ui/StatBox";

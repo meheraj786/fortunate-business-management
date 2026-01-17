@@ -17,7 +17,7 @@ import {
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatBox from "@/components/ui/StatBox";
 import AddWarehouseForm from "./AddWarehouseForm";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useWarehouses, useDeleteWarehouse } from "@/api/hooks/warehouse";
 import Button from "@/components/ui/Button"; // Import Button component
 

@@ -1,7 +1,7 @@
 import { Layers, FileText, Ruler } from "lucide-react";
 import React from "react";
 import { Link } from "react-router"; // Changed to react-router
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const ProductCard = ({ product, warehouseId }) => {
   const { hasPermission } = useAuth();

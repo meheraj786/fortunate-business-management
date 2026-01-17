@@ -32,7 +32,7 @@ import TransactionTable from "@/components/common/TransactionTable";
 import Pagination from "@/components/ui/Pagination";
 import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
 
 const sortOptions = [

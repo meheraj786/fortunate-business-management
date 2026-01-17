@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router"; // Changed to react-router
 import { useDebounce } from "@/hooks/useDebounce";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useLCSummary, useLCCountsByStatus } from "@/api/hooks/lc";
 import Button from "@/components/ui/Button"; // Import Button component
 

@@ -24,7 +24,7 @@ export const useCustomerData = (id) => {
       }
     } catch (error) {
       setError("Failed to load customer details. Please try again.");
-      handleError(error, "Failed to load customer details.");
+      showErrorToast(error, "Failed to load customer details.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ export const useSalesData = (customerId) => {
           );
         }
       } catch (error) {
-        handleError(error, "Failed to load sales data.");
+        showErrorToast(error, "Failed to load sales data.");
       } finally {
         setLoading(false);
       }

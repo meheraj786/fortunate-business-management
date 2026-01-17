@@ -3,7 +3,7 @@ import { Link } from "react-router"; // Changed to react-router
 import { Check, X, Calendar, Package, ArrowUp, ArrowDown } from "lucide-react";
 import Button from "@/components/ui/Button"; // Import Button component
 import { formatCurrency, formatDate } from "@/utils/format";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
   const { hasPermission } = useAuth();

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { showErrorToast } from "@/utils/notifications";
 
 import api from '@/services/apiService';
 
@@ -16,7 +17,7 @@ const useAccounts = () => {
         throw new Error("Failed to fetch accounts");
       }
     } catch (error) {
-      handleError(error, "Failed to load accounts. Please try again.");
+      showErrorToast(error, "Failed to load accounts. Please try again.");
     } finally {
       setLoading(false);
     }

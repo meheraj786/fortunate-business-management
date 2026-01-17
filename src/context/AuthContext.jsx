@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProfile, useLogin, useLogout } from "@/api/hooks/user";
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
@@ -60,5 +60,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
 export default AuthProvider;

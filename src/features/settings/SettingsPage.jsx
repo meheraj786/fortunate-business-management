@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, Outlet } from "react-router";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const Settings = () => {
   const { hasPermission } = useAuth();

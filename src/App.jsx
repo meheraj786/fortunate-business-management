@@ -5,7 +5,6 @@ import { Toaster } from "react-hot-toast";
 import LoginPage from "@/features/login/LoginPage";
 import Layout from "@/components/layout/Layout";
 import PrivateRoute from "@/routes/PrivateRoutes";
-import { useAuth } from "./context/AuthContext";
 
 // Lazy-loaded components
 const LCPage = lazy(() => import("@/features/lc-management/LCPage"));

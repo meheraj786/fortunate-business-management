@@ -14,7 +14,7 @@ export const useAddIncome = () => {
   return useMutation({
     mutationFn: api.addIncome,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cash"] }),
-    onError: (error) => handleError(error, "Failed to add income.", "cashError"),
+    onError: (error) => showErrorToast(error, "Failed to add income."),
   });
 };
 
@@ -23,6 +23,6 @@ export const useAddExpense = () => {
   return useMutation({
     mutationFn: api.addExpense,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cash"] }),
-    onError: (error) => handleError(error, "Failed to add expense.", "cashError"),
+    onError: (error) => showErrorToast(error, "Failed to add expense."),
   });
 };

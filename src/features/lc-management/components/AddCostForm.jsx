@@ -7,7 +7,7 @@ import SelectField from "@/components/ui/SelectField";
 import { DollarSign, Calendar } from "lucide-react";
 import { useAccounts } from "@/api/hooks/account";
 import { useAddExpenseToLC } from "@/api/hooks/lc";
-import { useUrl } from "@/context/UrlProvider";
+import { useUrl } from "@/hooks/useUrl";
 
 const INITIAL_EXPENSE_STATE = {
   name: "",

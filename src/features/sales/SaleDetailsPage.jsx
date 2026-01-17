@@ -30,7 +30,7 @@ import {
 } from "@/api/hooks/sales";
 import { useInvoicesBySale, useGenerateInvoice } from "@/api/hooks/invoice";
 import { useAccounts } from "@/api/hooks/account";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, formatDate } from "@/utils/format";
 import SaleDetailsSkeleton from "./components/SaleDetailsSkeleton";
 import Breadcrumb from "@/components/ui/breadcrumb";

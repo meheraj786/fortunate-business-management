@@ -15,7 +15,6 @@ import {
   User,
   XCircle,
 } from "lucide-react";
-import toast from "react-hot-toast";
 import Button from "../ui/Button";
 import { useTransaction } from "@/api/hooks/transaction";
 

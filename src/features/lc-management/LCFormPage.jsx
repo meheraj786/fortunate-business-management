@@ -21,7 +21,7 @@ import { useSectionManager } from "@/hooks/useSectionManager";
 import { useUnits } from "@/api/hooks/unit";
 import { useAccounts } from "@/api/hooks/account";
 import { useLC, useCreateLC, useUpdateLC } from "@/api/hooks/lc";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 // Components
 import FormSection from "@/components/ui/FormSection";

@@ -11,7 +11,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Button from "../../../components/ui/Button";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import Pagination from "../../../components/ui/Pagination";
 
 const LCTable = ({
@@ -167,7 +167,7 @@ const LCTable = ({
         </tr>
       );
     });
-  }, [lcData, loading, getStatusColor]);
+  }, [lcData, loading, getStatusColor, hasPermission]);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
