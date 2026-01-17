@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useUser, useUpdateUser } from "../../api/hooks/user";
 import { useWarehouses } from "../../api/hooks/warehouse";
 
