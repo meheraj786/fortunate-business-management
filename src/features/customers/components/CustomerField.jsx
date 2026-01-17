@@ -9,7 +9,10 @@ const CustomerField = ({
   icon: Icon,
 }) => (
   <div className="space-y-2">
-    <label htmlFor="customer-field" className="block text-sm font-medium text-gray-700">
+    <label
+      htmlFor="customer-field"
+      className="block text-sm font-medium text-gray-700"
+    >
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <div className="relative">
@@ -26,7 +29,7 @@ const CustomerField = ({
         required={required}
         placeholder="Select or type a customer name"
         list="customer-list"
-        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003b75] focus:border-transparent transition-all duration-200 ${
+        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all duration-200 ${
           Icon ? "pl-10" : ""
         }`}
       />

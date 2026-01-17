@@ -33,7 +33,7 @@ import {
   useCreateCustomer,
   useCustomer,
   useUpdateCustomer,
-} from "../../api/hooks/customer";
+} from "@/api/hooks/customer";
 
 const CustomerForm = ({ onSave }) => {
   const { id } = useParams();

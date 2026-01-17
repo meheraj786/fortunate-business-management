@@ -37,7 +37,9 @@ const SidebarItem = ({
   >
     <div
       className={`p-2 rounded-lg shadow-md transition-colors duration-200 ${
-        active ? "bg-[#003b75] text-white" : "bg-white text-[#003b75]"
+        active
+          ? "bg-[var(--color-primary)] text-white"
+          : "bg-white text-[var(--color-primary)]"
       }`}
     >
       <Icon size={18} />
@@ -73,7 +75,7 @@ const Sidebar = () => {
   const { logout, hasPermission, isSuperAdmin, isLoggingOut } = useAuth();
 
   const [collapsed, setCollapsed] = useState(
-    () => JSON.parse(localStorage.getItem("sidebar-collapsed")) || false
+    () => JSON.parse(localStorage.getItem("sidebar-collapsed")) || false,
   );
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -82,7 +84,7 @@ const Sidebar = () => {
   useEffect(() => {
     localStorage.setItem("sidebar-collapsed", JSON.stringify(collapsed));
   }, [collapsed]);
-  
+
   const allMenuItems = [
     {
       icon: BsFillCreditCardFill,
@@ -90,7 +92,12 @@ const Sidebar = () => {
       path: "/lc-management",
       permission: "LC_VIEW_TABLE",
     },
-    { icon: MdInventory, label: "Stock Management", path: "/stock-management", permission: "WAREHOUSE_VIEW" },
+    {
+      icon: MdInventory,
+      label: "Stock Management",
+      path: "/stock-management",
+      permission: "WAREHOUSE_VIEW",
+    },
     {
       icon: ChartColumnIncreasing,
       label: "Sales",
@@ -109,7 +116,12 @@ const Sidebar = () => {
       path: "/accounts",
       permission: "ACCOUNT_VIEW_ALL",
     },
-    { icon: RiTeamFill, label: "Team", path: "/team", permission: "USER_VIEW_ALL" },
+    {
+      icon: RiTeamFill,
+      label: "Team",
+      path: "/team",
+      permission: "USER_VIEW_ALL",
+    },
     {
       icon: MdPeopleAlt,
       label: "Customers",
@@ -119,9 +131,9 @@ const Sidebar = () => {
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
   ];
 
-  const menuItems = isSuperAdmin 
-    ? allMenuItems 
-    : allMenuItems.filter(item => {
+  const menuItems = isSuperAdmin
+    ? allMenuItems
+    : allMenuItems.filter((item) => {
         if (item.path === "/settings") {
           return true; // Settings is always shown
         }
@@ -131,7 +143,7 @@ const Sidebar = () => {
   const getActive = () => {
     const path = location.pathname;
     const activeItem = menuItems.find((item) =>
-      item.path === "/" ? path === "/" : path.startsWith(item.path)
+      item.path === "/" ? path === "/" : path.startsWith(item.path),
     );
     return activeItem ? activeItem.label : "";
   };
@@ -166,7 +178,7 @@ const Sidebar = () => {
     return (
       <>
         <button
-          className="fixed top-4 right-4 z-30 p-3 rounded-lg bg-[#003b75] text-white shadow-md touch-manipulation"
+          className="fixed top-4 right-4 z-30 p-3 rounded-lg bg-[var(--color-primary)] text-white shadow-md touch-manipulation"
           onClick={toggleSidebar}
         >
           <RiMenuLine size={20} />
@@ -229,15 +241,16 @@ const Sidebar = () => {
           )}
         </AnimatePresence>
         <ConfirmationModal
-                    isOpen={isLogoutModalOpen}
-                    onClose={() => setIsLogoutModalOpen(false)}
-                    onConfirm={handleLogout}
-                    title="Confirm Logout"
-                    description="Are you sure you want to log out?"
-                    isConfirming={isLoggingOut}
-                    confirmingText="Logging out..."
-                    variant="primary"
-                    icon={LogOut}        />
+          isOpen={isLogoutModalOpen}
+          onClose={() => setIsLogoutModalOpen(false)}
+          onConfirm={handleLogout}
+          title="Confirm Logout"
+          description="Are you sure you want to log out?"
+          isConfirming={isLoggingOut}
+          confirmingText="Logging out..."
+          variant="primary"
+          icon={LogOut}
+        />
       </>
     );
   }
@@ -306,15 +319,16 @@ const Sidebar = () => {
         </div>
       </motion.div>
       <ConfirmationModal
-                  isOpen={isLogoutModalOpen}
-                  onClose={() => setIsLogoutModalOpen(false)}
-                  onConfirm={handleLogout}
-                  title="Confirm Logout"
-                  description="Are you sure you want to log out?"
-                  isConfirming={isLoggingOut}
-                  confirmingText="Logging out..."
-                  variant="primary"
-                  icon={LogOut}      />
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="Confirm Logout"
+        description="Are you sure you want to log out?"
+        isConfirming={isLoggingOut}
+        confirmingText="Logging out..."
+        variant="primary"
+        icon={LogOut}
+      />
     </>
   );
 };

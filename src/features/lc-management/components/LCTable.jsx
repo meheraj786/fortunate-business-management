@@ -10,9 +10,9 @@ import {
   ArrowDown,
   ChevronDown,
 } from "lucide-react";
-import Button from "../../../components/ui/Button";
+import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
-import Pagination from "../../../components/ui/Pagination";
+import Pagination from "@/components/ui/Pagination";
 
 const LCTable = ({
   lcData = [],

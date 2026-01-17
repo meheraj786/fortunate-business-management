@@ -14,7 +14,7 @@ import {
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 import { useAuth } from "@/hooks/useAuth";
-import { useUser } from "../../api/hooks/user";
+import { useUser } from "@/api/hooks/user";
 
 const TeamDetails = () => {
   const { id } = useParams();
