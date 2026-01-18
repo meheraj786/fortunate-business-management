@@ -33,6 +33,7 @@ const InputField = ({
         value: value || "",
         onChange,
         id: `${id}-${name}`,
+        name,
       };
 
   return (
