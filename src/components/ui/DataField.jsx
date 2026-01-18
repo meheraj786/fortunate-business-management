@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import PropTypes from "prop-types";
+import { useSettings } from "@/context/SettingsContext";
 
 const DataField = ({
   label,
@@ -10,6 +11,8 @@ const DataField = ({
   type = "text",
   format,
 }) => {
+  const { formatCurrency, formatDate, formatNumber } = useSettings();
+
   if (hidden || value === null || value === undefined || value === "") {
     return null;
   }
@@ -18,22 +21,11 @@ const DataField = ({
 
   // Apply formatting if specified
   if (format === "currency") {
-    displayValue = `৳${parseFloat(value).toLocaleString("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+    displayValue = formatCurrency(value);
   } else if (format === "date") {
-    try {
-      displayValue = new Date(value).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      displayValue = value;
-    }
+    displayValue = formatDate(value);
   } else if (format === "number") {
-    displayValue = Number(value).toLocaleString("en-IN");
+    displayValue = formatNumber(value);
   }
 
   return (

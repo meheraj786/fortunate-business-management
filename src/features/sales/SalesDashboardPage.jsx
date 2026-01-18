@@ -7,7 +7,7 @@ import {
   FileX,
   Trash,
 } from "lucide-react";
-import { Link } from "react-router"; 
+import { Link } from "react-router";
 
 import AddSalesForm from "./AddSalesForm";
 import SalesTable from "./components/SalesTable";
@@ -18,6 +18,7 @@ import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { usePaginatedSales, useInvoiceStatusCount } from "@/api/hooks/sales";
 import Pagination from "@/components/ui/Pagination";
+import { useSettings } from "@/context/SettingsContext";
 
 const StatCardSkeleton = () => (
   <div className="bg-white p-4 rounded-lg shadow-sm animate-pulse">
@@ -41,6 +42,7 @@ const Sales = () => {
   const [sortOrder, setSortOrder] = useState("desc");
 
   const { hasPermission } = useAuth();
+  const { formatNumber } = useSettings();
 
   const {
     data: salesResponse,
@@ -190,7 +192,7 @@ const Sales = () => {
                   <p className="text-sm text-gray-600 mt-1">
                     {!salesLoading &&
                       !isError &&
-                      `${totalSales?.toLocaleString()} total records`}
+                      `${formatNumber(totalSales)} total records`}
                   </p>
                 </div>
                 <div className="w-full sm:w-64">

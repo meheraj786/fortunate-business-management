@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSettings } from "@/context/SettingsContext";
 import {
   Building,
   Smartphone,
@@ -30,6 +31,7 @@ const StatBoxSkeleton = () => (
 
 const Accounts = () => {
   const { hasPermission } = useAuth();
+  const { formatCurrency } = useSettings();
   const navigate = useNavigate();
   const { data: transactionStatsResponse, isLoading: isLoadingStats } =
     useTransactionStats();
@@ -91,7 +93,7 @@ const Accounts = () => {
         />
         <StatBox
           title="Total Amount"
-          number={`৳${(transactionStats?.totalAmount || 0).toLocaleString()}`}
+          number={formatCurrency(transactionStats?.totalAmount || 0)}
           Icon={DollarSign}
           textColor="success" // Changed from green
         />

@@ -6,6 +6,7 @@ import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import Button from "@/components/ui/Button"; // Import Button component
 import { useFieldArray } from "react-hook-form"; // Import useFieldArray
+import { useSettings } from "@/context/SettingsContext";
 
 const CostsSection = ({
   control, // from react-hook-form
@@ -22,6 +23,7 @@ const CostsSection = ({
     control,
     name: section, // e.g., "financialInfo.costs"
   });
+  const { settings } = useSettings();
 
   const sectionAnimation = {
     initial: { opacity: 0, height: 0 },
@@ -72,7 +74,7 @@ const CostsSection = ({
       }
       return current?.message;
     },
-    [errors]
+    [errors],
   );
 
   return (
@@ -104,7 +106,7 @@ const CostsSection = ({
             </div>
             <div className="lg:col-span-3 md:col-span-1">
               <InputField
-                label="Amount (BDT)"
+                label={`Amount (${settings?.currency || "BDT"})`}
                 name={`${section}[${index}].amount`}
                 type="number"
                 register={register}
@@ -124,7 +126,7 @@ const CostsSection = ({
                 name={`${section}[${index}].paymentMethod`}
                 register={register}
                 error={getNestedErrorMessage(
-                  `${section}[${index}].paymentMethod`
+                  `${section}[${index}].paymentMethod`,
                 )}
                 options={paymentMethods.map((method) => ({
                   value: method,
@@ -141,13 +143,13 @@ const CostsSection = ({
                   name={`${section}[${index}].accountId`}
                   register={register}
                   error={getNestedErrorMessage(
-                    `${section}[${index}].accountId`
+                    `${section}[${index}].accountId`,
                   )}
                   options={accounts
                     .filter(
                       (acc) =>
                         acc.accountType ===
-                        watch(`${section}[${index}].paymentMethod`)
+                        watch(`${section}[${index}].paymentMethod`),
                     )
                     .map((acc) => {
                       let label = "";

@@ -16,7 +16,7 @@ import {
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import Pagination from "@/components/ui/Pagination";
-import { formatDate } from "@/utils/format";
+import { useSettings } from "@/context/SettingsContext";
 
 const SortableHeader = ({
   label,
@@ -73,6 +73,7 @@ const LCTable = ({
   statusOptions,
 }) => {
   const { hasPermission } = useAuth();
+  const { formatCurrency, formatDate, formatNumber } = useSettings();
   const getStatusColor = React.useCallback((status) => {
     if (!status) return "bg-gray-100 text-gray-800";
     const statusLower = status.toLowerCase();
@@ -193,11 +194,11 @@ const LCTable = ({
             </div>
           </td>
           <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-500 text-right border-b border-gray-100">
-            {totalQuantity.toLocaleString()}
+            {formatNumber(totalQuantity)}
             {unitString}
           </td>
           <td className="py-4 pl-4 pr-4 text-sm whitespace-nowrap font-medium text-gray-900 text-right sm:pr-6 border-b border-gray-100">
-            ৳{(lc.totalCost || 0).toLocaleString()}
+            {formatCurrency(lc.totalCost || 0)}
           </td>
         </motion.tr>
       );
@@ -368,7 +369,7 @@ const LCTable = ({
                           Total Cost
                         </span>
                         <span className="font-semibold text-gray-900">
-                          ৳{(lc.totalCost || 0).toLocaleString()}
+                          {formatCurrency(lc.totalCost || 0)}
                         </span>
                       </div>
                     </div>
@@ -466,7 +467,7 @@ const LCTable = ({
                   className="py-3.5 pl-4 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 border-b border-gray-200"
                 >
                   <SortableHeader
-                    label="Total (৳)"
+                    label="Total Cost"
                     value="totalCost"
                     align="right"
                     sortBy={sortBy}

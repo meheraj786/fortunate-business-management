@@ -21,7 +21,7 @@ import {
 import { useInvoicesBySale, useGenerateInvoice } from "@/api/hooks/invoice";
 import { useAccounts } from "@/api/hooks/account";
 import { useAuth } from "@/hooks/useAuth";
-import { formatCurrency, formatDate } from "@/utils/format";
+import { useSettings } from "@/context/SettingsContext";
 import SaleDetailsSkeleton from "./components/SaleDetailsSkeleton";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import FormDialog from "@/components/ui/FormDialog";
@@ -40,6 +40,7 @@ const SaleDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const { formatCurrency, formatDate } = useSettings();
 
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

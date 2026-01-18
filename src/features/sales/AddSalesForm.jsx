@@ -9,7 +9,8 @@ import { useAccounts } from "@/api/hooks/account";
 import { useUnits } from "@/api/hooks/unit";
 import { useProductsForSale } from "@/api/hooks/products";
 import { useCreateSale, useUpdateSale } from "@/api/hooks/sales";
-import { formatCurrency } from "@/utils/format";
+
+import { useSettings } from "@/context/SettingsContext";
 
 import FormHeader from "@/components/ui/FormHeader";
 import FormActions from "@/components/ui/FormActions";
@@ -28,6 +29,7 @@ const AddSales = ({
 }) => {
   const isEditMode = !!editData;
   const [, setNewUploadedFiles] = useState([]);
+  const { formatCurrency } = useSettings();
 
   const {
     register,

@@ -3,6 +3,7 @@ import { Calendar, Plus, Target, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/ui/Button"; // Import the standardized Button component
+import { useSettings } from "@/context/SettingsContext";
 
 const DailyCashHeader = ({
   onAddTransaction,
@@ -17,13 +18,14 @@ const DailyCashHeader = ({
   isToday,
 }) => {
   const { hasPermission } = useAuth();
+  const { formatDate } = useSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleOpenDay = () => openDay(selectedDate);
   const handleCloseDay = () => {
     if (
       window.confirm(
-        "Are you sure you want to close the cash for the day? This cannot be undone."
+        "Are you sure you want to close the cash for the day? This cannot be undone.",
       )
     ) {
       closeDay(selectedDate);
@@ -262,11 +264,7 @@ const DailyCashHeader = ({
                   Selected Date
                 </span>
                 <div className="text-xs text-gray-500 mt-1">
-                  {new Date(selectedDate).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  {formatDate(selectedDate)}
                 </div>
               </div>
             </div>
@@ -286,9 +284,7 @@ const DailyCashHeader = ({
             </div>
           </div>
 
-          <AnimatePresence mode="wait">
-            {statusBanner()}
-          </AnimatePresence>
+          <AnimatePresence mode="wait">{statusBanner()}</AnimatePresence>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { RiTeamFill } from "react-icons/ri";
 import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/context/SettingsContext"; // Import useSettings
 import {
   ChartColumnIncreasing,
   CreditCard,
@@ -73,6 +74,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, hasPermission, isSuperAdmin, isLoggingOut } = useAuth();
+  const { settings } = useSettings(); // Get settings
 
   const [collapsed, setCollapsed] = useState(
     () => JSON.parse(localStorage.getItem("sidebar-collapsed")) || false,
@@ -209,7 +211,7 @@ const Sidebar = () => {
               <div className="p-6 h-full flex flex-col">
                 <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-6">
                   <div className="font-inter text-lg font-bold">
-                    BUSINESS MANAGEMENT <br /> SYSTEM
+                    {settings?.businessName || "BUSINESS MANAGEMENT SYSTEM"}
                   </div>
                 </div>
 
@@ -279,7 +281,7 @@ const Sidebar = () => {
                     exit={{ opacity: 0, x: -15 }}
                     transition={{ duration: 0.25, ease: "easeInOut" }}
                   >
-                    BUSINESS MANAGEMENT <br /> SYSTEM
+                    {settings?.businessName || "BUSINESS MANAGEMENT SYSTEM"}
                   </motion.div>
                 )}
               </AnimatePresence>

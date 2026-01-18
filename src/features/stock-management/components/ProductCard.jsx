@@ -2,9 +2,11 @@ import { Layers, FileText, Ruler } from "lucide-react";
 import React from "react";
 import { Link } from "react-router"; // Changed to react-router
 import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/context/SettingsContext"; // Import useSettings
 
 const ProductCard = ({ product, warehouseId }) => {
   const { hasPermission } = useAuth();
+  const { formatCurrency } = useSettings();
 
   const getStockColor = (status) => {
     switch (status) {
@@ -84,9 +86,7 @@ const ProductCard = ({ product, warehouseId }) => {
         <div className="flex justify-between items-center">
           <span className="text-xs text-gray-500">Unit Price</span>
           <span className="font-semibold text-gray-900 text-sm">
-            {product.unitPrice
-              ? `৳${product.unitPrice.toLocaleString()}`
-              : "N/A"}
+            {product.unitPrice ? formatCurrency(product.unitPrice) : "N/A"}
           </span>
         </div>
       </div>

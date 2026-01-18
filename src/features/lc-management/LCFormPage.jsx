@@ -21,7 +21,9 @@ import { useSectionManager } from "@/hooks/useSectionManager";
 import { useUnits } from "@/api/hooks/unit";
 import { useAccounts } from "@/api/hooks/account";
 import { useLC, useCreateLC, useUpdateLC } from "@/api/hooks/lc";
+import { useLC, useCreateLC, useUpdateLC } from "@/api/hooks/lc";
 import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/context/SettingsContext";
 
 // Components
 import FormSection from "@/components/ui/FormSection";
@@ -271,6 +273,7 @@ const ProductFields = ({
 
 const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
   const navigate = useNavigate();
+  const { settings } = useSettings();
 
   const { data: unitsData, isLoading: unitsLoading } = useUnits();
   const { data: accountsData, isLoading: accountsLoading } = useAccounts();
@@ -628,7 +631,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                   placeholder="e.g., 115.50"
                 />
                 <InputField
-                  label="LC Amount (BDT)"
+                  label={`LC Amount (${settings?.currency || "BDT"})`}
                   name="financialInfo.lcAmountBdt"
                   type="number"
                   register={register} // Still register for consistency, but disable

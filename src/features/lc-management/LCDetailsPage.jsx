@@ -40,14 +40,16 @@ import {
   useDeleteLCDocument,
 } from "@/api/hooks/lc";
 import { useUrl } from "@/hooks/useUrl";
-import { formatNumber, formatDate } from "@/utils/format";
 import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/context/SettingsContext";
 
 const LCdetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const { baseUrl } = useUrl();
   const { hasPermission } = useAuth();
+  const { formatCurrency, formatDate, formatNumber, settings } = useSettings();
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -356,8 +358,8 @@ const LCdetails = () => {
                   value={formatNumber(financialInfo.exchangeRate)}
                 />
                 <DataField
-                  label="LC Amount (BDT)"
-                  value={`৳${formatNumber(financialInfo.lcAmountBdt)}`}
+                  label={`LC Amount (${settings?.currency || "BDT"})`}
+                  value={formatCurrency(financialInfo.lcAmountBdt)}
                 />
               </div>
               {financialInfo.costs?.length > 0 && (
@@ -531,7 +533,7 @@ const LCdetails = () => {
                             {cost.name}
                           </span>
                           <span className="text-sm font-medium whitespace-nowrap">
-                            ৳{formatNumber(cost.amount)}
+                            {formatCurrency(cost.amount)}
                           </span>
                         </div>
                       ))}
@@ -542,7 +544,7 @@ const LCdetails = () => {
                           Total LC Expenses
                         </span>
                         <span className="font-bold text-lg text-[var(--color-primary)]">
-                          ৳{formatNumber(totalLcExpenses)}
+                          {formatCurrency(totalLcExpenses)}
                         </span>
                       </div>
                     </div>
@@ -657,7 +659,7 @@ const LCdetails = () => {
                             {cost.name}
                           </span>
                           <span className="font-bold text-gray-800 whitespace-nowrap">
-                            ৳{formatNumber(cost.amount)}
+                            {formatCurrency(cost.amount)}
                           </span>
                         </div>
                         <div className="text-xs text-gray-500 mb-1">

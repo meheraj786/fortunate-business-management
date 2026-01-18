@@ -8,9 +8,10 @@ import {
   User,
   ExternalLink,
 } from "lucide-react";
-import { formatCurrency } from "@/utils/format";
+import { useSettings } from "@/context/SettingsContext";
 
 const SaleInfo = ({ sale, isRegisteredCustomer, hasPermission }) => {
+  const { formatCurrency, formatNumber } = useSettings();
   return (
     <div className="space-y-6">
       {/* Sale Information */}
@@ -34,7 +35,7 @@ const SaleInfo = ({ sale, isRegisteredCustomer, hasPermission }) => {
               Quantity
             </label>
             <p className="text-gray-900">
-              {sale.quantity?.toLocaleString()} {sale.unit?.name || "units"}
+              {formatNumber(sale.quantity)} {sale.unit?.name || "units"}
             </p>
           </div>
           <div>

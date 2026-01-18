@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Button from "../ui/Button";
 import { useTransaction } from "@/api/hooks/transaction";
+import { useSettings } from "@/context/SettingsContext";
 
 const getAccountDisplayName = (accountId) => {
   if (!accountId) return "N/A";
@@ -37,15 +38,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
   // Use react-query hook to fetch transaction details
   const { data: response, isLoading, isError } = useTransaction(transactionId);
   const transaction = response?.data;
-
-  const formatDate = (dateString) =>
-    new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-
-  const formatCurrency = (amount) => `৳${amount?.toLocaleString("en-BD") || 0}`;
+  const { formatCurrency, formatDate } = useSettings();
 
   const getPaymentMethodIcon = (method) => {
     switch (method) {

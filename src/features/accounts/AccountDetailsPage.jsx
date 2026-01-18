@@ -34,6 +34,7 @@ import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useSettings } from "@/context/SettingsContext";
 
 const sortOptions = [
   { value: "date", label: "Date" },
@@ -84,6 +85,7 @@ const AccountDetails = () => {
   const { accountId } = useParams();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const { formatCurrency, formatDateTime } = useSettings();
 
   // UI Control State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -218,39 +220,37 @@ const AccountDetails = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <StatBox
             title="Current Balance"
-            number={`৳${accountStats.currentBalance.toLocaleString()}`}
+            number={formatCurrency(accountStats.currentBalance)}
             Icon={Wallet}
             textColor="blue"
           />
           <StatBox
             title="Total Income"
-            number={`৳${accountStats.totalIncome.toLocaleString()}`}
+            number={formatCurrency(accountStats.totalIncome)}
             Icon={ArrowUp}
             textColor="green"
           />
           <StatBox
             title="Total Expense"
-            number={`৳${accountStats.totalExpense.toLocaleString()}`}
+            number={formatCurrency(accountStats.totalExpense)}
             Icon={ArrowDown}
             textColor="red"
           />
           <StatBox
             title="Largest Income"
-            number={`৳${accountStats.largestIncome.toLocaleString()}`}
+            number={formatCurrency(accountStats.largestIncome)}
             Icon={ArrowUp}
             textColor="green"
           />
           <StatBox
             title="Largest Expense"
-            number={`৳${accountStats.largestExpense.toLocaleString()}`}
+            number={formatCurrency(accountStats.largestExpense)}
             Icon={ArrowDown}
             textColor="red"
           />
           <StatBox
             title="Avg. Transaction"
-            number={`৳${(
-              accountStats.averageTransactionAmount || 0
-            ).toLocaleString()}`}
+            number={formatCurrency(accountStats.averageTransactionAmount || 0)}
             Icon={DollarSign}
             textColor="default"
           />
@@ -342,7 +342,7 @@ const AccountDetails = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-base sm:text-sm text-gray-700">
           <div className="flex items-center gap-2">
-            <strong>Balance:</strong> ৳{account.balance.toLocaleString()}
+            <strong>Balance:</strong> {formatCurrency(account.balance)}
           </div>
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-gray-500" />
@@ -385,8 +385,7 @@ const AccountDetails = () => {
           )}
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-gray-500" />
-            <strong>Created At:</strong>{" "}
-            {new Date(account.createdAt).toLocaleString("en-GB")}
+            <strong>Created At:</strong> {formatDateTime(account.createdAt)}
           </div>
         </div>
       </div>

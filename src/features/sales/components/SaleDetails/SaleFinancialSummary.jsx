@@ -1,8 +1,8 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DollarSign, Truck, CreditCard } from "lucide-react";
-import { formatCurrency } from "@/utils/format";
 import Button from "@/components/ui/Button";
+import { useSettings } from "@/context/SettingsContext";
 
 const SaleFinancialSummary = ({
   sale,
@@ -12,6 +12,7 @@ const SaleFinancialSummary = ({
   hasPermission,
   onAddPaymentClick,
 }) => {
+  const { formatCurrency } = useSettings();
   return (
     <div className="bg-white rounded-lg shadow-sm p-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

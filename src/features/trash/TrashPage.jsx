@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router";
-import { useTrash, useRestoreFromTrash, useDeleteTrashPermanently } from "@/api/hooks/trash";
+import {
+  useTrash,
+  useRestoreFromTrash,
+  useDeleteTrashPermanently,
+} from "@/api/hooks/trash";
 import Button from "@/components/ui/Button";
 import {
   Loader2,
@@ -17,13 +21,14 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { showErrorToast } from "@/utils/notifications";
-
+import { useSettings } from "@/context/SettingsContext";
 
 const TrashPage = () => {
   const { moduleName } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const { formatDateTime, formatDate, formatTime } = useSettings();
   const queryParams = new URLSearchParams(location.search);
   const warehouseId = queryParams.get("warehouseId");
 
@@ -46,7 +51,6 @@ const TrashPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const deleteMutation = useDeleteTrashPermanently();
   const deletePermission = `TRASH_DELETE_${currentModule.toUpperCase()}`;
-
 
   useEffect(() => {
     if (!hasPermission(viewPermission)) {
@@ -167,7 +171,9 @@ const TrashPage = () => {
                     <td colSpan={5} className="p-12 text-center">
                       <div className="flex flex-col items-center text-muted-foreground">
                         <Info className="w-10 h-10 mb-2 opacity-20" />
-                        <p>No deleted items found in {currentModule || "trash"}</p>
+                        <p>
+                          No deleted items found in {currentModule || "trash"}
+                        </p>
                       </div>
                     </td>
                   </tr>
@@ -199,10 +205,7 @@ const TrashPage = () => {
                       </td>
 
                       <td className="p-4 text-gray-600 whitespace-nowrap">
-                        {new Date(item.deletedAt).toLocaleString("en-GB", {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}
+                        {formatDateTime(item.deletedAt)}
                       </td>
 
                       <td className="text-right">
@@ -211,9 +214,12 @@ const TrashPage = () => {
                             variant="outline"
                             className="rounded-lg bg-blue-200 px-4 py-2 text-blue-700 flex items-center justify-center gap-1"
                             onClick={() =>
-                              restoreMutation.mutate({ model: item.model, id: item._id }, {
-                                onSuccess: refetch,
-                              })
+                              restoreMutation.mutate(
+                                { model: item.model, id: item._id },
+                                {
+                                  onSuccess: refetch,
+                                },
+                              )
                             }
                             disabled={restoreMutation.isLoading}
                           >
@@ -229,9 +235,13 @@ const TrashPage = () => {
                           <button
                             className="rounded-lg bg-red-200 px-4 py-2 text-red-700 flex items-center justify-center gap-1 ml-2"
                             onClick={() => setShowDeleteConfirm(item)}
-                            disabled={deleteMutation.isLoading && showDeleteConfirm?._id === item._id}
+                            disabled={
+                              deleteMutation.isLoading &&
+                              showDeleteConfirm?._id === item._id
+                            }
                           >
-                            {deleteMutation.isLoading && showDeleteConfirm?._id === item._id ? (
+                            {deleteMutation.isLoading &&
+                            showDeleteConfirm?._id === item._id ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
                             ) : (
                               <Trash2 className="w-3.5 h-3.5 mr-1" />
@@ -311,9 +321,12 @@ const TrashPage = () => {
                         <button
                           className="rounded-lg bg-blue-200 px-4 py-2 text-blue-700 flex items-center justify-center gap-1"
                           onClick={() =>
-                            restoreMutation.mutate({ model: item.model, id: item._id }, {
-                              onSuccess: refetch,
-                            })
+                            restoreMutation.mutate(
+                              { model: item.model, id: item._id },
+                              {
+                                onSuccess: refetch,
+                              },
+                            )
                           }
                           disabled={restoreMutation.isLoading}
                         >
@@ -329,9 +342,13 @@ const TrashPage = () => {
                         <button
                           className="rounded-lg bg-red-200 px-4 py-2 text-red-700 flex items-center justify-center gap-1"
                           onClick={() => setShowDeleteConfirm(item)}
-                          disabled={deleteMutation.isLoading && showDeleteConfirm?._id === item._id}
+                          disabled={
+                            deleteMutation.isLoading &&
+                            showDeleteConfirm?._id === item._id
+                          }
                         >
-                          {deleteMutation.isLoading && showDeleteConfirm?._id === item._id ? (
+                          {deleteMutation.isLoading &&
+                          showDeleteConfirm?._id === item._id ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             <Trash2 className="w-3.5 h-3.5" />
@@ -346,9 +363,7 @@ const TrashPage = () => {
                   <div className="pt-2 border-t border-gray-100">
                     <div className="flex items-start gap-2 mb-2">
                       <FileText className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        {renderDocInfo(item)}
-                      </div>
+                      <div className="flex-1">{renderDocInfo(item)}</div>
                     </div>
                   </div>
 
@@ -378,14 +393,10 @@ const TrashPage = () => {
                           Deleted Date
                         </div>
                         <div className="text-sm text-gray-600">
-                          {new Date(item.deletedAt).toLocaleDateString("en-GB", {
-                            dateStyle: "medium",
-                          })}
+                          {formatDate(item.deletedAt)}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {new Date(item.deletedAt).toLocaleTimeString("en-GB", {
-                            timeStyle: "short",
-                          })}
+                          {formatTime(item.deletedAt)}
                         </div>
                       </div>
                     </div>
@@ -399,7 +410,11 @@ const TrashPage = () => {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                 <div className="flex flex-col items-center gap-4">
                   <div className="text-sm text-gray-500 text-center">
-                    Showing page <span className="font-medium text-gray-900">{page}</span> of <span className="font-medium text-gray-900">{totalPages}</span>
+                    Showing page{" "}
+                    <span className="font-medium text-gray-900">{page}</span> of{" "}
+                    <span className="font-medium text-gray-900">
+                      {totalPages}
+                    </span>
                   </div>
                   <div className="flex gap-2 w-full justify-center">
                     <Button
@@ -416,7 +431,9 @@ const TrashPage = () => {
                       variant="outline"
                       size="sm"
                       className="bg-white flex-1 max-w-[120px]"
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
                       disabled={page === totalPages}
                     >
                       Next
@@ -434,12 +451,15 @@ const TrashPage = () => {
           isOpen={!!showDeleteConfirm}
           onClose={() => setShowDeleteConfirm(null)}
           onConfirm={() => {
-            deleteMutation.mutate({ model: showDeleteConfirm.model, id: showDeleteConfirm._id }, {
-              onSuccess: () => {
-                setShowDeleteConfirm(null);
-                refetch();
+            deleteMutation.mutate(
+              { model: showDeleteConfirm.model, id: showDeleteConfirm._id },
+              {
+                onSuccess: () => {
+                  setShowDeleteConfirm(null);
+                  refetch();
+                },
               },
-            });
+            );
           }}
           title="Delete Permanently"
           description="Are you sure you want to delete this item permanently? This action cannot be undone."

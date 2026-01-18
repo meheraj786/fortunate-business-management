@@ -3,7 +3,7 @@ import { NavLink, Outlet } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 
 const Settings = () => {
-  const { hasPermission } = useAuth();
+  const { hasPermission, isSuperAdmin } = useAuth();
 
   return (
     <div className="flex flex-col">
@@ -23,6 +23,21 @@ const Settings = () => {
               <div>
                 <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg">
                   <nav className="flex flex-wrap gap-4">
+                    {isSuperAdmin && (
+                      <NavLink
+                        to="/settings/general"
+                        className={({ isActive }) =>
+                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${
+                            isActive
+                              ? "text-white bg-[var(--color-primary)]"
+                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                          }`
+                        }
+                      >
+                        General
+                      </NavLink>
+                    )}
+
                     {hasPermission("CATEGORY_VIEW") && (
                       <NavLink
                         to="/settings"

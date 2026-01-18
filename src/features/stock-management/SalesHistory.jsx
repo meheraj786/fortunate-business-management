@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useProductSalesHistory } from "@/api/hooks/products";
 import Pagination from "@/components/ui/Pagination";
 import { Loader2 } from "lucide-react";
+import { useSettings } from "@/context/SettingsContext";
 
 const formatNumber = (num) => {
   if (typeof num !== "number") return num;
@@ -35,13 +36,14 @@ const NoDataMessage = () => (
 
 const SalesTableRow = ({ sale }) => {
   const navigate = useNavigate();
+  const { formatCurrency, formatDate } = useSettings();
   return (
     <tr
       className="hover:bg-gray-50 transition-colors cursor-pointer"
       onClick={() => navigate(`/sales/${sale._id}`)}
     >
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-        {new Date(sale.saleDate).toLocaleDateString()}
+        {formatDate(sale.saleDate)}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
         {sale.customer.name}
@@ -50,10 +52,10 @@ const SalesTableRow = ({ sale }) => {
         {formatNumber(sale.quantity)}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        ${formatNumber(sale.pricePerUnit || 0)}
+        {formatCurrency(sale.pricePerUnit || 0)}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        ${formatNumber(sale.totalAmount)}
+        {formatCurrency(sale.totalAmount)}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
         <span className={getStatusBadge(sale.invoiceStatus, "invoice")}>
@@ -71,6 +73,7 @@ const SalesTableRow = ({ sale }) => {
 
 const MobileSalesCard = ({ sale }) => {
   const navigate = useNavigate();
+  const { formatCurrency, formatDate } = useSettings();
   return (
     <div
       className="border-t border-gray-200 last:border-b bg-white cursor-pointer hover:bg-gray-50 transition-colors"
@@ -80,7 +83,7 @@ const MobileSalesCard = ({ sale }) => {
         <div className="flex justify-between items-center mb-2">
           <div className="font-medium text-gray-900">{sale.customer.name}</div>
           <span className="text-sm text-gray-500">
-            {new Date(sale.saleDate).toLocaleDateString()}
+            {formatDate(sale.saleDate)}
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
@@ -88,7 +91,7 @@ const MobileSalesCard = ({ sale }) => {
             Qty: {formatNumber(sale.quantity)}
           </span>
           <span className="text-gray-600">
-            Price: ${formatNumber(sale.pricePerUnit || 0)}
+            Price: {formatCurrency(sale.pricePerUnit || 0)}
           </span>
         </div>
         <div className="border-t border-gray-100 my-2"></div>
@@ -104,7 +107,7 @@ const MobileSalesCard = ({ sale }) => {
         <div className="flex justify-between items-center">
           <span className="font-medium text-gray-700">Total</span>
           <span className="font-bold text-gray-900">
-            ${formatNumber(sale.totalAmount)}
+            {formatCurrency(sale.totalAmount)}
           </span>
         </div>
       </div>
@@ -114,6 +117,7 @@ const MobileSalesCard = ({ sale }) => {
 
 const SalesHistory = ({ warehouseId, productId }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const { formatCurrency, formatDate } = useSettings();
   const {
     data: salesData,
     isLoading,

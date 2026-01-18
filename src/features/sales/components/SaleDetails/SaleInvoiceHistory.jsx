@@ -1,7 +1,9 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Printer } from "lucide-react";
+import { Printer } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useSettings } from "@/context/SettingsContext";
 
 const SaleInvoiceHistory = ({
   invoiceHistory,
@@ -10,6 +12,7 @@ const SaleInvoiceHistory = ({
   onGenerateInvoiceClick,
   onViewInvoiceClick,
 }) => {
+  const { formatDateTime } = useSettings();
   return (
     <div className="bg-white rounded-lg shadow-sm p-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -45,8 +48,8 @@ const SaleInvoiceHistory = ({
                     Invoice #{inv._id.slice(-6)}
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    Generated:{" "}
-                    {new Date(inv.invoiceGeneratedDate).toLocaleString()}
+                    Generated: Generated:{" "}
+                    {formatDateTime(inv.invoiceGeneratedDate)}
                   </p>
                 </div>
                 {hasPermission("SALE_VIEW_INVOICE") && (

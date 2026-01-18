@@ -7,6 +7,7 @@ import SelectField from "@/components/ui/SelectField";
 import { DollarSign, Calendar } from "lucide-react";
 import { useAccounts } from "@/api/hooks/account";
 import { useAddExpenseToLC } from "@/api/hooks/lc";
+import { useSettings } from "@/context/SettingsContext";
 
 const INITIAL_EXPENSE_STATE = {
   name: "",
@@ -27,6 +28,7 @@ const AddCostForm = ({
   const [errors, setErrors] = useState({});
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const addExpenseMutation = useAddExpenseToLC();
+  const { settings } = useSettings();
 
   useEffect(() => {
     if (open) {
@@ -142,7 +144,7 @@ const AddCostForm = ({
 
         <div className="space-y-4">
           <InputField
-            label="Amount (BDT)"
+            label={`Amount (${settings?.currency || "BDT"})`}
             name="amount"
             type="number"
             value={expense.amount}

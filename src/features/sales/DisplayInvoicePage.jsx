@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router";
 import { getInvoiceAsPNG, getInvoiceAsPDF } from "@/api/invoice.api.js";
 import DisplayInvoiceSkeleton from "./components/DisplayInvoiceSkeleton";
-import { formatDate, formatCurrency } from "@/utils/format";
+import { useSettings } from "@/context/SettingsContext";
 import { useInvoice } from "@/api/hooks/invoice";
 import { AlertTriangle, ArrowLeft, FileX, Printer, Share2 } from "lucide-react";
 import React from "react";
@@ -12,6 +12,7 @@ import { showErrorToast } from "@/utils/notifications";
 const DisplayInvoice = () => {
   const navigate = useNavigate();
   const { invoiceId } = useParams();
+  const { settings, formatCurrency, formatDate } = useSettings();
   const [isSharing, setIsSharing] = React.useState(false);
   const [isDownloadingPDF, setIsDownloadingPDF] = React.useState(false);
 
@@ -235,7 +236,7 @@ const DisplayInvoice = () => {
               </div>
               <div className="text-left sm:text-right">
                 <h2 className="text-xl font-bold text-black">
-                  Fortunate Business Management
+                  {settings?.businessName || "Fortunate Business Management"}
                 </h2>
                 <p className="text-gray-600">
                   123 Business Rd, Dhaka, Bangladesh

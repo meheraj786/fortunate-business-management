@@ -4,6 +4,7 @@ import "./index.css";
 import App from "@/App.jsx";
 import UrlProvider from "@/context/UrlProvider.jsx";
 import { AuthProvider } from "@/context/AuthContext.jsx";
+import { SettingsProvider } from "@/context/SettingsContext.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -21,9 +22,11 @@ createRoot(document.getElementById("root")).render(
   <QueryClientProvider client={queryClient}>
     <UrlProvider>
       <AuthProvider>
-        <App />
+        <SettingsProvider>
+          <App />
+        </SettingsProvider>
       </AuthProvider>
     </UrlProvider>
     <ReactQueryDevtools initialIsOpen={false} />
-  </QueryClientProvider>
+  </QueryClientProvider>,
 );

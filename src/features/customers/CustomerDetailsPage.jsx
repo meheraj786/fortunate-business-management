@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  memo,
-} from "react";
+import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import PropTypes from "prop-types";
 import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
@@ -21,7 +15,7 @@ import {
   Edit,
   Trash2,
   Building,
-  Star , 
+  Star,
   CreditCard,
   Loader2,
   FileIcon,
@@ -40,9 +34,13 @@ import Button from "@/components/ui/Button";
 // Custom Hooks
 import { useUrl } from "@/hooks/useUrl";
 import { useCustomerData, useSalesData } from "@/hooks/useCustomerOperations";
-import { useDeleteCustomer, useDeleteCustomerDocument } from "../../api/hooks/customer";
+import {
+  useDeleteCustomer,
+  useDeleteCustomerDocument,
+} from "../../api/hooks/customer";
 import { useAuth } from "@/hooks/useAuth";
 import { downloadCustomerDocument } from "../../api/customer.api";
+import { useSettings } from "@/context/SettingsContext";
 
 const CustomerDetails = () => {
   const { id } = useParams();
@@ -51,10 +49,18 @@ const CustomerDetails = () => {
   const deleteCustomerMutation = useDeleteCustomer();
   const deleteDocMutation = useDeleteCustomerDocument();
   const { hasPermission } = useAuth();
+  const { formatCurrency, formatDate } = useSettings();
 
   // State
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: "", description: "" });
-  const [deleteDocModal, setDeleteDocModal] = useState({ isOpen: false, docId: null });
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    description: "",
+  });
+  const [deleteDocModal, setDeleteDocModal] = useState({
+    isOpen: false,
+    docId: null,
+  });
 
   useEffect(() => {
     if (!hasPermission("CUSTOMER_VIEW_DETAILS")) {
@@ -86,11 +92,16 @@ const CustomerDetails = () => {
     fetchSales(pagination.currentPage);
   }, [fetchSales, pagination.currentPage]);
 
-  const getFileUrl = useCallback((customerId, docId) => {
-    if (!baseUrl || !customerId || !docId) return "#";
-    const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-    return `${cleanBaseUrl}/customer/${customerId}/documents/${docId}`;
-  }, [baseUrl]);
+  const getFileUrl = useCallback(
+    (customerId, docId) => {
+      if (!baseUrl || !customerId || !docId) return "#";
+      const cleanBaseUrl = baseUrl.endsWith("/")
+        ? baseUrl.slice(0, -1)
+        : baseUrl;
+      return `${cleanBaseUrl}/customer/${customerId}/documents/${docId}`;
+    },
+    [baseUrl],
+  );
 
   // Handlers
   const handleDelete = useCallback(() => {
@@ -107,15 +118,13 @@ const CustomerDetails = () => {
     });
   }, [customerData?.name]);
 
-  const handleSalesPageChange = useCallback((page) => { fetchSales(page) }, [fetchSales]);
+  const handleSalesPageChange = useCallback(
+    (page) => {
+      fetchSales(page);
+    },
+    [fetchSales],
+  );
 
-  const formatCurrency = useCallback((amount) => {
-    return `৳${parseFloat(amount || 0).toLocaleString("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  }, []);
-  
   const handleDeleteDoc = (docId) => {
     setDeleteDocModal({ isOpen: true, docId });
   };
@@ -148,7 +157,7 @@ const CustomerDetails = () => {
       showErrorToast(err, "Failed to download file");
     }
   };
-  
+
   // Memoized values
   const customerStats = useMemo(
     () => ({
@@ -161,112 +170,308 @@ const CustomerDetails = () => {
   );
 
   if (loadingCustomer) return <CustomerDetailsSkeleton />;
-  if (customerError) return (
+  if (customerError)
+    return (
       <div className="flex flex-col items-center justify-center h-full ">
         <div className="bg-[var(--color-danger-light)] border border-[var(--color-danger-light)] rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-[var(--color-danger)] mb-2">Error Loading Customer</h3>
+          <h3 className="text-lg font-semibold text-[var(--color-danger)] mb-2">
+            Error Loading Customer
+          </h3>
           <p className="text-[var(--color-danger)] mb-4">{customerError}</p>
           <div className="flex gap-3">
-            <Button onClick={refetchCustomer} variant="primary" size="sm">Retry</Button>
-            <Button onClick={() => navigate("/customers")} variant="secondary" size="sm">Back to Customers</Button>
+            <Button onClick={refetchCustomer} variant="primary" size="sm">
+              Retry
+            </Button>
+            <Button
+              onClick={() => navigate("/customers")}
+              variant="secondary"
+              size="sm"
+            >
+              Back to Customers
+            </Button>
           </div>
         </div>
       </div>
-  );
-  if (!customerData) return (
+    );
+  if (!customerData)
+    return (
       <div className="flex flex-col items-center justify-center h-full">
         <div className="bg-[var(--color-warning-light)] border border-[var(--color-warning-light)] rounded-lg p-6 max-w-md">
-          <h3 className="text-lg font-semibold text-[var(--color-warning)] mb-2">Customer Not Found</h3>
-          <p className="text-[var(--color-warning)] mb-4">The requested customer could not be found.</p>
-          <Button onClick={() => navigate("/customers")} variant="secondary" size="sm">Back to Customers</Button>
+          <h3 className="text-lg font-semibold text-[var(--color-warning)] mb-2">
+            Customer Not Found
+          </h3>
+          <p className="text-[var(--color-warning)] mb-4">
+            The requested customer could not be found.
+          </p>
+          <Button
+            onClick={() => navigate("/customers")}
+            variant="secondary"
+            size="sm"
+          >
+            Back to Customers
+          </Button>
         </div>
       </div>
-  );
+    );
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
       <div className="max-w-7xl mx-auto">
-        <motion.div className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-200" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <motion.div
+          className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-200"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center flex-1 min-w-0">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
                 <User className="text-[var(--color-primary)] text-xl sm:text-2xl" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{customerData.name}</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
+                  {customerData.name}
+                </h1>
                 <div className="flex items-center mt-1 flex-wrap gap-2">
-                  {customerData.customerId && (<span className="text-gray-600 text-sm sm:text-base">{customerData.customerId}</span>)}
+                  {customerData.customerId && (
+                    <span className="text-gray-600 text-sm sm:text-base">
+                      {customerData.customerId}
+                    </span>
+                  )}
                   <StatusBadge status={customerData.customerStatus} />
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              {hasPermission("CUSTOMER_UPDATE") && (<Button onClick={() => navigate(`/customer-form/${id}`)} variant="primary" size="sm" className="flex items-center" aria-label="Edit customer"><Edit className="mr-2 w-4 h-4" aria-hidden="true" />Edit</Button>)}
-              {hasPermission("CUSTOMER_DELETE") && (<Button onClick={handleOpenDeleteModal} variant="danger" size="sm" className="flex items-center" aria-label="Delete customer"><Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />Delete</Button>)}
+              {hasPermission("CUSTOMER_UPDATE") && (
+                <Button
+                  onClick={() => navigate(`/customer-form/${id}`)}
+                  variant="primary"
+                  size="sm"
+                  className="flex items-center"
+                  aria-label="Edit customer"
+                >
+                  <Edit className="mr-2 w-4 h-4" aria-hidden="true" />
+                  Edit
+                </Button>
+              )}
+              {hasPermission("CUSTOMER_DELETE") && (
+                <Button
+                  onClick={handleOpenDeleteModal}
+                  variant="danger"
+                  size="sm"
+                  className="flex items-center"
+                  aria-label="Delete customer"
+                >
+                  <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
+                  Delete
+                </Button>
+              )}
             </div>
           </div>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            <CollapsibleCard title="General Information" icon={<User className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="General Information Section">
+            <CollapsibleCard
+              title="General Information"
+              icon={<User className="text-[var(--color-primary)]" />}
+              defaultOpen={true}
+              ariaLabel="General Information Section"
+            >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <DataField label="Company Name" value={customerData.companyName} icon={Building} />
-                <DataField label="Customer Type" value={customerData.customerType} />
-                <DataField label="Email" value={customerData.email} icon={Mail} type="email" />
-                <DataField label="Phone" value={customerData.phone} icon={Phone} type="tel" />
-                <DataField label="Credit Limit" value={formatCurrency(customerData.creditLimit)} icon={CreditCard} />
-                <DataField label="Opening Due" value={formatCurrency(customerData.openingDue)} icon={DollarSign} />
-                <DataField label="Join Date" value={new Date(customerData.joinDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })} icon={Calendar} />
-                <div className="sm:col-span-2"><DataField label="Billing Address" value={customerData.billingAddress} icon={MapPin} /></div>
+                <DataField
+                  label="Company Name"
+                  value={customerData.companyName}
+                  icon={Building}
+                />
+                <DataField
+                  label="Customer Type"
+                  value={customerData.customerType}
+                />
+                <DataField
+                  label="Email"
+                  value={customerData.email}
+                  icon={Mail}
+                  type="email"
+                />
+                <DataField
+                  label="Phone"
+                  value={customerData.phone}
+                  icon={Phone}
+                  type="tel"
+                />
+                <DataField
+                  label="Credit Limit"
+                  value={formatCurrency(customerData.creditLimit)}
+                  icon={CreditCard}
+                />
+                <DataField
+                  label="Opening Due"
+                  value={formatCurrency(customerData.openingDue)}
+                  icon={DollarSign}
+                />
+                <DataField
+                  label="Join Date"
+                  value={formatDate(customerData.joinDate)}
+                  icon={Calendar}
+                />
+                <div className="sm:col-span-2">
+                  <DataField
+                    label="Billing Address"
+                    value={customerData.billingAddress}
+                    icon={MapPin}
+                  />
+                </div>
               </div>
             </CollapsibleCard>
 
-            <CollapsibleCard title="Transaction Overview" icon={<PieChart className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="Transaction Overview Section">
+            <CollapsibleCard
+              title="Transaction Overview"
+              icon={<PieChart className="text-[var(--color-primary)]" />}
+              defaultOpen={true}
+              ariaLabel="Transaction Overview Section"
+            >
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[var(--color-primary-light)] p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-[var(--color-primary)]">{customerStats.totalPurchases}</div><div className="text-xs sm:text-sm text-[var(--color-primary)] mt-1">Total Purchases</div></div>
-                <div className="bg-[var(--color-success-light)] p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-[var(--color-success)]">{customerStats.totalSpent}</div><div className="text-xs sm:text-sm text-[var(--color-success)] mt-1">Total Spent</div></div>
-                <div className="bg-[var(--color-warning-light)] p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-[var(--color-warning)]">{customerStats.notInvoiced}</div><div className="text-xs sm:text-sm text-[var(--color-warning)] mt-1">Not Invoiced</div></div>
-                <div className="bg-[var(--color-danger-light)] p-4 rounded-lg text-center"><div className="text-xl sm:text-2xl font-bold text-[var(--color-danger)]">{customerStats.outstandingDues}</div><div className="text-xs sm:text-sm text-[var(--color-danger)] mt-1">Outstanding Dues</div></div>
+                <div className="bg-[var(--color-primary-light)] p-4 rounded-lg text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-primary)]">
+                    {customerStats.totalPurchases}
+                  </div>
+                  <div className="text-xs sm:text-sm text-[var(--color-primary)] mt-1">
+                    Total Purchases
+                  </div>
+                </div>
+                <div className="bg-[var(--color-success-light)] p-4 rounded-lg text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-success)]">
+                    {customerStats.totalSpent}
+                  </div>
+                  <div className="text-xs sm:text-sm text-[var(--color-success)] mt-1">
+                    Total Spent
+                  </div>
+                </div>
+                <div className="bg-[var(--color-warning-light)] p-4 rounded-lg text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-warning)]">
+                    {customerStats.notInvoiced}
+                  </div>
+                  <div className="text-xs sm:text-sm text-[var(--color-warning)] mt-1">
+                    Not Invoiced
+                  </div>
+                </div>
+                <div className="bg-[var(--color-danger-light)] p-4 rounded-lg text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-danger)]">
+                    {customerStats.outstandingDues}
+                  </div>
+                  <div className="text-xs sm:text-sm text-[var(--color-danger)] mt-1">
+                    Outstanding Dues
+                  </div>
+                </div>
               </div>
             </CollapsibleCard>
           </div>
 
           <div className="space-y-4 sm:space-y-6">
-            <CollapsibleCard title="Status Information" icon={<Star className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="Status Information Section">
+            <CollapsibleCard
+              title="Status Information"
+              icon={<Star className="text-[var(--color-primary)]" />}
+              defaultOpen={true}
+              ariaLabel="Status Information Section"
+            >
               <div className="space-y-3">
-                <DataField label="Customer Status" value={<StatusBadge status={customerData.customerStatus} />} />
-                <DataField label="Customer Type" value={customerData.customerType} />
-                <DataField label="Customer ID" value={customerData.customerId} />
-                <DataField label="Join Date" value={new Date(customerData.joinDate).toLocaleDateString()} icon={Calendar} />
+                <DataField
+                  label="Customer Status"
+                  value={<StatusBadge status={customerData.customerStatus} />}
+                />
+                <DataField
+                  label="Customer Type"
+                  value={customerData.customerType}
+                />
+                <DataField
+                  label="Customer ID"
+                  value={customerData.customerId}
+                />
+                <DataField
+                  label="Join Date"
+                  value={formatDate(customerData.joinDate)}
+                  icon={Calendar}
+                />
               </div>
             </CollapsibleCard>
-            
-            <CollapsibleCard title="Documents & Note" icon={<FileText className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="Documents & Note Section">
+
+            <CollapsibleCard
+              title="Documents & Note"
+              icon={<FileText className="text-[var(--color-primary)]" />}
+              defaultOpen={true}
+              ariaLabel="Documents & Note Section"
+            >
               <div className="space-y-3">
                 {customerData.documents?.length > 0 && (
                   <div className="space-y-3">
                     {customerData.documents.map((doc) => (
-                      <div key={doc._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors">
+                      <div
+                        key={doc._id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
+                      >
                         <div className="flex items-center min-w-0">
                           <FileIcon className="text-gray-400 mr-3 flex-shrink-0" />
-                          <a href={getFileUrl(id, doc._id)} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gray-700 truncate hover:text-[var(--color-primary)]" title={`View ${doc.originalName}`}>
+                          <a
+                            href={getFileUrl(id, doc._id)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium text-gray-700 truncate hover:text-[var(--color-primary)]"
+                            title={`View ${doc.originalName}`}
+                          >
                             {doc.originalName}
                           </a>
                         </div>
                         <div className="flex items-center flex-shrink-0">
-                          <Button onClick={() => handleDownload(id, doc._id, doc.originalName)} variant="subtle" size="sm" className="!p-2 text-gray-500 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full" aria-label="Download document"><Download size={18} /></Button>
+                          <Button
+                            onClick={() =>
+                              handleDownload(id, doc._id, doc.originalName)
+                            }
+                            variant="subtle"
+                            size="sm"
+                            className="!p-2 text-gray-500 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] rounded-full"
+                            aria-label="Download document"
+                          >
+                            <Download size={18} />
+                          </Button>
                           {hasPermission("CUSTOMER_UPDATE") && (
-                            <Button onClick={() => handleDeleteDoc(doc._id)} variant="subtle" size="sm" className="!p-2 text-gray-500 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] rounded-full" aria-label="Delete document" disabled={deleteDocMutation.isLoading}><Trash2 size={18} /></Button>
+                            <Button
+                              onClick={() => handleDeleteDoc(doc._id)}
+                              variant="subtle"
+                              size="sm"
+                              className="!p-2 text-gray-500 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] rounded-full"
+                              aria-label="Delete document"
+                              disabled={deleteDocMutation.isLoading}
+                            >
+                              <Trash2 size={18} />
+                            </Button>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-                {customerData.customerNote && (<div className="border-t border-gray-200 pt-3"><DataField label="Customer Note" value={customerData.customerNote} icon={FileText}/></div>)}
-                {!customerData.customerNote && customerData.documents?.length === 0 && (<p className="text-sm text-gray-500 py-4 text-center">No documents or notes available.</p>)}
+                {customerData.customerNote && (
+                  <div className="border-t border-gray-200 pt-3">
+                    <DataField
+                      label="Customer Note"
+                      value={customerData.customerNote}
+                      icon={FileText}
+                    />
+                  </div>
+                )}
+                {!customerData.customerNote &&
+                  customerData.documents?.length === 0 && (
+                    <p className="text-sm text-gray-500 py-4 text-center">
+                      No documents or notes available.
+                    </p>
+                  )}
               </div>
             </CollapsibleCard>
           </div>
@@ -274,13 +479,27 @@ const CustomerDetails = () => {
 
         {hasPermission("SALE_VIEW_TABLE") && (
           <div className="mt-4 sm:mt-6">
-            <CollapsibleCard title="Recent Purchases" icon={<DollarSign className="text-[var(--color-primary)]" />} defaultOpen={true} ariaLabel="Recent Purchases Section">
+            <CollapsibleCard
+              title="Recent Purchases"
+              icon={<DollarSign className="text-[var(--color-primary)]" />}
+              defaultOpen={true}
+              ariaLabel="Recent Purchases Section"
+            >
               {loadingSales ? (
-                <div className="flex items-center justify-center py-12"><Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" /><span className="ml-3 text-gray-600">Loading purchases...</span></div>
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" />
+                  <span className="ml-3 text-gray-600">
+                    Loading purchases...
+                  </span>
+                </div>
               ) : salesData.length === 0 ? (
-                <div className="text-center py-12 text-gray-500"><DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" /><p>No purchases found for this customer</p></div>
+                <div className="text-center py-12 text-gray-500">
+                  <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                  <p>No purchases found for this customer</p>
+                </div>
               ) : (
-                <>{/* Mobile View */}
+                <>
+                  {/* Mobile View */}
                   <div className="block sm:hidden space-y-3">
                     {salesData.map((sale) => (
                       <div
@@ -312,7 +531,7 @@ const CustomerDetails = () => {
                               </h4>
                             )}
                             <p className="text-xs text-gray-500 mt-1">
-                              {new Date(sale.saleDate).toLocaleDateString()}
+                              {formatDate(sale.saleDate)}
                             </p>
                           </div>
                           <div className="text-right">
@@ -371,7 +590,7 @@ const CustomerDetails = () => {
                             onClick={() => navigate(`/sales/${sale._id}`)}
                           >
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(sale.saleDate).toLocaleDateString()}
+                              {formatDate(sale.saleDate)}
                             </td>
                             {sale.saleId?.startsWith("OPEN-BAL-") ? (
                               <>
@@ -442,8 +661,30 @@ const CustomerDetails = () => {
         )}
       </div>
 
-      <ConfirmationModal isOpen={confirmModal.isOpen} onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))} onConfirm={handleDelete} title={confirmModal.title} description={confirmModal.description} confirmText="Delete" cancelText="Cancel" isConfirming={deleteCustomerMutation.isLoading} icon={Trash2} variant="danger"/>
-      <ConfirmationModal isOpen={deleteDocModal.isOpen} onClose={() => setDeleteDocModal({ isOpen: false, docId: null })} onConfirm={handleConfirmDeleteDoc} title="Confirm Document Deletion" description="Are you sure you want to delete this document? This action cannot be undone." confirmText="Delete" cancelText="Cancel" isConfirming={deleteDocMutation.isLoading} variant="danger" icon={Trash2} />
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={handleDelete}
+        title={confirmModal.title}
+        description={confirmModal.description}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isConfirming={deleteCustomerMutation.isLoading}
+        icon={Trash2}
+        variant="danger"
+      />
+      <ConfirmationModal
+        isOpen={deleteDocModal.isOpen}
+        onClose={() => setDeleteDocModal({ isOpen: false, docId: null })}
+        onConfirm={handleConfirmDeleteDoc}
+        title="Confirm Document Deletion"
+        description="Are you sure you want to delete this document? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isConfirming={deleteDocMutation.isLoading}
+        variant="danger"
+        icon={Trash2}
+      />
     </motion.div>
   );
 };

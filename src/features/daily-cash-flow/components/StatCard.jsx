@@ -1,8 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion"; // Import motion
+import { useSettings } from "@/context/SettingsContext"; // Import useSettings
 
 const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
+  const { formatCurrency } = useSettings();
   const colorClasses = {
     blue: {
       text: "text-[var(--color-primary)]",
@@ -19,7 +21,8 @@ const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
       bg: "bg-[var(--color-danger-light)]",
       border: "border-[var(--color-danger)]",
     },
-    purple: { // Remapping purple to primary for consistency
+    purple: {
+      // Remapping purple to primary for consistency
       text: "text-[var(--color-primary)]",
       bg: "bg-[var(--color-primary-light)]",
       border: "border-[var(--color-primary)]",
@@ -45,7 +48,9 @@ const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
             {title}
           </p>
           <p className={`text-2xl font-bold ${selectedColor.text} mb-1`}>
-            ৳{typeof amount === "number" ? amount.toLocaleString() : "0"}
+            {typeof amount === "number"
+              ? formatCurrency(amount)
+              : formatCurrency(0)}
           </p>
           {subtitle && (
             <p className="text-xs text-gray-500 truncate">{subtitle}</p>

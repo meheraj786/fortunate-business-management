@@ -17,11 +17,13 @@ import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
 import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/context/SettingsContext";
 
 const AccountList = ({ onAddAccount }) => {
   const { data: allAccounts, isLoading, isError } = useAccounts();
   const [copiedText, setCopiedText] = useState("");
   const { hasPermission } = useAuth();
+  const { formatCurrency } = useSettings();
   const canCreateAccount = hasPermission("ACCOUNT_CREATE");
   const canViewDetails = hasPermission("ACCOUNT_VIEW_DETAILS");
 
@@ -53,7 +55,7 @@ const AccountList = ({ onAddAccount }) => {
       },
       (err) => {
         showErrorToast(err, "Failed to copy text.");
-      }
+      },
     );
   };
 
@@ -125,7 +127,7 @@ const AccountList = ({ onAddAccount }) => {
                       </h3>
                       <div className="flex items-center gap-3">
                         <span className="font-bold text-lg text-[var(--color-success)]">
-                          ৳{account.balance.toLocaleString()}
+                          {formatCurrency(account.balance)}
                         </span>
                       </div>
                     </div>
@@ -226,7 +228,7 @@ const AccountList = ({ onAddAccount }) => {
                       <div className="text-right">
                         <div className="flex items-center gap-3 justify-end">
                           <p className="font-bold text-lg text-[var(--color-success)]">
-                            ৳{account.balance.toLocaleString()}
+                            {formatCurrency(account.balance)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
@@ -311,7 +313,7 @@ const AccountList = ({ onAddAccount }) => {
                       <div className="text-right">
                         <div className="flex items-center gap-3 justify-end">
                           <p className="font-bold text-lg text-[var(--color-success)]">
-                            ৳{account.balance.toLocaleString()}
+                            {formatCurrency(account.balance)}
                           </p>
                         </div>
                       </div>

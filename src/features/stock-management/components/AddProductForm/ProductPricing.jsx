@@ -3,6 +3,7 @@ import { Hash, Package, DollarSign } from "lucide-react";
 import { Controller } from "react-hook-form";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import { useSettings } from "@/context/SettingsContext";
 
 const ProductPricing = ({
   control,
@@ -15,6 +16,7 @@ const ProductPricing = ({
     () => units.map((u) => ({ value: u._id, label: u.name })),
     [units],
   );
+  const { settings } = useSettings();
 
   return (
     <div className="space-y-4">
@@ -66,7 +68,7 @@ const ProductPricing = ({
           render={({ field }) => (
             <InputField
               {...field}
-              label="Unit Price (BDT)"
+              label={`Unit Price (${settings?.currency || "BDT"})`}
               type="number"
               error={errors.unitPrice?.message}
               placeholder="25.50"

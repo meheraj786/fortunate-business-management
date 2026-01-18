@@ -3,19 +3,17 @@ import { MapPin, Phone, ShoppingBag, DollarSign, Calendar } from "lucide-react";
 import { Link } from "react-router"; // Changed to react-router
 import { motion } from "framer-motion"; // Import motion
 import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/context/SettingsContext";
 
 const CustomerCard = ({ customer }) => {
   const { hasPermission } = useAuth();
+  const { formatCurrency, formatDate } = useSettings();
   const canViewDetails = hasPermission("CUSTOMER_VIEW_DETAILS");
 
   const totalPurchased = customer.totalSpent || 0;
   const totalDue = customer.totalDue || 0;
   const lastPurchaseDate = customer.lastPurchaseDate
-    ? new Date(customer.lastPurchaseDate).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+    ? formatDate(customer.lastPurchaseDate)
     : "Never purchased";
 
   // Status badge color
@@ -51,7 +49,7 @@ const CustomerCard = ({ customer }) => {
           {customer.status && (
             <span
               className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                customer.status
+                customer.status,
               )}`}
             >
               {customer.status}
@@ -70,10 +68,7 @@ const CustomerCard = ({ customer }) => {
         </div>
         {customer.billingAddress && (
           <div className="flex items-center gap-2 text-gray-600">
-            <MapPin
-              size={14}
-              className="flex-shrink-0 text-gray-400 mt-0.5"
-            />
+            <MapPin size={14} className="flex-shrink-0 text-gray-400 mt-0.5" />
             <span className="text-sm line-clamp-2">
               {customer.billingAddress}
             </span>
@@ -90,7 +85,7 @@ const CustomerCard = ({ customer }) => {
               <span className="text-xs font-medium">Total Purchased</span>
             </div>
             <p className="font-semibold text-gray-900 text-base">
-              ${totalPurchased.toLocaleString()}
+              {formatCurrency(totalPurchased)}
             </p>
           </div>
 
@@ -100,7 +95,7 @@ const CustomerCard = ({ customer }) => {
               <span className="text-xs font-medium">Total Due</span>
             </div>
             <p className="font-semibold text-[var(--color-danger)] text-base">
-              ${totalDue.toLocaleString()}
+              {formatCurrency(totalDue)}
             </p>
           </div>
         </div>
@@ -114,7 +109,7 @@ const CustomerCard = ({ customer }) => {
 
           {customer.creditLimit > 0 && (
             <div className="text-xs bg-gray-100 px-2 py-1 rounded">
-              Limit: ${customer.creditLimit?.toLocaleString()}
+              Limit: {formatCurrency(customer.creditLimit)}
             </div>
           )}
         </div>

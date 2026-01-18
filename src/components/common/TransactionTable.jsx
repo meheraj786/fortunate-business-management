@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/context/SettingsContext";
 
 const SortableHeader = ({
   label,
@@ -93,6 +94,7 @@ const TransactionTable = ({
   onSort,
 }) => {
   const { hasPermission } = useAuth();
+  const { formatCurrency, formatDate, formatTime } = useSettings();
   const canViewDetails = hasPermission("TRANSACTION_VIEW_DETAILS");
 
   const handleRowClick = (transactionId) => {
@@ -137,8 +139,8 @@ const TransactionTable = ({
                         : "text-[var(--color-danger)]"
                     }`}
                   >
-                    {transaction.transactionType === "Income" ? "+ " : "- "}৳
-                    {transaction.amount.toLocaleString()}
+                    {transaction.transactionType === "Income" ? "+ " : "- "}
+                    {formatCurrency(transaction.amount)}
                   </div>
                 </div>
 
@@ -169,14 +171,10 @@ const TransactionTable = ({
 
                   <div className="text-right flex-shrink-0">
                     <div className="text-xs text-gray-600 font-medium">
-                      {new Date(transaction.date).toLocaleDateString("en-GB")}
+                      {formatDate(transaction.date)}
                     </div>
                     <div className="text-[10px] text-gray-400">
-                      {new Date(transaction.date).toLocaleTimeString("en-US", {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      })}
+                      {formatTime(transaction.date)}
                     </div>
                   </div>
                 </div>
@@ -293,7 +291,7 @@ const TransactionTable = ({
                         }`}
                       >
                         {transaction.transactionType === "Income" ? "+ " : "- "}
-                        ৳{transaction.amount.toLocaleString()}
+                        {formatCurrency(transaction.amount)}
                       </td>
 
                       <td className="px-5 py-4 sm:px-4 sm:py-3 border-b border-gray-100">
@@ -324,20 +322,9 @@ const TransactionTable = ({
 
                       <td className="px-5 py-4 sm:px-4 sm:py-3 border-b border-gray-100">
                         <div className="flex flex-col text-sm text-gray-500 whitespace-nowrap">
-                          <span>
-                            {new Date(transaction.date).toLocaleDateString(
-                              "en-GB",
-                            )}
-                          </span>
+                          <span>{formatDate(transaction.date)}</span>
                           <span className="text-xs text-gray-400">
-                            {new Date(transaction.date).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "numeric",
-                                minute: "2-digit",
-                                hour12: true,
-                              },
-                            )}
+                            {formatTime(transaction.date)}
                           </span>
                         </div>
                       </td>

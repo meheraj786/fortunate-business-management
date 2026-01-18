@@ -5,6 +5,7 @@ import { PlusCircle, MinusCircle, FileText, CreditCard } from "lucide-react";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import Button from "@/components/ui/Button";
+import { useSettings } from "@/context/SettingsContext";
 
 const SaleFinancials = ({
   register,
@@ -16,6 +17,7 @@ const SaleFinancials = ({
   accounts,
   totalAmountToBePaid = 0,
 }) => {
+  const { formatCurrency } = useSettings();
   const {
     fields: chargesFields,
     append: appendCharge,
@@ -269,7 +271,7 @@ const SaleFinancials = ({
             Net Payable:
           </span>
           <span className="text-xl font-bold text-[var(--color-secondary)]">
-            {totalAmountToBePaid.toLocaleString()}
+            {formatCurrency(totalAmountToBePaid)}
           </span>
         </div>
       </div>

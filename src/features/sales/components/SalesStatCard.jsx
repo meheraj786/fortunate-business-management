@@ -1,8 +1,10 @@
 import React from "react";
 import { Link } from "react-router"; // Changed to react-router
+import { useSettings } from "@/context/SettingsContext";
 
 const SalesStatCard = ({ title, count, linkTo, icon, color }) => {
   const IconComponent = icon;
+  const { formatNumber } = useSettings();
 
   // Map color prop to actual Tailwind classes
   const colorClasses = {
@@ -45,7 +47,7 @@ const SalesStatCard = ({ title, count, linkTo, icon, color }) => {
         <div className="ml-4 min-w-0">
           <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
           <p className="text-2xl font-bold text-gray-900 truncate">
-            {count?.toLocaleString()}
+            {formatNumber(count)}
           </p>
         </div>
       </div>

@@ -12,8 +12,8 @@ import {
   Filter,
 } from "lucide-react";
 import Button from "@/components/ui/Button"; // Import Button component
-import { formatCurrency, formatDate } from "@/utils/format";
 import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/context/SettingsContext";
 
 const SortableHeader = ({
   label,
@@ -57,6 +57,7 @@ const SortableHeader = ({
 
 const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
   const { hasPermission } = useAuth();
+  const { formatCurrency, formatDate } = useSettings();
 
   if (!sales || sales.length === 0) {
     return (

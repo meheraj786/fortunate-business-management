@@ -18,6 +18,7 @@
     "chart.js": "^4.5.0",
     "chartjs": "^0.3.24",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "flowbite": "^4.0.0",
     "framer-motion": "^12.23.26",
     "jspdf": "^3.0.3",

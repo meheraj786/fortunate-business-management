@@ -25,6 +25,7 @@ import SalesHistory from "./SalesHistory";
 import { useAuth } from "@/hooks/useAuth";
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
+import { useSettings } from "@/context/SettingsContext";
 
 const formatNumber = (num) => {
   if (typeof num !== "number") return num;
@@ -62,6 +63,7 @@ const ProductDetails = () => {
   const { warehouseId, productId } = useParams();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const { formatCurrency, formatDate } = useSettings();
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -209,55 +211,57 @@ const ProductDetails = () => {
               <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
                 General Information
               </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                  <DetailItem
-                                    label="Category"
-                                    value={product.category?.name || "N/A"}
-                                    icon={Tag}
-                                  />
-                                  <DetailItem
-                                    label="Supplier"
-                                    value={product.LC?.basicInfo?.supplierName || "N/A"}
-                                    icon={User}
-                                  />
-                                  <DetailItem
-                                    label="LC Number"
-                                    value={product.LC?.basicInfo?.lcNumber || "N/A"}
-                                    icon={Hash}
-                                  />
-                                  <DetailItem
-                                    label="Product Description"
-                                    value={product.productDescription || "N/A"}
-                                    icon={FileText}
-                                  />
-                                  <DetailItem
-                                    label="Creation Date"
-                                    value={new Date(product.createdAt).toLocaleDateString()}
-                                    icon={Calendar}
-                                  />
-                                  <DetailItem
-                                    label="Last Updated"
-                                    value={new Date(product.updatedAt).toLocaleDateString()}
-                                    icon={Calendar}
-                                  />
-                                </div>            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <DetailItem
+                  label="Category"
+                  value={product.category?.name || "N/A"}
+                  icon={Tag}
+                />
+                <DetailItem
+                  label="Supplier"
+                  value={product.LC?.basicInfo?.supplierName || "N/A"}
+                  icon={User}
+                />
+                <DetailItem
+                  label="LC Number"
+                  value={product.LC?.basicInfo?.lcNumber || "N/A"}
+                  icon={Hash}
+                />
+                <DetailItem
+                  label="Product Description"
+                  value={product.productDescription || "N/A"}
+                  icon={FileText}
+                />
+                <DetailItem
+                  label="Creation Date"
+                  value={formatDate(product.createdAt)}
+                  icon={Calendar}
+                />
+                <DetailItem
+                  label="Last Updated"
+                  value={formatDate(product.updatedAt)}
+                  icon={Calendar}
+                />
+              </div>{" "}
+            </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
                 Specifications
               </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                  {[
-                                    { label: "Thickness", value: product.thickness, unit: "mm" },
-                                    { label: "Width", value: product.width, unit: "mm" },
-                                    { label: "Length", value: product.length, unit: "mm" },
-                                    { label: "Grade", value: product.grade },
-                                    { label: "Color", value: product.color }, // Added color
-                                  ]
-                                    .filter((spec) => spec.value)
-                                    .map((spec) => (
-                                      <DetailItem key={spec.label} {...spec} icon={Ruler} />
-                                    ))}
-                                </div>            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {[
+                  { label: "Thickness", value: product.thickness, unit: "mm" },
+                  { label: "Width", value: product.width, unit: "mm" },
+                  { label: "Length", value: product.length, unit: "mm" },
+                  { label: "Grade", value: product.grade },
+                  { label: "Color", value: product.color }, // Added color
+                ]
+                  .filter((spec) => spec.value)
+                  .map((spec) => (
+                    <DetailItem key={spec.label} {...spec} icon={Ruler} />
+                  ))}
+              </div>{" "}
+            </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
                 Inventory & Pricing
@@ -274,7 +278,7 @@ const ProductDetails = () => {
                   label="Unit Price"
                   value={
                     product.unitPrice
-                      ? `৳${product.unitPrice.toLocaleString()}`
+                      ? formatCurrency(product.unitPrice)
                       : "N/A"
                   }
                   icon={DollarSign}
@@ -294,9 +298,7 @@ const ProductDetails = () => {
               />
               <StatBox
                 title="Total Revenue"
-                number={`৳${formatNumber(
-                  product.totalRevenue,
-                ).toLocaleString()}`}
+                number={formatCurrency(product.totalRevenue)}
                 Icon={DollarSign}
                 textColor="green"
               />
