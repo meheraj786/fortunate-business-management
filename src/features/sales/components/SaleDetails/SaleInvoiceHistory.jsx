@@ -1,7 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Printer } from "lucide-react";
-import { Printer } from "lucide-react";
+
 import Button from "@/components/ui/Button";
 import { useSettings } from "@/context/SettingsContext";
 

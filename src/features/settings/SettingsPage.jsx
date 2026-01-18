@@ -38,6 +38,21 @@ const Settings = () => {
                       </NavLink>
                     )}
 
+                    {isSuperAdmin && (
+                      <NavLink
+                        to="/settings/wipeout"
+                        className={({ isActive }) =>
+                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${
+                            isActive
+                              ? "text-red-600 bg-red-50 border border-red-200"
+                              : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                          }`
+                        }
+                      >
+                        Data Wipeout
+                      </NavLink>
+                    )}
+
                     {hasPermission("CATEGORY_VIEW") && (
                       <NavLink
                         to="/settings"
