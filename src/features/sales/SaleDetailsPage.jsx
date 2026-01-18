@@ -23,7 +23,7 @@ import { useAccounts } from "@/api/hooks/account";
 import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, formatDate } from "@/utils/format";
 import SaleDetailsSkeleton from "./components/SaleDetailsSkeleton";
-import Breadcrumb from "@/components/ui/breadcrumb";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
