@@ -24,7 +24,7 @@ import AddProductForm from "./AddProductForm";
 import SalesHistory from "./SalesHistory";
 import { useAuth } from "@/hooks/useAuth";
 import { showErrorToast } from "@/utils/notifications";
-import Button from "@/components/ui/button";
+import Button from "@/components/ui/Button";
 
 const formatNumber = (num) => {
   if (typeof num !== "number") return num;

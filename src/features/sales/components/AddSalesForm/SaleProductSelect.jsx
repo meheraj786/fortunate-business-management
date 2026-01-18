@@ -1,9 +1,8 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Package, Tag, Ruler, Hash, DollarSign } from "lucide-react";
 import { Controller } from "react-hook-form";
 import SelectField from "@/components/ui/SelectField";
 import InputField from "@/components/ui/InputField";
-import { formatCurrency } from "@/utils/format";
 
 const SaleProductSelect = ({
   register,
@@ -18,7 +17,6 @@ const SaleProductSelect = ({
   isEditMode,
   isInitialLoading,
   formattedTotalAmount,
-  validationRules,
   productsLoading,
 }) => {
   const watchedWarehouseId = watch("warehouseId");

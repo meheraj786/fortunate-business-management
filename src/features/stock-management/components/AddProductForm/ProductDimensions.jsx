@@ -20,7 +20,7 @@ const colorOptions = [
   "Red",
 ].map((c) => ({ value: c, label: c }));
 
-const ProductDimensions = ({ register, control, errors, isSubmitting }) => {
+const ProductDimensions = ({ control, errors, isSubmitting }) => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

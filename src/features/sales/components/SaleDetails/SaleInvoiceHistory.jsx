@@ -7,7 +7,6 @@ const SaleInvoiceHistory = ({
   invoiceHistory,
   hasPermission,
   generateInvoiceLoading,
-  isCancelled,
   onGenerateInvoiceClick,
   onViewInvoiceClick,
 }) => {

@@ -5,7 +5,6 @@ import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 
 const ProductBasicInfo = ({
-  register,
   control,
   errors,
   categories,
