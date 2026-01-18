@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from "react";
 import PropTypes from "prop-types";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
