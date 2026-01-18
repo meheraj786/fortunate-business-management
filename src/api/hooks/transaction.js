@@ -14,7 +14,8 @@ export const useTransactions = (params) =>
 export const useAccountTransactions = (accountId, params) =>
   useQuery({
     queryKey: ["transactions", "account", accountId, params],
-    queryFn: async () => (await api.getTransactionsByAccount(accountId, params)).data,
+    queryFn: async () =>
+      (await api.getTransactionsByAccount(accountId, params)).data,
     keepPreviousData: true,
     enabled: !!accountId,
   });
@@ -25,8 +26,9 @@ export const useTransaction = (id) =>
     queryKey: ["transactions", id],
     queryFn: async () => (await api.getTransactionById(id)).data,
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-  
+
 export const useTransactionStats = () =>
   useQuery({
     queryKey: ["transactions", "stats"],

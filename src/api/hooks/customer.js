@@ -14,6 +14,7 @@ export const useCustomer = (id) =>
     queryKey: ["customers", id],
     queryFn: async () => (await api.getCustomerById(id)).data,
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
 export const useCustomerStats = () =>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import PropTypes from "prop-types";
 import { useParams, useNavigate } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   User,
@@ -20,7 +21,7 @@ import {
   Loader2,
   FileIcon,
 } from "lucide-react";
-import CustomerDetailsSkeleton from "./components/CustomerDetailsSkeleton";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 
 // Components
@@ -40,6 +41,7 @@ import {
 } from "../../api/hooks/customer";
 import { useAuth } from "@/hooks/useAuth";
 import { downloadCustomerDocument } from "../../api/customer.api";
+import { getSaleById } from "@/api/sales.api";
 import { useSettings } from "@/context/SettingsContext";
 
 const CustomerDetails = () => {
@@ -50,6 +52,7 @@ const CustomerDetails = () => {
   const deleteDocMutation = useDeleteCustomerDocument();
   const { hasPermission } = useAuth();
   const { formatCurrency, formatDate } = useSettings();
+  const queryClient = useQueryClient();
 
   // State
   const [confirmModal, setConfirmModal] = useState({
@@ -158,6 +161,21 @@ const CustomerDetails = () => {
     }
   };
 
+  const prefetchSale = useCallback(
+    (saleId) => {
+      queryClient.prefetchQuery({
+        queryKey: ["sales", saleId],
+        queryFn: async () => (await getSaleById(saleId)).data,
+        staleTime: 5 * 60 * 1000,
+      });
+    },
+    [queryClient],
+  );
+
+  const preloadEditForm = useCallback(() => {
+    import("@/features/customers/CustomerFormPage");
+  }, []);
+
   // Memoized values
   const customerStats = useMemo(
     () => ({
@@ -169,8 +187,7 @@ const CustomerDetails = () => {
     [customerData?.stats, formatCurrency],
   );
 
-  if (loadingCustomer) return <CustomerDetailsSkeleton />;
-  if (customerError)
+  if (customerError && !loadingCustomer)
     return (
       <div className="flex flex-col items-center justify-center h-full ">
         <div className="bg-[var(--color-danger-light)] border border-[var(--color-danger-light)] rounded-lg p-6 max-w-md">
@@ -193,7 +210,7 @@ const CustomerDetails = () => {
         </div>
       </div>
     );
-  if (!customerData)
+  if (!customerData && !loadingCustomer)
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <div className="bg-[var(--color-warning-light)] border border-[var(--color-warning-light)] rounded-lg p-6 max-w-md">
@@ -234,15 +251,25 @@ const CustomerDetails = () => {
               </div>
               <div className="min-w-0">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
-                  {customerData.name}
+                  {loadingCustomer ? (
+                    <ValueSkeleton width="w-48" height="h-8" />
+                  ) : (
+                    customerData?.name
+                  )}
                 </h1>
                 <div className="flex items-center mt-1 flex-wrap gap-2">
-                  {customerData.customerId && (
-                    <span className="text-gray-600 text-sm sm:text-base">
-                      {customerData.customerId}
-                    </span>
+                  {loadingCustomer ? (
+                    <ValueSkeleton width="w-24" height="h-5" />
+                  ) : (
+                    <>
+                      {customerData?.customerId && (
+                        <span className="text-gray-600 text-sm sm:text-base">
+                          {customerData.customerId}
+                        </span>
+                      )}
+                      <StatusBadge status={customerData?.customerStatus} />
+                    </>
                   )}
-                  <StatusBadge status={customerData.customerStatus} />
                 </div>
               </div>
             </div>
@@ -251,6 +278,7 @@ const CustomerDetails = () => {
               {hasPermission("CUSTOMER_UPDATE") && (
                 <Button
                   onClick={() => navigate(`/customer-form/${id}`)}
+                  onMouseEnter={preloadEditForm}
                   variant="primary"
                   size="sm"
                   className="flex items-center"
@@ -287,45 +315,56 @@ const CustomerDetails = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <DataField
                   label="Company Name"
-                  value={customerData.companyName}
+                  value={customerData?.companyName}
                   icon={Building}
+                  loading={loadingCustomer}
                 />
                 <DataField
                   label="Customer Type"
-                  value={customerData.customerType}
+                  value={customerData?.customerType}
+                  loading={loadingCustomer}
                 />
                 <DataField
                   label="Email"
-                  value={customerData.email}
+                  value={customerData?.email}
                   icon={Mail}
                   type="email"
+                  loading={loadingCustomer}
                 />
                 <DataField
                   label="Phone"
-                  value={customerData.phone}
+                  value={customerData?.phone}
                   icon={Phone}
                   type="tel"
+                  loading={loadingCustomer}
                 />
                 <DataField
                   label="Credit Limit"
-                  value={formatCurrency(customerData.creditLimit)}
+                  value={customerData?.creditLimit}
+                  format="currency"
                   icon={CreditCard}
+                  loading={loadingCustomer}
                 />
                 <DataField
                   label="Opening Due"
-                  value={formatCurrency(customerData.openingDue)}
+                  value={customerData?.openingDue}
+                  format="currency"
                   icon={DollarSign}
+                  loading={loadingCustomer}
                 />
                 <DataField
                   label="Join Date"
-                  value={formatDate(customerData.joinDate)}
+                  value={customerData?.joinDate}
+                  format="date"
                   icon={Calendar}
+                  loading={loadingCustomer}
                 />
                 <div className="sm:col-span-2">
                   <DataField
                     label="Billing Address"
-                    value={customerData.billingAddress}
+                    value={customerData?.billingAddress}
                     icon={MapPin}
+                    loading={loadingCustomer}
                   />
                 </div>
               </div>
@@ -340,7 +379,11 @@ const CustomerDetails = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-[var(--color-primary-light)] p-4 rounded-lg text-center">
                   <div className="text-xl sm:text-2xl font-bold text-[var(--color-primary)]">
-                    {customerStats.totalPurchases}
+                    {loadingCustomer ? (
+                      <ValueSkeleton width="w-12" height="h-7" />
+                    ) : (
+                      customerStats.totalPurchases
+                    )}
                   </div>
                   <div className="text-xs sm:text-sm text-[var(--color-primary)] mt-1">
                     Total Purchases
@@ -348,7 +391,11 @@ const CustomerDetails = () => {
                 </div>
                 <div className="bg-[var(--color-success-light)] p-4 rounded-lg text-center">
                   <div className="text-xl sm:text-2xl font-bold text-[var(--color-success)]">
-                    {customerStats.totalSpent}
+                    {loadingCustomer ? (
+                      <ValueSkeleton width="w-16" height="h-7" />
+                    ) : (
+                      customerStats.totalSpent
+                    )}
                   </div>
                   <div className="text-xs sm:text-sm text-[var(--color-success)] mt-1">
                     Total Spent
@@ -356,7 +403,11 @@ const CustomerDetails = () => {
                 </div>
                 <div className="bg-[var(--color-warning-light)] p-4 rounded-lg text-center">
                   <div className="text-xl sm:text-2xl font-bold text-[var(--color-warning)]">
-                    {customerStats.notInvoiced}
+                    {loadingCustomer ? (
+                      <ValueSkeleton width="w-12" height="h-7" />
+                    ) : (
+                      customerStats.notInvoiced
+                    )}
                   </div>
                   <div className="text-xs sm:text-sm text-[var(--color-warning)] mt-1">
                     Not Invoiced
@@ -364,7 +415,11 @@ const CustomerDetails = () => {
                 </div>
                 <div className="bg-[var(--color-danger-light)] p-4 rounded-lg text-center">
                   <div className="text-xl sm:text-2xl font-bold text-[var(--color-danger)]">
-                    {customerStats.outstandingDues}
+                    {loadingCustomer ? (
+                      <ValueSkeleton width="w-16" height="h-7" />
+                    ) : (
+                      customerStats.outstandingDues
+                    )}
                   </div>
                   <div className="text-xs sm:text-sm text-[var(--color-danger)] mt-1">
                     Outstanding Dues
@@ -384,20 +439,25 @@ const CustomerDetails = () => {
               <div className="space-y-3">
                 <DataField
                   label="Customer Status"
-                  value={<StatusBadge status={customerData.customerStatus} />}
+                  value={<StatusBadge status={customerData?.customerStatus} />}
+                  loading={loadingCustomer}
                 />
                 <DataField
                   label="Customer Type"
-                  value={customerData.customerType}
+                  value={customerData?.customerType}
+                  loading={loadingCustomer}
                 />
                 <DataField
                   label="Customer ID"
-                  value={customerData.customerId}
+                  value={customerData?.customerId}
+                  loading={loadingCustomer}
                 />
                 <DataField
                   label="Join Date"
-                  value={formatDate(customerData.joinDate)}
+                  value={customerData?.joinDate}
+                  format="date"
                   icon={Calendar}
+                  loading={loadingCustomer}
                 />
               </div>
             </CollapsibleCard>
@@ -409,7 +469,7 @@ const CustomerDetails = () => {
               ariaLabel="Documents & Note Section"
             >
               <div className="space-y-3">
-                {customerData.documents?.length > 0 && (
+                {customerData?.documents?.length > 0 && (
                   <div className="space-y-3">
                     {customerData.documents.map((doc) => (
                       <div
@@ -463,6 +523,7 @@ const CustomerDetails = () => {
                       label="Customer Note"
                       value={customerData.customerNote}
                       icon={FileText}
+                      loading={loadingCustomer}
                     />
                   </div>
                 )}
@@ -486,11 +547,29 @@ const CustomerDetails = () => {
               ariaLabel="Recent Purchases Section"
             >
               {loadingSales ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" />
-                  <span className="ml-3 text-gray-600">
-                    Loading purchases...
-                  </span>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <th key={i} className="px-4 py-3 text-left">
+                            <ValueSkeleton width="w-16" height="h-4" />
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <tr key={i}>
+                          {Array.from({ length: 8 }).map((_, j) => (
+                            <td key={j} className="px-4 py-3">
+                              <ValueSkeleton width="w-full" height="h-4" />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               ) : salesData.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
@@ -506,6 +585,7 @@ const CustomerDetails = () => {
                         key={sale._id}
                         className="border border-gray-200 rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
                         onClick={() => navigate(`/sales/${sale._id}`)}
+                        onMouseEnter={() => prefetchSale(sale._id)}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
@@ -588,6 +668,7 @@ const CustomerDetails = () => {
                             key={sale._id}
                             className="hover:bg-gray-50 cursor-pointer"
                             onClick={() => navigate(`/sales/${sale._id}`)}
+                            onMouseEnter={() => prefetchSale(sale._id)}
                           >
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                               {formatDate(sale.saleDate)}

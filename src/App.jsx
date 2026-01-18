@@ -1,6 +1,13 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { Toaster } from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { getSalesSummaryTable } from "@/api/sales.api";
+import { getLCSummary } from "@/api/lc.api";
+import { getCustomersSummary } from "@/api/customer.api";
+import { getAllAccounts } from "@/api/account.api";
+
+import { useAuth } from "@/hooks/useAuth";
 
 import LoginPage from "@/features/login/LoginPage";
 import Layout from "@/components/layout/Layout";
@@ -126,6 +133,36 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
+  const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const staleTime = 5 * 60 * 1000;
+    // Warm up the dashboard data
+    queryClient.prefetchQuery({
+      queryKey: ["sales", "summary", {}],
+      queryFn: async () => (await getSalesSummaryTable({})).data,
+      staleTime,
+    });
+    queryClient.prefetchQuery({
+      queryKey: ["lcs", "summary", {}],
+      queryFn: async () => (await getLCSummary({})).data,
+      staleTime,
+    });
+    queryClient.prefetchQuery({
+      queryKey: ["customers", "summary", {}],
+      queryFn: async () => (await getCustomersSummary({})).data,
+      staleTime,
+    });
+    queryClient.prefetchQuery({
+      queryKey: ["accounts"],
+      queryFn: async () => (await getAllAccounts()).data,
+      staleTime,
+    });
+  }, [queryClient]);
+
   return (
     <>
       <RouterProvider router={router} />

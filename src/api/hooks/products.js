@@ -19,6 +19,7 @@ export const useProduct = (warehouseId, productId) =>
     queryFn: async () =>
       (await api.getProductById(warehouseId, productId)).data,
     enabled: !!warehouseId && !!productId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
 // Product sales history with pagination

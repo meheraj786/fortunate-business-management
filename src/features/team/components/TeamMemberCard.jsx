@@ -1,9 +1,9 @@
-import React from "react";
+import React, { memo } from "react";
 import { Link } from "react-router";
 import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 
-const TeamMemberCard = ({ user }) => {
+const TeamMemberCard = memo(({ user }) => {
   const { isSuperAdmin } = useAuth();
 
   return (
@@ -20,6 +20,6 @@ const TeamMemberCard = ({ user }) => {
       )}
     </div>
   );
-};
+});
 
 export default TeamMemberCard;

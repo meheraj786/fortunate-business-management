@@ -31,7 +31,7 @@ import AddCostForm from "./components/AddCostForm";
 import StatusBadge from "@/components/ui/StatusBadge";
 import DataField from "@/components/ui/DataField";
 import CostField from "@/components/ui/CostField";
-import LCDetailsPageSkeleton from "./components/LCDetailsPageSkeleton";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 import {
   useLC,
@@ -39,6 +39,7 @@ import {
   useExportLC,
   useDeleteLCDocument,
 } from "@/api/hooks/lc";
+import { useQueryClient } from "@tanstack/react-query";
 import { useUrl } from "@/hooks/useUrl";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
@@ -50,6 +51,7 @@ const LCdetails = () => {
   const { baseUrl } = useUrl();
   const { hasPermission } = useAuth();
   const { formatCurrency, formatDate, formatNumber, settings } = useSettings();
+  const queryClient = useQueryClient();
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -158,8 +160,6 @@ const LCdetails = () => {
     );
   };
 
-  if (isLoading) return <LCDetailsPageSkeleton />;
-
   if (isError) {
     return (
       <div className="h-full flex flex-col justify-center items-center p-4">
@@ -180,7 +180,7 @@ const LCdetails = () => {
     );
   }
 
-  if (!lcData) return null;
+  if (!lcData && !isLoading) return null;
 
   const {
     basicInfo = {},
@@ -190,7 +190,7 @@ const LCdetails = () => {
     productInfo = [],
     documentsNotes = {},
     otherExpenses = {},
-  } = lcData;
+  } = lcData || {};
 
   const AddCostButton = ({ category }) => (
     <Button
@@ -224,7 +224,11 @@ const LCdetails = () => {
                   <FileText className="text-white w-6 h-6" />
                 </div>
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
-                  {basicInfo.lcNumber || "Letter of Credit Details"}
+                  {isLoading ? (
+                    <ValueSkeleton width="w-48" height="h-8" />
+                  ) : (
+                    basicInfo.lcNumber || "Letter of Credit Details"
+                  )}
                 </h1>
               </div>
               <p className="text-gray-600 text-sm sm:text-base ml-11">
@@ -249,6 +253,9 @@ const LCdetails = () => {
               {hasPermission("LC_UPDATE") && (
                 <Button
                   onClick={() => navigate(`/lc-form/${id}`)}
+                  onMouseEnter={() =>
+                    import("@/features/lc-management/LCFormPage")
+                  }
                   variant="primary"
                   size="sm"
                   className="flex items-center"
@@ -285,32 +292,38 @@ const LCdetails = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <DataField
                   label="LC Number"
-                  value={basicInfo.lcNumber}
+                  value={basicInfo?.lcNumber}
                   icon={FileText}
+                  loading={isLoading}
                 />
                 <DataField
                   label="LC Opening Date"
-                  value={formatDate(basicInfo.lcOpeningDate)}
+                  value={basicInfo?.lcOpeningDate}
+                  format="date"
                   icon={Calendar}
+                  loading={isLoading}
                 />
                 <DataField
                   label="Supplier Name"
-                  value={basicInfo.supplierName}
+                  value={basicInfo?.supplierName}
                   icon={User}
+                  loading={isLoading}
                 />
                 <DataField
                   label="Supplier Country"
-                  value={basicInfo.supplierCountry}
+                  value={basicInfo?.supplierCountry}
                   icon={MapPin}
+                  loading={isLoading}
                 />
                 <div className="sm:col-span-2">
                   <DataField
                     label="Status"
-                    value={<StatusBadge status={basicInfo.status} />}
+                    value={<StatusBadge status={basicInfo?.status} />}
+                    loading={isLoading}
                   />
                 </div>
               </div>
-              {basicInfo.accountId && (
+              {basicInfo?.accountId && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">
                     Bank Account Details
@@ -320,18 +333,22 @@ const LCdetails = () => {
                       label="Bank Name"
                       value={basicInfo.accountId?.bankName}
                       icon={Building}
+                      loading={isLoading}
                     />
                     <DataField
                       label="Branch Name"
                       value={basicInfo.accountId?.branchName}
+                      loading={isLoading}
                     />
                     <DataField
                       label="Account Holder"
                       value={basicInfo.accountId?.accountHolderName}
+                      loading={isLoading}
                     />
                     <DataField
                       label="Account Number"
                       value={basicInfo.accountId?.accountNumber}
+                      loading={isLoading}
                     />
                   </div>
                 </div>
@@ -351,15 +368,22 @@ const LCdetails = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <DataField
                   label="LC Amount (USD)"
-                  value={`$${formatNumber(financialInfo.lcAmountUsd)}`}
+                  value={
+                    financialInfo.lcAmountUsd
+                      ? `$${formatNumber(financialInfo.lcAmountUsd)}`
+                      : null
+                  }
+                  loading={isLoading}
                 />
                 <DataField
                   label="Exchange Rate"
                   value={formatNumber(financialInfo.exchangeRate)}
+                  loading={isLoading}
                 />
                 <DataField
                   label={`LC Amount (${settings?.currency || "BDT"})`}
                   value={formatCurrency(financialInfo.lcAmountBdt)}
+                  loading={isLoading}
                 />
               </div>
               {financialInfo.costs?.length > 0 && (
@@ -391,7 +415,11 @@ const LCdetails = () => {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {product.itemName && (
-                      <DataField label="Item Name" value={product.itemName} />
+                      <DataField
+                        label="Item Name"
+                        value={product.itemName}
+                        loading={isLoading}
+                      />
                     )}
                     {(product.thickness || product.width || product.length) && (
                       <DataField
@@ -401,10 +429,15 @@ const LCdetails = () => {
                         }, Width: ${product.width || "-"}, Length: ${
                           product.length || "-"
                         }`}
+                        loading={isLoading}
                       />
                     )}
                     {product.grade && (
-                      <DataField label="Grade" value={product.grade} />
+                      <DataField
+                        label="Grade"
+                        value={product.grade}
+                        loading={isLoading}
+                      />
                     )}
                     <DataField
                       label="Quantity"
@@ -413,14 +446,25 @@ const LCdetails = () => {
                           ? `(${product.quantityUnit.name})`
                           : ""
                       }`}
+                      loading={isLoading}
                     />
                     <DataField
                       label="Unit Price (USD)"
-                      value={`$${formatNumber(product.unitPriceUsd)}`}
+                      value={
+                        product.unitPriceUsd
+                          ? `$${formatNumber(product.unitPriceUsd)}`
+                          : null
+                      }
+                      loading={isLoading}
                     />
                     <DataField
                       label="Total Value (USD)"
-                      value={`$${formatNumber(product.totalValueUsd)}`}
+                      value={
+                        product.totalValueUsd
+                          ? `$${formatNumber(product.totalValueUsd)}`
+                          : null
+                      }
+                      loading={isLoading}
                     />
                   </div>
                 </div>
@@ -450,10 +494,13 @@ const LCdetails = () => {
                 <DataField
                   label="Port of Shipment"
                   value={shippingCustomsInfo.portOfShipment}
+                  loading={isLoading}
                 />
                 <DataField
                   label="Expected Arrival Date"
-                  value={formatDate(shippingCustomsInfo.expectedArrivalDate)}
+                  value={shippingCustomsInfo.expectedArrivalDate}
+                  format="date"
+                  loading={isLoading}
                 />
               </div>
               {shippingCustomsInfo.costs?.length > 0 && (
@@ -671,10 +718,11 @@ const LCdetails = () => {
                               ? "Cash"
                               : cost.accountId
                                 ? `${cost.paymentMethod}: ${
-                                    cost.accountId.accountHolderName
+                                    cost.accountId?.accountHolderName || "N/A"
                                   } (${
-                                    cost.accountId.accountNumber ||
-                                    cost.accountId.mobileNumber
+                                    cost.accountId?.accountNumber ||
+                                    cost.accountId?.mobileNumber ||
+                                    "N/A"
                                   })`
                                 : cost.paymentMethod}
                           </div>

@@ -15,6 +15,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/api/hooks/user";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 const TeamDetails = () => {
   const { id } = useParams();
@@ -39,15 +40,7 @@ const TeamDetails = () => {
       .catch(() => showErrorToast("Failed to copy"));
   };
 
-  if (isLoading) {
-    return (
-      <div className="  flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2  border-primary"></div>
-      </div>
-    );
-  }
-
-  if (isError || !member) {
+  if ((isError || !member) && !isLoading) {
     return (
       <div className="  flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -67,7 +60,7 @@ const TeamDetails = () => {
 
   const breadcrumbItems = [
     { label: "Team", path: "/team" },
-    { label: member.name },
+    { label: isLoading ? "Loading..." : member?.name || "Member" },
   ];
 
   return (
@@ -112,9 +105,19 @@ const TeamDetails = () => {
                   )}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 text-center">
-                  {member.name}
+                  {isLoading ? (
+                    <ValueSkeleton width="w-32" height="h-8" />
+                  ) : (
+                    member.name
+                  )}
                 </h2>
-                <p className="text-gray-600 text-sm mt-1">{member.roleName}</p>
+                <p className="text-gray-600 text-sm mt-1">
+                  {isLoading ? (
+                    <ValueSkeleton width="w-24" height="h-4" />
+                  ) : (
+                    member.roleName
+                  )}
+                </p>
               </div>
 
               <div className="space-y-3 pt-4 border-t border-gray-200">
@@ -126,7 +129,11 @@ const TeamDetails = () => {
                   <div className="overflow-hidden">
                     <p className="text-xs text-gray-500">Email</p>
                     <p className="text-sm text-gray-900 break-all">
-                      {member.email}
+                      {isLoading ? (
+                        <ValueSkeleton width="w-full" height="h-4" />
+                      ) : (
+                        member.email
+                      )}
                     </p>
                   </div>
                 </div>
@@ -137,7 +144,13 @@ const TeamDetails = () => {
                   <Phone size={18} className="text-gray-400 mr-3 mt-0.5" />
                   <div>
                     <p className="text-xs text-gray-500">Phone</p>
-                    <p className="text-sm text-gray-900">{member.phone}</p>
+                    <p className="text-sm text-gray-900">
+                      {isLoading ? (
+                        <ValueSkeleton width="w-24" height="h-4" />
+                      ) : (
+                        member.phone
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -145,7 +158,6 @@ const TeamDetails = () => {
           </div>
 
           <div className="lg:col-span-2 space-y-8">
-            {/* Warehouse Access Section */}
             {/* Warehouse Access Section */}
             <div className="bg-white shadow-md rounded-lg p-6">
               <div className="flex items-center justify-between mb-6 pb-4 border-gray-200 border-b">
@@ -163,31 +175,51 @@ const TeamDetails = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {member?.warehouse?.map((wh) => (
-                  <div
-                    key={wh._id}
-                    className="flex items-center justify-between p-4 border rounded-lg border-gray-200 bg-gray-50/30"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-gray-200 text-gray-500">
-                        <WarehouseIcon size={18} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-800">
-                          {wh.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {wh.location || "No Location Provided"}
-                        </p>
+                {isLoading ? (
+                  Array.from({ length: 2 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-4 border rounded-lg border-gray-200 bg-gray-50/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <ValueSkeleton width="w-10" height="h-10" />
+                        <div>
+                          <ValueSkeleton width="w-24" height="h-4" />
+                          <div className="mt-1">
+                            <ValueSkeleton width="w-32" height="h-3" />
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-
-                {(!member?.warehouse || member.warehouse.length === 0) && (
-                  <p className="col-span-full text-center py-4 text-gray-500 italic">
-                    No warehouses assigned.
-                  </p>
+                  ))
+                ) : (
+                  <>
+                    {member?.warehouse?.map((wh) => (
+                      <div
+                        key={wh._id}
+                        className="flex items-center justify-between p-4 border rounded-lg border-gray-200 bg-gray-50/30"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-gray-200 text-gray-500">
+                            <WarehouseIcon size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-800">
+                              {wh.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {wh.location || "No Location Provided"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {(!member?.warehouse || member.warehouse.length === 0) && (
+                      <p className="col-span-full text-center py-4 text-gray-500 italic">
+                        No warehouses assigned.
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -200,9 +232,13 @@ const TeamDetails = () => {
                 </h2>
                 <div className="text-right">
                   <span className="text-xl font-bold text-primary">
-                    {member.access.reduce(
-                      (sum, module) => sum + module.permissions.length,
-                      0,
+                    {isLoading ? (
+                      <ValueSkeleton width="w-8" height="h-6" />
+                    ) : (
+                      member.access.reduce(
+                        (sum, module) => sum + module.permissions.length,
+                        0,
+                      )
                     )}
                   </span>
                   <p className="text-xs text-gray-500">active</p>

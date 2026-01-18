@@ -146,29 +146,29 @@ const LC = () => {
             title="Active LC"
             Icon={MonitorDot}
             number={lcCountsData?.data?.Active || 0}
-            textColor="success" // Changed from green
-            isLoading={isLcCountsLoading}
+            textColor="success"
+            loading={isLcCountsLoading}
           />
           <StatBox
             title="Completed LC"
             Icon={BookmarkCheck}
             number={lcCountsData?.data?.Completed || 0}
-            textColor="primary" // Changed from blue
-            isLoading={isLcCountsLoading}
+            textColor="primary"
+            loading={isLcCountsLoading}
           />
           <StatBox
             title="Draft LC"
             Icon={Gpu}
             number={lcCountsData?.data?.Draft || 0}
-            textColor="warning" // Changed from yellow
-            isLoading={isLcCountsLoading}
+            textColor="warning"
+            loading={isLcCountsLoading}
           />
           <StatBox
             title="Cancelled LC"
             Icon={BookmarkX}
             number={lcCountsData?.data?.Cancelled || 0}
-            textColor="danger" // Changed from red
-            isLoading={isLcCountsLoading}
+            textColor="danger"
+            loading={isLcCountsLoading}
           />
         </div>
       </div>

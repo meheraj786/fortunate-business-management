@@ -20,20 +20,6 @@ import { usePaginatedSales, useInvoiceStatusCount } from "@/api/hooks/sales";
 import Pagination from "@/components/ui/Pagination";
 import { useSettings } from "@/context/SettingsContext";
 
-const StatCardSkeleton = () => (
-  <div className="bg-white p-4 rounded-lg shadow-sm animate-pulse">
-    <div className="flex items-center">
-      <div className="p-3 rounded-full bg-gray-100">
-        <div className="h-6 w-6 rounded-full bg-gray-200"></div>
-      </div>
-      <div className="ml-4 flex-1">
-        <div className="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>
-        <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-      </div>
-    </div>
-  </div>
-);
-
 const Sales = () => {
   const [showAddSale, setShowAddSale] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, limit: 10 });
@@ -137,45 +123,38 @@ const Sales = () => {
 
         {hasPermission("SALE_VIEW_TABLE") && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {statsLoading ? (
-              <>
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-                <StatCardSkeleton />
-              </>
-            ) : (
-              <>
-                <SalesStatCard
-                  title="Not Invoiced"
-                  count={salesStats.notInvoiced}
-                  linkTo="/sales/not-invoiced"
-                  icon={FileWarning}
-                  color="yellow"
-                />
-                <SalesStatCard
-                  title="Due Invoices"
-                  count={salesStats.due}
-                  linkTo="/sales/due-invoices"
-                  icon={FileClock}
-                  color="orange"
-                />
-                <SalesStatCard
-                  title="Paid Invoices"
-                  count={salesStats.paid}
-                  linkTo="/sales/paid-invoices"
-                  icon={FileCheck}
-                  color="green"
-                />
-                <SalesStatCard
-                  title="Cancelled"
-                  count={salesStats.cancelled}
-                  linkTo="/sales/cancelled"
-                  icon={FileX}
-                  color="red"
-                />
-              </>
-            )}
+            <SalesStatCard
+              title="Not Invoiced"
+              count={salesStats.notInvoiced}
+              loading={statsLoading}
+              linkTo="/sales/not-invoiced"
+              icon={FileWarning}
+              color="yellow"
+            />
+            <SalesStatCard
+              title="Due Invoices"
+              count={salesStats.due}
+              loading={statsLoading}
+              linkTo="/sales/due-invoices"
+              icon={FileClock}
+              color="orange"
+            />
+            <SalesStatCard
+              title="Paid Invoices"
+              count={salesStats.paid}
+              loading={statsLoading}
+              linkTo="/sales/paid-invoices"
+              icon={FileCheck}
+              color="green"
+            />
+            <SalesStatCard
+              title="Cancelled"
+              count={salesStats.cancelled}
+              loading={statsLoading}
+              linkTo="/sales/cancelled"
+              icon={FileX}
+              color="red"
+            />
           </div>
         )}
       </div>

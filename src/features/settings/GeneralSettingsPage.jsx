@@ -4,6 +4,7 @@ import {
   useUpdateSystemSettings,
 } from "@/api/hooks/settingsHooks";
 import { useAuth } from "@/hooks/useAuth"; // Adjust path if needed
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 const TIMEZONES = [
   "America/New_York",
@@ -77,15 +78,6 @@ const GeneralSettingsPage = () => {
     }
   }, [settings]);
 
-  if (isLoading) {
-    return (
-      <div className="p-4 bg-white rounded-lg shadow animate-pulse">
-        <div className="h-6 mb-4 bg-gray-200 rounded w-1/4"></div>
-        <div className="h-10 bg-gray-200 rounded w-full"></div>
-      </div>
-    );
-  }
-
   if (!isSuperAdmin) {
     return (
       <div className="p-6 text-center bg-red-50 rounded-lg border border-red-200">
@@ -151,7 +143,11 @@ const GeneralSettingsPage = () => {
                 <p className="text-sm opacity-90">
                   The business timezone is permanently set to{" "}
                   <span className="font-bold font-mono bg-green-100 px-2 py-0.5 rounded text-green-800">
-                    {settings.timezone}
+                    {isLoading ? (
+                      <ValueSkeleton width="w-32" height="h-4" />
+                    ) : (
+                      settings.timezone
+                    )}
                   </span>
                   . It cannot be changed to ensure data consistency.
                 </p>
@@ -196,15 +192,19 @@ const GeneralSettingsPage = () => {
                     value={selectedTimezone}
                     onChange={(e) => setSelectedTimezone(e.target.value)}
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
+                    disabled={isLoading}
                   >
                     <option value="" disabled>
-                      Select a timezone...
+                      {isLoading
+                        ? "Loading timezones..."
+                        : "Select a timezone..."}
                     </option>
-                    {TIMEZONES.map((tz) => (
-                      <option key={tz} value={tz}>
-                        {tz}
-                      </option>
-                    ))}
+                    {!isLoading &&
+                      TIMEZONES.map((tz) => (
+                        <option key={tz} value={tz}>
+                          {tz}
+                        </option>
+                      ))}
                   </select>
 
                   <button
@@ -242,15 +242,21 @@ const GeneralSettingsPage = () => {
               <label className="block text-sm font-medium text-gray-700">
                 Business Name
               </label>
-              <input
-                type="text"
-                value={formData.businessName}
-                onChange={(e) =>
-                  setFormData({ ...formData, businessName: e.target.value })
-                }
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
-                placeholder="Enter business name"
-              />
+              <div className="h-10">
+                {isLoading ? (
+                  <ValueSkeleton width="w-full" height="h-10" />
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.businessName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, businessName: e.target.value })
+                    }
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
+                    placeholder="Enter business name"
+                  />
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">

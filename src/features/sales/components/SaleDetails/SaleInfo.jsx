@@ -9,8 +9,14 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
-const SaleInfo = ({ sale, isRegisteredCustomer, hasPermission }) => {
+const SaleInfo = ({
+  sale,
+  isRegisteredCustomer,
+  hasPermission,
+  loading = false,
+}) => {
   const { formatCurrency, formatNumber } = useSettings();
   return (
     <div className="space-y-6">
@@ -27,28 +33,46 @@ const SaleInfo = ({ sale, isRegisteredCustomer, hasPermission }) => {
             </label>
             <div className="flex items-center text-gray-900">
               <Package className="h-4 w-4 mr-2 text-gray-400" />
-              {sale.product?.name || "N/A"}
+              {loading ? (
+                <ValueSkeleton width="w-32" height="h-4" />
+              ) : (
+                sale.product?.name || "N/A"
+              )}
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Quantity
             </label>
-            <p className="text-gray-900">
-              {formatNumber(sale.quantity)} {sale.unit?.name || "units"}
-            </p>
+            {loading ? (
+              <ValueSkeleton width="w-20" height="h-4" />
+            ) : (
+              `${formatNumber(sale.quantity)} ${sale.unit?.name || "units"}`
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Unit Price
             </label>
-            <p className="text-gray-900">{formatCurrency(sale.pricePerUnit)}</p>
+            <p className="text-gray-900">
+              {loading ? (
+                <ValueSkeleton width="w-20" height="h-4" />
+              ) : (
+                formatCurrency(sale.pricePerUnit)
+              )}
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Total Amount
             </label>
-            <p className="text-gray-900">{formatCurrency(sale.totalAmount)}</p>
+            <p className="text-gray-900">
+              {loading ? (
+                <ValueSkeleton width="w-24" height="h-4" />
+              ) : (
+                formatCurrency(sale.totalAmount)
+              )}
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -56,7 +80,11 @@ const SaleInfo = ({ sale, isRegisteredCustomer, hasPermission }) => {
             </label>
             <div className="flex items-center text-gray-900">
               <FileText className="h-4 w-4 mr-2 text-gray-400" />
-              {sale.invoiceStatus}
+              {loading ? (
+                <ValueSkeleton width="w-20" height="h-4" />
+              ) : (
+                sale.invoiceStatus
+              )}
             </div>
           </div>
           <div>
@@ -65,7 +93,11 @@ const SaleInfo = ({ sale, isRegisteredCustomer, hasPermission }) => {
             </label>
             <div className="flex items-center text-gray-900">
               <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
-              {sale.paymentStatus || "N/A"}
+              {loading ? (
+                <ValueSkeleton width="w-24" height="h-4" />
+              ) : (
+                sale.paymentStatus || "N/A"
+              )}
             </div>
           </div>
         </div>
@@ -83,20 +115,38 @@ const SaleInfo = ({ sale, isRegisteredCustomer, hasPermission }) => {
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Name
               </label>
-              <p className="text-gray-900">{sale.customer.name}</p>
+              <p className="text-gray-900">
+                {loading ? (
+                  <ValueSkeleton width="w-32" height="h-4" />
+                ) : (
+                  sale.customer.name
+                )}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Phone
               </label>
-              <p className="text-gray-900">{sale.customer.phone || "N/A"}</p>
+              <p className="text-gray-900">
+                {loading ? (
+                  <ValueSkeleton width="w-28" height="h-4" />
+                ) : (
+                  sale.customer.phone || "N/A"
+                )}
+              </p>
             </div>
             {!isRegisteredCustomer && sale.customer.address && (
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Address
                 </label>
-                <p className="text-gray-900">{sale.customer.address}</p>
+                <p className="text-gray-900">
+                  {loading ? (
+                    <ValueSkeleton width="w-full" height="h-4" />
+                  ) : (
+                    sale.customer.address
+                  )}
+                </p>
               </div>
             )}
             {isRegisteredCustomer && hasPermission("CUSTOMER_VIEW_DETAILS") && (

@@ -23,6 +23,7 @@ export const useLC = (id) =>
     queryKey: ["lcs", id],
     queryFn: async () => (await api.getLCById(id)).data,
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
 // Fetch all completed LCs
@@ -70,7 +71,6 @@ export const useDeleteLC = () => {
     },
   });
 };
-
 
 // Add an expense to an LC
 export const useAddExpenseToLC = () => {

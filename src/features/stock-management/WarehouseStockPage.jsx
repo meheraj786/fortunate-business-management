@@ -25,6 +25,7 @@ import StatBox from "@/components/ui/StatBox";
 import AddProductForm from "./AddProductForm";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import Pagination from "@/components/ui/Pagination";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import Button from "@/components/ui/Button";
 import { showErrorToast } from "@/utils/notifications";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -45,7 +46,7 @@ const stockStatusOptions = [
   { value: "No Stock", label: "No Stock" },
 ];
 
-const WarehouseStock = () => {
+const WarehouseStock = React.memo(() => {
   const { warehouseId } = useParams();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
@@ -142,17 +143,6 @@ const WarehouseStock = () => {
     [warehouse?.name],
   );
 
-  if (warehouseLoading) {
-    return (
-      <div className="p-4 sm:p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading warehouse data...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (warehouseIsError) {
     return (
       <div className="p-4 sm:p-6 flex items-center justify-center">
@@ -187,12 +177,22 @@ const WarehouseStock = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div className="flex-1">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {warehouse?.name} - Stock & Inventory
+                {warehouseLoading ? (
+                  <ValueSkeleton width="w-48" height="h-8" />
+                ) : (
+                  `${warehouse?.name} - Stock & Inventory`
+                )}
               </h1>
-              {warehouse?.location && (
-                <div className="flex items-center gap-2 text-gray-600 mt-2 text-sm sm:text-base">
-                  <MapPin size={16} /> <span>{warehouse.location}</span>
+              {warehouseLoading ? (
+                <div className="flex items-center gap-2 text-gray-600 mt-2">
+                  <ValueSkeleton width="w-32" height="h-4" />
                 </div>
+              ) : (
+                warehouse?.location && (
+                  <div className="flex items-center gap-2 text-gray-600 mt-2 text-sm sm:text-base">
+                    <MapPin size={16} /> <span>{warehouse.location}</span>
+                  </div>
+                )
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -226,25 +226,29 @@ const WarehouseStock = () => {
               title="Total Products"
               number={warehouse?.stats?.totalProducts || 0}
               Icon={Package}
-              textColor="primary" // Changed from blue
+              textColor="primary"
+              loading={warehouseLoading}
             />
             <StatBox
               title="In Stock"
               number={warehouse?.stats?.totalInStock || 0}
               Icon={CheckCircle}
-              textColor="success" // Changed from green
+              textColor="success"
+              loading={warehouseLoading}
             />
             <StatBox
               title="Low Stock"
               number={warehouse?.stats?.totalLowStock || 0}
               Icon={Box}
-              textColor="warning" // Changed from orange
+              textColor="warning"
+              loading={warehouseLoading}
             />
             <StatBox
               title="Out of Stock"
               number={warehouse?.stats?.totalStockOut || 0}
               Icon={XCircle}
-              textColor="danger" // Changed from red
+              textColor="danger"
+              loading={warehouseLoading}
             />
           </div>
 
@@ -407,6 +411,6 @@ const WarehouseStock = () => {
       )}
     </div>
   );
-};
+});
 
 export default WarehouseStock;

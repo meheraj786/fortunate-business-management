@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DollarSign, Truck, CreditCard } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useSettings } from "@/context/SettingsContext";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 const SaleFinancialSummary = ({
   sale,
@@ -11,6 +12,7 @@ const SaleFinancialSummary = ({
   canAddPayment,
   hasPermission,
   onAddPaymentClick,
+  loading = false,
 }) => {
   const { formatCurrency } = useSettings();
   return (
@@ -35,7 +37,11 @@ const SaleFinancialSummary = ({
         <div className="flex justify-between items-center py-2">
           <span className="text-gray-600">Subtotal</span>
           <span className="font-medium">
-            {formatCurrency(sale.totalAmount)}
+            {loading ? (
+              <ValueSkeleton width="w-20" height="h-4" />
+            ) : (
+              formatCurrency(sale.totalAmount)
+            )}
           </span>
         </div>
         <AnimatePresence initial={false}>
@@ -85,12 +91,22 @@ const SaleFinancialSummary = ({
         <div className="border-t border-gray-200 pt-3 flex justify-between items-center font-semibold">
           <span className="text-gray-900">Net Amount</span>
           <span className="text-gray-900">
-            {formatCurrency(sale.totalAmountToBePaid)}
+            {loading ? (
+              <ValueSkeleton width="w-24" height="h-5" />
+            ) : (
+              formatCurrency(sale.totalAmountToBePaid)
+            )}
           </span>
         </div>
         <div className="flex justify-between items-center py-2">
           <span className="text-gray-600">Payments Made</span>
-          <span className="font-medium">{formatCurrency(totalPayments)}</span>
+          <span className="font-medium">
+            {loading ? (
+              <ValueSkeleton width="w-20" height="h-4" />
+            ) : (
+              formatCurrency(totalPayments)
+            )}
+          </span>
         </div>
         <div
           className={`border-t border-gray-200 pt-3 flex justify-between items-center text-lg font-semibold ${
@@ -100,7 +116,13 @@ const SaleFinancialSummary = ({
           }`}
         >
           <span>{balanceDue > 0 ? "Balance Due" : "Overpayment"}</span>
-          <span>{formatCurrency(Math.abs(balanceDue))}</span>
+          <span>
+            {loading ? (
+              <ValueSkeleton width="w-24" height="h-6" />
+            ) : (
+              formatCurrency(Math.abs(balanceDue))
+            )}
+          </span>
         </div>
       </div>
     </div>

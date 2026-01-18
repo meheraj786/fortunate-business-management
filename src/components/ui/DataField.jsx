@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import PropTypes from "prop-types";
 import { useSettings } from "@/context/SettingsContext";
+import ValueSkeleton from "./ValueSkeleton";
 
 const DataField = ({
   label,
@@ -10,10 +11,14 @@ const DataField = ({
   className = "",
   type = "text",
   format,
+  loading = false,
 }) => {
   const { formatCurrency, formatDate, formatNumber } = useSettings();
 
-  if (hidden || value === null || value === undefined || value === "") {
+  if (
+    !loading &&
+    (hidden || value === null || value === undefined || value === "")
+  ) {
     return null;
   }
 
@@ -56,7 +61,11 @@ const DataField = ({
               : undefined
           }
         >
-          {displayValue}
+          {loading ? (
+            <ValueSkeleton width="w-2/3" height="h-5" className="mt-1" />
+          ) : (
+            displayValue
+          )}
         </div>
       )}
     </div>

@@ -13,9 +13,9 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router";
 import { Trash } from "lucide-react";
-import UnitsSettingsSkeleton from "./components/UnitsSettingsSkeleton";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import classNames from "@/utils/classNames";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import Button from "@/components/ui/Button";
 
 export default function UnitsSettings() {
@@ -137,9 +137,6 @@ export default function UnitsSettings() {
   };
 
   /* UI states */
-  if (isLoading) {
-    return <UnitsSettingsSkeleton />;
-  }
 
   if (isError) {
     showErrorToast(error, "Failed to load units");
@@ -202,61 +199,81 @@ export default function UnitsSettings() {
             </tr>
           </thead>
           <tbody>
-            {units.map((unit, unitIdx) => (
-              <tr key={unit._id}>
-                <td
-                  className={classNames(
-                    unitIdx === 0 ? "" : "border-t border-gray-200",
-                    "py-4 pl-4 pr-3 text-sm sm:pl-6",
-                  )}
-                >
-                  {unit.name}
-                </td>
-                <td
-                  className={classNames(
-                    unitIdx === 0 ? "" : "border-t border-gray-200",
-                    "hidden px-3 py-3.5 text-sm lg:table-cell",
-                  )}
-                >
-                  {unit.type}
-                </td>
-                <td
-                  className={classNames(
-                    unitIdx === 0 ? "" : "border-t border-gray-200",
-                    "hidden px-3 py-3.5 text-sm lg:table-cell",
-                  )}
-                >
-                  {unit.conversionFactor}
-                </td>
-                <td
-                  className={classNames(
-                    unitIdx === 0 ? "" : "border-t border-gray-200",
-                    "py-3.5 pl-3 pr-4 text-sm sm:pr-6",
-                  )}
-                >
-                  <div className="flex justify-center gap-2">
-                    {hasPermission("UNIT_UPDATE") && (
-                      <Button
-                        onClick={() => openModal(unit)}
-                        variant="secondary" // Changed to secondary
-                        size="sm"
-                      >
-                        Edit
-                      </Button>
-                    )}
-                    {hasPermission("UNIT_DELETE") && (
-                      <Button
-                        onClick={() => openDeleteModal(unit)}
-                        variant="danger" // Changed to danger
-                        size="sm"
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
+                    <td className="py-4 pr-3 pl-4 text-sm sm:pl-6">
+                      <ValueSkeleton width="w-24" />
+                    </td>
+                    <td className="hidden px-3 py-3.5 text-sm lg:table-cell">
+                      <ValueSkeleton width="w-16" />
+                    </td>
+                    <td className="hidden px-3 py-3.5 text-sm lg:table-cell">
+                      <ValueSkeleton width="w-full" />
+                    </td>
+                    <td className="py-3.5 pr-4 pl-3 text-sm sm:pr-6">
+                      <div className="flex justify-center gap-2">
+                        <ValueSkeleton width="w-16" height="h-8" />
+                        <ValueSkeleton width="w-16" height="h-8" />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              : units.map((unit, unitIdx) => (
+                  <tr key={unit._id}>
+                    <td
+                      className={classNames(
+                        unitIdx === 0 ? "" : "border-t border-gray-200",
+                        "py-4 pl-4 pr-3 text-sm sm:pl-6",
+                      )}
+                    >
+                      {unit.name}
+                    </td>
+                    <td
+                      className={classNames(
+                        unitIdx === 0 ? "" : "border-t border-gray-200",
+                        "hidden px-3 py-3.5 text-sm lg:table-cell",
+                      )}
+                    >
+                      {unit.type}
+                    </td>
+                    <td
+                      className={classNames(
+                        unitIdx === 0 ? "" : "border-t border-gray-200",
+                        "hidden px-3 py-3.5 text-sm lg:table-cell",
+                      )}
+                    >
+                      {unit.conversionFactor}
+                    </td>
+                    <td
+                      className={classNames(
+                        unitIdx === 0 ? "" : "border-t border-gray-200",
+                        "py-3.5 pl-3 pr-4 text-sm sm:pr-6",
+                      )}
+                    >
+                      <div className="flex justify-center gap-2">
+                        {hasPermission("UNIT_UPDATE") && (
+                          <Button
+                            onClick={() => openModal(unit)}
+                            variant="secondary" // Changed to secondary
+                            size="sm"
+                          >
+                            Edit
+                          </Button>
+                        )}
+                        {hasPermission("UNIT_DELETE") && (
+                          <Button
+                            onClick={() => openDeleteModal(unit)}
+                            variant="danger" // Changed to danger
+                            size="sm"
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
           </tbody>
         </table>
       </div>

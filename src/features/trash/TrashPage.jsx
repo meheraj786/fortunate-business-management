@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { useParams, useLocation, useNavigate } from "react-router";
 import {
   useTrash,
@@ -22,8 +22,9 @@ import { useAuth } from "@/hooks/useAuth";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { showErrorToast } from "@/utils/notifications";
 import { useSettings } from "@/context/SettingsContext";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
-const TrashPage = () => {
+const TrashPage = memo(() => {
   const { moduleName } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -115,14 +116,6 @@ const TrashPage = () => {
     return <span className="text-gray-400 italic text-xs">Data not found</span>;
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="animate-spin w-10 h-10 text-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="p-4 sm:p-6 max-w-[1400px] mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -166,7 +159,27 @@ const TrashPage = () => {
               </thead>
 
               <tbody className="divide-y">
-                {trashItems.length === 0 ? (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i}>
+                      <td className="p-4">
+                        <ValueSkeleton width="w-16" />
+                      </td>
+                      <td className="p-4">
+                        <ValueSkeleton width="w-32" />
+                      </td>
+                      <td className="p-4">
+                        <ValueSkeleton width="w-24" />
+                      </td>
+                      <td className="p-4">
+                        <ValueSkeleton width="w-28" />
+                      </td>
+                      <td className="p-4 text-right">
+                        <ValueSkeleton width="w-20" />
+                      </td>
+                    </tr>
+                  ))
+                ) : trashItems.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-12 text-center">
                       <div className="flex flex-col items-center text-muted-foreground">
@@ -470,6 +483,6 @@ const TrashPage = () => {
       )}
     </div>
   );
-};
+});
 
 export default TrashPage;

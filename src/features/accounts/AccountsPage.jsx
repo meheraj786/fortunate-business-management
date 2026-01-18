@@ -23,12 +23,6 @@ import Button from "@/components/ui/Button";
 import { motion } from "framer-motion";
 import { showErrorToast } from "@/utils/notifications";
 
-// Custom Skeleton for StatBox
-const StatBoxSkeleton = () => (
-  // Themed skeleton color
-  <div className="h-24 bg-[var(--color-neutral-200)] rounded-lg animate-pulse"></div>
-);
-
 const Accounts = () => {
   const { hasPermission } = useAuth();
   const { formatCurrency } = useSettings();
@@ -73,41 +67,35 @@ const Accounts = () => {
   };
 
   const renderTransactionStats = () => {
-    if (isLoadingStats) {
-      return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <StatBoxSkeleton key={i} />
-          ))}
-        </div>
-      );
-    }
-
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
         <StatBox
           title="Total Transactions"
           number={transactionStats?.totalTransactionsCount || 0}
           Icon={Receipt}
-          textColor="primary" // Changed from blue
+          textColor="primary"
+          loading={isLoadingStats}
         />
         <StatBox
           title="Total Amount"
           number={formatCurrency(transactionStats?.totalAmount || 0)}
           Icon={DollarSign}
-          textColor="success" // Changed from green
+          textColor="success"
+          loading={isLoadingStats}
         />
         <StatBox
           title="Bank Transfers"
           number={transactionStats?.totalBankTransactionCount || 0}
           Icon={Building}
-          textColor="primary" // Changed from blue
+          textColor="primary"
+          loading={isLoadingStats}
         />
         <StatBox
           title="Mobile Banking"
           number={transactionStats?.totalMobileBankingTransactionCount || 0}
           Icon={Smartphone}
-          textColor="primary" // Changed from purple
+          textColor="primary"
+          loading={isLoadingStats}
         />
       </div>
     );

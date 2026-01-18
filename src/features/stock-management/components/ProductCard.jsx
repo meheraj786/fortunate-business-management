@@ -1,12 +1,23 @@
 import { Layers, FileText, Ruler } from "lucide-react";
-import React from "react";
+import React, { memo } from "react";
 import { Link } from "react-router"; // Changed to react-router
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext"; // Import useSettings
+import { useQueryClient } from "@tanstack/react-query";
+import { getProductById } from "@/api/product.api";
 
-const ProductCard = ({ product, warehouseId }) => {
+const ProductCard = memo(({ product, warehouseId }) => {
   const { hasPermission } = useAuth();
   const { formatCurrency } = useSettings();
+  const queryClient = useQueryClient();
+
+  const prefetchProductDetails = (id) => {
+    queryClient.prefetchQuery({
+      queryKey: ["products", warehouseId, id],
+      queryFn: async () => (await getProductById(warehouseId, id)).data,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
 
   const getStockColor = (status) => {
     switch (status) {
@@ -39,7 +50,10 @@ const ProductCard = ({ product, warehouseId }) => {
   };
 
   const CardContent = () => (
-    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
+    <div
+      className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 h-full flex flex-col"
+      onMouseEnter={() => prefetchProductDetails(product._id)}
+    >
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate pr-2">
@@ -100,5 +114,5 @@ const ProductCard = ({ product, warehouseId }) => {
   ) : (
     <CardContent />
   );
-};
+});
 export default ProductCard;

@@ -15,6 +15,7 @@ export const useSale = (id) =>
     queryKey: ["sales", id],
     queryFn: async () => (await api.getSaleById(id)).data,
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
 export const useSalesSummary = () =>

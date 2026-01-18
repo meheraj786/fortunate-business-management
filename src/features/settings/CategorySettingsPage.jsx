@@ -13,7 +13,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router";
 import { Trash } from "lucide-react";
-import CategorySettingsSkeleton from "./components/CategorySettingsSkeleton";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import classNames from "@/utils/classNames";
 import Button from "@/components/ui/Button";
@@ -105,10 +105,6 @@ export default function Category() {
     });
   };
 
-  if (isLoading) {
-    return <CategorySettingsSkeleton />;
-  }
-
   if (isError) {
     return (
       <div className="px-2">
@@ -192,58 +188,77 @@ export default function Category() {
             </tr>
           </thead>
           <tbody>
-            {categoryData?.data?.map((plan, planIdx) => (
-              <tr key={plan._id}>
-                <td
-                  className={classNames(
-                    planIdx === 0 ? "" : "border-t border-gray-200",
-                    "py-4 pr-3 pl-4 text-sm sm:pl-6",
-                  )}
-                >
-                  <div className="font-medium text-gray-900">{plan.name}</div>
-                  <div className="mt-1 text-gray-500 sm:hidden">
-                    <span>{plan.description}</span>
-                  </div>
-                </td>
-                <td
-                  className={classNames(
-                    planIdx === 0 ? "" : "border-t border-gray-200",
-                    "hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell",
-                  )}
-                >
-                  {plan.description}
-                </td>
-                <td
-                  className={classNames(
-                    planIdx === 0 ? "" : "border-t border-gray-200",
-                    "py-3.5 pr-4 pl-3 text-sm sm:pr-6",
-                  )}
-                >
-                  <div className="flex justify-center gap-2">
-                    {hasPermission("CATEGORY_UPDATE") && (
-                      <Button
-                        type="button"
-                        onClick={() => openModal(plan)}
-                        variant="secondary" // Changed to secondary
-                        size="sm"
-                      >
-                        Edit
-                      </Button>
-                    )}
-                    {hasPermission("CATEGORY_DELETE") && (
-                      <Button
-                        type="button"
-                        onClick={() => openDeleteModal(plan)}
-                        variant="danger" // Changed to danger
-                        size="sm"
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
+                    <td className="py-4 pr-3 pl-4 text-sm sm:pl-6">
+                      <ValueSkeleton width="w-24" />
+                    </td>
+                    <td className="hidden px-3 py-3.5 text-sm lg:table-cell">
+                      <ValueSkeleton width="w-full" />
+                    </td>
+                    <td className="py-3.5 pr-4 pl-3 text-sm sm:pr-6">
+                      <div className="flex justify-center gap-2">
+                        <ValueSkeleton width="w-16" height="h-8" />
+                        <ValueSkeleton width="w-16" height="h-8" />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              : categoryData?.data?.map((plan, planIdx) => (
+                  <tr key={plan._id}>
+                    <td
+                      className={classNames(
+                        planIdx === 0 ? "" : "border-t border-gray-200",
+                        "py-4 pr-3 pl-4 text-sm sm:pl-6",
+                      )}
+                    >
+                      <div className="font-medium text-gray-900">
+                        {plan.name}
+                      </div>
+                      <div className="mt-1 text-gray-500 sm:hidden">
+                        <span>{plan.description}</span>
+                      </div>
+                    </td>
+                    <td
+                      className={classNames(
+                        planIdx === 0 ? "" : "border-t border-gray-200",
+                        "hidden px-3 py-3.5 text-sm text-gray-500 lg:table-cell",
+                      )}
+                    >
+                      {plan.description}
+                    </td>
+                    <td
+                      className={classNames(
+                        planIdx === 0 ? "" : "border-t border-gray-200",
+                        "py-3.5 pr-4 pl-3 text-sm sm:pr-6",
+                      )}
+                    >
+                      <div className="flex justify-center gap-2">
+                        {hasPermission("CATEGORY_UPDATE") && (
+                          <Button
+                            type="button"
+                            onClick={() => openModal(plan)}
+                            variant="secondary"
+                            size="sm"
+                          >
+                            Edit
+                          </Button>
+                        )}
+                        {hasPermission("CATEGORY_DELETE") && (
+                          <Button
+                            type="button"
+                            onClick={() => openDeleteModal(plan)}
+                            variant="danger"
+                            size="sm"
+                          >
+                            Delete
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
           </tbody>
         </table>
       </div>

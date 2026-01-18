@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Calendar,
   DollarSign,
@@ -26,6 +27,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
 import { useSettings } from "@/context/SettingsContext";
+import { getCategories } from "@/api/category.api";
+import { getCompletedLCs } from "@/api/lc.api";
+import { getUnits } from "@/api/unit.api";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 const formatNumber = (num) => {
   if (typeof num !== "number") return num;
@@ -64,6 +69,7 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
   const { formatCurrency, formatDate } = useSettings();
+  const queryClient = useQueryClient();
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -96,6 +102,25 @@ const ProductDetails = () => {
     });
   };
 
+  const prefetchFormData = () => {
+    const staleTime = 5 * 60 * 1000;
+    queryClient.prefetchQuery({
+      queryKey: ["categories"],
+      queryFn: async () => (await getCategories()).data,
+      staleTime,
+    });
+    queryClient.prefetchQuery({
+      queryKey: ["lcs", "completed"],
+      queryFn: async () => (await getCompletedLCs()).data,
+      staleTime,
+    });
+    queryClient.prefetchQuery({
+      queryKey: ["units"],
+      queryFn: async () => (await getUnits()).data,
+      staleTime,
+    });
+  };
+
   const breadcrumbItems = useMemo(
     () => [
       { label: "Stock", path: "/stock-management" },
@@ -108,18 +133,7 @@ const ProductDetails = () => {
     [product, warehouseId],
   );
 
-  if (isLoading || (isFetching && !product)) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-          <span className="text-gray-600">Loading Product Details...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (isError && !isFetching) {
+  if ((isError || !product) && !isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
@@ -137,7 +151,7 @@ const ProductDetails = () => {
     );
   }
 
-  if (!product && !isFetching) {
+  if (!product && !isLoading && !isFetching) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
@@ -165,17 +179,29 @@ const ProductDetails = () => {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  {product.name}
+                  {isLoading ? (
+                    <ValueSkeleton width="w-48" height="h-8" />
+                  ) : (
+                    product?.name
+                  )}
                 </h1>
                 <div className="flex items-center gap-4 mt-1">
-                  <p className="text-gray-600">{product?.category?.name}</p>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStockStatusBadgeStyle(
-                      product.stockStatus,
-                    )}`}
-                  >
-                    {product.stockStatus}
-                  </span>
+                  <p className="text-gray-600">
+                    {isLoading ? (
+                      <ValueSkeleton width="w-24" height="h-4" />
+                    ) : (
+                      product?.category?.name
+                    )}
+                  </p>
+                  {!isLoading && (
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStockStatusBadgeStyle(
+                        product?.stockStatus,
+                      )}`}
+                    >
+                      {product?.stockStatus}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -183,6 +209,7 @@ const ProductDetails = () => {
               {hasPermission("PRODUCT_UPDATE") && (
                 <Button
                   onClick={() => setShowEditForm(true)}
+                  onMouseEnter={prefetchFormData}
                   variant="primary"
                   size="sm"
                   className="flex-1 sm:flex-auto flex items-center justify-center gap-2"
@@ -215,32 +242,68 @@ const ProductDetails = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <DetailItem
                   label="Category"
-                  value={product.category?.name || "N/A"}
+                  value={
+                    isLoading ? (
+                      <ValueSkeleton width="w-20" />
+                    ) : (
+                      product?.category?.name || "N/A"
+                    )
+                  }
                   icon={Tag}
                 />
                 <DetailItem
                   label="Supplier"
-                  value={product.LC?.basicInfo?.supplierName || "N/A"}
+                  value={
+                    isLoading ? (
+                      <ValueSkeleton width="w-24" />
+                    ) : (
+                      product?.LC?.basicInfo?.supplierName || "N/A"
+                    )
+                  }
                   icon={User}
                 />
                 <DetailItem
                   label="LC Number"
-                  value={product.LC?.basicInfo?.lcNumber || "N/A"}
+                  value={
+                    isLoading ? (
+                      <ValueSkeleton width="w-28" />
+                    ) : (
+                      product?.LC?.basicInfo?.lcNumber || "N/A"
+                    )
+                  }
                   icon={Hash}
                 />
                 <DetailItem
                   label="Product Description"
-                  value={product.productDescription || "N/A"}
+                  value={
+                    isLoading ? (
+                      <ValueSkeleton width="w-full" />
+                    ) : (
+                      product?.productDescription || "N/A"
+                    )
+                  }
                   icon={FileText}
                 />
                 <DetailItem
                   label="Creation Date"
-                  value={formatDate(product.createdAt)}
+                  value={
+                    isLoading ? (
+                      <ValueSkeleton width="w-24" />
+                    ) : (
+                      formatDate(product?.createdAt)
+                    )
+                  }
                   icon={Calendar}
                 />
                 <DetailItem
                   label="Last Updated"
-                  value={formatDate(product.updatedAt)}
+                  value={
+                    isLoading ? (
+                      <ValueSkeleton width="w-24" />
+                    ) : (
+                      formatDate(product?.updatedAt)
+                    )
+                  }
                   icon={Calendar}
                 />
               </div>{" "}
@@ -250,17 +313,28 @@ const ProductDetails = () => {
                 Specifications
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                {[
-                  { label: "Thickness", value: product.thickness, unit: "mm" },
-                  { label: "Width", value: product.width, unit: "mm" },
-                  { label: "Length", value: product.length, unit: "mm" },
-                  { label: "Grade", value: product.grade },
-                  { label: "Color", value: product.color }, // Added color
-                ]
-                  .filter((spec) => spec.value)
-                  .map((spec) => (
-                    <DetailItem key={spec.label} {...spec} icon={Ruler} />
-                  ))}
+                {isLoading ? (
+                  <>
+                    <DetailItem label="Thickness" value={<ValueSkeleton />} />
+                    <DetailItem label="Width" value={<ValueSkeleton />} />
+                  </>
+                ) : (
+                  [
+                    {
+                      label: "Thickness",
+                      value: product?.thickness,
+                      unit: "mm",
+                    },
+                    { label: "Width", value: product?.width, unit: "mm" },
+                    { label: "Length", value: product?.length, unit: "mm" },
+                    { label: "Grade", value: product?.grade },
+                    { label: "Color", value: product?.color },
+                  ]
+                    .filter((spec) => spec.value)
+                    .map((spec) => (
+                      <DetailItem key={spec.label} {...spec} icon={Ruler} />
+                    ))
+                )}
               </div>{" "}
             </div>
             <div>
@@ -270,17 +344,27 @@ const ProductDetails = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <DetailItem
                   label="Quantity in Stock"
-                  value={`${formatNumber(product.quantity)} ${
-                    product.unit?.name
-                  }`}
+                  value={
+                    isLoading ? (
+                      <ValueSkeleton width="w-16" />
+                    ) : (
+                      `${formatNumber(product?.quantity)} ${
+                        product?.unit?.name || ""
+                      }`
+                    )
+                  }
                   icon={Package}
                 />
                 <DetailItem
                   label="Unit Price"
                   value={
-                    product.unitPrice
-                      ? formatCurrency(product.unitPrice)
-                      : "N/A"
+                    isLoading ? (
+                      <ValueSkeleton width="w-20" />
+                    ) : product?.unitPrice ? (
+                      formatCurrency(product.unitPrice)
+                    ) : (
+                      "N/A"
+                    )
                   }
                   icon={DollarSign}
                 />
@@ -294,26 +378,30 @@ const ProductDetails = () => {
             <div className="space-y-4">
               <StatBox
                 title="Total Units Sold"
-                number={formatNumber(product.totalUnitsSold)}
+                number={formatNumber(product?.totalUnitsSold)}
                 Icon={ShoppingCart}
+                loading={isLoading}
               />
               <StatBox
                 title="Total Revenue"
-                number={formatCurrency(product.totalRevenue)}
+                number={formatCurrency(product?.totalRevenue)}
                 Icon={DollarSign}
                 textColor="green"
+                loading={isLoading}
               />
               <StatBox
                 title="Due Invoices"
-                number={product.totalDueInvoices}
+                number={product?.totalDueInvoices}
                 Icon={FileClock}
                 textColor="orange"
+                loading={isLoading}
               />
               <StatBox
                 title="Not Invoiced"
-                number={product.totalNotInvoiced}
+                number={product?.totalNotInvoiced}
                 Icon={FileWarning}
                 textColor="red"
+                loading={isLoading}
               />
             </div>
           </div>

@@ -5,21 +5,7 @@ import StatCard from "./StatCard";
 // import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 
 const DailyCashStats = ({ summary, isLoading }) => {
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm p-5 animate-pulse">
-            <div className="h-5 bg-[var(--color-neutral-200)] rounded w-1/2 mb-2"></div>
-            <div className="h-8 bg-[var(--color-neutral-200)] rounded w-3/4 mb-1"></div>
-            <div className="h-4 bg-[var(--color-neutral-200)] rounded w-1/3"></div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (!summary) {
+  if (!summary && !isLoading) {
     return null;
   }
 
@@ -51,6 +37,7 @@ const DailyCashStats = ({ summary, isLoading }) => {
         icon={Wallet}
         color="blue"
         subtitle="Cash at start of day"
+        loading={isLoading}
       />
       <StatCard
         title="Total Income"
@@ -58,6 +45,7 @@ const DailyCashStats = ({ summary, isLoading }) => {
         icon={TrendingUp}
         color="green"
         subtitle={`${incomeTransactionsCount || 0} transactions`}
+        loading={isLoading}
       />
       <StatCard
         title="Total Expenses"
@@ -65,6 +53,7 @@ const DailyCashStats = ({ summary, isLoading }) => {
         icon={TrendingDown}
         color="red"
         subtitle={`${expenseTransactionsCount || 0} transactions`}
+        loading={isLoading}
       />
       <StatCard
         title="Running Balance"
@@ -72,6 +61,7 @@ const DailyCashStats = ({ summary, isLoading }) => {
         icon={DollarSign}
         color={runningBalanceColor}
         subtitle="Current cash in hand"
+        loading={isLoading}
       />
     </div>
   );
@@ -89,4 +79,4 @@ DailyCashStats.propTypes = {
   isLoading: PropTypes.bool,
 };
 
-export default DailyCashStats;
+export default React.memo(DailyCashStats);

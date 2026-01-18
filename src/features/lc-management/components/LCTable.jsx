@@ -17,6 +17,9 @@ import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import Pagination from "@/components/ui/Pagination";
 import { useSettings } from "@/context/SettingsContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { getLCById } from "@/api/lc.api";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 const SortableHeader = ({
   label,
@@ -58,6 +61,42 @@ const SortableHeader = ({
   );
 };
 
+const TableSkeletonRow = () => (
+  <tr>
+    <td className="py-4 pl-4 pr-3 whitespace-nowrap sm:pl-6 border-b border-gray-100">
+      <ValueSkeleton width="w-24" height="h-4" />
+    </td>
+    <td className="px-4 py-4 whitespace-nowrap border-b border-gray-100">
+      <ValueSkeleton width="w-32" height="h-4" />
+    </td>
+    <td className="px-4 py-4 whitespace-nowrap border-b border-gray-100 text-center">
+      <ValueSkeleton
+        width="w-20"
+        height="h-6"
+        className="mx-auto rounded-full"
+      />
+    </td>
+    <td className="px-4 py-4 whitespace-nowrap border-b border-gray-100 text-center">
+      <ValueSkeleton width="w-24" height="h-4" className="mx-auto" />
+    </td>
+    <td className="px-4 py-4 whitespace-nowrap border-b border-gray-100 text-center">
+      <ValueSkeleton width="w-24" height="h-4" className="mx-auto" />
+    </td>
+    <td className="px-4 py-4 border-b border-gray-100">
+      <div className="space-y-1">
+        <ValueSkeleton width="w-32" height="h-4" />
+        <ValueSkeleton width="w-24" height="h-3" />
+      </div>
+    </td>
+    <td className="px-4 py-4 whitespace-nowrap text-right border-b border-gray-100">
+      <ValueSkeleton width="w-16" height="h-4" className="ml-auto" />
+    </td>
+    <td className="py-4 pl-4 pr-4 whitespace-nowrap text-right sm:pr-6 border-b border-gray-100">
+      <ValueSkeleton width="w-20" height="h-4" className="ml-auto" />
+    </td>
+  </tr>
+);
+
 const LCTable = ({
   lcData = [],
   pagination = {},
@@ -74,6 +113,16 @@ const LCTable = ({
 }) => {
   const { hasPermission } = useAuth();
   const { formatCurrency, formatDate, formatNumber } = useSettings();
+  const queryClient = useQueryClient();
+
+  const prefetchLCDetails = (id) => {
+    queryClient.prefetchQuery({
+      queryKey: ["lcs", id],
+      queryFn: async () => (await getLCById(id)).data,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
   const getStatusColor = React.useCallback((status) => {
     if (!status) return "bg-gray-100 text-gray-800";
     const statusLower = status.toLowerCase();
@@ -100,17 +149,9 @@ const LCTable = ({
 
   const renderTableContent = React.useMemo(() => {
     if (loading) {
-      return (
-        <tr>
-          <td colSpan="8" className="text-center py-16">
-            <Loader2
-              className="mx-auto animate-spin h-8 w-8 text-[var(--color-primary)]"
-              aria-label="Loading"
-            />
-            <p className="mt-2 text-sm text-gray-500">Loading LC data...</p>
-          </td>
-        </tr>
-      );
+      return Array.from({ length: limit || 10 }).map((_, i) => (
+        <TableSkeletonRow key={`skeleton-${i}`} />
+      ));
     }
 
     if (lcData.length === 0) {
@@ -147,6 +188,7 @@ const LCTable = ({
           exit={{ opacity: 0 }}
           className="hover:bg-gray-50 transition-colors group"
           transition={{ duration: 0.12 }}
+          onMouseEnter={() => prefetchLCDetails(lc._id)}
         >
           <td className="py-4 pl-4 pr-3 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6 border-b border-gray-100">
             {hasPermission("LC_VIEW_DETAILS") ? (
@@ -250,12 +292,30 @@ const LCTable = ({
       {/* Mobile Card View */}
       <div className="sm:hidden space-y-4 px-4 pb-4">
         {loading ? (
-          <div className="text-center py-8">
-            <Loader2
-              className="mx-auto animate-spin h-8 w-8 text-[var(--color-primary)]"
-              aria-label="Loading"
-            />
-            <p className="mt-2 text-sm text-gray-500">Loading LC data...</p>
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm space-y-3"
+              >
+                <div className="flex justify-between items-start">
+                  <ValueSkeleton width="w-24" height="h-5" />
+                  <ValueSkeleton
+                    width="w-16"
+                    height="h-5"
+                    className="rounded-full"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <ValueSkeleton width="w-20" height="h-8" />
+                  <ValueSkeleton
+                    width="w-20"
+                    height="h-8"
+                    className="ml-auto"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         ) : lcData.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-100">
@@ -329,6 +389,7 @@ const LCTable = ({
                     exit={{ opacity: 0, scale: 0.95 }}
                     className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow relative"
                     transition={{ duration: 0.12 }}
+                    onMouseEnter={() => prefetchLCDetails(lc._id)}
                   >
                     {hasPermission("LC_VIEW_DETAILS") && (
                       <Link

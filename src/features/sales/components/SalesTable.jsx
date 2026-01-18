@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Link } from "react-router"; // Changed to react-router
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -14,6 +14,8 @@ import {
 import Button from "@/components/ui/Button"; // Import Button component
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { getSaleById } from "@/api/sales.api"; // Assuming this path for getSaleById
 
 const SortableHeader = ({
   label,
@@ -55,9 +57,18 @@ const SortableHeader = ({
   );
 };
 
-const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
+const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
   const { hasPermission } = useAuth();
   const { formatCurrency, formatDate } = useSettings();
+  const queryClient = useQueryClient();
+
+  const prefetchSaleDetails = (id) => {
+    queryClient.prefetchQuery({
+      queryKey: ["sales", id],
+      queryFn: async () => (await getSaleById(id)).data,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+  };
 
   if (!sales || sales.length === 0) {
     return (
@@ -139,6 +150,7 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm active:bg-gray-50 transition-colors"
                 transition={{ duration: 0.12 }}
+                onMouseEnter={() => prefetchSaleDetails(sale._id)}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 min-w-0 mr-2">
@@ -189,7 +201,7 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                         sale.paymentStatus === "Paid payment"
                           ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
                           : sale.paymentStatus === "Due payment"
-                            ? "bg-[var(--color-warning-light)] text(--color-warning)]"
+                            ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
                             : "bg-gray-100 text-gray-800"
                       }`}
                     >
@@ -313,6 +325,7 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
                     exit={{ opacity: 0 }}
                     className="hover:bg-gray-50 transition-colors group"
                     transition={{ duration: 0.12 }}
+                    onMouseEnter={() => prefetchSaleDetails(sale._id)}
                   >
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 border-b border-gray-100">
                       <Link
@@ -422,6 +435,6 @@ const SalesTable = ({ sales, sortBy, sortOrder, onSort }) => {
       </div>
     </div>
   );
-};
+});
 
 export default SalesTable;

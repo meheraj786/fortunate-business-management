@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, memo } from "react";
 import { Link } from "react-router"; // Corrected import
 import {
   Building,
@@ -18,12 +18,23 @@ import Button from "@/components/ui/Button";
 import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { getAccountDetails } from "@/api/account.api";
 
-const AccountList = ({ onAddAccount }) => {
+const AccountList = memo(({ onAddAccount }) => {
   const { data: allAccounts, isLoading, isError } = useAccounts();
   const [copiedText, setCopiedText] = useState("");
   const { hasPermission } = useAuth();
   const { formatCurrency } = useSettings();
+  const queryClient = useQueryClient();
+
+  const prefetchAccountDetails = (id) => {
+    queryClient.prefetchQuery({
+      queryKey: ["accounts", "details", id],
+      queryFn: async () => (await getAccountDetails(id)).data,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
   const canCreateAccount = hasPermission("ACCOUNT_CREATE");
   const canViewDetails = hasPermission("ACCOUNT_VIEW_DETAILS");
 
@@ -74,6 +85,7 @@ const AccountList = ({ onAddAccount }) => {
         <Link
           to={`/accounts/${account._id}`}
           className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+          onMouseEnter={() => prefetchAccountDetails(account._id)}
         >
           {children}
         </Link>
@@ -331,6 +343,6 @@ const AccountList = ({ onAddAccount }) => {
       </div>
     </div>
   );
-};
+});
 
 export default AccountList;

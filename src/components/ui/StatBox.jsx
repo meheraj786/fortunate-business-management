@@ -1,14 +1,26 @@
 import React from "react";
 import { motion } from "framer-motion";
+import ValueSkeleton from "./ValueSkeleton";
 
-const StatBox = ({ title, number, Icon, textColor = "default" }) => {
+const StatBox = ({
+  title,
+  number,
+  Icon,
+  textColor = "default",
+  loading = false,
+}) => {
   const textColorClass = (() => {
     switch (textColor) {
-      case "red": return "text-[var(--color-danger)]";
-      case "blue": return "text-[var(--color-primary)]";
-      case "green": return "text-[var(--color-success)]";
-      case "yellow": return "text-[var(--color-warning)]";
-      default: return "text-gray-900";
+      case "red":
+        return "text-[var(--color-danger)]";
+      case "blue":
+        return "text-[var(--color-primary)]";
+      case "green":
+        return "text-[var(--color-success)]";
+      case "yellow":
+        return "text-[var(--color-warning)]";
+      default:
+        return "text-gray-900";
     }
   })();
   return (
@@ -19,13 +31,21 @@ const StatBox = ({ title, number, Icon, textColor = "default" }) => {
     >
       <div className="flex justify-between items-center relative z-10">
         <div>
-          <h4 className="font-semibold mb-1 sm:mb-2 text-base sm:text-sm text-gray-700">{title}</h4>
+          <h4 className="font-semibold mb-1 sm:mb-2 text-base sm:text-sm text-gray-700">
+            {title}
+          </h4>
           <h3 className={`text-4xl sm:text-3xl font-bold ${textColorClass}`}>
-            {number}
+            {loading ? (
+              <ValueSkeleton width="w-24" height="h-8" className="mt-1" />
+            ) : (
+              number
+            )}
           </h3>
         </div>
         {Icon && (
-          <span className={`p-3 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-lg`}>
+          <span
+            className={`p-3 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-lg`}
+          >
             <Icon size={24} />
           </span>
         )}

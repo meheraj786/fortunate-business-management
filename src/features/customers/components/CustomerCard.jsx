@@ -4,10 +4,22 @@ import { Link } from "react-router"; // Changed to react-router
 import { motion } from "framer-motion"; // Import motion
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { getCustomerById } from "@/api/customer.api";
 
 const CustomerCard = ({ customer }) => {
   const { hasPermission } = useAuth();
   const { formatCurrency, formatDate } = useSettings();
+  const queryClient = useQueryClient();
+
+  const prefetchCustomerDetails = (id) => {
+    queryClient.prefetchQuery({
+      queryKey: ["customers", id],
+      queryFn: async () => (await getCustomerById(id)).data,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
   const canViewDetails = hasPermission("CUSTOMER_VIEW_DETAILS");
 
   const totalPurchased = customer.totalSpent || 0;
@@ -33,6 +45,7 @@ const CustomerCard = ({ customer }) => {
       className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.99] h-full"
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 1 }}
+      onMouseEnter={() => prefetchCustomerDetails(customer._id)}
     >
       {/* Header with name and badges */}
       <div className="flex justify-between items-start mb-4">

@@ -35,6 +35,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSettings } from "@/context/SettingsContext";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 const sortOptions = [
   { value: "date", label: "Date" },
@@ -210,7 +211,7 @@ const AccountDetails = () => {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <StatBoxSkeleton key={i} />
+            <StatBox key={i} loading={true} />
           ))}
         </div>
       );
@@ -260,15 +261,7 @@ const AccountDetails = () => {
     return null;
   };
 
-  if (isLoadingDetails) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <DollarSign className="animate-spin h-12 w-12 text-[var(--color-primary)]" />
-      </div>
-    );
-  }
-
-  if (isDetailsError || !account) {
+  if ((isDetailsError || !account) && !isLoadingDetails) {
     return (
       <div className="text-center py-10">
         <h2 className="text-xl font-semibold">Account not found.</h2>
@@ -301,10 +294,18 @@ const AccountDetails = () => {
 
           <div>
             <h1 className="text-lg sm:text-2xl font-bold text-gray-800 leading-tight">
-              {account.accountName}
+              {isLoadingDetails ? (
+                <ValueSkeleton width="w-48" height="h-8" />
+              ) : (
+                account.accountName
+              )}
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
-              {account.accountHolderName}
+              {isLoadingDetails ? (
+                <ValueSkeleton width="w-32" height="h-4" />
+              ) : (
+                account.accountHolderName
+              )}
             </p>
           </div>
         </div>
@@ -342,11 +343,21 @@ const AccountDetails = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-base sm:text-sm text-gray-700">
           <div className="flex items-center gap-2">
-            <strong>Balance:</strong> {formatCurrency(account.balance)}
+            <strong>Balance:</strong>{" "}
+            {isLoadingDetails ? (
+              <ValueSkeleton width="w-20" />
+            ) : (
+              formatCurrency(account.balance)
+            )}
           </div>
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-gray-500" />
-            <strong>Holder:</strong> {account.accountHolderName}
+            <strong>Holder:</strong>{" "}
+            {isLoadingDetails ? (
+              <ValueSkeleton width="w-32" />
+            ) : (
+              account.accountHolderName
+            )}
           </div>
           <div className="flex items-center gap-2">
             {isBank ? (
@@ -359,33 +370,57 @@ const AccountDetails = () => {
             <strong>
               {isBank ? "Bank:" : isMobile ? "Service:" : "Account:"}
             </strong>{" "}
-            {isBank
-              ? account.bankName
-              : isMobile
-                ? account.serviceName
-                : account.accountName}
+            {isLoadingDetails ? (
+              <ValueSkeleton width="w-24" />
+            ) : isBank ? (
+              account.bankName
+            ) : isMobile ? (
+              account.serviceName
+            ) : (
+              account.accountName
+            )}
           </div>
           {isBank && (
             <>
               <div className="flex items-center gap-2">
                 <Hash className="w-4 h-4 text-gray-500" />
-                <strong>A/C Number:</strong> {account.accountNumber}
+                <strong>A/C Number:</strong>{" "}
+                {isLoadingDetails ? (
+                  <ValueSkeleton width="w-32" />
+                ) : (
+                  account.accountNumber
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Info className="w-4 h-4 text-gray-500" />
-                <strong>Branch:</strong> {account.branchName}
+                <strong>Branch:</strong>{" "}
+                {isLoadingDetails ? (
+                  <ValueSkeleton width="w-24" />
+                ) : (
+                  account.branchName
+                )}
               </div>
             </>
           )}
           {isMobile && (
             <div className="flex items-center gap-2">
               <Hash className="w-4 h-4 text-gray-500" />
-              <strong>Mobile No:</strong> {account.mobileNumber}
+              <strong>Mobile No:</strong>{" "}
+              {isLoadingDetails ? (
+                <ValueSkeleton width="w-28" />
+              ) : (
+                account.mobileNumber
+              )}
             </div>
           )}
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-gray-500" />
-            <strong>Created At:</strong> {formatDateTime(account.createdAt)}
+            <strong>Created At:</strong>{" "}
+            {isLoadingDetails ? (
+              <ValueSkeleton width="w-32" />
+            ) : (
+              formatDateTime(account.createdAt)
+            )}
           </div>
         </div>
       </div>

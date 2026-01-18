@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { showErrorToast } from "@/utils/notifications";
 // import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 const DailyCashFlow = () => {
   const { hasPermission } = useAuth();
@@ -109,17 +110,20 @@ const DailyCashFlow = () => {
 
     if (isInitialLoading) {
       return (
-        <motion.div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="h-8 bg-gray-200 rounded w-2/3 animate-pulse mb-4"></div>
-          <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse mb-6"></div>
-          <div className="mt-4">
-            {/* Mimic TransactionTable skeleton */}
-            <div className="h-10 bg-gray-200 rounded w-full animate-pulse mb-2"></div>
-            <div className="h-8 bg-gray-200 rounded w-full animate-pulse mb-2"></div>
-            <div className="h-8 bg-gray-200 rounded w-full animate-pulse mb-2"></div>
-            <div className="h-8 bg-gray-200 rounded w-full animate-pulse mb-2"></div>
-            <div className="h-8 bg-gray-200 rounded w-full animate-pulse"></div>
-            <div className="h-10 bg-gray-200 rounded w-1/4 animate-pulse mt-4 ml-auto"></div>
+        <motion.div className="bg-white rounded-lg shadow-sm p-6 overflow-hidden">
+          <div className="space-y-4">
+            <div className="h-10 bg-gray-50 rounded w-full flex items-center px-4">
+              <ValueSkeleton width="w-24" />
+            </div>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex gap-4 items-center">
+                <ValueSkeleton width="w-16" />
+                <ValueSkeleton width="w-32" />
+                <ValueSkeleton width="w-24" />
+                <ValueSkeleton width="w-20" />
+                <ValueSkeleton width="w-full" />
+              </div>
+            ))}
           </div>
         </motion.div>
       );

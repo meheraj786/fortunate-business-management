@@ -1,9 +1,17 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { motion } from "framer-motion"; // Import motion
-import { useSettings } from "@/context/SettingsContext"; // Import useSettings
+import { useSettings } from "@/context/SettingsContext";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
-const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
+const StatCard = ({
+  title,
+  amount,
+  color,
+  subtitle,
+  icon: Icon,
+  loading = false,
+}) => {
   const { formatCurrency } = useSettings();
   const colorClasses = {
     blue: {
@@ -47,13 +55,19 @@ const StatCard = ({ title, amount, color, subtitle, icon: Icon }) => {
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
             {title}
           </p>
-          <p className={`text-2xl font-bold ${selectedColor.text} mb-1`}>
-            {typeof amount === "number"
-              ? formatCurrency(amount)
-              : formatCurrency(0)}
-          </p>
+          <div className={`text-2xl font-bold ${selectedColor.text} mb-1 h-8`}>
+            {loading ? (
+              <ValueSkeleton width="w-24" height="h-7" className="mt-1" />
+            ) : typeof amount === "number" ? (
+              formatCurrency(amount)
+            ) : (
+              formatCurrency(0)
+            )}
+          </div>
           {subtitle && (
-            <p className="text-xs text-gray-500 truncate">{subtitle}</p>
+            <div className="text-xs text-gray-500 truncate h-4">
+              {loading ? <ValueSkeleton width="w-16" height="h-3" /> : subtitle}
+            </div>
           )}
         </div>
         <div className={`p-3 ${selectedColor.bg} rounded-lg`}>

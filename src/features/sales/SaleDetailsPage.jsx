@@ -22,6 +22,7 @@ import { useInvoicesBySale, useGenerateInvoice } from "@/api/hooks/invoice";
 import { useAccounts } from "@/api/hooks/account";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
+import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import SaleDetailsSkeleton from "./components/SaleDetailsSkeleton";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import FormDialog from "@/components/ui/FormDialog";
@@ -131,14 +132,19 @@ const SaleDetails = () => {
   const breadcrumbItems = useMemo(
     () => [
       { label: "Sales", path: "/sales" },
-      { label: `Sale #${sale?.saleId || ""}` },
+      {
+        label: isLoading ? (
+          <ValueSkeleton width="w-24" height="h-3" />
+        ) : (
+          `Sale #${sale?.saleId || ""}`
+        ),
+      },
     ],
-    [sale],
+    [sale, isLoading],
   );
 
-  if (isLoading) return <SaleDetailsSkeleton />;
-  if (isError) return <div>Error: {error.message}</div>;
-  if (!sale) return <div>Sale not found</div>;
+  if (isError && !isLoading) return <div>Error: {error.message}</div>;
+  if (!sale && !isLoading) return <div>Sale not found</div>;
 
   const totalPayments =
     sale.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
@@ -166,11 +172,19 @@ const SaleDetails = () => {
                 </div>
                 <div>
                   <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
-                    #{sale.saleId}
+                    {isLoading ? (
+                      <ValueSkeleton width="w-24" height="h-7" />
+                    ) : (
+                      `#${sale.saleId}`
+                    )}
                   </h1>
                   <p className="text-xs sm:text-sm text-gray-600 mt-0.5 flex items-center">
                     <Calendar className="h-4 w-4 mr-1" />
-                    Sold on {formatDate(sale.saleDate)}
+                    {isLoading ? (
+                      <ValueSkeleton width="w-32" height="h-3" />
+                    ) : (
+                      `Sold on ${formatDate(sale.saleDate)}`
+                    )}
                   </p>
                 </div>
               </div>
@@ -262,6 +276,7 @@ const SaleDetails = () => {
                 sale={sale}
                 isRegisteredCustomer={isRegisteredCustomer}
                 hasPermission={hasPermission}
+                loading={isLoading}
               />
               <SaleFinancialSummary
                 sale={sale}
@@ -270,6 +285,7 @@ const SaleDetails = () => {
                 canAddPayment={canAddPayment}
                 hasPermission={hasPermission}
                 onAddPaymentClick={() => setIsPaymentDialogOpen(true)}
+                loading={isLoading}
               />
             </div>
 
