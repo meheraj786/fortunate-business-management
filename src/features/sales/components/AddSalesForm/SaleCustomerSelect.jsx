@@ -31,6 +31,7 @@ const SaleCustomerSelect = ({
         <SelectField
           label="Customer Type"
           name="customerType"
+          required={true}
           register={register}
           error={errors.customerType?.message}
           options={[
@@ -56,6 +57,7 @@ const SaleCustomerSelect = ({
         <SelectField
           label="Select Customer"
           name="customerId"
+          required={true}
           register={register}
           error={errors.customerId?.message}
           options={customers.map((c) => ({

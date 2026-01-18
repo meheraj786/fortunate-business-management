@@ -33,13 +33,15 @@ export const useCustomerSummary = (params) => {
   });
 };
 
-
 export const useCreateCustomer = () => {
   const qc = useQueryClient();
   return useApiMutation({
     mutationFn: api.createCustomer,
     successMessage: "Customer created successfully!",
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["customers", "stats"] });
+    },
   });
 };
 
@@ -48,7 +50,10 @@ export const useUpdateCustomer = () => {
   return useApiMutation({
     mutationFn: ({ id, data }) => api.updateCustomer(id, data),
     successMessage: "Customer updated successfully!",
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["customers", "stats"] });
+    },
   });
 };
 
@@ -57,15 +62,20 @@ export const useDeleteCustomer = () => {
   return useApiMutation({
     mutationFn: api.deleteCustomer,
     successMessage: "Customer deleted successfully!",
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["customers", "stats"] });
+    },
   });
 };
 
 export const useDeleteCustomerDocument = () => {
-    const qc = useQueryClient();
-    return useApiMutation({
-        mutationFn: ({ customerId, docId }) => api.deleteCustomerDocument(customerId, docId),
-        successMessage: "Document deleted successfully!",
-        onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["customers", vars.customerId] }),
-    });
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: ({ customerId, docId }) =>
+      api.deleteCustomerDocument(customerId, docId),
+    successMessage: "Document deleted successfully!",
+    onSuccess: (_, vars) =>
+      qc.invalidateQueries({ queryKey: ["customers", vars.customerId] }),
+  });
 };

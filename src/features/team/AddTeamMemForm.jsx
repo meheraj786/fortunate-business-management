@@ -60,11 +60,15 @@ const AddTeamMemForm = () => {
   const ALL_PERMISSIONS_DYNAMIC = useMemo(() => {
     if (!permissionsData || !permissionsData.data) return {};
 
-    const allPermissionStrings = Object.values(permissionsData.data.permissions);
+    const allPermissionStrings = Object.values(
+      permissionsData.data.permissions,
+    );
 
     const transformed = {};
-    permissionsData.data.modules.forEach(moduleName => {
-        transformed[moduleName] = allPermissionStrings.filter(p => p.startsWith(moduleName + '_'));
+    permissionsData.data.modules.forEach((moduleName) => {
+      transformed[moduleName] = allPermissionStrings.filter((p) =>
+        p.startsWith(moduleName + "_"),
+      );
     });
     return transformed;
   }, [permissionsData]);
@@ -90,7 +94,7 @@ const AddTeamMemForm = () => {
           permissions: permissions.filter((p) => data.permissions?.[p]),
         }))
         .filter((m) => m.permissions.length > 0);
-      
+
       payload = { ...payload, warehouse: data.warehouse, access };
     }
 
@@ -124,6 +128,7 @@ const AddTeamMemForm = () => {
           <InputField
             label="Name"
             name="name"
+            required={true}
             register={register}
             validation={{ required: "Name is required" }}
             error={errors.name?.message}
@@ -131,6 +136,7 @@ const AddTeamMemForm = () => {
           <InputField
             label="Email"
             name="email"
+            required={true}
             type="email"
             register={register}
             validation={{ required: "Email is required" }}
@@ -139,6 +145,7 @@ const AddTeamMemForm = () => {
           <InputField
             label="Password"
             name="password"
+            required={true}
             type="password"
             register={register}
             validation={{ required: "Password is required" }}
@@ -147,6 +154,7 @@ const AddTeamMemForm = () => {
           <InputField
             label="Role Name"
             name="roleName"
+            required={true}
             register={register}
             validation={{ required: "Role name is required" }}
             error={errors.roleName?.message}
@@ -202,7 +210,9 @@ const AddTeamMemForm = () => {
             sectionRef={(el) => setSectionRef("permissions", el)}
             defaultOpen
           >
-            {isPermissionsLoading ? <p>Loading permissions...</p> : (
+            {isPermissionsLoading ? (
+              <p>Loading permissions...</p>
+            ) : (
               <div>
                 {MODULES_ORDER.map((moduleName) => {
                   const permissions = ALL_PERMISSIONS_DYNAMIC[moduleName];

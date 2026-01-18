@@ -119,6 +119,7 @@ const SaleProductSelect = ({
             <SelectField
               label="Warehouse"
               name="warehouseId"
+              required={true}
               value={field.value}
               error={errors.warehouseId?.message}
               options={warehouses.map((w) => ({
@@ -143,6 +144,7 @@ const SaleProductSelect = ({
             <SelectField
               label="Category"
               name="categoryId"
+              required={true}
               value={field.value}
               error={errors.categoryId?.message}
               options={categories.map((c) => ({
@@ -169,6 +171,7 @@ const SaleProductSelect = ({
             <SelectField
               label="Product"
               name="productId"
+              required={true}
               value={field.value}
               error={errors.productId?.message}
               options={products.map((p) => ({
@@ -191,6 +194,7 @@ const SaleProductSelect = ({
         <InputField
           label="Quantity"
           name="quantity"
+          required={true}
           type="number"
           step="any"
           register={register}
@@ -211,6 +215,7 @@ const SaleProductSelect = ({
             <SelectField
               label="Unit"
               name="unit"
+              required={true}
               value={field.value}
               error={errors.unit?.message}
               options={units.map((u) => ({ value: u._id, label: u.name }))}
@@ -226,6 +231,7 @@ const SaleProductSelect = ({
         <InputField
           label="Price Per Unit"
           name="pricePerUnit"
+          required={true}
           type="number"
           step="any"
           register={register}

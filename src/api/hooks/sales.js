@@ -32,7 +32,8 @@ export const useInvoiceStatusCount = () =>
 export const useSalesByCustomer = (customerId, params) =>
   useQuery({
     queryKey: ["sales", "customer", customerId, params],
-    queryFn: async () => (await api.getSalesByCustomerId(customerId, params)).data,
+    queryFn: async () =>
+      (await api.getSalesByCustomerId(customerId, params)).data,
     enabled: !!customerId,
   });
 
@@ -42,6 +43,10 @@ export const useCreateSale = () => {
     mutationFn: api.createSale,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sales"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashStatus"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashSummary"] });
+      qc.invalidateQueries({ queryKey: ["warehouses"] });
     },
   });
 };
@@ -53,6 +58,10 @@ export const useUpdateSale = (id) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["sales", id] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashStatus"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashSummary"] });
+      qc.invalidateQueries({ queryKey: ["warehouses"] });
     },
   });
 };
@@ -64,6 +73,10 @@ export const useDeleteSale = () => {
     successMessage: "Sale deleted successfully.",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sales"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashStatus"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashSummary"] });
+      qc.invalidateQueries({ queryKey: ["warehouses"] });
     },
   });
 };
@@ -76,6 +89,10 @@ export const useCancelSale = () => {
     onSuccess: (_, saleId) => {
       qc.invalidateQueries({ queryKey: ["sales"] });
       qc.invalidateQueries({ queryKey: ["sales", saleId] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashStatus"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashSummary"] });
+      qc.invalidateQueries({ queryKey: ["warehouses"] });
     },
   });
 };
@@ -88,6 +105,10 @@ export const useAddPartialPayment = (saleId) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sales", saleId] });
       qc.invalidateQueries({ queryKey: ["sales", "summary"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashStatus"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashSummary"] });
+      qc.invalidateQueries({ queryKey: ["accounts"] });
     },
   });
 };

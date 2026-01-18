@@ -49,6 +49,7 @@ export const useCreateProduct = (warehouseId) => {
     successMessage: "Product created successfully!",
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["products", warehouseId] });
+      qc.invalidateQueries({ queryKey: ["warehouses", warehouseId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
     },
   });
@@ -63,6 +64,7 @@ export const useUpdateProduct = (warehouseId, productId) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["products", warehouseId] });
       qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
+      qc.invalidateQueries({ queryKey: ["warehouses", warehouseId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
     },
   });
@@ -77,7 +79,9 @@ export const useDeleteProduct = (warehouseId, productId) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["products", warehouseId] });
       qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
+      qc.invalidateQueries({ queryKey: ["warehouses", warehouseId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
+      qc.invalidateQueries({ queryKey: ["trash"] }); // Invalidate trash list
     },
   });
 };

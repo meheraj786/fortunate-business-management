@@ -39,6 +39,7 @@ const ProductBasicInfo = ({
             <InputField
               {...field}
               label="Product Name"
+              required={true}
               error={errors.name?.message}
               placeholder="Mild Steel Rod"
               icon={Package}
@@ -54,6 +55,7 @@ const ProductBasicInfo = ({
             <SelectField
               {...field}
               label="Category"
+              required={true}
               error={errors.category?.message}
               options={categoryOptions}
               icon={Tag}
@@ -70,6 +72,7 @@ const ProductBasicInfo = ({
             <SelectField
               {...field}
               label="LC"
+              required={true}
               error={errors.LC?.message}
               options={lcOptions}
               icon={FileText}

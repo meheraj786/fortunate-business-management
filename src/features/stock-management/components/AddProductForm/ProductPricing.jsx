@@ -32,6 +32,7 @@ const ProductPricing = ({
             <InputField
               {...field}
               label="Quantity"
+              required={true}
               type="number"
               error={errors.quantity?.message}
               placeholder="150"
@@ -50,6 +51,7 @@ const ProductPricing = ({
             <SelectField
               {...field}
               label="Unit"
+              required={true}
               error={errors.unit?.message}
               options={unitOptions}
               icon={Package}
@@ -69,6 +71,7 @@ const ProductPricing = ({
             <InputField
               {...field}
               label={`Unit Price (${settings?.currency || "BDT"})`}
+              required={true}
               type="number"
               error={errors.unitPrice?.message}
               placeholder="25.50"

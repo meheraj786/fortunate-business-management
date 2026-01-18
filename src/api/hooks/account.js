@@ -14,7 +14,7 @@ export const useAccount = (id) =>
     queryFn: async () => (await api.getAccountById(id)).data,
     enabled: !!id,
   });
-  
+
 export const useAccountDetails = (id) =>
   useQuery({
     queryKey: ["accounts", "details", id],
@@ -27,7 +27,12 @@ export const useCreateAccount = () => {
   return useApiMutation({
     mutationFn: api.createAccount,
     successMessage: "Account created successfully!",
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["accounts"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["accounts"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashStatus"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashSummary"] });
+    },
   });
 };
 
@@ -39,6 +44,9 @@ export const useUpdateAccount = () => {
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ["accounts"] });
       qc.invalidateQueries({ queryKey: ["accounts", "details", id] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashStatus"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashSummary"] });
     },
   });
 };
@@ -48,7 +56,11 @@ export const useDeleteAccount = () => {
   return useApiMutation({
     mutationFn: api.deleteAccount,
     successMessage: "Account deleted successfully!",
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["accounts"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["accounts"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashStatus"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashSummary"] });
+    },
   });
 };
-

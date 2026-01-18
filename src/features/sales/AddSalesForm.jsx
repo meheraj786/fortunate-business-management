@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useForm, useWatch } from "react-hook-form";
+import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 
 import { useCustomers } from "@/api/hooks/customer";
 import { useWarehouses } from "@/api/hooks/warehouse";
@@ -30,6 +30,33 @@ const AddSales = ({
   const isEditMode = !!editData;
   const [, setNewUploadedFiles] = useState([]);
   const { formatCurrency } = useSettings();
+
+  // Block background interaction and auto-fill when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const root = document.getElementById("root");
+      if (root) {
+        root.setAttribute("inert", "");
+        root.style.pointerEvents = "none";
+        root.style.userSelect = "none";
+      }
+    } else {
+      const root = document.getElementById("root");
+      if (root) {
+        root.removeAttribute("inert");
+        root.style.pointerEvents = "";
+        root.style.userSelect = "";
+      }
+    }
+    return () => {
+      const root = document.getElementById("root");
+      if (root) {
+        root.removeAttribute("inert");
+        root.style.pointerEvents = "";
+        root.style.userSelect = "";
+      }
+    };
+  }, [isOpen]);
 
   const {
     register,
@@ -394,88 +421,84 @@ const AddSales = ({
     accountsLoading ||
     unitsLoading;
 
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed p-4 inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <FormHeader
-            title={isEditMode ? "Edit Sale" : "Add New Sale"}
-            subtitle="Enter the details of the sale"
-            onClose={onClose}
-          />
+    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+      <DialogBackdrop
+        transition
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+      />
 
-          {isInitialLoading ? (
-            <FormSkeleton />
-          ) : (
-            <form
-              onSubmit={handleSubmit(handleSubmitForm)}
-              className="p-5 space-y-4 sm:space-y-6 overflow-y-auto flex-grow"
-            >
-              <SaleProductSelect
-                register={register}
-                errors={errors}
-                control={control}
-                setValue={setValue}
-                watch={watch}
-                warehouses={warehouses}
-                categories={categories}
-                products={products}
-                units={units}
-                isEditMode={isEditMode}
-                isInitialLoading={isInitialLoading}
-                formattedTotalAmount={formatCurrency(totalAmount)}
-                productsLoading={productsLoading}
-              />
+      <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-4">
+          <DialogPanel
+            transition
+            className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-closed:scale-95 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in max-w-6xl w-full flex flex-col max-h-[90vh]"
+          >
+            <FormHeader
+              title={isEditMode ? "Edit Sale" : "Add New Sale"}
+              subtitle="Enter the details of the sale"
+              onClose={onClose}
+            />
 
-              <SaleCustomerSelect
-                register={register}
-                errors={errors}
-                setValue={setValue}
-                watch={watch}
-                customers={customers}
-                isEditMode={isEditMode}
-                isInitialLoading={isInitialLoading}
-              />
+            {isInitialLoading ? (
+              <FormSkeleton />
+            ) : (
+              <form
+                onSubmit={handleSubmit(handleSubmitForm)}
+                className="p-5 space-y-4 sm:space-y-6 overflow-y-auto flex-grow"
+              >
+                <SaleProductSelect
+                  register={register}
+                  errors={errors}
+                  control={control}
+                  setValue={setValue}
+                  watch={watch}
+                  warehouses={warehouses}
+                  categories={categories}
+                  products={products}
+                  units={units}
+                  isEditMode={isEditMode}
+                  isInitialLoading={isInitialLoading}
+                  formattedTotalAmount={formatCurrency(totalAmount)}
+                  productsLoading={productsLoading}
+                />
 
-              <SaleFinancials
-                register={register}
-                control={control}
-                errors={errors}
-                isSubmitting={isSubmitting}
-                setValue={setValue}
-                watch={watch}
-                accounts={accounts}
-                totalAmountToBePaid={totalAmountToBePaid}
-              />
+                <SaleCustomerSelect
+                  register={register}
+                  errors={errors}
+                  setValue={setValue}
+                  watch={watch}
+                  customers={customers}
+                  isEditMode={isEditMode}
+                  isInitialLoading={isInitialLoading}
+                />
 
-              <FormActions
-                onCancel={onClose}
-                isSubmitting={
-                  isSubmitting ||
-                  createSaleMutation.isPending ||
-                  updateSaleMutation.isPending
-                }
-                submitLabel={isEditMode ? "Update Sale" : "Create Sale"}
-              />
-            </form>
-          )}
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+                <SaleFinancials
+                  register={register}
+                  control={control}
+                  errors={errors}
+                  isSubmitting={isSubmitting}
+                  setValue={setValue}
+                  watch={watch}
+                  accounts={accounts}
+                  totalAmountToBePaid={totalAmountToBePaid}
+                />
+
+                <FormActions
+                  onCancel={onClose}
+                  isSubmitting={
+                    isSubmitting ||
+                    createSaleMutation.isPending ||
+                    updateSaleMutation.isPending
+                  }
+                  submitLabel={isEditMode ? "Update Sale" : "Create Sale"}
+                />
+              </form>
+            )}
+          </DialogPanel>
+        </div>
+      </div>
+    </Dialog>
   );
 };
 

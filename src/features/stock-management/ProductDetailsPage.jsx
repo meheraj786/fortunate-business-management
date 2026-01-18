@@ -81,6 +81,7 @@ const ProductDetails = () => {
     isError,
     error,
     refetch,
+    isFetching,
   } = useProduct(warehouseId, productId);
   const product = productData?.data;
 
@@ -107,7 +108,7 @@ const ProductDetails = () => {
     [product, warehouseId],
   );
 
-  if (isLoading) {
+  if (isLoading || (isFetching && !product)) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="flex items-center gap-3">
@@ -118,7 +119,7 @@ const ProductDetails = () => {
     );
   }
 
-  if (isError) {
+  if (isError && !isFetching) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
@@ -136,7 +137,7 @@ const ProductDetails = () => {
     );
   }
 
-  if (!product) {
+  if (!product && !isFetching) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
