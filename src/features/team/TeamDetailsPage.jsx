@@ -94,35 +94,37 @@ const TeamDetails = () => {
             <div className="bg-white shadow-md rounded-lg p-6 sticky top-6">
               <div className="flex flex-col items-center mb-6">
                 <div className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden mb-4 bg-gray-200 text-3xl font-bold text-white">
-                  {member.avatar ? (
+                  {member?.avatar ? (
                     <img
                       src={member.avatar}
                       alt=""
                       className="w-[90%] h-[90%] object-cover"
                     />
                   ) : (
-                    member.name?.charAt(0).toUpperCase()
+                    member?.name?.charAt(0).toUpperCase()
                   )}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 text-center">
                   {isLoading ? (
                     <ValueSkeleton width="w-32" height="h-8" />
                   ) : (
-                    member.name
+                    member?.name
                   )}
                 </h2>
                 <p className="text-gray-600 text-sm mt-1">
                   {isLoading ? (
                     <ValueSkeleton width="w-24" height="h-4" />
                   ) : (
-                    member.roleName
+                    member?.roleName
                   )}
                 </p>
               </div>
 
               <div className="space-y-3 pt-4 border-t border-gray-200">
                 <div
-                  onClick={() => copyToClipboard(member.email, "Email")}
+                  onClick={() =>
+                    member?.email && copyToClipboard(member.email, "Email")
+                  }
                   className="flex items-start p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
                 >
                   <Mail size={18} className="text-gray-400 mr-3 mt-0.5" />
@@ -132,13 +134,15 @@ const TeamDetails = () => {
                       {isLoading ? (
                         <ValueSkeleton width="w-full" height="h-4" />
                       ) : (
-                        member.email
+                        member?.email
                       )}
                     </p>
                   </div>
                 </div>
                 <div
-                  onClick={() => copyToClipboard(member.phone, "Phone")}
+                  onClick={() =>
+                    member?.phone && copyToClipboard(member.phone, "Phone")
+                  }
                   className="flex items-start p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
                 >
                   <Phone size={18} className="text-gray-400 mr-3 mt-0.5" />
@@ -148,7 +152,7 @@ const TeamDetails = () => {
                       {isLoading ? (
                         <ValueSkeleton width="w-24" height="h-4" />
                       ) : (
-                        member.phone
+                        member?.phone
                       )}
                     </p>
                   </div>
@@ -232,10 +236,10 @@ const TeamDetails = () => {
                 </h2>
                 <div className="text-right">
                   <span className="text-xl font-bold text-primary">
-                    {isLoading ? (
+                    {isLoading || !member ? (
                       <ValueSkeleton width="w-8" height="h-6" />
                     ) : (
-                      member.access.reduce(
+                      member?.access?.reduce(
                         (sum, module) => sum + module.permissions.length,
                         0,
                       )
@@ -246,34 +250,41 @@ const TeamDetails = () => {
               </div>
 
               <div className="space-y-6">
-                {member.access.map((module) => {
-                  if (module.permissions.length === 0) return null;
-                  return (
-                    <div
-                      key={module.module}
-                      className="border rounded-lg p-5 border-gray-200 bg-green-50/20"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-md font-bold text-gray-800">
-                          {module.module}
-                        </h3>
+                {!isLoading &&
+                  member?.access?.map((module) => {
+                    if (module.permissions.length === 0) return null;
+                    return (
+                      <div
+                        key={module.module}
+                        className="border rounded-lg p-5 border-gray-200 bg-green-50/20"
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-md font-bold text-gray-800">
+                            {module.module}
+                          </h3>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {module.permissions.map((permission) => (
+                            <div
+                              key={permission}
+                              className="flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-green-50"
+                            >
+                              <CheckCheck className="w-4 h-4 text-green-600" />
+                              <span className="text-xs font-semibold uppercase">
+                                {permission.split("_").slice(1).join(" ")}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {module.permissions.map((permission) => (
-                          <div
-                            key={permission}
-                            className="flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-green-50"
-                          >
-                            <CheckCheck className="w-4 h-4 text-green-600" />
-                            <span className="text-xs font-semibold uppercase">
-                              {permission.split("_").slice(1).join(" ")}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                {isLoading && (
+                  <div className="space-y-4">
+                    <ValueSkeleton width="w-full" height="h-24" />
+                    <ValueSkeleton width="w-full" height="h-24" />
+                  </div>
+                )}
               </div>
             </div>
           </div>

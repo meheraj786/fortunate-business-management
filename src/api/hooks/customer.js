@@ -17,12 +17,6 @@ export const useCustomer = (id) =>
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-export const useCustomerStats = () =>
-  useQuery({
-    queryKey: ["customers", "stats"],
-    queryFn: async () => (await api.getCustomerStats()).data,
-  });
-
 export const useCustomerSummary = (params) => {
   return useQuery({
     queryKey: ["customers", "summary", params],

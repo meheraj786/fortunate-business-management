@@ -471,7 +471,7 @@ const CustomerDetails = () => {
               <div className="space-y-3">
                 {customerData?.documents?.length > 0 && (
                   <div className="space-y-3">
-                    {customerData.documents.map((doc) => (
+                    {customerData?.documents?.map((doc) => (
                       <div
                         key={doc._id}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-white transition-colors"
@@ -517,18 +517,18 @@ const CustomerDetails = () => {
                     ))}
                   </div>
                 )}
-                {customerData.customerNote && (
+                {customerData?.customerNote && (
                   <div className="border-t border-gray-200 pt-3">
                     <DataField
                       label="Customer Note"
-                      value={customerData.customerNote}
+                      value={customerData?.customerNote}
                       icon={FileText}
                       loading={loadingCustomer}
                     />
                   </div>
                 )}
-                {!customerData.customerNote &&
-                  customerData.documents?.length === 0 && (
+                {!customerData?.customerNote &&
+                  customerData?.documents?.length === 0 && (
                     <p className="text-sm text-gray-500 py-4 text-center">
                       No documents or notes available.
                     </p>

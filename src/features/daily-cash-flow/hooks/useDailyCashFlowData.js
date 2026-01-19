@@ -10,6 +10,7 @@ import {
   ITEMS_PER_PAGE,
 } from "../constants";
 import { useAccounts } from "@/api/hooks/account";
+import { getActiveLCs } from "@/api/lc.api";
 
 // Helper to get local date string in YYYY-MM-DD format
 const getLocalDateString = (date) => {
@@ -43,10 +44,9 @@ const closeDailyCash = async (date) => {
   return response.data;
 };
 
-// Fetch active LCs and Sales for dropdowns
 const fetchActiveReferences = async () => {
   const [lcRes, salesRes] = await Promise.all([
-    api.get(`/lc/get-all-lc?status=Active`),
+    getActiveLCs(),
     api.get(`/sales/get-all-sales?status=Invoiced&paymentStatus=Due%20payment`),
   ]);
   return {

@@ -59,13 +59,13 @@ const CustomerCard = ({ customer }) => {
         </div>
 
         <div className="flex flex-col gap-1 ml-2">
-          {customer.status && (
+          {customer.customerStatus && (
             <span
               className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                customer.status,
+                customer.customerStatus,
               )}`}
             >
-              {customer.status}
+              {customer.customerStatus}
             </span>
           )}
         </div>
