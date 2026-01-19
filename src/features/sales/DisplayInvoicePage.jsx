@@ -409,18 +409,6 @@ const DisplayInvoice = () => {
             </footer>
           </article>
         </div>
-
-        <div className="max-w-5xl mx-auto mt-8 print:hidden">
-          <AuditInfoSection
-            createdBy={invoice?.createdBy}
-            createdAt={invoice?.createdAt}
-            modifiedBy={invoice?.modifiedBy}
-            updatedAt={invoice?.updatedAt}
-            deletedBy={invoice?.deletedBy}
-            deletedAt={invoice?.deletedAt}
-            isDeleted={invoice?.isDeleted}
-          />
-        </div>
       </main>
 
       {/* --- Print Styles --- */}
