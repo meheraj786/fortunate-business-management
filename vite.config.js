@@ -23,4 +23,26 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router"],
+          "ui-vendor": [
+            "@headlessui/react",
+            "lucide-react",
+            "framer-motion",
+            "react-icons",
+            "react-hot-toast",
+            "react-loading-skeleton",
+            "react-select",
+            "clsx",
+            "flowbite",
+          ],
+          "utils-vendor": ["axios", "date-fns"],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
 });
