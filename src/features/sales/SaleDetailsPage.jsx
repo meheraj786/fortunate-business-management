@@ -23,13 +23,13 @@ import { useAccounts } from "@/api/hooks/account";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
-import SaleDetailsSkeleton from "./components/SaleDetailsSkeleton";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import AddSalesForm from "./AddSalesForm";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import AuditInfoSection from "@/components/ui/AuditInfoSection";
 
 // Sub-components
 import SaleInfo from "./components/SaleDetails/SaleInfo";
@@ -147,13 +147,13 @@ const SaleDetails = () => {
   if (!sale && !isLoading) return <div>Sale not found</div>;
 
   const totalPayments =
-    sale.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-  const balanceDue = (sale.totalAmountToBePaid || 0) - totalPayments;
-  const isCancelled = sale.invoiceStatus === "Cancelled";
+    sale?.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+  const balanceDue = (sale?.totalAmountToBePaid || 0) - totalPayments;
+  const isCancelled = sale?.invoiceStatus === "Cancelled";
   const canAddPayment =
-    !isCancelled && sale.paymentStatus === "Due payment" && balanceDue > 0;
-  const isRegisteredCustomer = !!sale.customer?.customerId?._id;
-  const validPayments = sale.payments?.filter((p) => p.amount) || [];
+    !isCancelled && sale?.paymentStatus === "Due payment" && balanceDue > 0;
+  const isRegisteredCustomer = !!sale?.customer?.customerId?._id;
+  const validPayments = sale?.payments?.filter((p) => p.amount) || [];
 
   return (
     <motion.div
@@ -205,7 +205,11 @@ const SaleDetails = () => {
                       : "Paid"}
                 </span>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {formatCurrency(sale.totalAmountToBePaid)}
+                  {isLoading ? (
+                    <ValueSkeleton width="w-24" height="h-7" />
+                  ) : (
+                    formatCurrency(sale?.totalAmountToBePaid)
+                  )}
                 </p>
               </div>
               {/* Desktop Actions */}
@@ -341,7 +345,7 @@ const SaleDetails = () => {
                       Notes
                     </h4>
                     <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                      {sale.notes || "No additional notes"}
+                      {sale?.notes || "No additional notes"}
                     </p>
                   </div>
                 </div>
@@ -349,7 +353,7 @@ const SaleDetails = () => {
             </div>
           </div>
 
-          {sale.invoiceStatus === "Invoiced" && !isCancelled && (
+          {sale?.invoiceStatus === "Invoiced" && !isCancelled && (
             <SaleInvoiceHistory
               invoiceHistory={invoiceHistory}
               hasPermission={hasPermission}
@@ -357,11 +361,20 @@ const SaleDetails = () => {
               isCancelled={isCancelled}
               onGenerateInvoiceClick={handleGenerateInvoice}
               onViewInvoiceClick={(invoiceId) =>
-                navigate(`/sales/${sale._id}/invoice/${invoiceId}`)
+                navigate(`/sales/${sale?._id}/invoice/${invoiceId}`)
               }
             />
           )}
         </div>
+        <AuditInfoSection
+          createdBy={sale?.createdBy}
+          createdAt={sale?.createdAt}
+          modifiedBy={sale?.modifiedBy}
+          updatedAt={sale?.updatedAt}
+          deletedBy={sale?.deletedBy}
+          deletedAt={sale?.deletedAt}
+          isDeleted={sale?.isDeleted}
+        />
       </div>
 
       <FormDialog

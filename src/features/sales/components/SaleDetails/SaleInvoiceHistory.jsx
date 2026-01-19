@@ -31,10 +31,10 @@ const SaleInvoiceHistory = ({
           </Button>
         )}
       </div>
-      {invoiceHistory.length > 0 ? (
+      {invoiceHistory?.length > 0 ? (
         <div className="space-y-3">
           <AnimatePresence initial={false}>
-            {invoiceHistory.map((inv) => (
+            {invoiceHistory?.map((inv) => (
               <motion.div
                 key={inv._id}
                 initial={{ opacity: 0, scale: 0.98 }}

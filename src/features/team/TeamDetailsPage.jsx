@@ -16,6 +16,7 @@ import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/api/hooks/user";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
+import AuditInfoSection from "@/components/ui/AuditInfoSection";
 
 const TeamDetails = () => {
   const { id } = useParams();
@@ -289,6 +290,16 @@ const TeamDetails = () => {
             </div>
           </div>
         </div>
+
+        <AuditInfoSection
+          createdBy={member?.createdBy}
+          createdAt={member?.createdAt}
+          modifiedBy={member?.modifiedBy}
+          updatedAt={member?.updatedAt}
+          deletedBy={member?.deletedBy}
+          deletedAt={member?.deletedAt}
+          isDeleted={member?.isDeleted}
+        />
       </div>
     </div>
   );

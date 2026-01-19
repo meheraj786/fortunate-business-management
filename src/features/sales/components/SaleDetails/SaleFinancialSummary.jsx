@@ -40,12 +40,12 @@ const SaleFinancialSummary = ({
             {loading ? (
               <ValueSkeleton width="w-20" height="h-4" />
             ) : (
-              formatCurrency(sale.totalAmount)
+              formatCurrency(sale?.totalAmount)
             )}
           </span>
         </div>
         <AnimatePresence initial={false}>
-          {sale.charges?.map((charge, i) => (
+          {sale?.charges?.map((charge, i) => (
             <motion.div
               key={`charge-${i}`}
               initial={{ opacity: 0, x: -10 }}
@@ -63,7 +63,7 @@ const SaleFinancialSummary = ({
               </span>
             </motion.div>
           ))}
-          {sale.costs?.map((cost, i) => (
+          {sale?.costs?.map((cost, i) => (
             <motion.div
               key={`cost-${i}`}
               initial={{ opacity: 0, x: -10 }}
@@ -80,11 +80,11 @@ const SaleFinancialSummary = ({
             </motion.div>
           ))}
         </AnimatePresence>
-        {sale.discount > 0 && (
+        {sale?.discount > 0 && (
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-600">Discount</span>
             <span className="font-medium text-[var(--color-success)]">
-              -{formatCurrency(sale.discount)}
+              -{formatCurrency(sale?.discount)}
             </span>
           </div>
         )}
@@ -94,7 +94,7 @@ const SaleFinancialSummary = ({
             {loading ? (
               <ValueSkeleton width="w-24" height="h-5" />
             ) : (
-              formatCurrency(sale.totalAmountToBePaid)
+              formatCurrency(sale?.totalAmountToBePaid)
             )}
           </span>
         </div>

@@ -31,6 +31,7 @@ import { getCategories } from "@/api/category.api";
 import { getCompletedLCs } from "@/api/lc.api";
 import { getUnits } from "@/api/unit.api";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
+import AuditInfoSection from "@/components/ui/AuditInfoSection";
 
 const formatNumber = (num) => {
   if (typeof num !== "number") return num;
@@ -409,6 +410,15 @@ const ProductDetails = () => {
         {hasPermission("SALE_VIEW_TABLE") && (
           <SalesHistory warehouseId={warehouseId} productId={productId} />
         )}
+        <AuditInfoSection
+          createdBy={product?.createdBy}
+          createdAt={product?.createdAt}
+          modifiedBy={product?.modifiedBy}
+          updatedAt={product?.updatedAt}
+          deletedBy={product?.deletedBy}
+          deletedAt={product?.deletedAt}
+          isDeleted={product?.isDeleted}
+        />
       </div>
       {showEditForm && (
         <AddProductForm

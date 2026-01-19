@@ -32,6 +32,7 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import DataField from "@/components/ui/DataField";
 import CostField from "@/components/ui/CostField";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
+import AuditInfoSection from "@/components/ui/AuditInfoSection";
 
 import {
   useLC,
@@ -740,6 +741,15 @@ const LCdetails = () => {
             </CollapsibleCard>
           </div>
         </div>
+        <AuditInfoSection
+          createdBy={lcData?.createdBy}
+          createdAt={lcData?.createdAt}
+          modifiedBy={lcData?.modifiedBy}
+          updatedAt={lcData?.updatedAt}
+          deletedBy={lcData?.deletedBy}
+          deletedAt={lcData?.deletedAt}
+          isDeleted={lcData?.isDeleted}
+        />
       </div>
       <AddCostForm
         open={costModal.isOpen}

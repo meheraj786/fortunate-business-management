@@ -36,6 +36,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSettings } from "@/context/SettingsContext";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
+import AuditInfoSection from "@/components/ui/AuditInfoSection";
 
 const sortOptions = [
   { value: "date", label: "Date" },
@@ -275,8 +276,8 @@ const AccountDetails = () => {
     );
   }
 
-  const isBank = account.accountType === "Bank";
-  const isMobile = account.accountType === "Mobile Banking";
+  const isBank = account?.accountType === "Bank";
+  const isMobile = account?.accountType === "Mobile Banking";
 
   return (
     <motion.div>
@@ -356,7 +357,7 @@ const AccountDetails = () => {
             {isLoadingDetails ? (
               <ValueSkeleton width="w-32" />
             ) : (
-              account.accountHolderName
+              account?.accountHolderName
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -373,11 +374,11 @@ const AccountDetails = () => {
             {isLoadingDetails ? (
               <ValueSkeleton width="w-24" />
             ) : isBank ? (
-              account.bankName
+              account?.bankName
             ) : isMobile ? (
-              account.serviceName
+              account?.serviceName
             ) : (
-              account.accountName
+              account?.accountName
             )}
           </div>
           {isBank && (
@@ -388,7 +389,7 @@ const AccountDetails = () => {
                 {isLoadingDetails ? (
                   <ValueSkeleton width="w-32" />
                 ) : (
-                  account.accountNumber
+                  account?.accountNumber
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -397,7 +398,7 @@ const AccountDetails = () => {
                 {isLoadingDetails ? (
                   <ValueSkeleton width="w-24" />
                 ) : (
-                  account.branchName
+                  account?.branchName
                 )}
               </div>
             </>
@@ -409,7 +410,7 @@ const AccountDetails = () => {
               {isLoadingDetails ? (
                 <ValueSkeleton width="w-28" />
               ) : (
-                account.mobileNumber
+                account?.mobileNumber
               )}
             </div>
           )}
@@ -419,7 +420,7 @@ const AccountDetails = () => {
             {isLoadingDetails ? (
               <ValueSkeleton width="w-32" />
             ) : (
-              formatDateTime(account.createdAt)
+              formatDateTime(account?.createdAt)
             )}
           </div>
         </div>
@@ -610,6 +611,16 @@ const AccountDetails = () => {
           )}
         </div>
       )}
+
+      <AuditInfoSection
+        createdBy={account?.createdBy}
+        createdAt={account?.createdAt}
+        modifiedBy={account?.modifiedBy}
+        updatedAt={account?.updatedAt}
+        deletedBy={account?.deletedBy}
+        deletedAt={account?.deletedAt}
+        isDeleted={account?.isDeleted}
+      />
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}

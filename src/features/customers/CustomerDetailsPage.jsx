@@ -22,6 +22,7 @@ import {
   FileIcon,
 } from "lucide-react";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
+import AuditInfoSection from "@/components/ui/AuditInfoSection";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 
 // Components
@@ -264,7 +265,7 @@ const CustomerDetails = () => {
                     <>
                       {customerData?.customerId && (
                         <span className="text-gray-600 text-sm sm:text-base">
-                          {customerData.customerId}
+                          {customerData?.customerId}
                         </span>
                       )}
                       <StatusBadge status={customerData?.customerStatus} />
@@ -303,7 +304,6 @@ const CustomerDetails = () => {
             </div>
           </div>
         </motion.div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <CollapsibleCard
@@ -740,6 +740,16 @@ const CustomerDetails = () => {
             </CollapsibleCard>
           </div>
         )}
+
+        <AuditInfoSection
+          createdBy={customerData?.createdBy}
+          createdAt={customerData?.createdAt}
+          modifiedBy={customerData?.modifiedBy}
+          updatedAt={customerData?.updatedAt}
+          deletedBy={customerData?.deletedBy}
+          deletedAt={customerData?.deletedAt}
+          isDeleted={customerData?.isDeleted}
+        />
       </div>
 
       <ConfirmationModal

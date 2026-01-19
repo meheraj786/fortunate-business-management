@@ -36,7 +36,7 @@ const SaleInfo = ({
               {loading ? (
                 <ValueSkeleton width="w-32" height="h-4" />
               ) : (
-                sale.product?.name || "N/A"
+                sale?.product?.name || "N/A"
               )}
             </div>
           </div>
@@ -47,7 +47,7 @@ const SaleInfo = ({
             {loading ? (
               <ValueSkeleton width="w-20" height="h-4" />
             ) : (
-              `${formatNumber(sale.quantity)} ${sale.unit?.name || "units"}`
+              `${formatNumber(sale?.quantity)} ${sale?.unit?.name || "units"}`
             )}
           </div>
           <div>
@@ -58,7 +58,7 @@ const SaleInfo = ({
               {loading ? (
                 <ValueSkeleton width="w-20" height="h-4" />
               ) : (
-                formatCurrency(sale.pricePerUnit)
+                formatCurrency(sale?.pricePerUnit)
               )}
             </p>
           </div>
@@ -70,7 +70,7 @@ const SaleInfo = ({
               {loading ? (
                 <ValueSkeleton width="w-24" height="h-4" />
               ) : (
-                formatCurrency(sale.totalAmount)
+                formatCurrency(sale?.totalAmount)
               )}
             </p>
           </div>
@@ -83,7 +83,7 @@ const SaleInfo = ({
               {loading ? (
                 <ValueSkeleton width="w-20" height="h-4" />
               ) : (
-                sale.invoiceStatus
+                sale?.invoiceStatus
               )}
             </div>
           </div>
@@ -96,7 +96,7 @@ const SaleInfo = ({
               {loading ? (
                 <ValueSkeleton width="w-24" height="h-4" />
               ) : (
-                sale.paymentStatus || "N/A"
+                sale?.paymentStatus || "N/A"
               )}
             </div>
           </div>
@@ -104,7 +104,7 @@ const SaleInfo = ({
       </div>
 
       {/* Customer Information */}
-      {sale.customer && (
+      {sale?.customer && (
         <div className="bg-white rounded-lg shadow-sm p-5">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             <User className="h-5 w-5 mr-2 text-[var(--color-primary)]" />
@@ -119,7 +119,7 @@ const SaleInfo = ({
                 {loading ? (
                   <ValueSkeleton width="w-32" height="h-4" />
                 ) : (
-                  sale.customer.name
+                  sale?.customer?.name
                 )}
               </p>
             </div>
@@ -131,11 +131,11 @@ const SaleInfo = ({
                 {loading ? (
                   <ValueSkeleton width="w-28" height="h-4" />
                 ) : (
-                  sale.customer.phone || "N/A"
+                  sale?.customer?.phone || "N/A"
                 )}
               </p>
             </div>
-            {!isRegisteredCustomer && sale.customer.address && (
+            {!isRegisteredCustomer && sale?.customer?.address && (
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Address
@@ -144,14 +144,14 @@ const SaleInfo = ({
                   {loading ? (
                     <ValueSkeleton width="w-full" height="h-4" />
                   ) : (
-                    sale.customer.address
+                    sale?.customer?.address
                   )}
                 </p>
               </div>
             )}
             {isRegisteredCustomer && hasPermission("CUSTOMER_VIEW_DETAILS") && (
               <Link
-                to={`/customer-details/${sale.customer.customerId._id}`}
+                to={`/customer-details/${sale?.customer?.customerId?._id}`}
                 className="inline-flex items-center text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
               >
                 View Customer Details

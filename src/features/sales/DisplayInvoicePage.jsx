@@ -7,6 +7,7 @@ import { AlertTriangle, ArrowLeft, FileX, Printer, Share2 } from "lucide-react";
 import React from "react";
 import Button from "@/components/ui/Button";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import AuditInfoSection from "@/components/ui/AuditInfoSection";
 import { showErrorToast } from "@/utils/notifications";
 
 const DisplayInvoice = () => {
@@ -407,6 +408,18 @@ const DisplayInvoice = () => {
               <p className="text-gray-600">Thank you for your business.</p>
             </footer>
           </article>
+        </div>
+
+        <div className="max-w-5xl mx-auto mt-8 print:hidden">
+          <AuditInfoSection
+            createdBy={invoice?.createdBy}
+            createdAt={invoice?.createdAt}
+            modifiedBy={invoice?.modifiedBy}
+            updatedAt={invoice?.updatedAt}
+            deletedBy={invoice?.deletedBy}
+            deletedAt={invoice?.deletedAt}
+            isDeleted={invoice?.isDeleted}
+          />
         </div>
       </main>
 
