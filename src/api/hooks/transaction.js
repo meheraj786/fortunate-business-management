@@ -52,3 +52,15 @@ export const useDeleteTransaction = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
   });
 };
+
+export const useTransferMoney = () => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: api.transferMoney,
+    successMessage: "Money transferred successfully!",
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["accounts"] });
+    },
+  });
+};

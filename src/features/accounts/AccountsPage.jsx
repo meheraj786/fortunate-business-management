@@ -4,7 +4,7 @@ import {
   Building,
   Smartphone,
   Receipt,
-  Plus,
+  ArrowRightLeft,
   DollarSign,
   Trash,
   Wallet,
@@ -16,7 +16,7 @@ import StatBox from "@/components/ui/StatBox";
 import AccountList from "./AccountListPage";
 import TransactionList from "./TransactionListPage";
 import AddAccountForm from "./AddAccountForm";
-import AddTransactionForm from "./AddTransactionFormPage";
+import TransferMoneyModal from "./TransferMoneyModal";
 import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router";
 import Button from "@/components/ui/Button";
@@ -35,7 +35,7 @@ const Accounts = () => {
   const [isAccountFormOpen, setIsAccountFormOpen] = useState(false);
   const [preselectedAccountType, setPreselectedAccountType] = useState("Bank");
   const [editingAccount, setEditingAccount] = useState(null);
-  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
 
   useEffect(() => {
     if (!hasPermission("ACCOUNT_VIEW_ALL")) {
@@ -61,9 +61,9 @@ const Accounts = () => {
     setEditingAccount(null);
   };
 
-  // Handler for Transaction Form
-  const handleTransactionFormSuccess = () => {
-    setIsTransactionFormOpen(false);
+  // Handler for Transfer Modal
+  const handleTransferSuccess = () => {
+    setIsTransferModalOpen(false);
   };
 
   const renderTransactionStats = () => {
@@ -117,14 +117,14 @@ const Accounts = () => {
             <div className="flex items-center gap-2">
               {hasPermission("TRANSACTION_CREATE") && (
                 <Button
-                  onClick={() => setIsTransactionFormOpen(true)}
-                  variant="success" // Changed from native button with bg-green-600
+                  onClick={() => setIsTransferModalOpen(true)}
+                  variant="primary"
                   size="sm"
-                  className="flex items-center gap-2 justify-center" // Added justify-center for mobile
-                  aria-label="Add new transaction"
+                  className="flex items-center gap-2 justify-center"
+                  aria-label="Transfer Money"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>Transaction</span>
+                  <ArrowRightLeft className="w-4 h-4" />
+                  <span>Transfer Money</span>
                 </Button>
               )}
             </div>
@@ -150,11 +150,11 @@ const Accounts = () => {
         accountType={preselectedAccountType}
       />
 
-      {/*  Transaction Form */}
-      <AddTransactionForm
-        isOpen={isTransactionFormOpen}
-        onClose={() => setIsTransactionFormOpen(false)}
-        onSuccess={handleTransactionFormSuccess}
+      {/* Transfer Money Modal */}
+      <TransferMoneyModal
+        isOpen={isTransferModalOpen}
+        onClose={() => setIsTransferModalOpen(false)}
+        onSuccess={handleTransferSuccess}
       />
     </motion.div>
   );

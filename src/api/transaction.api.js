@@ -17,3 +17,5 @@ export const deleteTransaction = (id) =>
 
 export const getTransactionStats = () =>
   api.get("/transactions/get-transaction-stats");
+
+export const transferMoney = (data) => api.post("/transactions/transfer", data);
