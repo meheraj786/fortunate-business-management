@@ -88,6 +88,7 @@ const LCdetails = () => {
       "shippingCustomsInfo",
       "agentTransportInfo",
       "otherExpenses",
+      "documentProductInfo",
     ];
     return sections.flatMap((section) => lcData?.[section]?.costs || []);
   }, [lcData]);
@@ -190,6 +191,7 @@ const LCdetails = () => {
     shippingCustomsInfo = {},
     agentTransportInfo = {},
     productInfo = [],
+    documentProductInfo = {},
     documentsNotes = {},
     otherExpenses = {},
   } = lcData || {};
@@ -476,6 +478,97 @@ const LCdetails = () => {
                       ${formatNumber(totalProductsValueUsd)} USD
                     </span>
                   </div>
+                </div>
+              )}
+            </CollapsibleCard>
+            <CollapsibleCard
+              title="Document Product Information"
+              icon={<Package className="text-[var(--color-primary)] opacity-70" />}
+              defaultOpen={true}
+              ariaLabel="Document Product Information Section"
+              headerActions={
+                hasPermission("LC_UPDATE") ? (
+                  <AddCostButton category="documentProductInfo" />
+                ) : null
+              }
+            >
+              {documentProductInfo?.products?.map((product, index) => (
+                <div
+                  key={product._id || index}
+                  className="pb-4 mb-4 last:pb-0 last:mb-0 border-b last:border-b-0 border-gray-200"
+                >
+                  <h4 className="font-semibold text-gray-800 mb-3 text-sm">
+                    Product {index + 1}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {product.itemName && (
+                      <DataField
+                        label="Item Name"
+                        value={product.itemName}
+                        loading={isLoading}
+                      />
+                    )}
+                    {(product.thickness || product.width || product.length) && (
+                      <DataField
+                        label="Specifications"
+                        value={`Thickness: ${product.thickness || "-"
+                          }, Width: ${product.width || "-"}, Length: ${product.length || "-"
+                          }`}
+                        loading={isLoading}
+                      />
+                    )}
+                    {product.grade && (
+                      <DataField
+                        label="Grade"
+                        value={product.grade}
+                        loading={isLoading}
+                      />
+                    )}
+                    <DataField
+                      label="Quantity"
+                      value={`${formatNumber(product.quantity)} ${product.quantityUnit?.name
+                        ? `(${product.quantityUnit.name})`
+                        : ""
+                        }`}
+                      loading={isLoading}
+                    />
+                    <DataField
+                      label="Unit Price (USD)"
+                      value={
+                        product.unitPriceUsd
+                          ? `$${formatNumber(product.unitPriceUsd)}`
+                          : null
+                      }
+                      loading={isLoading}
+                    />
+                    <DataField
+                      label="Total Value (USD)"
+                      value={
+                        product.totalValueUsd
+                          ? `$${formatNumber(product.totalValueUsd)}`
+                          : null
+                      }
+                      loading={isLoading}
+                    />
+                  </div>
+                </div>
+              ))}
+              {documentProductInfo?.costs?.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                    Document Related Costs
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {documentProductInfo.costs.map((cost) => (
+                      <CostField key={cost._id} cost={cost} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(!documentProductInfo?.products?.length && !documentProductInfo?.costs?.length) && (
+                <div className="text-center py-6 text-gray-500">
+                  <Package className="w-12 h-12 mx-auto mb-2 text-gray-300 opacity-50" />
+                  <p>No document products or costs added</p>
                 </div>
               )}
             </CollapsibleCard>

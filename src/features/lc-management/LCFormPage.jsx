@@ -57,6 +57,12 @@ const SECTIONS_CONFIG = [
     defaultOpen: true,
   },
   {
+    id: "documentProductInfo",
+    title: "Document Product Information",
+    icon: Package,
+    defaultOpen: true,
+  },
+  {
     id: "shippingCustomsInfo",
     title: "Shipping & Customs",
     icon: Truck,
@@ -153,19 +159,24 @@ const ProductFields = ({
   watch,
   units,
   unitsLoading,
+  baseName = "productInfo" // Default to original name
 }) => {
-  const productQuantity = watch(`productInfo.${index}.quantity`);
-  const productUnitPriceUsd = watch(`productInfo.${index}.unitPriceUsd`);
+  const productQuantity = watch(`${baseName}.${index}.quantity`);
+  const productUnitPriceUsd = watch(`${baseName}.${index}.unitPriceUsd`);
 
   useEffect(() => {
     const quantity = Number(productQuantity) || 0;
     const unitPrice = Number(productUnitPriceUsd) || 0;
     const total = quantity * unitPrice;
-    setValue(`productInfo.${index}.totalValueUsd`, total.toFixed(2));
-  }, [productQuantity, productUnitPriceUsd, index, setValue]);
+    setValue(`${baseName}.${index}.totalValueUsd`, total.toFixed(2));
+  }, [productQuantity, productUnitPriceUsd, index, setValue, baseName]);
 
-  const watchedTotalValue = watch(`productInfo.${index}.totalValueUsd`);
-  const productErrors = errors.productInfo?.[index];
+  const watchedTotalValue = watch(`${baseName}.${index}.totalValueUsd`);
+  // Handle nested errors traversal safely
+  const getNestedError = (obj, path) => {
+    return path.split('.').reduce((prev, curr) => prev ? prev[curr] : undefined, obj);
+  }
+  const productErrors = getNestedError(errors, `${baseName}.${index}`);
 
   return (
     <motion.div
@@ -190,7 +201,7 @@ const ProductFields = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <InputField
           label="Item Name"
-          name={`productInfo.${index}.itemName`}
+          name={`${baseName}.${index}.itemName`}
           register={register}
           error={productErrors?.itemName?.message}
           validation={{ required: "Item name is required" }}
@@ -198,35 +209,35 @@ const ProductFields = ({
         />
         <InputField
           label="Thickness"
-          name={`productInfo.${index}.thickness`}
+          name={`${baseName}.${index}.thickness`}
           register={register}
           error={productErrors?.thickness?.message}
           placeholder="e.g., 2.5mm"
         />
         <InputField
           label="Width"
-          name={`productInfo.${index}.width`}
+          name={`${baseName}.${index}.width`}
           register={register}
           error={productErrors?.width?.message}
           placeholder="e.g., 1250mm"
         />
         <InputField
           label="Length"
-          name={`productInfo.${index}.length`}
+          name={`${baseName}.${index}.length`}
           register={register}
           error={productErrors?.length?.message}
           placeholder="e.g., 2500mm or C"
         />
         <InputField
           label="Grade"
-          name={`productInfo.${index}.grade`}
+          name={`${baseName}.${index}.grade`}
           register={register}
           error={productErrors?.grade?.message}
           placeholder="e.g., JIS G3131 SPHC"
         />
         <SelectField
           label="Unit"
-          name={`productInfo.${index}.quantityUnit`}
+          name={`${baseName}.${index}.quantityUnit`}
           register={register}
           error={productErrors?.quantityUnit?.message}
           options={units.map((u) => ({ value: u._id, label: u.name })) || []}
@@ -235,7 +246,7 @@ const ProductFields = ({
         />
         <InputField
           label="Quantity"
-          name={`productInfo.${index}.quantity`}
+          name={`${baseName}.${index}.quantity`}
           type="number"
           register={register}
           error={productErrors?.quantity?.message}
@@ -249,7 +260,7 @@ const ProductFields = ({
         />
         <InputField
           label="Price (USD)"
-          name={`productInfo.${index}.unitPriceUsd`}
+          name={`${baseName}.${index}.unitPriceUsd`}
           type="number"
           register={register}
           error={productErrors?.unitPriceUsd?.message}
@@ -263,7 +274,7 @@ const ProductFields = ({
         />
         <InputField
           label="Total (USD)"
-          name={`productInfo.${index}.totalValueUsd`}
+          name={`${baseName}.${index}.totalValueUsd`}
           value={watchedTotalValue || 0}
           disabled
         />
@@ -346,6 +357,26 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 totalValueUsd: 0,
               },
             ],
+          documentProductInfo: {
+            products: initialData.documentProductInfo?.products?.map((p) => ({
+              ...p,
+              id: p._id || p.id || Math.random(),
+              quantityUnit: p.quantityUnit?._id || p.quantityUnit || "",
+              totalValueUsd: p.totalValueUsd || (p.quantity && p.unitPriceUsd ? (parseFloat(p.quantity) * parseFloat(p.unitPriceUsd)).toFixed(2) : 0)
+            })) || [{
+              id: Math.random(),
+              itemName: "",
+              thickness: "",
+              width: "",
+              length: "",
+              grade: "",
+              quantityUnit: "",
+              quantity: 0,
+              unitPriceUsd: 0,
+              totalValueUsd: 0,
+            }],
+            costs: initialData.documentProductInfo?.costs?.map(mapCostAccountIds) || []
+          },
           shippingCustomsInfo: {
             portOfShipment:
               initialData.shippingCustomsInfo?.portOfShipment || "",
@@ -407,6 +438,21 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
             totalValueUsd: 0,
           },
         ],
+        documentProductInfo: {
+          products: [{
+            id: Math.random(),
+            itemName: "",
+            thickness: "",
+            width: "",
+            length: "",
+            grade: "",
+            quantityUnit: "",
+            quantity: 0,
+            unitPriceUsd: 0,
+            totalValueUsd: 0,
+          }],
+          costs: []
+        },
         shippingCustomsInfo: {
           portOfShipment: "",
           portOfDestination: "",
@@ -435,6 +481,15 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
   } = useFieldArray({
     control,
     name: "productInfo",
+  });
+
+  const {
+    fields: documentProductFields,
+    append: appendDocumentProduct,
+    remove: removeDocumentProductField
+  } = useFieldArray({
+    control,
+    name: "documentProductInfo.products"
   });
 
   // State for file uploads (separate from RHF for simplicity with existing FileInput)
@@ -482,6 +537,16 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
         exchangeRate: parseFloat(data.financialInfo.exchangeRate),
         lcAmountBdt: parseFloat(data.financialInfo.lcAmountBdt),
       },
+      documentProductInfo: {
+        ...data.documentProductInfo,
+        products: data.documentProductInfo.products.map(product => ({
+          ...product,
+          quantity: parseFloat(product.quantity),
+          unitPriceUsd: parseFloat(product.unitPriceUsd),
+          totalValueUsd: parseFloat(product.totalValueUsd)
+        })),
+        costs: data.documentProductInfo?.costs || []
+      }
     };
 
     const formDataToSend = new FormData();
@@ -702,6 +767,71 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                   <span>Add Another Product</span>
                 </Button>
               )}
+            </div>
+          )}
+          {section.id === "documentProductInfo" && (
+            <div className="space-y-4 sm:space-y-6">
+              {/* Product Fields */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">Products</h3>
+                <AnimatePresence>
+                  {documentProductFields.map((field, index) => (
+                    <ProductFields
+                      key={field.id}
+                      field={field}
+                      index={index}
+                      removeProductField={removeDocumentProductField}
+                      hasPermission={hasPermission}
+                      register={register}
+                      errors={errors}
+                      control={control}
+                      setValue={setValue}
+                      watch={watch}
+                      units={units}
+                      unitsLoading={unitsLoading}
+                      baseName="documentProductInfo.products"
+                    />
+                  ))}
+                </AnimatePresence>
+                {hasPermission("LC_UPDATE") && (
+                  <Button
+                    type="button"
+                    onClick={() => appendDocumentProduct({
+                      id: Math.random(),
+                      itemName: "",
+                      thickness: "",
+                      width: "",
+                      length: "",
+                      grade: "",
+                      quantityUnit: "",
+                      quantity: 0,
+                      unitPriceUsd: 0,
+                      totalValueUsd: 0,
+                    })}
+                    variant="secondary"
+                    className="w-full border-dashed border-gray-300 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                    disabled={isSubmitting}
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    <span>Add Another Document Product</span>
+                  </Button>
+                )}
+              </div>
+
+              {/* Costs Section */}
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">Document Related Costs</h3>
+                <CostsSection
+                  control={control}
+                  register={register}
+                  errors={errors}
+                  watch={watch}
+                  section="documentProductInfo.costs"
+                  accounts={accounts}
+                  paymentMethods={["Cash", "Bank", "Mobile Banking"]}
+                  isSubmitting={formSubmitting}
+                />
+              </div>
             </div>
           )}
           {section.id === "shippingCustomsInfo" && (
