@@ -349,6 +349,8 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
           shippingCustomsInfo: {
             portOfShipment:
               initialData.shippingCustomsInfo?.portOfShipment || "",
+            portOfDestination:
+              initialData.shippingCustomsInfo?.portOfDestination || "",
             expectedArrivalDate: initialData.shippingCustomsInfo
               ?.expectedArrivalDate
               ? new Date(initialData.shippingCustomsInfo.expectedArrivalDate)
@@ -407,6 +409,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
         ],
         shippingCustomsInfo: {
           portOfShipment: "",
+          portOfDestination: "",
           expectedArrivalDate: "",
           costs: [],
         },
@@ -710,6 +713,13 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                   register={register}
                   error={errors.shippingCustomsInfo?.portOfShipment?.message}
                   placeholder="e.g., Port of Busan"
+                />
+                <InputField
+                  label="Port of Destination"
+                  name="shippingCustomsInfo.portOfDestination"
+                  register={register}
+                  error={errors.shippingCustomsInfo?.portOfDestination?.message}
+                  placeholder="e.g., Port of Chattogram"
                 />
                 <InputField
                   label="Expected Arrival Date"

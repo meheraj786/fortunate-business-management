@@ -442,8 +442,8 @@ const LCdetails = () => {
                     <DataField
                       label="Quantity"
                       value={`${formatNumber(product.quantity)} ${product.quantityUnit?.name
-                          ? `(${product.quantityUnit.name})`
-                          : ""
+                        ? `(${product.quantityUnit.name})`
+                        : ""
                         }`}
                       loading={isLoading}
                     />
@@ -493,6 +493,11 @@ const LCdetails = () => {
                 <DataField
                   label="Port of Shipment"
                   value={shippingCustomsInfo.portOfShipment}
+                  loading={isLoading}
+                />
+                <DataField
+                  label="Port of Destination"
+                  value={shippingCustomsInfo.portOfDestination}
                   loading={isLoading}
                 />
                 <DataField
