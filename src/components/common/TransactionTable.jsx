@@ -18,6 +18,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { getTransactionById } from "@/api/transaction.api";
 import { memo } from "react";
+import { formatAccountLabel } from "@/utils/format";
 
 const SortableHeader = ({
   label,
@@ -32,12 +33,10 @@ const SortableHeader = ({
   return (
     <button
       onClick={() => onSort(value)}
-      className={`flex items-center gap-1.5 whitespace-nowrap hover:text-[var(--color-primary)] transition-colors w-full group outline-none ${
-        align === "right" ? "justify-end text-right" : "justify-start text-left"
-      }`}
-      aria-label={`Sort by ${label} ${
-        isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
-      }`}
+      className={`flex items-center gap-1.5 whitespace-nowrap hover:text-[var(--color-primary)] transition-colors w-full group outline-none ${align === "right" ? "justify-end text-right" : "justify-start text-left"
+        }`}
+      aria-label={`Sort by ${label} ${isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
+        }`}
     >
       <span
         className={`text-sm font-semibold ${isSorted ? "text-[var(--color-primary)]" : "text-gray-900"}`}
@@ -59,20 +58,7 @@ const SortableHeader = ({
   );
 };
 
-const getAccountDisplayName = (accountId) => {
-  if (!accountId) return "N/A";
-
-  switch (accountId.accountType) {
-    case "Bank":
-      return `${accountId.bankName} (${accountId.accountHolderName})`;
-    case "Mobile Banking":
-      return `${accountId.serviceName} (${accountId.accountHolderName})`;
-    case "Cash":
-      return `${accountId.accountName} (${accountId.accountHolderName})`;
-    default:
-      return accountId.accountName || "N/A";
-  }
-};
+// getAccountDisplayName removed in favor of formatAccountLabel
 
 const getPaymentIcon = (paymentMethod) => {
   switch (paymentMethod) {
@@ -144,11 +130,10 @@ const TransactionTable = memo(
                       </div>
                     </div>
                     <div
-                      className={`text-sm font-bold whitespace-nowrap ${
-                        transaction.transactionType === "Income"
+                      className={`text-sm font-bold whitespace-nowrap ${transaction.transactionType === "Income"
                           ? "text-[var(--color-success)]"
                           : "text-[var(--color-danger)]"
-                      }`}
+                        }`}
                     >
                       {transaction.transactionType === "Income" ? "+ " : "- "}
                       {formatCurrency(transaction.amount)}
@@ -158,21 +143,20 @@ const TransactionTable = memo(
                   <div className="flex items-center justify-between pt-3 mt-2 border-t border-gray-100">
                     <div className="flex items-center gap-2 sm:max-w-[60%]">
                       <div
-                        className={`p-1.5 rounded-md flex-shrink-0 ${
-                          transaction.paymentMethod === "Bank"
+                        className={`p-1.5 rounded-md flex-shrink-0 ${transaction.paymentMethod === "Bank"
                             ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
                             : transaction.paymentMethod === "Mobile Banking"
                               ? "bg-purple-50 text-purple-600"
                               : transaction.paymentMethod === "Cash"
                                 ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
                                 : "bg-gray-50 text-gray-600"
-                        }`}
+                          }`}
                       >
                         {getPaymentIcon(transaction.paymentMethod)}
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="text-xs font-semibold text-gray-700 truncate">
-                          {getAccountDisplayName(transaction.accountId)}
+                          {formatAccountLabel(transaction.accountId)}
                         </span>
                         <span className="text-[10px] text-gray-500">
                           {transaction.paymentMethod}
@@ -271,9 +255,8 @@ const TransactionTable = memo(
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className={`hover:bg-gray-50 group ${
-                          canViewDetails ? "cursor-pointer" : ""
-                        }`}
+                        className={`hover:bg-gray-50 group ${canViewDetails ? "cursor-pointer" : ""
+                          }`}
                         onClick={() => handleRowClick(transaction._id)}
                         transition={{ duration: 0.12 }}
                         onMouseEnter={() =>
@@ -298,11 +281,10 @@ const TransactionTable = memo(
                         </td>
 
                         <td
-                          className={`px-5 py-4 sm:px-4 sm:py-3 text-sm font-semibold text-right whitespace-nowrap border-b border-gray-100 ${
-                            transaction.transactionType === "Income"
+                          className={`px-5 py-4 sm:px-4 sm:py-3 text-sm font-semibold text-right whitespace-nowrap border-b border-gray-100 ${transaction.transactionType === "Income"
                               ? "text-[var(--color-success)]"
                               : "text-[var(--color-danger)]"
-                          }`}
+                            }`}
                         >
                           {transaction.transactionType === "Income"
                             ? "+ "
@@ -313,16 +295,15 @@ const TransactionTable = memo(
                         <td className="px-5 py-4 sm:px-4 sm:py-3 border-b border-gray-100">
                           <div className="flex items-center gap-3">
                             <div
-                              className={`p-1.5 rounded-md flex-shrink-0 ${
-                                transaction.paymentMethod === "Bank"
+                              className={`p-1.5 rounded-md flex-shrink-0 ${transaction.paymentMethod === "Bank"
                                   ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
                                   : transaction.paymentMethod ===
-                                      "Mobile Banking"
+                                    "Mobile Banking"
                                     ? "bg-purple-50 text-purple-600"
                                     : transaction.paymentMethod === "Cash"
                                       ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
                                       : "bg-gray-50 text-gray-600"
-                              }`}
+                                }`}
                             >
                               {getPaymentIcon(transaction.paymentMethod)}
                             </div>
@@ -331,7 +312,7 @@ const TransactionTable = memo(
                                 {transaction.paymentMethod}
                               </span>
                               <span className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">
-                                {getAccountDisplayName(transaction.accountId)}
+                                {formatAccountLabel(transaction.accountId)}
                               </span>
                             </div>
                           </div>

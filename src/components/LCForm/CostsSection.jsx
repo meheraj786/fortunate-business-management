@@ -7,6 +7,7 @@ import SelectField from "@/components/ui/SelectField";
 import Button from "@/components/ui/Button"; // Import Button component
 import { useFieldArray } from "react-hook-form"; // Import useFieldArray
 import { useSettings } from "@/context/SettingsContext";
+import { formatAccountLabel } from "@/utils/format";
 
 const CostsSection = ({
   control, // from react-hook-form
@@ -145,32 +146,24 @@ const CostsSection = ({
                   error={getNestedErrorMessage(
                     `${section}[${index}].accountId`,
                   )}
-                  options={accounts
-                    .filter(
-                      (acc) =>
-                        acc.accountType ===
-                        watch(`${section}[${index}].paymentMethod`),
-                    )
-                    .map((acc) => {
-                      let label = "";
-                      if (acc.accountType === "Bank") {
-                        label = `${acc.bankName || "N/A"} (${
-                          acc.accountHolderName || "N/A"
-                        }) - ${acc.accountNumber || "N/A"}`;
-                      } else if (acc.accountType === "Mobile Banking") {
-                        label = `${acc.serviceName || "N/A"} (${
-                          acc.accountHolderName || "N/A"
-                        }) - ${acc.mobileNumber || "N/A"}`;
-                      } else if (acc.accountType === "Cash") {
-                        label = `${acc.accountName || acc.accountType} (${
-                          acc.accountHolderName || "N/A"
-                        })`;
-                      }
-                      return { value: acc._id, label: label };
-                    })}
-                  placeholder="Choose account"
-                  validation={{ required: "Account is required" }}
-                  disabled={isSubmitting}
+                  // ... imports
+
+
+              // ... inside component
+
+              options={accounts
+                .filter(
+                  (acc) =>
+                    acc.accountType ===
+                    watch(`${section}[${index}].paymentMethod`),
+                )
+                .map((acc) => ({
+                  value: acc._id,
+                  label: formatAccountLabel(acc),
+                }))}
+              placeholder="Choose account"
+              validation={{ required: "Account is required" }}
+              disabled={isSubmitting}
                 />
               )}
             </div>

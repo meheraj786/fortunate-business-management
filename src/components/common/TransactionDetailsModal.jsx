@@ -18,21 +18,9 @@ import {
 import Button from "../ui/Button";
 import { useTransaction } from "@/api/hooks/transaction";
 import { useSettings } from "@/context/SettingsContext";
+import { formatAccountLabel } from "@/utils/format";
 
-const getAccountDisplayName = (accountId) => {
-  if (!accountId) return "N/A";
-
-  switch (accountId.accountType) {
-    case "Bank":
-      return `${accountId.bankName} (${accountId.accountHolderName})`;
-    case "Mobile Banking":
-      return `${accountId.serviceName} (${accountId.accountHolderName})`;
-    case "Cash":
-      return `${accountId.accountName} (${accountId.accountHolderName})`;
-    default:
-      return accountId.accountName || "N/A";
-  }
-};
+// getAccountDisplayName removed in favor of formatAccountLabel
 
 const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
   // Use react-query hook to fetch transaction details
@@ -82,20 +70,18 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
           <div className="space-y-4 sm:space-y-5">
             {/* Amount Banner */}
             <div
-              className={`p-4 sm:p-5 rounded-lg border ${
-                transaction.transactionType === "Income"
+              className={`p-4 sm:p-5 rounded-lg border ${transaction.transactionType === "Income"
                   ? "bg-green-50 border-green-200"
                   : "bg-red-50 border-red-200"
-              }`}
+                }`}
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`p-2 rounded-lg ${
-                      transaction.transactionType === "Income"
+                    className={`p-2 rounded-lg ${transaction.transactionType === "Income"
                         ? "bg-green-100 text-green-700"
                         : "bg-red-100 text-red-700"
-                    }`}
+                      }`}
                   >
                     {transaction.transactionType === "Income" ? (
                       <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -139,7 +125,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
               <Info
                 label="Account"
                 icon={<User className="w-5 h-5" />}
-                value={getAccountDisplayName(transaction.accountId)}
+                value={formatAccountLabel(transaction.accountId)}
               />
             </div>
 

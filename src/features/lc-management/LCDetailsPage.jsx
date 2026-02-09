@@ -44,6 +44,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUrl } from "@/hooks/useUrl";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
+import { formatAccountLabel } from "@/utils/format";
 
 const LCdetails = () => {
   const { id } = useParams();
@@ -425,11 +426,9 @@ const LCdetails = () => {
                     {(product.thickness || product.width || product.length) && (
                       <DataField
                         label="Specifications"
-                        value={`Thickness: ${
-                          product.thickness || "-"
-                        }, Width: ${product.width || "-"}, Length: ${
-                          product.length || "-"
-                        }`}
+                        value={`Thickness: ${product.thickness || "-"
+                          }, Width: ${product.width || "-"}, Length: ${product.length || "-"
+                          }`}
                         loading={isLoading}
                       />
                     )}
@@ -442,11 +441,10 @@ const LCdetails = () => {
                     )}
                     <DataField
                       label="Quantity"
-                      value={`${formatNumber(product.quantity)} ${
-                        product.quantityUnit?.name
+                      value={`${formatNumber(product.quantity)} ${product.quantityUnit?.name
                           ? `(${product.quantityUnit.name})`
                           : ""
-                      }`}
+                        }`}
                       loading={isLoading}
                     />
                     <DataField
@@ -715,17 +713,9 @@ const LCdetails = () => {
                         </div>
                         {cost.paymentMethod && (
                           <div className="text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">
-                            {cost.paymentMethod === "Cash"
-                              ? "Cash"
-                              : cost.accountId
-                                ? `${cost.paymentMethod}: ${
-                                    cost.accountId?.accountHolderName || "N/A"
-                                  } (${
-                                    cost.accountId?.accountNumber ||
-                                    cost.accountId?.mobileNumber ||
-                                    "N/A"
-                                  })`
-                                : cost.paymentMethod}
+                            {cost.accountId
+                              ? formatAccountLabel(cost.accountId)
+                              : cost.paymentMethod}
                           </div>
                         )}
                       </div>

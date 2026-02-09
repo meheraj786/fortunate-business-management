@@ -5,6 +5,7 @@ import SelectField from "@/components/ui/SelectField";
 import { showErrorToast } from "@/utils/notifications";
 import { useAccounts } from "@/api/hooks/account";
 import { useTransferMoney } from "@/api/hooks/transaction";
+import { formatAccountLabel } from "@/utils/format";
 
 const TransferMoneyModal = ({ isOpen, onClose, onSuccess }) => {
     const initialTransferData = {
@@ -94,8 +95,7 @@ const TransferMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                     onChange={handleChange}
                     options={accounts.map((acc) => ({
                         value: acc._id,
-                        label: `${acc.accountName} (${acc.bankName || acc.serviceName || "Cash"
-                            }) - Balance: ${acc.balance}`,
+                        label: `${formatAccountLabel(acc)} - Balance: ${acc.balance}`,
                     }))}
                     required={true}
                     loading={areAccountsLoading}
@@ -109,8 +109,7 @@ const TransferMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                     onChange={handleChange}
                     options={destinationAccounts.map((acc) => ({
                         value: acc._id,
-                        label: `${acc.accountName} (${acc.bankName || acc.serviceName || "Cash"
-                            })`,
+                        label: formatAccountLabel(acc),
                     }))}
                     required={true}
                     loading={areAccountsLoading}

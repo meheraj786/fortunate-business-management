@@ -6,6 +6,7 @@ import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import Button from "@/components/ui/Button";
 import { useSettings } from "@/context/SettingsContext";
+import { formatAccountLabel } from "@/utils/format";
 
 const SaleFinancials = ({
   register,
@@ -95,7 +96,7 @@ const SaleFinancials = ({
       .filter((acc) => acc.accountType === method)
       .map((acc) => ({
         value: acc._id,
-        label: `${acc.accountName || acc.bankName || acc.serviceName} (${acc.accountNumber || acc.mobileNumber || ""})`,
+        label: formatAccountLabel(acc),
       }));
   };
 

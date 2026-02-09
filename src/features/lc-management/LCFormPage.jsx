@@ -24,6 +24,7 @@ import { useLC, useCreateLC, useUpdateLC } from "@/api/hooks/lc";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
+import { formatAccountLabel } from "@/utils/format";
 
 // Components
 import FormSection from "@/components/ui/FormSection";
@@ -305,8 +306,8 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
             lcNumber: initialData.basicInfo?.lcNumber || "",
             lcOpeningDate: initialData.basicInfo?.lcOpeningDate
               ? new Date(initialData.basicInfo.lcOpeningDate)
-                  .toISOString()
-                  .split("T")[0]
+                .toISOString()
+                .split("T")[0]
               : "",
             status: initialData.basicInfo?.status || "Draft",
             accountId: initialData.basicInfo?.accountId?._id || "",
@@ -328,31 +329,31 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
               p.totalValueUsd ||
               (p.quantity && p.unitPriceUsd
                 ? (parseFloat(p.quantity) * parseFloat(p.unitPriceUsd)).toFixed(
-                    2,
-                  )
+                  2,
+                )
                 : 0),
           })) || [
-            {
-              id: Math.random(),
-              itemName: "",
-              thickness: "",
-              width: "",
-              length: "",
-              grade: "",
-              quantityUnit: "",
-              quantity: 0,
-              unitPriceUsd: 0,
-              totalValueUsd: 0,
-            },
-          ],
+              {
+                id: Math.random(),
+                itemName: "",
+                thickness: "",
+                width: "",
+                length: "",
+                grade: "",
+                quantityUnit: "",
+                quantity: 0,
+                unitPriceUsd: 0,
+                totalValueUsd: 0,
+              },
+            ],
           shippingCustomsInfo: {
             portOfShipment:
               initialData.shippingCustomsInfo?.portOfShipment || "",
             expectedArrivalDate: initialData.shippingCustomsInfo
               ?.expectedArrivalDate
               ? new Date(initialData.shippingCustomsInfo.expectedArrivalDate)
-                  .toISOString()
-                  .split("T")[0]
+                .toISOString()
+                .split("T")[0]
               : "",
             costs:
               initialData.shippingCustomsInfo?.costs?.map(mapCostAccountIds) ||
@@ -513,9 +514,8 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
       title={
         isEditMode ? "Edit Letter of Credit" : "Create New Letter of Credit"
       }
-      subtitle={`Fill in the details below to ${
-        isEditMode ? "update" : "create"
-      } a new LC`}
+      subtitle={`Fill in the details below to ${isEditMode ? "update" : "create"
+        } a new LC`}
       cancelLink={isEditMode ? `/lc-details/${id}` : "/lc-management"}
       onSubmit={handleSubmit(onSubmit)} // Use handleSubmit from react-hook-form
       isEditMode={isEditMode}
@@ -566,6 +566,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 ]}
                 validation={{ required: "Status is required" }}
               />
+
               <SelectField
                 label="Choose an account"
                 name="basicInfo.accountId"
@@ -575,12 +576,13 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                   .filter((acc) => acc.accountType === "Bank")
                   .map((acc) => ({
                     value: acc._id,
-                    label: `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`,
+                    label: formatAccountLabel(acc),
                   }))}
                 placeholder="Select Bank"
                 validation={{ required: "Bank account is required" }}
                 loading={accountsLoading}
               />
+
               <InputField
                 label="Supplier Name"
                 name="basicInfo.supplierName"

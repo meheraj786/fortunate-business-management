@@ -22,6 +22,7 @@ import { useInvoicesBySale, useGenerateInvoice } from "@/api/hooks/invoice";
 import { useAccounts } from "@/api/hooks/account";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
+import { formatAccountLabel } from "@/utils/format";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import FormDialog from "@/components/ui/FormDialog";
@@ -190,13 +191,12 @@ const SaleDetails = () => {
               </div>
               <div className="flex flex-col items-end gap-2">
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    isCancelled
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${isCancelled
                       ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
                       : balanceDue > 0
                         ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
                         : "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                  }`}
+                    }`}
                 >
                   {isCancelled
                     ? "Cancelled"
@@ -326,8 +326,8 @@ const SaleDetails = () => {
                                 </p>
                                 <p className="text-xs text-gray-500">
                                   {p.method}{" "}
-                                  {p.accountId?.accountName
-                                    ? `(${p.accountId.accountName})`
+                                  {p.accountId
+                                    ? `(${formatAccountLabel(p.accountId)})`
                                     : ""}
                                 </p>
                               </div>
@@ -436,7 +436,7 @@ const SaleDetails = () => {
                 .filter((acc) => acc.accountType === paymentData.method)
                 .map((acc) => ({
                   value: acc._id,
-                  label: `${acc.accountName} (${acc.bankName || acc.serviceName || "N/A"})`,
+                  label: formatAccountLabel(acc),
                 }))}
               required
             />

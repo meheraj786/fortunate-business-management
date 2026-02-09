@@ -5,6 +5,7 @@ import SelectField from "@/components/ui/SelectField";
 import { showErrorToast } from "@/utils/notifications";
 import { useAccounts } from "@/api/hooks/account";
 import { useCreateTransaction } from "@/api/hooks/transaction";
+import { formatAccountLabel } from "@/utils/format";
 
 const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   const initialTransactionData = {
@@ -70,9 +71,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
           onChange={handleTransactionFormChange}
           options={accounts.map((acc) => ({
             value: acc._id,
-            label: `${acc.accountName} (${
-              acc.bankName || acc.serviceName || "Cash"
-            })`,
+            label: formatAccountLabel(acc),
           }))}
           required={true}
           loading={areAccountsLoading}

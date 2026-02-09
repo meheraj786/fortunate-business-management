@@ -16,6 +16,7 @@ import {
   INITIAL_TRANSACTION_STATE,
 } from "../constants";
 import { useForm } from "react-hook-form";
+import { formatAccountLabel } from "@/utils/format";
 
 const AddTransactionDialog = ({
   open,
@@ -107,8 +108,7 @@ const AddTransactionDialog = ({
     try {
       await api.post(`/cash/${endpoint}`, payload);
       showSuccessToast(
-        `${
-          transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
+        `${transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
         } added successfully!`,
         { id: toastId, duration: 3000 },
       );
@@ -348,27 +348,20 @@ const AddTransactionDialog = ({
         {(watchedPaymentMethod === "Bank" ||
           watchedPaymentMethod === "Mobile Banking" ||
           watchedPaymentMethod === "Cash") && (
-          <SelectField
-            label="Select Account"
-            name="accountId"
-            register={register}
-            error={errors.accountId?.message}
-            options={getFilteredAccounts().map((acc) => {
-              let label = "";
-              if (acc.accountType === "Bank") {
-                label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
-              } else if (acc.accountType === "Mobile Banking") {
-                label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
-              } else if (acc.accountType === "Cash") {
-                label = `${acc.accountName} (${acc.accountHolderName})`;
-              }
-              return { value: acc._id, label: label };
-            })}
-            placeholder="Select an account"
-            validation={{ required: "Account is required" }}
-            loading={accountsLoading}
-          />
-        )}
+            <SelectField
+              label="Select Account"
+              name="accountId"
+              register={register}
+              error={errors.accountId?.message}
+              options={getFilteredAccounts().map((acc) => ({
+                value: acc._id,
+                label: formatAccountLabel(acc),
+              }))}
+              placeholder="Select an account"
+              validation={{ required: "Account is required" }}
+              loading={accountsLoading}
+            />
+          )}
       </div>
     </FormDialog>
   );
