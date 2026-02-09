@@ -19,6 +19,7 @@ import Button from "../ui/Button";
 import { useTransaction } from "@/api/hooks/transaction";
 import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
+import DescriptionRenderer from "./DescriptionRenderer";
 
 // getAccountDisplayName removed in favor of formatAccountLabel
 
@@ -71,16 +72,16 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
             {/* Amount Banner */}
             <div
               className={`p-4 sm:p-5 rounded-lg border ${transaction.transactionType === "Income"
-                  ? "bg-green-50 border-green-200"
-                  : "bg-red-50 border-red-200"
+                ? "bg-green-50 border-green-200"
+                : "bg-red-50 border-red-200"
                 }`}
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div
                     className={`p-2 rounded-lg ${transaction.transactionType === "Income"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
                       }`}
                   >
                     {transaction.transactionType === "Income" ? (
@@ -139,7 +140,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
               </div>
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg min-h-[80px] text-sm sm:text-base">
                 {transaction.description ? (
-                  transaction.description
+                  <DescriptionRenderer description={transaction.description} />
                 ) : (
                   <div className="text-center text-gray-400">
                     <XCircle className="mx-auto mb-1" />

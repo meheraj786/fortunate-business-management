@@ -19,6 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getTransactionById } from "@/api/transaction.api";
 import { memo } from "react";
 import { formatAccountLabel } from "@/utils/format";
+import DescriptionRenderer from "./DescriptionRenderer";
 
 const SortableHeader = ({
   label,
@@ -119,7 +120,7 @@ const TransactionTable = memo(
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 min-w-0 mr-3">
                       <div className="text-sm font-semibold text-gray-900 line-clamp-2">
-                        {transaction.description}
+                        <DescriptionRenderer description={transaction.description} />
                       </div>
                       <div className="text-xs text-gray-500 mt-1 flex items-center gap-1.5">
                         <span className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600 font-medium">
@@ -131,8 +132,8 @@ const TransactionTable = memo(
                     </div>
                     <div
                       className={`text-sm font-bold whitespace-nowrap ${transaction.transactionType === "Income"
-                          ? "text-[var(--color-success)]"
-                          : "text-[var(--color-danger)]"
+                        ? "text-[var(--color-success)]"
+                        : "text-[var(--color-danger)]"
                         }`}
                     >
                       {transaction.transactionType === "Income" ? "+ " : "- "}
@@ -144,12 +145,12 @@ const TransactionTable = memo(
                     <div className="flex items-center gap-2 sm:max-w-[60%]">
                       <div
                         className={`p-1.5 rounded-md flex-shrink-0 ${transaction.paymentMethod === "Bank"
-                            ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
-                            : transaction.paymentMethod === "Mobile Banking"
-                              ? "bg-purple-50 text-purple-600"
-                              : transaction.paymentMethod === "Cash"
-                                ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                                : "bg-gray-50 text-gray-600"
+                          ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
+                          : transaction.paymentMethod === "Mobile Banking"
+                            ? "bg-purple-50 text-purple-600"
+                            : transaction.paymentMethod === "Cash"
+                              ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                              : "bg-gray-50 text-gray-600"
                           }`}
                       >
                         {getPaymentIcon(transaction.paymentMethod)}
@@ -266,7 +267,7 @@ const TransactionTable = memo(
                         <td className="px-5 pr-0 py-4 sm:px-4 sm:pr-0 sm:py-3 border-b border-gray-100">
                           <div className="flex flex-col">
                             <div className="text-sm font-medium text-gray-900 line-clamp-2">
-                              {transaction.description}
+                              <DescriptionRenderer description={transaction.description} />
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
                               {transaction.source}
@@ -282,8 +283,8 @@ const TransactionTable = memo(
 
                         <td
                           className={`px-5 py-4 sm:px-4 sm:py-3 text-sm font-semibold text-right whitespace-nowrap border-b border-gray-100 ${transaction.transactionType === "Income"
-                              ? "text-[var(--color-success)]"
-                              : "text-[var(--color-danger)]"
+                            ? "text-[var(--color-success)]"
+                            : "text-[var(--color-danger)]"
                             }`}
                         >
                           {transaction.transactionType === "Income"
@@ -296,13 +297,13 @@ const TransactionTable = memo(
                           <div className="flex items-center gap-3">
                             <div
                               className={`p-1.5 rounded-md flex-shrink-0 ${transaction.paymentMethod === "Bank"
-                                  ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
-                                  : transaction.paymentMethod ===
-                                    "Mobile Banking"
-                                    ? "bg-purple-50 text-purple-600"
-                                    : transaction.paymentMethod === "Cash"
-                                      ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                                      : "bg-gray-50 text-gray-600"
+                                ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
+                                : transaction.paymentMethod ===
+                                  "Mobile Banking"
+                                  ? "bg-purple-50 text-purple-600"
+                                  : transaction.paymentMethod === "Cash"
+                                    ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                                    : "bg-gray-50 text-gray-600"
                                 }`}
                             >
                               {getPaymentIcon(transaction.paymentMethod)}
