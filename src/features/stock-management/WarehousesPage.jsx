@@ -11,7 +11,9 @@ import {
   Trash,
   Trash2,
   Warehouse,
+
   XCircle,
+  Scale,
 } from "lucide-react";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
@@ -40,6 +42,14 @@ const Warehouses = () => {
 
   const warehouses = warehouseData?.data?.warehouses || [];
   const totalStats = warehouseData?.data?.stats || {};
+
+  const formatWeight = (kg) => {
+    if (!kg) return "0 KG";
+    if (kg < 1000) {
+      return `${kg.toFixed(2)} KG`;
+    }
+    return `${(kg / 1000).toFixed(2)} TON`;
+  };
 
   const handleFormClose = () => {
     setShowAddWarehouseForm(false);
@@ -96,9 +106,8 @@ const Warehouses = () => {
             <p className="text-gray-600 mt-2 text-sm sm:text-base max-w-2xl">
               {warehouses.length === 0
                 ? "Get started by adding your first warehouse to organize your inventory."
-                : `Manage ${warehouses.length} warehouse${
-                    warehouses.length !== 1 ? "s" : ""
-                  } and their inventory.`}
+                : `Manage ${warehouses.length} warehouse${warehouses.length !== 1 ? "s" : ""
+                } and their inventory.`}
             </p>
           </div>
           <div className="flex gap-2">
@@ -134,6 +143,13 @@ const Warehouses = () => {
               number={totalStats?.totalProducts || 0}
               Icon={Package}
               textColor="primary"
+              loading={isLoading}
+            />
+            <StatBox
+              title="Total Quantity"
+              number={formatWeight(totalStats?.totalQuantity)}
+              Icon={Scale}
+              textColor="info"
               loading={isLoading}
             />
             <StatBox
@@ -188,156 +204,172 @@ const Warehouses = () => {
           <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
             {isLoading
               ? Array.from({ length: 4 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 animate-pulse"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg"></div>
-                      <div className="flex-1 space-y-3">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-100 rounded w-1/2"></div>
-                        <div className="pt-4 border-t border-gray-100 flex gap-4">
-                          <div className="h-3 bg-gray-100 rounded w-12"></div>
-                          <div className="h-3 bg-gray-100 rounded w-12"></div>
-                        </div>
+                <div
+                  key={i}
+                  className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 animate-pulse"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg"></div>
+                    <div className="flex-1 space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+                      <div className="pt-4 border-t border-gray-100 flex gap-4">
+                        <div className="h-3 bg-gray-100 rounded w-12"></div>
+                        <div className="h-3 bg-gray-100 rounded w-12"></div>
                       </div>
                     </div>
                   </div>
-                ))
+                </div>
+              ))
               : warehouses.map((warehouse) => (
-                  <div
-                    key={warehouse._id}
-                    className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col border border-gray-200/60 hover:border-gray-300 group"
-                  >
-                    {hasPermission("WAREHOUSE_VIEW") ? (
-                      <Link
-                        to={`/stock/${warehouse._id}`}
-                        className="p-6 flex-grow block hover:bg-gray-50/50 transition-colors duration-200"
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg group-hover:scale-105 transition-transform duration-200">
-                            <Warehouse
-                              className="text-[var(--color-primary)]"
-                              size={24}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h2 className="text-lg font-semibold text-gray-900 truncate mb-1 group-hover:text-[var(--color-primary)] transition-colors">
-                              {warehouse.name}
-                            </h2>
-                            <div className="flex items-center gap-2 text-gray-600 mb-3">
-                              <MapPin
-                                size={14}
-                                className="flex-shrink-0 mt-0.5"
-                              />
-                              <span className="text-sm truncate">
-                                {warehouse.location}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-gray-700 mt-4 border-t border-gray-100 pt-4">
-                              <div className="flex items-center gap-2">
-                                <Package size={16} className="text-gray-500" />{" "}
-                                <span className="font-medium">
-                                  {warehouse.stats?.totalProducts || 0}
-                                </span>{" "}
-                                <span className="text-gray-500">Products</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <CheckCircle
-                                  size={16}
-                                  className="text-[var(--color-success)]"
-                                />{" "}
-                                <span className="font-medium">
-                                  {warehouse.stats?.totalInStock || 0}
-                                </span>{" "}
-                                <span className="text-gray-500">In Stock</span>
-                              </div>
-                            </div>
-                          </div>
+                <div
+                  key={warehouse._id}
+                  className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col border border-gray-200/60 hover:border-gray-300 group"
+                >
+                  {hasPermission("WAREHOUSE_VIEW") ? (
+                    <Link
+                      to={`/stock/${warehouse._id}`}
+                      className="p-6 flex-grow block hover:bg-gray-50/50 transition-colors duration-200"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg group-hover:scale-105 transition-transform duration-200">
+                          <Warehouse
+                            className="text-[var(--color-primary)]"
+                            size={24}
+                          />
                         </div>
-                      </Link>
-                    ) : (
-                      <div className="p-6 flex-grow">
-                        <div className="flex items-start gap-4">
-                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg">
-                            <Warehouse
-                              className="text-[var(--color-primary)]"
-                              size={24}
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-lg font-semibold text-gray-900 truncate mb-1 group-hover:text-[var(--color-primary)] transition-colors">
+                            {warehouse.name}
+                          </h2>
+                          <div className="flex items-center gap-2 text-gray-600 mb-3">
+                            <MapPin
+                              size={14}
+                              className="flex-shrink-0 mt-0.5"
                             />
+                            <span className="text-sm truncate">
+                              {warehouse.location}
+                            </span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h2 className="text-lg font-semibold text-gray-900 truncate mb-1">
-                              {warehouse.name}
-                            </h2>
-                            <div className="flex items-center gap-2 text-gray-600 mb-3">
-                              <MapPin
-                                size={14}
-                                className="flex-shrink-0 mt-0.5"
-                              />
-                              <span className="text-sm truncate">
-                                {warehouse.location}
-                              </span>
+                          <div className="flex items-center gap-x-4 gap-y-2 text-sm text-gray-700 mt-4 border-t border-gray-100 pt-4 flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <Package size={16} className="text-gray-500" />{" "}
+                              <span className="font-medium">
+                                {warehouse.stats?.totalProducts || 0}
+                              </span>{" "}
+                              <span className="text-gray-500">Products</span>
                             </div>
-                            <div className="flex items-center gap-4 text-sm text-gray-700 mt-4 border-t border-gray-100 pt-4">
-                              <div className="flex items-center gap-2">
-                                <Package size={16} className="text-gray-500" />{" "}
-                                <span className="font-medium">
-                                  {warehouse.stats?.totalProducts || 0}
-                                </span>{" "}
-                                <span className="text-gray-500">Products</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <CheckCircle
-                                  size={16}
-                                  className="text-[var(--color-success)]"
-                                />{" "}
-                                <span className="font-medium">
-                                  {warehouse.stats?.totalInStock || 0}
-                                </span>{" "}
-                                <span className="text-gray-500">In Stock</span>
-                              </div>
+
+                            <div className="flex items-center gap-2">
+                              <Scale size={16} className="text-[var(--color-info)]" />{" "}
+                              <span className="font-medium">
+                                {formatWeight(warehouse.stats?.totalQuantity || 0)}
+                              </span>{" "}
+                              <span className="text-gray-500">Total Qty</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <CheckCircle
+                                size={16}
+                                className="text-[var(--color-success)]"
+                              />{" "}
+                              <span className="font-medium">
+                                {warehouse.stats?.totalInStock || 0}
+                              </span>{" "}
+                              <span className="text-gray-500">In Stock</span>
                             </div>
                           </div>
                         </div>
                       </div>
-                    )}
-                    <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
-                      {hasPermission("WAREHOUSE_UPDATE") && (
-                        <Button
-                          onClick={() => handleEditClick(warehouse)}
-                          variant="subtle"
-                          size="sm"
-                          className="!p-2 text-gray-400 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
-                          aria-label={`Edit ${warehouse.name}`}
-                          title="Edit Warehouse"
-                        >
-                          <Edit size={16} />
-                        </Button>
-                      )}
-                      {hasPermission("WAREHOUSE_DELETE") && (
-                        <Button
-                          onClick={() => handleDeleteClick(warehouse)}
-                          disabled={
-                            deleteWarehouseMutation.isLoading &&
-                            warehouseToDelete?._id === warehouse._id
-                          }
-                          isLoading={
-                            deleteWarehouseMutation.isLoading &&
-                            warehouseToDelete?._id === warehouse._id
-                          }
-                          variant="subtle"
-                          size="sm"
-                          className="!p-2 text-gray-400 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]"
-                          aria-label={`Delete ${warehouse.name}`}
-                          title="Delete Warehouse"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      )}
+                    </Link>
+                  ) : (
+                    <div className="p-6 flex-grow">
+                      <div className="flex items-start gap-4">
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg">
+                          <Warehouse
+                            className="text-[var(--color-primary)]"
+                            size={24}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-lg font-semibold text-gray-900 truncate mb-1">
+                            {warehouse.name}
+                          </h2>
+                          <div className="flex items-center gap-2 text-gray-600 mb-3">
+                            <MapPin
+                              size={14}
+                              className="flex-shrink-0 mt-0.5"
+                            />
+                            <span className="text-sm truncate">
+                              {warehouse.location}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-x-4 gap-y-2 text-sm text-gray-700 mt-4 border-t border-gray-100 pt-4 flex-wrap">
+
+                            <div className="flex items-center gap-2">
+                              <Package size={16} className="text-gray-500" />{" "}
+                              <span className="font-medium">
+                                {warehouse.stats?.totalProducts || 0}
+                              </span>{" "}
+                              <span className="text-gray-500">Products</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Scale size={16} className="text-[var(--color-info)]" />{" "}
+                              <span className="font-medium">
+                                {formatWeight(warehouse.stats?.totalQuantity || 0)}
+                              </span>{" "}
+                              <span className="text-gray-500">Total Qty</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <CheckCircle
+                                size={16}
+                                className="text-[var(--color-success)]"
+                              />{" "}
+                              <span className="font-medium">
+                                {warehouse.stats?.totalInStock || 0}
+                              </span>{" "}
+                              <span className="text-gray-500">In Stock</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                  )}
+                  <div className="border-t border-gray-100 px-4 py-1 flex justify-end items-center gap-2 bg-gray-50/50 rounded-b-xl">
+                    {hasPermission("WAREHOUSE_UPDATE") && (
+                      <Button
+                        onClick={() => handleEditClick(warehouse)}
+                        variant="subtle"
+                        size="sm"
+                        className="!p-2 text-gray-400 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
+                        aria-label={`Edit ${warehouse.name}`}
+                        title="Edit Warehouse"
+                      >
+                        <Edit size={16} />
+                      </Button>
+                    )}
+                    {hasPermission("WAREHOUSE_DELETE") && (
+                      <Button
+                        onClick={() => handleDeleteClick(warehouse)}
+                        disabled={
+                          deleteWarehouseMutation.isLoading &&
+                          warehouseToDelete?._id === warehouse._id
+                        }
+                        isLoading={
+                          deleteWarehouseMutation.isLoading &&
+                          warehouseToDelete?._id === warehouse._id
+                        }
+                        variant="subtle"
+                        size="sm"
+                        className="!p-2 text-gray-400 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)]"
+                        aria-label={`Delete ${warehouse.name}`}
+                        title="Delete Warehouse"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    )}
                   </div>
-                ))}
+                </div>
+              ))}
           </div>
         )}
       </div>
