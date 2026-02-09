@@ -259,10 +259,7 @@ const AddTransactionDialog = ({
           error={errors.name?.message}
           placeholder={namePlaceholder}
           validation={{
-            required:
-              watchedCategory === "LC" || watchedCategory === "Sales"
-                ? `A name is required for ${watchedCategory} ${transactionType}`
-                : false, // Optional if not LC/Sales
+            required: "Name is required",
           }}
         />
 
@@ -325,11 +322,9 @@ const AddTransactionDialog = ({
             placeholder={descriptionPlaceholder}
             rows="3"
             validation={{
-              required:
-                transactionType === "expense"
-                  ? "Description is required"
-                  : false,
+              required: "Description is required",
             }}
+            required={true}
           />
         )}
 
