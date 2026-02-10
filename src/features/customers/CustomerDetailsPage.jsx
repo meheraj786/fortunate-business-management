@@ -18,11 +18,16 @@ import {
   Building,
   Star,
   CreditCard,
-  Loader2,
   FileIcon,
+  Wallet,
+  Hash,
+  ShoppingBag,
+  AlertCircle,
+  Receipt,
 } from "lucide-react";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import AuditInfoSection from "@/components/ui/AuditInfoSection";
+import StatBox from "@/components/ui/StatBox";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 
 // Components
@@ -37,6 +42,7 @@ import CreditHistoryTable from "./components/CreditHistoryTable";
 
 // Custom Hooks
 import { useUrl } from "@/hooks/useUrl";
+import CustomerTypePill from "@/components/ui/CustomerTypePill";
 import { useCustomerData, useSalesData } from "@/hooks/useCustomerOperations";
 import {
   useDeleteCustomer,
@@ -46,6 +52,27 @@ import { useAuth } from "@/hooks/useAuth";
 import { downloadCustomerDocument } from "../../api/customer.api";
 import { getSaleById } from "@/api/sales.api";
 import { useSettings } from "@/context/SettingsContext";
+
+
+// --- Helper: Quick Glance Item ---
+const QuickGlanceItem = ({ icon: Icon, label, value, loading }) => (
+  <div className="flex items-start gap-3 py-2.5">
+    <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
+      {Icon && <Icon size={16} className="text-gray-500" />}
+    </div>
+    <div className="min-w-0 flex-1">
+      <p className="text-xs text-gray-500 mb-0.5">{label}</p>
+      {loading ? (
+        <ValueSkeleton width="w-20" height="h-4" />
+      ) : (
+        <div className="font-medium text-gray-800 text-sm truncate">
+          {value || "N/A"}
+        </div>
+      )}
+    </div>
+  </div>
+);
+
 
 const CustomerDetails = () => {
   const { id } = useParams();
@@ -185,7 +212,7 @@ const CustomerDetails = () => {
     () => ({
       totalPurchases: customerData?.stats?.totalPurchases || 0,
       totalSpent: formatCurrency(customerData?.stats?.totalSpent),
-      notInvoiced: customerData?.stats?.notInvoiced || 0,
+      notInvoiced: formatCurrency(customerData?.stats?.notInvoiced || 0),
       outstandingDues: formatCurrency(customerData?.stats?.outstandingDues),
       creditBalance: formatCurrency(customerData?.creditBalance || 0),
     }),
@@ -243,13 +270,14 @@ const CustomerDetails = () => {
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
       <div className="max-w-7xl mx-auto">
+        {/* ===== HEADER ===== */}
         <motion.div
           className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-200"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div className="flex items-center flex-1 min-w-0">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[var(--color-primary-light)] rounded-full flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
                 <User className="text-[var(--color-primary)] text-xl sm:text-2xl" />
@@ -262,31 +290,32 @@ const CustomerDetails = () => {
                     customerData?.name
                   )}
                 </h1>
-                <div className="flex items-center mt-1 flex-wrap gap-2">
+                <div className="flex items-center mt-1.5 flex-wrap gap-2">
                   {loadingCustomer ? (
-                    <ValueSkeleton width="w-24" height="h-5" />
+                    <ValueSkeleton width="w-32" height="h-5" />
                   ) : (
                     <>
                       {customerData?.customerId && (
-                        <span className="text-gray-600 text-sm sm:text-base">
+                        <span className="text-gray-500 text-sm font-mono bg-gray-100 px-2 py-0.5 rounded">
                           {customerData?.customerId}
                         </span>
                       )}
-                      <StatusBadge status={customerData?.customerStatus} />
+                      <CustomerTypePill type={customerData?.customerType} />
+                      <StatusBadge status={customerData?.customerStatus} size="sm" />
                     </>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               {hasPermission("CUSTOMER_UPDATE") && (
                 <Button
                   onClick={() => navigate(`/customer-form/${id}`)}
                   onMouseEnter={preloadEditForm}
                   variant="primary"
                   size="sm"
-                  className="flex items-center"
+                  className="flex items-center justify-center flex-1 sm:flex-initial"
                   aria-label="Edit customer"
                 >
                   <Edit className="mr-2 w-4 h-4" aria-hidden="true" />
@@ -298,7 +327,7 @@ const CustomerDetails = () => {
                   onClick={handleOpenDeleteModal}
                   variant="danger"
                   size="sm"
-                  className="flex items-center"
+                  className="flex items-center justify-center flex-1 sm:flex-initial"
                   aria-label="Delete customer"
                 >
                   <Trash2 className="mr-2 w-4 h-4" aria-hidden="true" />
@@ -308,24 +337,62 @@ const CustomerDetails = () => {
             </div>
           </div>
         </motion.div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+
+        {/* ===== STATS ROW ===== */}
+        <div className="mb-4 sm:mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <StatBox
+            title="Total Purchases"
+            number={customerStats.totalPurchases}
+            Icon={ShoppingBag}
+            textColor="blue"
+            loading={loadingCustomer}
+          />
+          <StatBox
+            title="Total Spent"
+            number={customerStats.totalSpent}
+            Icon={DollarSign}
+            textColor="green"
+            loading={loadingCustomer}
+          />
+          <StatBox
+            title="Not Invoiced"
+            number={customerStats.notInvoiced}
+            Icon={AlertCircle}
+            textColor="yellow"
+            loading={loadingCustomer}
+          />
+          <StatBox
+            title="Outstanding Dues"
+            number={customerStats.outstandingDues}
+            Icon={Receipt}
+            textColor="red"
+            loading={loadingCustomer}
+          />
+          <StatBox
+            title="Credit Balance"
+            number={customerStats.creditBalance}
+            Icon={Wallet}
+            textColor="blue"
+            loading={loadingCustomer}
+          />
+        </div>
+
+        {/* ===== BENTO GRID ===== */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+          {/* --- LEFT COLUMN (2/3) --- */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Contact & Identity */}
             <CollapsibleCard
-              title="General Information"
+              title="Contact & Identity"
               icon={<User className="text-[var(--color-primary)]" />}
               defaultOpen={true}
-              ariaLabel="General Information Section"
+              ariaLabel="Contact & Identity Section"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <DataField
                   label="Company Name"
                   value={customerData?.companyName}
                   icon={Building}
-                  loading={loadingCustomer}
-                />
-                <DataField
-                  label="Customer Type"
-                  value={customerData?.customerType}
                   loading={loadingCustomer}
                 />
                 <DataField
@@ -374,81 +441,25 @@ const CustomerDetails = () => {
               </div>
             </CollapsibleCard>
 
-            <CollapsibleCard
-              title="Transaction Overview"
-              icon={<PieChart className="text-[var(--color-primary)]" />}
-              defaultOpen={true}
-              ariaLabel="Transaction Overview Section"
-            >
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[var(--color-primary-light)] p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-primary)]">
-                    {loadingCustomer ? (
-                      <ValueSkeleton width="w-12" height="h-7" />
-                    ) : (
-                      customerStats.totalPurchases
-                    )}
-                  </div>
-                  <div className="text-xs sm:text-sm text-[var(--color-primary)] mt-1">
-                    Total Purchases
-                  </div>
-                </div>
-                <div className="bg-[var(--color-success-light)] p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-success)]">
-                    {loadingCustomer ? (
-                      <ValueSkeleton width="w-16" height="h-7" />
-                    ) : (
-                      customerStats.totalSpent
-                    )}
-                  </div>
-                  <div className="text-xs sm:text-sm text-[var(--color-success)] mt-1">
-                    Total Spent
-                  </div>
-                </div>
-                <div className="bg-[var(--color-warning-light)] p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-warning)]">
-                    {loadingCustomer ? (
-                      <ValueSkeleton width="w-12" height="h-7" />
-                    ) : (
-                      customerStats.notInvoiced
-                    )}
-                  </div>
-                  <div className="text-xs sm:text-sm text-[var(--color-warning)] mt-1">
-                    Not Invoiced
-                  </div>
-                </div>
-                <div className="bg-[var(--color-danger-light)] p-4 rounded-lg text-center">
-                  <div className="text-xl sm:text-2xl font-bold text-[var(--color-danger)]">
-                    {loadingCustomer ? (
-                      <ValueSkeleton width="w-16" height="h-7" />
-                    ) : (
-                      customerStats.outstandingDues
-                    )}
-                  </div>
-                  <div className="text-xs sm:text-sm text-[var(--color-danger)] mt-1">
-                    Outstanding Dues
-                  </div>
-                </div>
-              </div>
-            </CollapsibleCard>
-          </div>
-
-          <div className="space-y-4 sm:space-y-6">
-
+            {/* Wallet & Credit */}
             <CollapsibleCard
               title="Wallet & Credit"
-              icon={<CreditCard className="text-[var(--color-primary)]" />}
+              icon={<Wallet className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="Wallet & Credit Section"
             >
               <div className="space-y-4">
-                <div className="flex justify-between items-center bg-blue-50 p-4 rounded-lg border border-blue-100">
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">
+                <div className="flex flex-row justify-between items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-blue-100">
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
                       Available Credit
                     </p>
-                    <p className="text-2xl font-bold text-[var(--color-primary)]">
-                      {customerStats.creditBalance}
+                    <p className="text-2xl font-bold text-[var(--color-primary)] mt-1">
+                      {loadingCustomer ? (
+                        <ValueSkeleton width="w-20" height="h-7" />
+                      ) : (
+                        customerStats.creditBalance
+                      )}
                     </p>
                   </div>
                   {hasPermission("CUSTOMER_UPDATE") && (
@@ -469,39 +480,70 @@ const CustomerDetails = () => {
                 </div>
               </div>
             </CollapsibleCard>
+          </div>
 
-            <CollapsibleCard
-              title="Status Information"
-              icon={<Star className="text-[var(--color-primary)]" />}
-              defaultOpen={true}
-              ariaLabel="Status Information Section"
+          {/* --- RIGHT COLUMN (1/3) --- */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Quick Glance */}
+            <motion.div
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-5"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <div className="space-y-3">
-                <DataField
-                  label="Customer Status"
-                  value={<StatusBadge status={customerData?.customerStatus} />}
-                  loading={loadingCustomer}
-                />
-                <DataField
-                  label="Customer Type"
-                  value={customerData?.customerType}
-                  loading={loadingCustomer}
-                />
-                <DataField
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <Star size={18} className="text-[var(--color-primary)]" />
+                Quick Glance
+              </h3>
+              <div className="divide-y divide-gray-100">
+                <QuickGlanceItem
+                  icon={Hash}
                   label="Customer ID"
                   value={customerData?.customerId}
                   loading={loadingCustomer}
                 />
-                <DataField
-                  label="Join Date"
-                  value={customerData?.joinDate}
-                  format="date"
+                <div className="flex items-start gap-3 py-2.5">
+                  <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
+                    <Building size={16} className="text-gray-500" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-gray-500 mb-0.5">Customer Type</p>
+                    {loadingCustomer ? (
+                      <ValueSkeleton width="w-16" height="h-5" />
+                    ) : (
+                      <CustomerTypePill type={customerData?.customerType} />
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 py-2.5">
+                  <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
+                    <Star size={16} className="text-gray-500" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-gray-500 mb-0.5">Status</p>
+                    {loadingCustomer ? (
+                      <ValueSkeleton width="w-16" height="h-5" />
+                    ) : (
+                      <StatusBadge status={customerData?.customerStatus} size="sm" />
+                    )}
+                  </div>
+                </div>
+                <QuickGlanceItem
                   icon={Calendar}
+                  label="Join Date"
+                  value={customerData?.joinDate ? formatDate(customerData.joinDate) : null}
+                  loading={loadingCustomer}
+                />
+                <QuickGlanceItem
+                  icon={CreditCard}
+                  label="Credit Limit"
+                  value={customerData?.creditLimit ? formatCurrency(customerData.creditLimit) : null}
                   loading={loadingCustomer}
                 />
               </div>
-            </CollapsibleCard>
+            </motion.div>
 
+            {/* Documents & Note */}
             <CollapsibleCard
               title="Documents & Note"
               icon={<FileText className="text-[var(--color-primary)]" />}
@@ -578,6 +620,7 @@ const CustomerDetails = () => {
           </div>
         </div>
 
+        {/* ===== RECENT PURCHASES (Full Width) ===== */}
         {hasPermission("SALE_VIEW_TABLE") && (
           <div className="mt-4 sm:mt-6">
             <CollapsibleCard
@@ -664,8 +707,8 @@ const CustomerDetails = () => {
                           </div>
                         </div>
                         <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                          <StatusBadge status={sale.invoiceStatus} />
-                          <StatusBadge status={sale.paymentStatus} />
+                          <StatusBadge status={sale.invoiceStatus} size="sm" />
+                          <StatusBadge status={sale.paymentStatus} size="sm" />
                         </div>
                       </div>
                     ))}
@@ -682,7 +725,7 @@ const CustomerDetails = () => {
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Product
                           </th>
-                          <th className="px4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             LC Number
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -752,10 +795,10 @@ const CustomerDetails = () => {
                               {formatCurrency(sale.totalAmountToBePaid)}
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <StatusBadge status={sale.invoiceStatus} />
+                              <StatusBadge status={sale.invoiceStatus} size="sm" />
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <StatusBadge status={sale.paymentStatus} />
+                              <StatusBadge status={sale.paymentStatus} size="sm" />
                             </td>
                           </tr>
                         ))}
@@ -821,7 +864,7 @@ const CustomerDetails = () => {
         onClose={() => setIsAddCreditModalOpen(false)}
         customerId={id}
       />
-    </motion.div >
+    </motion.div>
   );
 };
 

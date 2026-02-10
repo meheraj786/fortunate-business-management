@@ -25,6 +25,18 @@ export const SettingsProvider = ({ children }) => {
     return `${symbol}${Number(amount).toLocaleString()}`;
   };
 
+  // Helper: Format Compact Number (e.g. 1.2M, 500K)
+  const formatCompactNumber = (amount) => {
+    if (amount === undefined || amount === null) return "";
+    const symbol = getCurrencySymbol(formattedSettings?.currency || "USD");
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: formattedSettings?.currency || "USD",
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(amount);
+  };
+
   // Helper: Get Currency Symbol
   const getCurrencySymbol = (currencyCode) => {
     const symbols = {
@@ -93,6 +105,7 @@ export const SettingsProvider = ({ children }) => {
     formatTime,
     formatDateTime,
     formatNumber,
+    formatCompactNumber,
   };
 
   return (

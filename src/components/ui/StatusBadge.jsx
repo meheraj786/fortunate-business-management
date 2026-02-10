@@ -37,6 +37,7 @@ const StatusBadge = ({
     config = {
       bgColor: "var(--color-success-light)",
       textColor: "var(--color-success)",
+      borderColor: "border-green-200",
       icon: CheckCircle,
     };
   } else if (
@@ -48,6 +49,7 @@ const StatusBadge = ({
     config = {
       bgColor: "var(--color-danger-light)",
       textColor: "var(--color-danger)",
+      borderColor: "border-red-200",
       icon: XCircle,
     };
   } else if (
@@ -59,6 +61,7 @@ const StatusBadge = ({
     config = {
       bgColor: "var(--color-warning-light)",
       textColor: "var(--color-warning)",
+      borderColor: "border-orange-200",
       icon: AlertCircle,
     };
   } else if (
@@ -68,21 +71,22 @@ const StatusBadge = ({
     config = {
       bgColor: "var(--color-primary-light)",
       textColor: "var(--color-primary)",
+      borderColor: "border-blue-200",
       icon: Truck,
     };
   }
 
   const sizeClasses = {
-    sm: "px-2 py-1 text-xs",
-    md: "px-2.5 py-1.5 text-sm sm:px-2 sm:py-1 sm:text-xs",
-    lg: "px-3 py-1.5 text-base sm:text-sm",
+    sm: "px-2 py-0.5 text-xs",
+    md: "px-2.5 py-0.5 text-sm sm:px-2 sm:py-0.5 sm:text-xs",
+    lg: "px-3 py-1 text-base sm:text-sm",
   };
 
   const Icon = config.icon;
 
   return (
     <span
-      className={`inline-flex items-center rounded-full font-medium ${config.bgColor} ${config.textColor} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center rounded-full border ${config.borderColor} font-medium ${config.bgColor} ${config.textColor} ${sizeClasses[size]} ${className}`}
       aria-label={`Status: ${status}`}
     >
       {showIcon && <Icon className="mr-1.5" size={size === "sm" ? 12 : 16} />}

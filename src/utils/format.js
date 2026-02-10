@@ -13,6 +13,14 @@ export const formatCurrency = (amount) => {
   }).format(numericAmount);
 };
 
+export const formatCompactNumber = (number) => {
+  if (number === undefined || number === null) return "0";
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(number);
+};
+
 export const formatNumber = (number) => {
   if (number === null || number === undefined) return "0";
   return number.toLocaleString("en-US", {

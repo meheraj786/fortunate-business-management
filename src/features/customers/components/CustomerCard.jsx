@@ -1,11 +1,20 @@
 import React from "react";
-import { MapPin, Phone, ShoppingBag, DollarSign, Calendar } from "lucide-react";
-import { Link } from "react-router"; // Changed to react-router
-import { motion } from "framer-motion"; // Import motion
+import {
+  MapPin,
+  Phone,
+  ShoppingBag,
+  DollarSign,
+  Calendar,
+  Wallet,
+} from "lucide-react";
+import { Link } from "react-router";
+import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCustomerById } from "@/api/customer.api";
+import StatusBadge from "@/components/ui/StatusBadge";
+import CustomerTypePill from "@/components/ui/CustomerTypePill";
 
 const CustomerCard = ({ customer }) => {
   const { hasPermission } = useAuth();
@@ -24,21 +33,11 @@ const CustomerCard = ({ customer }) => {
 
   const totalPurchased = customer.totalSpent || 0;
   const totalDue = customer.totalDue || 0;
+  const creditBalance = customer.creditBalance || 0;
   const lastPurchaseDate = customer.lastPurchaseDate
     ? formatDate(customer.lastPurchaseDate)
     : "Never purchased";
 
-  // Status badge color
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "bg-[var(--color-success-light)] text-[var(--color-success)]";
-      case "suspended":
-        return "bg-[var(--color-danger-light)] text-[var(--color-danger)]";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   const CardContent = () => (
     <motion.div
@@ -58,15 +57,12 @@ const CustomerCard = ({ customer }) => {
           </p>
         </div>
 
-        <div className="flex flex-col gap-1 ml-2">
+        <div className="flex flex-col gap-1.5 ml-2 items-end">
           {customer.customerStatus && (
-            <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                customer.customerStatus,
-              )}`}
-            >
-              {customer.customerStatus}
-            </span>
+            <StatusBadge status={customer.customerStatus} size="sm" showIcon={false} />
+          )}
+          {customer.customerType && (
+            <CustomerTypePill type={customer.customerType} />
           )}
         </div>
       </div>
@@ -91,24 +87,34 @@ const CustomerCard = ({ customer }) => {
 
       {/* Financial Summary */}
       <div className="border-t border-gray-100 pt-4">
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           <div className="space-y-1">
             <div className="flex items-center gap-1 text-gray-600">
-              <ShoppingBag size={14} />
-              <span className="text-xs font-medium">Total Purchased</span>
+              <ShoppingBag size={12} />
+              <span className="text-xs font-medium">Purchased</span>
             </div>
-            <p className="font-semibold text-gray-900 text-base">
+            <p className="font-semibold text-gray-900 text-sm">
               {formatCurrency(totalPurchased)}
             </p>
           </div>
 
           <div className="space-y-1">
             <div className="flex items-center gap-1 text-[var(--color-danger)]">
-              <DollarSign size={14} />
-              <span className="text-xs font-medium">Total Due</span>
+              <DollarSign size={12} />
+              <span className="text-xs font-medium">Due</span>
             </div>
-            <p className="font-semibold text-[var(--color-danger)] text-base">
+            <p className="font-semibold text-[var(--color-danger)] text-sm">
               {formatCurrency(totalDue)}
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center gap-1 text-[var(--color-primary)]">
+              <Wallet size={12} />
+              <span className="text-xs font-medium">Credit</span>
+            </div>
+            <p className="font-semibold text-[var(--color-primary)] text-sm">
+              {formatCurrency(creditBalance)}
             </p>
           </div>
         </div>

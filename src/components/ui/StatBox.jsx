@@ -34,7 +34,7 @@ const StatBox = ({
           <h4 className="font-semibold mb-1 sm:mb-2 text-base sm:text-sm text-gray-700">
             {title}
           </h4>
-          <h3 className={`text-4xl sm:text-3xl font-bold ${textColorClass}`}>
+          <h3 className={`text-2xl sm:text-2xl md:text-3xl font-bold break-words tracking-tight ${textColorClass}`}>
             {loading ? (
               <ValueSkeleton width="w-24" height="h-8" className="mt-1" />
             ) : (
