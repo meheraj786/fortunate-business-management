@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import {
   ChevronLeft,
   ShoppingCart,
@@ -9,6 +9,9 @@ import {
   Trash2,
   XCircle,
   Menu,
+  User,
+  MapPin,
+  ExternalLink,
 } from "lucide-react";
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
@@ -155,7 +158,7 @@ const SaleDetails = () => {
   const isCancelled = sale?.invoiceStatus === "Cancelled";
   const canAddPayment =
     !isCancelled && sale?.paymentStatus === "Due payment" && balanceDue > 0;
-  const isRegisteredCustomer = !!sale?.customer?.customerId?._id;
+  const isRegisteredCustomer = !!sale?.customer?.id;
   const validPayments = sale?.payments?.filter((p) => p.amount) || [];
 
   return (
@@ -167,6 +170,7 @@ const SaleDetails = () => {
       <div className="max-w-7xl mx-auto">
         <Breadcrumb items={breadcrumbItems} />
         <div className="mt-6 space-y-6">
+
           <div className="bg-white rounded-lg shadow-sm p-5">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
               <div className="flex items-center gap-3">
@@ -296,6 +300,70 @@ const SaleDetails = () => {
             </div>
 
             <div className="space-y-6">
+              {/* Customer Information (Moved to Sidebar) */}
+              {sale?.customer && (
+                <div className="bg-white rounded-lg shadow-sm p-5">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <User className="h-5 w-5 mr-2 text-[var(--color-primary)]" />
+                    Customer Details
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Name
+                      </label>
+                      <p className="text-sm font-medium text-gray-900">
+                        {isLoading ? (
+                          <ValueSkeleton width="w-32" height="h-4" />
+                        ) : (
+                          sale?.customer?.name
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Phone
+                      </label>
+                      <p className="text-sm text-gray-900">
+                        {isLoading ? (
+                          <ValueSkeleton width="w-28" height="h-4" />
+                        ) : (
+                          sale?.customer?.phone || "N/A"
+                        )}
+                      </p>
+                    </div>
+                    {sale?.customer?.address && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          Address
+                        </label>
+                        <div className="flex items-start text-sm text-gray-900">
+                          <MapPin className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-gray-400 flex-shrink-0" />
+                          <span>
+                            {isLoading ? (
+                              <ValueSkeleton width="w-full" height="h-4" />
+                            ) : (
+                              sale?.customer?.address
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {isRegisteredCustomer && (
+                      <div className="pt-2">
+                        <Link
+                          to={`/customer-details/${sale?.customer?.id}`}
+                          className="w-full inline-flex justify-center items-center px-4 py-2 border border-[var(--color-primary)] text-sm font-medium rounded-lg text-[var(--color-primary)] bg-white hover:bg-[var(--color-primary-light)] transition-colors"
+                        >
+                          View Customer Profile
+                          <ExternalLink className="h-4 w-4 ml-2" />
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Additional Details (Notes & History) - Kept Inline for now as they are small */}
               <div className="bg-white rounded-lg shadow-sm p-5">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">

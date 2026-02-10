@@ -173,7 +173,9 @@ const DisplayInvoice = () => {
   } = paymentAndAmountInfo;
 
   const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
-  const balanceDue = totalAmountToBePaid - totalPayments;
+  const rawBalanceDue = totalAmountToBePaid - totalPayments;
+  const balanceDue = Math.max(0, rawBalanceDue);
+  const creditedToWallet = rawBalanceDue < 0 ? Math.abs(rawBalanceDue) : 0;
 
   // --- JSX ---
   return (
@@ -402,6 +404,14 @@ const DisplayInvoice = () => {
                     {formatCurrency(balanceDue)}
                   </p>
                 </div>
+                {creditedToWallet > 0 && (
+                  <div className="flex justify-between bg-blue-50 p-2 rounded-md text-blue-800">
+                    <p className="font-bold text-base">Credited to Wallet:</p>
+                    <p className="font-bold text-base">
+                      {formatCurrency(creditedToWallet)}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

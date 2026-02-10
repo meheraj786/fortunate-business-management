@@ -110,16 +110,16 @@ const SaleFinancialSummary = ({
         </div>
         <div
           className={`border-t border-gray-200 pt-3 flex justify-between items-center text-lg font-semibold ${balanceDue > 0
-              ? "text-[var(--color-danger)]"
-              : "text-[var(--color-success)]"
+            ? "text-[var(--color-danger)]"
+            : "text-[var(--color-success)]"
             }`}
         >
-          <span>{balanceDue > 0 ? "Balance Due" : "Transferred to Credit"}</span>
+          <span>{balanceDue > 0 ? "Balance Due" : (Math.abs(balanceDue) > 0 ? "Credited to Wallet" : "Balance Due")}</span>
           <span>
             {loading ? (
               <ValueSkeleton width="w-24" height="h-6" />
             ) : (
-              formatCurrency(Math.abs(balanceDue))
+              formatCurrency(balanceDue > 0 ? balanceDue : Math.abs(balanceDue))
             )}
           </span>
         </div>

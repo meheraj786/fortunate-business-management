@@ -103,64 +103,7 @@ const SaleInfo = ({
         </div>
       </div>
 
-      {/* Customer Information */}
-      {sale?.customer && (
-        <div className="bg-white rounded-lg shadow-sm p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <User className="h-5 w-5 mr-2 text-[var(--color-primary)]" />
-            Customer Information
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Name
-              </label>
-              <p className="text-gray-900">
-                {loading ? (
-                  <ValueSkeleton width="w-32" height="h-4" />
-                ) : (
-                  sale?.customer?.name
-                )}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Phone
-              </label>
-              <p className="text-gray-900">
-                {loading ? (
-                  <ValueSkeleton width="w-28" height="h-4" />
-                ) : (
-                  sale?.customer?.phone || "N/A"
-                )}
-              </p>
-            </div>
-            {!isRegisteredCustomer && sale?.customer?.address && (
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Address
-                </label>
-                <p className="text-gray-900">
-                  {loading ? (
-                    <ValueSkeleton width="w-full" height="h-4" />
-                  ) : (
-                    sale?.customer?.address
-                  )}
-                </p>
-              </div>
-            )}
-            {isRegisteredCustomer && hasPermission("CUSTOMER_VIEW_DETAILS") && (
-              <Link
-                to={`/customer-details/${sale?.customer?.customerId?._id}`}
-                className="inline-flex items-center text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
-              >
-                View Customer Details
-                <ExternalLink className="h-4 w-4 ml-1" />
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };
