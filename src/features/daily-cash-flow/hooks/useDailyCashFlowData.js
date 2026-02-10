@@ -255,6 +255,10 @@ export const useDailyCashFlowData = () => {
     totalExpenses: 0,
     runningBalance: 0,
     totalTransactions: 0,
+    totalCashIncome: 0,
+    totalCashExpenses: 0,
+    totalBusinessCashIncome: 0,
+    totalBusinessCashExpenses: 0,
     incomeTransactionsCount: 0,
     expenseTransactionsCount: 0,
   };

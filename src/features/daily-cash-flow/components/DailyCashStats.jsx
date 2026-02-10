@@ -4,7 +4,11 @@ import { Wallet, TrendingDown, TrendingUp, DollarSign } from "lucide-react";
 import StatCard from "./StatCard";
 // import Skeleton from "react-loading-skeleton"; // Removed react-loading-skeleton
 
+import { useSettings } from "@/context/SettingsContext";
+
 const DailyCashStats = ({ summary, isLoading }) => {
+  const { formatCurrency } = useSettings();
+
   if (!summary && !isLoading) {
     return null;
   }
@@ -14,6 +18,10 @@ const DailyCashStats = ({ summary, isLoading }) => {
     totalIncome,
     totalExpenses,
     runningBalance,
+    totalCashIncome,
+    totalCashExpenses,
+    totalBusinessCashIncome,
+    totalBusinessCashExpenses,
     incomeTransactionsCount,
     expenseTransactionsCount,
   } = summary;
@@ -28,6 +36,9 @@ const DailyCashStats = ({ summary, isLoading }) => {
   };
 
   const runningBalanceColor = getRunningBalanceColor();
+
+  const bankIncome = totalIncome - totalBusinessCashIncome;
+  const bankExpenses = totalExpenses - totalBusinessCashExpenses;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -44,7 +55,11 @@ const DailyCashStats = ({ summary, isLoading }) => {
         amount={totalIncome}
         icon={TrendingUp}
         color="green"
-        subtitle={`${incomeTransactionsCount || 0} transactions`}
+        subtitle={
+          isLoading
+            ? "Loading..."
+            : `Cash: ${formatCurrency(totalBusinessCashIncome)} | Other: ${formatCurrency(bankIncome)}`
+        }
         loading={isLoading}
       />
       <StatCard
@@ -52,7 +67,11 @@ const DailyCashStats = ({ summary, isLoading }) => {
         amount={totalExpenses}
         icon={TrendingDown}
         color="red"
-        subtitle={`${expenseTransactionsCount || 0} transactions`}
+        subtitle={
+          isLoading
+            ? "Loading..."
+            : `Cash: ${formatCurrency(totalBusinessCashExpenses)} | Other: ${formatCurrency(bankExpenses)}`
+        }
         loading={isLoading}
       />
       <StatCard
@@ -60,7 +79,7 @@ const DailyCashStats = ({ summary, isLoading }) => {
         amount={runningBalance}
         icon={DollarSign}
         color={runningBalanceColor}
-        subtitle="Current cash in hand"
+        subtitle="Physical Cash in Hand"
         loading={isLoading}
       />
     </div>
@@ -73,6 +92,10 @@ DailyCashStats.propTypes = {
     totalIncome: PropTypes.number,
     totalExpenses: PropTypes.number,
     runningBalance: PropTypes.number,
+    totalCashIncome: PropTypes.number,
+    totalCashExpenses: PropTypes.number,
+    totalBusinessCashIncome: PropTypes.number,
+    totalBusinessCashExpenses: PropTypes.number,
     incomeTransactionsCount: PropTypes.number,
     expenseTransactionsCount: PropTypes.number,
   }),
