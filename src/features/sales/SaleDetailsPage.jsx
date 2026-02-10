@@ -171,112 +171,107 @@ const SaleDetails = () => {
         <Breadcrumb items={breadcrumbItems} />
         <div className="mt-6 space-y-6">
 
-          <div className="bg-white rounded-lg shadow-sm p-5">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-lg bg-[var(--color-primary-light)]">
-                  <ShoppingCart className="h-6 w-6 text-[var(--color-primary)]" />
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5">
+            <div className="flex flex-col gap-4">
+              {/* Row 1: Identity & Actions */}
+              <div className="flex justify-between items-center sm:items-start">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2 sm:p-3 rounded-lg bg-[var(--color-primary-light)] flex-shrink-0">
+                    <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--color-primary)]" />
+                  </div>
+                  <div className="min-w-0">
+                    <h1 className="text-base sm:text-2xl font-bold text-gray-900 truncate">
+                      {isLoading ? (
+                        <ValueSkeleton width="w-24" height="h-6 sm:h-7" />
+                      ) : (
+                        `#${sale.saleId}`
+                      )}
+                    </h1>
+                    <p className="text-[10px] sm:text-sm text-gray-600 mt-0.5 flex items-center">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                      {isLoading ? (
+                        <ValueSkeleton width="w-24 sm:w-32" height="h-3" />
+                      ) : (
+                        <span className="truncate">
+                          Sold on {formatDate(sale.saleDate)}
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
-                    {isLoading ? (
-                      <ValueSkeleton width="w-24" height="h-7" />
-                    ) : (
-                      `#${sale.saleId}`
-                    )}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5 flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {isLoading ? (
-                      <ValueSkeleton width="w-32" height="h-3" />
-                    ) : (
-                      `Sold on ${formatDate(sale.saleDate)}`
-                    )}
-                  </p>
+
+                {/* Mobile Actions - Compact */}
+                <Button
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  variant="primary"
+                  size="sm"
+                  className="md:hidden flex items-center justify-center gap-1 px-3 py-1.5 font-medium shadow-sm transition-transform active:scale-95"
+                >
+                  <Menu className="w-3.5 h-3.5" />
+                  <span>Actions</span>
+                </Button>
+
+                {/* Desktop Actions */}
+                <div className="hidden md:flex flex-shrink-0 flex-wrap gap-2">
+                  {hasPermission("SALE_UPDATE") && (
+                    <Button
+                      onClick={() => setIsUpdateModalOpen(true)}
+                      disabled={isCancelled || deleteSaleMutation.isLoading || cancelSaleMutation.isLoading}
+                      variant="primary"
+                      size="sm"
+                      className="flex items-center gap-1.5"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      <span>Update Sale</span>
+                    </Button>
+                  )}
+                  {hasPermission("SALE_CANCEL") && (
+                    <Button
+                      onClick={() => setConfirmAction({ type: "cancel" })}
+                      disabled={isCancelled || deleteSaleMutation.isLoading || cancelSaleMutation.isLoading}
+                      variant="warning"
+                      size="sm"
+                      className="flex items-center gap-1.5"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      <span>Cancel Sale</span>
+                    </Button>
+                  )}
+                  {hasPermission("SALE_DELETE") && (
+                    <Button
+                      onClick={() => setConfirmAction({ type: "delete" })}
+                      disabled={deleteSaleMutation.isLoading || cancelSaleMutation.isLoading}
+                      variant="danger"
+                      size="sm"
+                      className="flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete Sale</span>
+                    </Button>
+                  )}
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
+
+              {/* Row 2 (Mobile only border): Status & Amount */}
+              <div className="flex flex-row justify-between items-end sm:items-center border-t border-gray-50 pt-3 sm:pt-0 sm:border-0 sm:flex-col sm:items-end sm:gap-1">
                 <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${isCancelled
-                    ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
-                    : balanceDue > 0
-                      ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                      : "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                  className={`px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-sm font-medium whitespace-nowrap ${isCancelled
+                      ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
+                      : balanceDue > 0
+                        ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                        : "bg-[var(--color-success-light)] text-[var(--color-success)]"
                     }`}
                 >
-                  {isCancelled
-                    ? "Cancelled"
-                    : balanceDue > 0
-                      ? "Due Payment"
-                      : "Paid"}
+                  {isCancelled ? "Cancelled" : balanceDue > 0 ? "Due Payment" : "Paid"}
                 </span>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                <p className="text-base sm:text-2xl font-bold text-gray-900 whitespace-nowrap">
                   {isLoading ? (
-                    <ValueSkeleton width="w-24" height="h-7" />
+                    <ValueSkeleton width="w-20 sm:w-24" height="h-6 sm:h-7" />
                   ) : (
                     formatCurrency(sale?.totalAmountToBePaid)
                   )}
                 </p>
               </div>
-              {/* Desktop Actions */}
-              <div className="hidden md:flex flex-shrink-0 flex-wrap gap-2">
-                {hasPermission("SALE_UPDATE") && (
-                  <Button
-                    onClick={() => setIsUpdateModalOpen(true)}
-                    disabled={
-                      isCancelled ||
-                      deleteSaleMutation.isLoading ||
-                      cancelSaleMutation.isLoading
-                    }
-                    variant="primary"
-                    size="sm"
-                    className="flex items-center gap-1.5"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                    <span>Update Sale</span>
-                  </Button>
-                )}
-                {hasPermission("SALE_CANCEL") && (
-                  <Button
-                    onClick={() => setConfirmAction({ type: "cancel" })}
-                    disabled={
-                      isCancelled ||
-                      deleteSaleMutation.isLoading ||
-                      cancelSaleMutation.isLoading
-                    }
-                    variant="warning"
-                    size="sm"
-                    className="flex items-center gap-1.5"
-                  >
-                    <XCircle className="w-3.5 h-3.5" />
-                    <span>Cancel Sale</span>
-                  </Button>
-                )}
-                {hasPermission("SALE_DELETE") && (
-                  <Button
-                    onClick={() => setConfirmAction({ type: "delete" })}
-                    disabled={
-                      deleteSaleMutation.isLoading ||
-                      cancelSaleMutation.isLoading
-                    }
-                    variant="danger"
-                    size="sm"
-                    className="flex items-center gap-1.5"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete Sale</span>
-                  </Button>
-                )}
-              </div>
-              {/* Mobile Actions Button */}
-              <Button
-                onClick={() => setIsMobileMenuOpen(true)}
-                variant="primary"
-                className="md:hidden w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2.5 font-medium text-sm shadow-sm"
-              >
-                <Menu className="w-4 h-4" />
-                <span>Actions</span>
-              </Button>
             </div>
           </div>
 
