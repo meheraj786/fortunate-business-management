@@ -107,7 +107,9 @@ const SaleDetails = () => {
         amount,
         date: new Date().toISOString(),
         paymentMethod: paymentData.method,
-        accountId: paymentData.account,
+        ...(paymentData.method !== "Customer Credit" && paymentData.account
+          ? { accountId: paymentData.account }
+          : {}),
       },
       {
         onSuccess: () => {
@@ -192,10 +194,10 @@ const SaleDetails = () => {
               <div className="flex flex-col items-end gap-2">
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-medium ${isCancelled
-                      ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
-                      : balanceDue > 0
-                        ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                        : "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                    ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
+                    : balanceDue > 0
+                      ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                      : "bg-[var(--color-success-light)] text-[var(--color-success)]"
                     }`}
                 >
                   {isCancelled
@@ -398,7 +400,11 @@ const SaleDetails = () => {
               setPaymentData((p) => ({ ...p, amount: e.target.value }))
             }
             placeholder={`Balance Due: ${formatCurrency(balanceDue)}`}
-            max={balanceDue}
+            max={
+              paymentData.method === "Customer Credit"
+                ? Math.min(balanceDue, sale?.customer?.creditBalance || 0)
+                : balanceDue
+            }
             required
           />
           <SelectField
@@ -421,9 +427,20 @@ const SaleDetails = () => {
               { value: "Cash", label: "Cash" },
               { value: "Bank", label: "Bank Transfer" },
               { value: "Mobile Banking", label: "Mobile Banking" },
+              ...(sale?.customer?.creditBalance > 0
+                ? [{ value: "Customer Credit", label: "Customer Credit" }]
+                : []),
             ]}
             required
           />
+          {paymentData.method === "Customer Credit" && (
+            <div className="text-sm text-[var(--color-primary)] bg-blue-50 p-2 rounded">
+              Available Credit:{" "}
+              <span className="font-bold">
+                {formatCurrency(sale?.customer?.creditBalance || 0)}
+              </span>
+            </div>
+          )}
           {["Bank", "Mobile Banking", "Cash"].includes(paymentData.method) && (
             <SelectField
               label="Account"

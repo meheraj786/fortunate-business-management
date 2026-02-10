@@ -74,3 +74,27 @@ export const useDeleteCustomerDocument = () => {
       qc.invalidateQueries({ queryKey: ["customers", vars.customerId] }),
   });
 };
+
+export const useAddStoreCredit = () => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: ({ id, data }) => api.addStoreCredit(id, data),
+    successMessage: "Credit added successfully!",
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["customers", id] });
+      qc.invalidateQueries({ queryKey: ["customers", id, "credit-history"] });
+    },
+  });
+};
+
+export const useCreditHistory = (id, params) => {
+  return useQuery({
+    queryKey: ["customers", id, "credit-history", params],
+    queryFn: async () => {
+      const res = await api.getCreditHistory(id, params);
+      return res.data;
+    },
+    enabled: !!id,
+    keepPreviousData: true,
+  });
+};

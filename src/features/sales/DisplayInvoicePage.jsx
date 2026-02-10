@@ -3,6 +3,7 @@ import { getInvoiceAsPNG, getInvoiceAsPDF } from "@/api/invoice.api.js";
 import DisplayInvoiceSkeleton from "./components/DisplayInvoiceSkeleton";
 import { useSettings } from "@/context/SettingsContext";
 import { useInvoice } from "@/api/hooks/invoice";
+import { useCustomer } from "@/api/hooks/customer";
 import { AlertTriangle, ArrowLeft, FileX, Printer, Share2 } from "lucide-react";
 import React from "react";
 import Button from "@/components/ui/Button";
@@ -24,6 +25,10 @@ const DisplayInvoice = () => {
     error,
   } = useInvoice(invoiceId);
   const invoice = invoiceData?.data;
+
+  // Fetch current customer data if customerId exists
+  const { data: customerData } = useCustomer(invoice?.customerDetails?.customerId);
+  const currentCustomer = customerData?.data;
 
   const handleDownloadPDF = async () => {
     setIsDownloadingPDF(true);
@@ -253,6 +258,11 @@ const DisplayInvoice = () => {
                 <p className="font-bold text-black">{customerDetails.name}</p>
                 <p className="text-gray-600">{customerDetails.address}</p>
                 <p className="text-gray-600">{customerDetails.phone}</p>
+                {currentCustomer && (
+                  <p className="text-gray-600 font-medium mt-1">
+                    Credit Balance: {formatCurrency(currentCustomer.creditBalance)}
+                  </p>
+                )}
               </div>
               <div className="text-left sm:text-right">
                 <div>
@@ -337,8 +347,8 @@ const DisplayInvoice = () => {
                           className="flex flex-col sm:flex-row sm:justify-between sm:items-center"
                         >
                           <p className="text-gray-600">
-                            {formatDate(p.date)} - {p.method} (
-                            {p.accountDetails.accountName})
+                            {formatDate(p.date)} - {p.method}{" "}
+                            {p.accountDetails && `(${p.accountDetails.accountName})`}
                           </p>
                           <p className="font-semibold text-black text-left sm:text-right">
                             {formatCurrency(p.amount)}

@@ -199,6 +199,12 @@ const AddSales = ({
     [productsData],
   );
 
+  const watchedCustomerType = watch("customerType");
+  const watchedCustomerId = watch("customerId");
+  const selectedCustomer = useMemo(() => {
+    return customers.find((c) => c._id === watchedCustomerId);
+  }, [customers, watchedCustomerId]);
+
   const createSaleMutation = useCreateSale();
   const updateSaleMutation = useUpdateSale(editData?._id);
 
@@ -368,24 +374,31 @@ const AddSales = ({
       customer:
         data.customerType === "existing"
           ? {
-              customerId: selectedCustomer?._id,
-              name: selectedCustomer?.name || "",
-              phone: selectedCustomer?.phone || "",
-            }
+            customerId: selectedCustomer?._id,
+            name: selectedCustomer?.name || "",
+            phone: selectedCustomer?.phone || "",
+          }
           : {
-              customerId: null,
-              name: data.customerName,
-              phone: data.customerPhone,
-              address: data.customerAddress,
-            },
+            customerId: null,
+            name: data.customerName,
+            phone: data.customerPhone,
+            address: data.customerAddress,
+          },
       paymentStatus: data.paymentStatus,
       payments: data.payments
-        .map((p) => ({
-          ...p,
-          amount: parseFloat(p.amount) || 0,
-          date: new Date(p.date).toISOString(),
-        }))
-        .filter((p) => p.amount > 0 && p.method && p.accountId),
+        .map((p) => {
+          const payment = {
+            amount: parseFloat(p.amount) || 0,
+            date: new Date(p.date).toISOString(),
+            method: p.method,
+          };
+          // Only include accountId for non-credit payments
+          if (p.method !== "Customer Credit" && p.accountId) {
+            payment.accountId = p.accountId;
+          }
+          return payment;
+        })
+        .filter((p) => p.amount > 0 && p.method && (p.accountId || p.method === "Customer Credit")),
     };
 
     const mutationOptions = {
@@ -482,6 +495,8 @@ const AddSales = ({
                   watch={watch}
                   accounts={accounts}
                   totalAmountToBePaid={totalAmountToBePaid}
+                  customerType={watchedCustomerType}
+                  selectedCustomer={selectedCustomer}
                 />
 
                 <FormActions

@@ -32,6 +32,8 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import DataField from "@/components/ui/DataField";
 import Pagination from "@/components/ui/Pagination";
 import Button from "@/components/ui/Button";
+import AddCreditModal from "./components/AddCreditModal";
+import CreditHistoryTable from "./components/CreditHistoryTable";
 
 // Custom Hooks
 import { useUrl } from "@/hooks/useUrl";
@@ -65,6 +67,7 @@ const CustomerDetails = () => {
     isOpen: false,
     docId: null,
   });
+  const [isAddCreditModalOpen, setIsAddCreditModalOpen] = useState(false);
 
   useEffect(() => {
     if (!hasPermission("CUSTOMER_VIEW_DETAILS")) {
@@ -184,8 +187,9 @@ const CustomerDetails = () => {
       totalSpent: formatCurrency(customerData?.stats?.totalSpent),
       notInvoiced: customerData?.stats?.notInvoiced || 0,
       outstandingDues: formatCurrency(customerData?.stats?.outstandingDues),
+      creditBalance: formatCurrency(customerData?.creditBalance || 0),
     }),
-    [customerData?.stats, formatCurrency],
+    [customerData?.stats, customerData?.creditBalance, formatCurrency],
   );
 
   if (customerError && !loadingCustomer)
@@ -430,6 +434,42 @@ const CustomerDetails = () => {
           </div>
 
           <div className="space-y-4 sm:space-y-6">
+
+            <CollapsibleCard
+              title="Wallet & Credit"
+              icon={<CreditCard className="text-[var(--color-primary)]" />}
+              defaultOpen={true}
+              ariaLabel="Wallet & Credit Section"
+            >
+              <div className="space-y-4">
+                <div className="flex justify-between items-center bg-blue-50 p-4 rounded-lg border border-blue-100">
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">
+                      Available Credit
+                    </p>
+                    <p className="text-2xl font-bold text-[var(--color-primary)]">
+                      {customerStats.creditBalance}
+                    </p>
+                  </div>
+                  {hasPermission("CUSTOMER_UPDATE") && (
+                    <Button
+                      onClick={() => setIsAddCreditModalOpen(true)}
+                      variant="primary"
+                      size="sm"
+                    >
+                      Add Credit
+                    </Button>
+                  )}
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                    History
+                  </h4>
+                  <CreditHistoryTable customerId={id} />
+                </div>
+              </div>
+            </CollapsibleCard>
+
             <CollapsibleCard
               title="Status Information"
               icon={<Star className="text-[var(--color-primary)]" />}
@@ -776,7 +816,12 @@ const CustomerDetails = () => {
         variant="danger"
         icon={Trash2}
       />
-    </motion.div>
+      <AddCreditModal
+        isOpen={isAddCreditModalOpen}
+        onClose={() => setIsAddCreditModalOpen(false)}
+        customerId={id}
+      />
+    </motion.div >
   );
 };
 

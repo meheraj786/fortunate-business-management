@@ -27,3 +27,9 @@ export const downloadCustomerDocument = (customerId, docId) =>
   api.get(`/customer/${customerId}/documents/${docId}`, {
     responseType: "blob",
   });
+
+export const addStoreCredit = (id, data) =>
+  api.post(`/customer/${id}/store-credit`, data);
+
+export const getCreditHistory = (id, params) =>
+  api.get(`/customer/${id}/credit-history`, { params });
