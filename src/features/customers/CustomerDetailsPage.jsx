@@ -219,6 +219,12 @@ const CustomerDetails = () => {
     [customerData?.stats, customerData?.creditBalance, formatCurrency],
   );
 
+  // Helper to calculate due amount
+  const getDueAmount = (sale) => {
+    const totalPaid = sale.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+    return (sale.totalAmountToBePaid || 0) - totalPaid;
+  };
+
   if (customerError && !loadingCustomer)
     return (
       <div className="flex flex-col items-center justify-center h-full ">
@@ -634,7 +640,7 @@ const CustomerDetails = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        {Array.from({ length: 8 }).map((_, i) => (
+                        {Array.from({ length: 6 }).map((_, i) => (
                           <th key={i} className="px-4 py-3 text-left">
                             <ValueSkeleton width="w-16" height="h-4" />
                           </th>
@@ -644,7 +650,7 @@ const CustomerDetails = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {Array.from({ length: 3 }).map((_, i) => (
                         <tr key={i}>
-                          {Array.from({ length: 8 }).map((_, j) => (
+                          {Array.from({ length: 6 }).map((_, j) => (
                             <td key={j} className="px-4 py-3">
                               <ValueSkeleton width="w-full" height="h-4" />
                             </td>
@@ -690,19 +696,24 @@ const CustomerDetails = () => {
                               </div>
                             ) : (
                               <h4 className="font-semibold text-[var(--color-primary)] text-sm">
-                                {sale.product?.name || "N/A"}
+                                {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "Unknown Product")}
                               </h4>
                             )}
                             <p className="text-xs text-gray-500 mt-1">
                               {formatDate(sale.saleDate)}
                             </p>
+                            <div className="mt-1">
+                              {sale.saleId && !sale.saleId.startsWith("OPEN-BAL-") && (
+                                <span className="text-xs text-gray-400">#{sale.saleId}</span>
+                              )}
+                            </div>
                           </div>
                           <div className="text-right">
                             <div className="font-bold text-gray-900 text-sm">
                               {formatCurrency(sale.totalAmountToBePaid)}
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              Qty: {sale.quantity} {sale.unit?.name || ""}
+                            <div className={`text-xs font-medium mt-1 ${getDueAmount(sale) > 0 ? "text-red-500" : "text-green-500"}`}>
+                              Due: {formatCurrency(getDueAmount(sale))}
                             </div>
                           </div>
                         </div>
@@ -723,24 +734,18 @@ const CustomerDetails = () => {
                             Date
                           </th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Product
+                            Sale ID / Description
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            LC Number
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Due Amount
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Quantity
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Unit Price
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Total
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Invoice Status
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Payment Status
                           </th>
                         </tr>
@@ -756,48 +761,35 @@ const CustomerDetails = () => {
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                               {formatDate(sale.saleDate)}
                             </td>
-                            {sale.saleId?.startsWith("OPEN-BAL-") ? (
-                              <>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-gray-900">
-                                      Opening Balance
-                                    </span>
-                                    <span className="px-2 py-0.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full">
-                                      Automated
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                  N/A
-                                </td>
-                              </>
-                            ) : (
-                              <>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <div className="text-sm font-medium text-[var(--color-primary)]">
-                                    {sale.product?.name || "N/A"}
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                  {sale.product?.LC?.basicInfo?.lcNumber ||
-                                    "N/A"}
-                                </td>
-                              </>
-                            )}
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                              {sale.quantity} {sale.unit?.name || ""}
+                            <td className="px-4 py-3 whitespace-nowrap text-sm">
+                              {sale.saleId?.startsWith("OPEN-BAL-") ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-gray-900">Opening Balance</span>
+                                  <span className="px-2 py-0.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full">
+                                    Automated
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-gray-900">{sale.saleId || "N/A"}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "")}
+                                  </span>
+                                </div>
+                              )}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                              {formatCurrency(sale.pricePerUnit)}
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium">
+                              <span className={getDueAmount(sale) > 0 ? "text-red-600" : "text-green-600"}>
+                                {formatCurrency(getDueAmount(sale))}
+                              </span>
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-[var(--color-primary)]">
                               {formatCurrency(sale.totalAmountToBePaid)}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
+                            <td className="px-4 py-3 whitespace-nowrap text-center">
                               <StatusBadge status={sale.invoiceStatus} size="sm" />
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
+                            <td className="px-4 py-3 whitespace-nowrap text-center">
                               <StatusBadge status={sale.paymentStatus} size="sm" />
                             </td>
                           </tr>

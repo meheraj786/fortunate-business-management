@@ -89,8 +89,8 @@ const SelectField = ({
             {loading ? "Loading..." : placeholder || `Select ${label}`}
           </option>
           {options.map((option, index) => {
-            const optionValue = option._id || option.value || option;
-            const optionLabel = option.name || option.label || option;
+            const optionValue = option._id ?? option.value ?? option;
+            const optionLabel = option.name ?? option.label ?? option;
             return (
               <option
                 value={optionValue}

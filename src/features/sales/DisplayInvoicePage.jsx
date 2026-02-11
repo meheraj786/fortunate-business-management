@@ -153,7 +153,6 @@ const DisplayInvoice = () => {
 
   // --- Data Destructuring ---
   const {
-    productDetails,
     customerDetails,
     paymentAndAmountInfo,
     salesId,
@@ -310,25 +309,50 @@ const DisplayInvoice = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-gray-200">
-                    <td className="p-1 sm:p-2 align-top">
-                      <p className="font-semibold text-black">
-                        {productDetails.name}
-                      </p>
-                      <p className="text-gray-600">{productDetails.category}</p>
-                    </td>
-                    <td className="p-1 sm:p-2 text-center align-top">
-                      {productDetails.quantity} {productDetails.unit?.name}
-                    </td>
-                    <td className="p-1 sm:p-2 text-right align-top">
-                      {formatCurrency(productDetails.pricePerUnit)}
-                    </td>
-                    <td className="p-1 sm:p-2 text-right align-top">
-                      {formatCurrency(
-                        productDetails.pricePerUnit * productDetails.quantity,
-                      )}
-                    </td>
-                  </tr>
+                  {(invoice.items && invoice.items.length > 0) ? (
+                    invoice.items.map((item, index) => (
+                      <tr key={index} className="border-b border-gray-200">
+                        <td className="p-1 sm:p-2 align-top">
+                          <p className="font-semibold text-black">
+                            {item.name || item.product?.name || "N/A"}
+                          </p>
+                          <p className="text-gray-600">{item.category || item.product?.category?.name || ""}</p>
+                        </td>
+                        <td className="p-1 sm:p-2 text-center align-top">
+                          {item.quantity} {item.unitName || item.unit?.name || ""}
+                        </td>
+                        <td className="p-1 sm:p-2 text-right align-top">
+                          {formatCurrency(item.pricePerUnit)}
+                        </td>
+                        <td className="p-1 sm:p-2 text-right align-top">
+                          {formatCurrency(item.total || (item.quantity * item.pricePerUnit))}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    // Fallback for legacy invoices (if productDetails exists)
+                    invoice.productDetails && (
+                      <tr className="border-b border-gray-200">
+                        <td className="p-1 sm:p-2 align-top">
+                          <p className="font-semibold text-black">
+                            {invoice.productDetails.name}
+                          </p>
+                          <p className="text-gray-600">{invoice.productDetails.category}</p>
+                        </td>
+                        <td className="p-1 sm:p-2 text-center align-top">
+                          {invoice.productDetails.quantity} {invoice.productDetails.unit?.name}
+                        </td>
+                        <td className="p-1 sm:p-2 text-right align-top">
+                          {formatCurrency(invoice.productDetails.pricePerUnit)}
+                        </td>
+                        <td className="p-1 sm:p-2 text-right align-top">
+                          {formatCurrency(
+                            invoice.productDetails.pricePerUnit * invoice.productDetails.quantity,
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  )}
                 </tbody>
               </table>
             </div>

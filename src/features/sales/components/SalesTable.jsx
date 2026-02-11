@@ -30,12 +30,10 @@ const SortableHeader = ({
   return (
     <button
       onClick={() => onSort(value)}
-      className={`flex items-center gap-1.5 whitespace-nowrap hover:text-[var(--color-primary)] transition-colors w-full group outline-none ${
-        align === "right" ? "justify-end text-right" : "justify-start text-left"
-      }`}
-      aria-label={`Sort by ${label} ${
-        isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
-      }`}
+      className={`flex items-center gap-1.5 whitespace-nowrap hover:text-[var(--color-primary)] transition-colors w-full group outline-none ${align === "right" ? "justify-end text-right" : "justify-start text-left"
+        }`}
+      aria-label={`Sort by ${label} ${isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
+        }`}
     >
       <span
         className={`text-sm font-semibold ${isSorted ? "text-[var(--color-primary)]" : "text-gray-900"}`}
@@ -84,6 +82,13 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
     );
   }
 
+  // Helper to calculate due amount
+  const getDueAmount = (sale) => {
+    const totalPaid = sale.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+    const due = (sale.totalAmountToBePaid || 0) - totalPaid;
+    return due > 0 ? due : 0;
+  };
+
   return (
     <div className="-mx-4 sm:mx-0">
       {/* Mobile View - Cards */}
@@ -102,7 +107,6 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
               className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer w-full"
             >
               <option value="saleDate">Date</option>
-              <option value="quantity">Quantity</option>
               <option value="totalAmountToBePaid">Total Amount</option>
             </select>
           </div>
@@ -162,11 +166,12 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                         {formatDate(sale.saleDate)}
                       </span>
                     </div>
+                    {/* Replaced Product Name with "Items" count or generic text since we have multi-product */}
                     <Link
                       to={`/sales/${sale._id}`}
                       className="text-base font-bold text-gray-900 truncate block hover:text-[var(--color-primary)] transition-colors"
                     >
-                      {sale.product?.name || "Unknown Product"}
+                      {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "Unknown Product")}
                     </Link>
                     <div className="text-sm text-gray-500 truncate mt-0.5 flex items-center gap-1">
                       <span className="w-1 h-1 rounded-full bg-gray-300"></span>
@@ -177,8 +182,8 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                     <div className="text-lg font-bold text-[var(--color-primary)]">
                       {formatCurrency(sale.totalAmountToBePaid)}
                     </div>
-                    <div className="text-xs font-medium text-gray-500 mt-1 bg-gray-50 px-2 py-1 rounded inline-block">
-                      {sale.quantity} {sale.unit?.name}
+                    <div className={`text-xs font-medium mt-1 inline-block ${getDueAmount(sale) > 0 ? "text-red-500" : "text-green-500"}`}>
+                      Due: {formatCurrency(getDueAmount(sale))}
                     </div>
                   </div>
                 </div>
@@ -197,13 +202,12 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                   </div>
                   <div>
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        sale.paymentStatus === "Paid payment"
-                          ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                          : sale.paymentStatus === "Due payment"
-                            ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                            : "bg-gray-100 text-gray-800"
-                      }`}
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${sale.paymentStatus === "Paid payment"
+                        ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                        : sale.paymentStatus === "Due payment"
+                          ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                          : "bg-gray-100 text-gray-800"
+                        }`}
                     >
                       {sale.paymentStatus?.replace(" payment", "")}
                     </span>
@@ -241,40 +245,9 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-200"
-                >
-                  <SortableHeader
-                    label="Product"
-                    value="productName"
-                    sortBy={sortBy}
-                    sortOrder={sortOrder}
-                    onSort={onSort}
-                  />
-                </th>
-                <th
-                  scope="col"
-                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden lg:table-cell border-b border-gray-200"
-                >
-                  LC Number
-                </th>
-                <th
-                  scope="col"
                   className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 border-b border-gray-200"
                 >
-                  <SortableHeader
-                    label="Quantity"
-                    value="quantity"
-                    align="right"
-                    sortBy={sortBy}
-                    sortOrder={sortOrder}
-                    onSort={onSort}
-                  />
-                </th>
-                <th
-                  scope="col"
-                  className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 hidden xl:table-cell border-b border-gray-200"
-                >
-                  Unit Price
+                  Due Amount
                 </th>
                 <th
                   scope="col"
@@ -343,43 +316,10 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                         {sale?.customer?.name}
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm border-b border-gray-100">
-                      {hasPermission("SALE_VIEW_DETAILS") ? (
-                        <Link
-                          to={`/sales/${sale._id}`}
-                          className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium"
-                        >
-                          <div
-                            className="max-w-[120px] truncate"
-                            title={sale?.product?.name}
-                          >
-                            {sale?.product?.name}
-                          </div>
-                        </Link>
-                      ) : (
-                        <div
-                          className="max-w-[120px] truncate"
-                          title={sale?.product?.name}
-                        >
-                          {sale?.product?.name}
-                        </div>
-                      )}
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 text-right font-medium border-b border-gray-100">
+                      {formatCurrency(getDueAmount(sale))}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden lg:table-cell border-b border-gray-100">
-                      <div
-                        className="max-w-[80px] truncate"
-                        title={sale?.lc?.number}
-                      >
-                        {sale?.lc?.number || "N/A"}
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right border-b border-gray-100">
-                      {sale.quantity} {sale?.unit?.name}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right hidden xl:table-cell border-b border-gray-100">
-                      {formatCurrency(sale.pricePerUnit)}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 text-right border-b border-gray-100">
+                    <td className="whitespace-nowrap px-3 py-4 text-sm font-bold text-[var(--color-primary)] text-right border-b border-gray-100">
                       {formatCurrency(sale.totalAmountToBePaid)}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-center hidden md:table-cell border-b border-gray-100">
@@ -407,13 +347,12 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-center border-b border-gray-100">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                          sale.paymentStatus === "Paid payment"
-                            ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                            : sale.paymentStatus === "Due payment"
-                              ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                              : "bg-gray-100 text-gray-800"
-                        }`}
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${sale.paymentStatus === "Paid payment"
+                          ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                          : sale.paymentStatus === "Due payment"
+                            ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                            : "bg-gray-100 text-gray-800"
+                          }`}
                       >
                         <div
                           className="max-w-[80px] truncate"

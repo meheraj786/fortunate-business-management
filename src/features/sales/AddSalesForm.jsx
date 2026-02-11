@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch, useFieldArray } from "react-hook-form";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
+import { DollarSign } from "lucide-react";
 
 import { useCustomers } from "@/api/hooks/customer";
 import { useWarehouses } from "@/api/hooks/warehouse";
@@ -115,11 +116,19 @@ const AddSales = ({
 
         return {
           warehouseId,
-          productId,
           categoryId,
-          quantity: editData.quantity || "",
-          unit: unitId,
-          pricePerUnit: editData.pricePerUnit || "",
+          items: editData.items?.map(i => ({
+            productId: i.product?._id || i.product,
+            quantity: i.quantity,
+            unit: i.unit?._id || i.unit,
+            pricePerUnit: i.pricePerUnit,
+            total: i.total || (i.quantity * i.pricePerUnit)
+          })) || [{ // Fallback for old single-product sales being edited
+            productId: productId,
+            quantity: editData.quantity,
+            unit: unitId,
+            pricePerUnit: editData.pricePerUnit
+          }],
           customerType: customerId ? "existing" : "manual",
           customerId: customerId,
           customerName: editData.customer?.name || "",
@@ -145,11 +154,8 @@ const AddSales = ({
       }
       return {
         warehouseId: "",
-        productId: "",
         categoryId: "",
-        quantity: "",
-        unit: "",
-        pricePerUnit: "",
+        items: [],
         customerType: "existing",
         customerId: "",
         customerName: "",
@@ -256,9 +262,19 @@ const AddSales = ({
         reset({
           ...editData,
           warehouseId,
-          productId,
           categoryId,
-          unit: unitId,
+          items: editData.items?.map(i => ({
+            productId: i.product?._id || i.product,
+            quantity: i.quantity,
+            unit: i.unit?._id || i.unit,
+            pricePerUnit: i.pricePerUnit,
+            total: i.total || (i.quantity * i.pricePerUnit)
+          })) || [{ // Fallback
+            productId,
+            quantity: editData.quantity,
+            unit: unitId,
+            pricePerUnit: editData.pricePerUnit
+          }],
           customerType: customerId ? "existing" : "manual",
           customerId: customerId,
           customerName: editData.customer?.name || "",
@@ -284,11 +300,8 @@ const AddSales = ({
         const saleDate = now.toISOString().slice(0, 16);
         reset({
           warehouseId: "",
-          productId: "",
           categoryId: "",
-          quantity: "",
-          unit: "",
-          pricePerUnit: "",
+          items: [],
           customerType: "existing",
           customerId: "",
           customerName: "",
@@ -307,8 +320,13 @@ const AddSales = ({
   }, [isEditMode, isOpen, editData, reset]);
 
   // Calculations
-  const watchedQuantity = watch("quantity");
-  const watchedPricePerUnit = watch("pricePerUnit");
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "items",
+  });
+
+  // Calculations
+  const watchedItems = useWatch({ control, name: "items", defaultValue: [] });
   const watchedDiscount = watch("discount");
   const watchedCharges = useWatch({
     control,
@@ -318,9 +336,12 @@ const AddSales = ({
   const watchedCosts = useWatch({ control, name: "costs", defaultValue: [] });
 
   const { totalAmount, totalAmountToBePaid } = useMemo(() => {
-    const quantity = parseFloat(watchedQuantity) || 0;
-    const pricePerUnit = parseFloat(watchedPricePerUnit) || 0;
-    const total = quantity * pricePerUnit;
+    const itemsTotal = (watchedItems || []).reduce((acc, item) => {
+      const qty = parseFloat(item.quantity) || 0;
+      const price = parseFloat(item.pricePerUnit) || 0;
+      return acc + (qty * price);
+    }, 0);
+
     const chargesTotal = (watchedCharges || []).reduce(
       (acc, c) => acc + (parseFloat(c.amount) || 0),
       0,
@@ -331,12 +352,11 @@ const AddSales = ({
     );
     const discount = parseFloat(watchedDiscount) || 0;
     return {
-      totalAmount: total,
-      totalAmountToBePaid: total + chargesTotal + costsTotal - discount,
+      totalAmount: itemsTotal,
+      totalAmountToBePaid: itemsTotal + chargesTotal + costsTotal - discount,
     };
   }, [
-    watchedQuantity,
-    watchedPricePerUnit,
+    watchedItems,
     watchedDiscount,
     watchedCharges,
     watchedCosts,
@@ -349,9 +369,12 @@ const AddSales = ({
         : null;
 
     const salesData = {
-      quantity: parseFloat(data.quantity),
-      unit: data.unit,
-      pricePerUnit: parseFloat(data.pricePerUnit),
+      items: data.items.map(item => ({
+        product: item.productId,
+        quantity: parseFloat(item.quantity),
+        unit: item.unit,
+        pricePerUnit: parseFloat(item.pricePerUnit)
+      })),
       saleDate: new Date(data.saleDate).toISOString(),
       invoiceStatus: data.invoiceStatus,
       charges: data.charges
@@ -368,9 +391,8 @@ const AddSales = ({
         })),
       discount: parseFloat(data.discount) || 0,
       notes: data.notes,
-      product: data.productId,
       warehouse: data.warehouseId,
-      category: data.categoryId,
+      category: data.categoryId || null,
       customer:
         data.customerType === "existing"
           ? {
@@ -474,6 +496,9 @@ const AddSales = ({
                   isInitialLoading={isInitialLoading}
                   formattedTotalAmount={formatCurrency(totalAmount)}
                   productsLoading={productsLoading}
+                  fields={fields}
+                  append={append}
+                  remove={remove}
                 />
 
                 <SaleCustomerSelect
@@ -498,6 +523,46 @@ const AddSales = ({
                   customerType={watchedCustomerType}
                   selectedCustomer={selectedCustomer}
                 />
+
+                {/* Financial Feedback / Overpayment Warning */}
+                {isEditMode && editData?.invoiceStatus === "Invoiced" && (
+                  (() => {
+                    const originalTotalPaid = editData.payments?.reduce((acc, p) => acc + (p.amount || 0), 0) || 0;
+                    // We check against the NEW total to be paid
+                    const difference = originalTotalPaid - totalAmountToBePaid;
+
+                    if (difference > 0) {
+                      return (
+                        <div className="p-4 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 flex items-start gap-3">
+                          <DollarSign className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <h4 className="font-semibold text-sm">Overpayment Alert</h4>
+                            <p className="text-sm mt-1">
+                              This change reduces the total amount. The customer has already paid <strong>{formatCurrency(originalTotalPaid)}</strong>.
+                              The new total is <strong>{formatCurrency(totalAmountToBePaid)}</strong>.
+                            </p>
+                            <p className="text-sm mt-1 font-medium">
+                              An excess amount of <strong>{formatCurrency(difference)}</strong> will be credited to the customer's wallet.
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    } else if (difference < 0) {
+                      // Difference is negative, meaning New Total > Old Paid. Customer owes more.
+                      // This is standard "Due" behavior, but we can highlight it.
+                      const extraDue = Math.abs(difference);
+                      // We only show this if they haven't added NEW payments to cover it yet.
+                      // But the form handles new payments. 
+                      // Let's just show "Additional Due" if they rely on existing payments.
+                      // Actually, `SaleFinancials` shows "Due Amount". 
+                      // Maybe just an informational note is enough?
+                      // "Customer will owe an additional..." 
+                      // Let's stick to the Overpayment warning as it's the critical data change.
+                      return null;
+                    }
+                    return null;
+                  })()
+                )}
 
                 <FormActions
                   onCancel={onClose}

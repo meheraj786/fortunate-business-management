@@ -23,9 +23,8 @@ const getStatusBadge = (status, type) => {
     },
   };
   const styleMap = type === "invoice" ? styles.invoice : styles.payment;
-  return `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-    styleMap[status] || styleMap["N/A"]
-  }`;
+  return `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styleMap[status] || styleMap["N/A"]
+    }`;
 };
 
 const NoDataMessage = () => (
@@ -34,9 +33,19 @@ const NoDataMessage = () => (
   </div>
 );
 
-const SalesTableRow = ({ sale }) => {
+const SalesTableRow = ({ sale, productId }) => {
   const navigate = useNavigate();
   const { formatCurrency, formatDate } = useSettings();
+
+  // Find the specific item for this product
+  const item = sale.items?.find(i => (i.product?._id || i.product) === productId) || {};
+
+  // Fallback to legacy root fields if item not found (or if it's a legacy sale record)
+  const quantity = item.quantity || sale.quantity || 0;
+  const price = item.pricePerUnit || sale.pricePerUnit || 0;
+  const unitName = item.unit?.name || sale.unit?.name || "";
+  const lineTotal = item.total || (quantity * price);
+
   return (
     <tr
       className="hover:bg-gray-50 transition-colors cursor-pointer"
@@ -46,16 +55,16 @@ const SalesTableRow = ({ sale }) => {
         {formatDate(sale.saleDate)}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-        {sale.customer.name}
+        {sale.customer?.name || "N/A"}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        {formatNumber(sale.quantity)}
+        {formatNumber(quantity)} {unitName}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        {formatCurrency(sale.pricePerUnit || 0)}
+        {formatCurrency(price)}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-        {formatCurrency(sale.totalAmount)}
+        {formatCurrency(lineTotal)}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
         <span className={getStatusBadge(sale.invoiceStatus, "invoice")}>
@@ -71,9 +80,16 @@ const SalesTableRow = ({ sale }) => {
   );
 };
 
-const MobileSalesCard = ({ sale }) => {
+const MobileSalesCard = ({ sale, productId }) => {
   const navigate = useNavigate();
   const { formatCurrency, formatDate } = useSettings();
+
+  const item = sale.items?.find(i => (i.product?._id || i.product) === productId) || {};
+  const quantity = item.quantity || sale.quantity || 0;
+  const price = item.pricePerUnit || sale.pricePerUnit || 0;
+  const unitName = item.unit?.name || sale.unit?.name || "";
+  const lineTotal = item.total || (quantity * price);
+
   return (
     <div
       className="border-t border-gray-200 last:border-b bg-white cursor-pointer hover:bg-gray-50 transition-colors"
@@ -81,17 +97,17 @@ const MobileSalesCard = ({ sale }) => {
     >
       <div className="px-4 py-4">
         <div className="flex justify-between items-center mb-2">
-          <div className="font-medium text-gray-900">{sale.customer.name}</div>
+          <div className="font-medium text-gray-900">{sale.customer?.name || "N/A"}</div>
           <span className="text-sm text-gray-500">
             {formatDate(sale.saleDate)}
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-600">
-            Qty: {formatNumber(sale.quantity)}
+            Qty: {formatNumber(quantity)} {unitName}
           </span>
           <span className="text-gray-600">
-            Price: {formatCurrency(sale.pricePerUnit || 0)}
+            Price: {formatCurrency(price)}
           </span>
         </div>
         <div className="border-t border-gray-100 my-2"></div>
@@ -105,9 +121,9 @@ const MobileSalesCard = ({ sale }) => {
         </div>
         <div className="border-t border-gray-100 my-2"></div>
         <div className="flex justify-between items-center">
-          <span className="font-medium text-gray-700">Total</span>
+          <span className="font-medium text-gray-700">Total (Product)</span>
           <span className="font-bold text-gray-900">
-            {formatCurrency(sale.totalAmount)}
+            {formatCurrency(lineTotal)}
           </span>
         </div>
       </div>
@@ -159,7 +175,7 @@ const SalesHistory = ({ warehouseId, productId }) => {
       </div>
       <div className="sm:hidden">
         {sales.length > 0 ? (
-          sales.map((sale) => <MobileSalesCard key={sale._id} sale={sale} />)
+          sales.map((sale) => <MobileSalesCard key={sale._id} sale={sale} productId={productId} />)
         ) : (
           <NoDataMessage />
         )}
@@ -174,7 +190,7 @@ const SalesHistory = ({ warehouseId, productId }) => {
                   "Customer",
                   "Qty",
                   "Price/Unit",
-                  "Total",
+                  "Total (Product)",
                   "Invoice Status",
                   "Payment Status",
                 ].map((header) => (
@@ -189,7 +205,7 @@ const SalesHistory = ({ warehouseId, productId }) => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
               {sales.map((sale) => (
-                <SalesTableRow key={sale._id} sale={sale} />
+                <SalesTableRow key={sale._id} sale={sale} productId={productId} />
               ))}
             </tbody>
           </table>
