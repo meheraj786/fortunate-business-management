@@ -182,8 +182,8 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                     <div className="text-lg font-bold text-[var(--color-primary)]">
                       {formatCurrency(sale.totalAmountToBePaid)}
                     </div>
-                    <div className={`text-xs font-medium mt-1 inline-block ${getDueAmount(sale) > 0 ? "text-red-500" : "text-green-500"}`}>
-                      Due: {formatCurrency(getDueAmount(sale))}
+                    <div className={`text-xs font-medium mt-1 inline-block ${sale.balanceDue > 0 ? "text-red-500" : "text-green-500"}`}>
+                      Due: {formatCurrency(sale.balanceDue || 0)}
                     </div>
                   </div>
                 </div>
@@ -202,11 +202,11 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                   </div>
                   <div>
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${sale.paymentStatus === "Paid payment"
-                        ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                        : sale.paymentStatus === "Due payment"
-                          ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                          : "bg-gray-100 text-gray-800"
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${["Paid", "Paid payment", "Overpaid"].includes(sale.paymentStatus)
+                          ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                          : ["Due", "Due payment", "Partial"].includes(sale.paymentStatus)
+                            ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                            : "bg-gray-100 text-gray-800"
                         }`}
                     >
                       {sale.paymentStatus?.replace(" payment", "")}
@@ -317,7 +317,7 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 text-right font-medium border-b border-gray-100">
-                      {formatCurrency(getDueAmount(sale))}
+                      {formatCurrency(sale.balanceDue || 0)}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm font-bold text-[var(--color-primary)] text-right border-b border-gray-100">
                       {formatCurrency(sale.totalAmountToBePaid)}
@@ -347,9 +347,9 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-center border-b border-gray-100">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${sale.paymentStatus === "Paid payment"
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${["Paid", "Paid payment", "Overpaid"].includes(sale.paymentStatus)
                           ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                          : sale.paymentStatus === "Due payment"
+                          : ["Due", "Due payment", "Partial"].includes(sale.paymentStatus)
                             ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
                             : "bg-gray-100 text-gray-800"
                           }`}

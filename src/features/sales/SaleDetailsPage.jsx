@@ -152,13 +152,13 @@ const SaleDetails = () => {
   if (isError && !isLoading) return <div>Error: {error.message}</div>;
   if (!sale && !isLoading) return <div>Sale not found</div>;
 
-  const totalPayments =
-    sale?.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-  const balanceDue = (sale?.totalAmountToBePaid || 0) - totalPayments;
+  const totalPayments = sale?.paymentsMade ?? (sale?.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0);
+  const balanceDue = sale?.balanceDue ?? ((sale?.totalAmountToBePaid || 0) - totalPayments);
   const isCancelled = sale?.invoiceStatus === "Cancelled";
   const canAddPayment =
-    !isCancelled && sale?.paymentStatus === "Due payment" && balanceDue > 0;
-  const isRegisteredCustomer = !!sale?.customer?.id;
+    !isCancelled && ["Due", "Due payment", "Partial"].includes(sale?.paymentStatus) && balanceDue > 0;
+  const customerId = sale?.customer?.customerId?._id || sale?.customer?.customerId;
+  const isRegisteredCustomer = !!customerId;
   const validPayments = sale?.payments?.filter((p) => p.amount) || [];
 
   return (
@@ -256,10 +256,10 @@ const SaleDetails = () => {
               <div className="flex flex-row justify-between items-end sm:items-center border-t border-gray-50 pt-3 sm:pt-0 sm:border-0 sm:flex-col sm:items-end sm:gap-1">
                 <span
                   className={`px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-sm font-medium whitespace-nowrap ${isCancelled
-                      ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
-                      : balanceDue > 0
-                        ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                        : "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                    ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
+                    : balanceDue > 0
+                      ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                      : "bg-[var(--color-success-light)] text-[var(--color-success)]"
                     }`}
                 >
                   {isCancelled ? "Cancelled" : balanceDue > 0 ? "Due Payment" : "Paid"}
@@ -347,7 +347,7 @@ const SaleDetails = () => {
                     {isRegisteredCustomer && (
                       <div className="pt-2">
                         <Link
-                          to={`/customer-details/${sale?.customer?.id}`}
+                          to={`/customer-details/${customerId}`}
                           className="w-full inline-flex justify-center items-center px-4 py-2 border border-[var(--color-primary)] text-sm font-medium rounded-lg text-[var(--color-primary)] bg-white hover:bg-[var(--color-primary-light)] transition-colors"
                         >
                           View Customer Profile

@@ -219,8 +219,9 @@ const CustomerDetails = () => {
     [customerData?.stats, customerData?.creditBalance, formatCurrency],
   );
 
-  // Helper to calculate due amount
+  // Helper to get due amount (uses persisted field, falls back to calculation)
   const getDueAmount = (sale) => {
+    if (sale.balanceDue != null) return sale.balanceDue;
     const totalPaid = sale.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
     return (sale.totalAmountToBePaid || 0) - totalPaid;
   };

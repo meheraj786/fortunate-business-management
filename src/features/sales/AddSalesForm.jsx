@@ -527,7 +527,7 @@ const AddSales = ({
                 {/* Financial Feedback / Overpayment Warning */}
                 {isEditMode && editData?.invoiceStatus === "Invoiced" && (
                   (() => {
-                    const originalTotalPaid = editData.payments?.reduce((acc, p) => acc + (p.amount || 0), 0) || 0;
+                    const originalTotalPaid = editData.paymentsMade ?? (editData.payments?.reduce((acc, p) => acc + (p.amount || 0), 0) || 0);
                     // We check against the NEW total to be paid
                     const difference = originalTotalPaid - totalAmountToBePaid;
 
