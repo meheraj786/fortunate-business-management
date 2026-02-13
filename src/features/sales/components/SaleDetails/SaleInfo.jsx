@@ -27,7 +27,7 @@ const SaleInfo = ({
           Sale Items
         </h2>
 
-        <div className="overflow-x-auto mb-6 border rounded-lg">
+        <div className="overflow-x-auto mb-6 border-gray-200 border rounded-lg">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -93,7 +93,7 @@ const SaleInfo = ({
           </table>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-200 pt-4">
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Invoice Status
