@@ -22,7 +22,7 @@ const SaleFinancials = ({
   customerType,
   selectedCustomer,
 }) => {
-  const { formatCurrency } = useSettings();
+  const { formatCurrency, settings } = useSettings();
   const queryClient = useQueryClient();
   const {
     fields: chargesFields,

@@ -40,3 +40,37 @@ export const formatInTimezone = (date, timezone = "Asia/Dhaka", options = {}) =>
         return "";
     }
 };
+
+/**
+ * Returns the current date and time in YYYY-MM-DDTHH:mm format based on the business timezone.
+ * Suitable for datetime-local inputs.
+ * @param {string} timezone - The IANA timezone identifier
+ * @returns {string}
+ */
+export const getBusinessDateTimeISO = (timezone = "Asia/Dhaka") => {
+    try {
+        const now = new Date();
+        // Get parts in business timezone
+        const formatter = new Intl.DateTimeFormat("en-CA", {
+            timeZone: timezone,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
+
+        // Format: 2024-02-14, 23:45
+        const parts = formatter.formatToParts(now);
+        const getPart = (type) => parts.find(p => p.type === type)?.value;
+
+        return `${getPart('year')}-${getPart('month')}-${getPart('day')}T${getPart('hour')}:${getPart('minute')}`;
+    } catch (error) {
+        console.error("Error getting business datetime:", error);
+        // Fallback to local
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 16);
+    }
+};
