@@ -2,6 +2,7 @@ import React from "react";
 import { User, MapPin, Phone } from "lucide-react";
 import SelectField from "@/components/ui/SelectField";
 import InputField from "@/components/ui/InputField";
+import { useSettings } from "@/context/SettingsContext";
 
 const SaleCustomerSelect = ({
   register,
@@ -12,7 +13,10 @@ const SaleCustomerSelect = ({
   isEditMode,
   isInitialLoading,
 }) => {
+  const { formatCurrency } = useSettings();
   const watchedCustomerType = watch("customerType");
+  const watchedCustomerId = watch("customerId");
+  const selectedCustomer = customers?.find((c) => c._id === watchedCustomerId);
 
   const handleCustomerSelect = (customerId) => {
     const customer = customers.find((c) => c._id === customerId);
@@ -54,24 +58,31 @@ const SaleCustomerSelect = ({
       </div>
 
       {watchedCustomerType === "existing" ? (
-        <SelectField
-          label="Select Customer"
-          name="customerId"
-          required={true}
-          register={register}
-          error={errors.customerId?.message}
-          options={customers.map((c) => ({
-            value: c._id,
-            label: `${c.name} - ${c.phone}`,
-          }))}
-          validation={{ required: "Customer is required" }}
-          icon={User}
-          disabled={isEditMode || isInitialLoading}
-          onChange={(e) => {
-            setValue("customerId", e.target.value, { shouldValidate: true });
-            handleCustomerSelect(e.target.value);
-          }}
-        />
+        <div>
+          <SelectField
+            label="Select Customer"
+            name="customerId"
+            required={true}
+            register={register}
+            error={errors.customerId?.message}
+            options={customers.map((c) => ({
+              value: c._id,
+              label: `${c.name} - ${c.phone}`,
+            }))}
+            validation={{ required: "Customer is required" }}
+            icon={User}
+            disabled={isEditMode || isInitialLoading}
+            onChange={(e) => {
+              setValue("customerId", e.target.value, { shouldValidate: true });
+              handleCustomerSelect(e.target.value);
+            }}
+          />
+          {selectedCustomer && (
+            <div className="mt-2 text-sm text-[var(--color-primary)] font-medium bg-blue-50 p-2 rounded-md inline-block">
+              Available Credit: <span className="font-bold">{formatCurrency(selectedCustomer.creditBalance || 0)}</span>
+            </div>
+          )}
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <InputField

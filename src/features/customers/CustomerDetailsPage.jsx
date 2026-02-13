@@ -223,7 +223,7 @@ const CustomerDetails = () => {
   const getDueAmount = (sale) => {
     if (sale.balanceDue != null) return sale.balanceDue;
     const totalPaid = sale.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-    return (sale.totalAmountToBePaid || 0) - totalPaid;
+    return Math.round(((sale.totalAmountToBePaid || 0) - totalPaid) * 100) / 100;
   };
 
   if (customerError && !loadingCustomer)

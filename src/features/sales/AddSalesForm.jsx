@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useForm, useWatch, useFieldArray } from "react-hook-form";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { DollarSign } from "lucide-react";
+import { DollarSign, AlertTriangle } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 import { useCustomers } from "@/api/hooks/customer";
 import { useWarehouses } from "@/api/hooks/warehouse";
@@ -423,6 +424,26 @@ const AddSales = ({
         .filter((p) => p.amount > 0 && p.method && (p.accountId || p.method === "Customer Credit")),
     };
 
+    // Strict Check: Prevent updating if New Total < Already Paid
+    if (isEditMode && editData?.invoiceStatus === "Invoiced") {
+      const originalTotalPaid = editData.paymentsMade ?? (editData.payments?.reduce((acc, p) => acc + (p.amount || 0), 0) || 0);
+      // Calculate new total from the processed salesData (which includes items, charges, costs, discount)
+      // We can iterate salesData.items to get total, or easier: rely on the `totalAmountToBePaid` from useMemo which should be sync'd with form state
+      // BUT, handleSubmit receives `data` which might be slightly different if useMemo hasn't updated (unlikely for final submit).
+      // To be safe, let's use the `totalAmountToBePaid` from local scope (it is calculated from watched values).
+
+      // Note: totalAmountToBePaid in scope is based on current form values.
+      // However, `data` is passed to this function.
+      // The `totalAmountToBePaid` variable is derived from `watchedItems` etc. which are the source of `data`.
+
+      // Let's use `totalAmountToBePaid` from scope.
+
+      if (totalAmountToBePaid < originalTotalPaid) {
+        toast.error(`Cannot save: New total (${formatCurrency(totalAmountToBePaid)}) is less than amount already paid (${formatCurrency(originalTotalPaid)}).`);
+        return;
+      }
+    }
+
     const mutationOptions = {
       onSuccess: () => {
         onSaleAdded?.();
@@ -533,31 +554,21 @@ const AddSales = ({
 
                     if (difference > 0) {
                       return (
-                        <div className="p-4 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 flex items-start gap-3">
-                          <DollarSign className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                        <div className="p-4 rounded-md bg-red-50 border border-red-200 text-red-800 flex items-start gap-3">
+                          <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                           <div>
-                            <h4 className="font-semibold text-sm">Overpayment Alert</h4>
+                            <h4 className="font-semibold text-sm">Cannot Reduce Total Below Paid Amount</h4>
                             <p className="text-sm mt-1">
-                              This change reduces the total amount. The customer has already paid <strong>{formatCurrency(originalTotalPaid)}</strong>.
+                              The customer has already paid <strong>{formatCurrency(originalTotalPaid)}</strong>.
                               The new total is <strong>{formatCurrency(totalAmountToBePaid)}</strong>.
                             </p>
                             <p className="text-sm mt-1 font-medium">
-                              An excess amount of <strong>{formatCurrency(difference)}</strong> will be credited to the customer's wallet.
+                              Strict payment rules are enforced. You must refund or remove payments before reducing the sale total.
                             </p>
                           </div>
                         </div>
                       );
                     } else if (difference < 0) {
-                      // Difference is negative, meaning New Total > Old Paid. Customer owes more.
-                      // This is standard "Due" behavior, but we can highlight it.
-                      const extraDue = Math.abs(difference);
-                      // We only show this if they haven't added NEW payments to cover it yet.
-                      // But the form handles new payments. 
-                      // Let's just show "Additional Due" if they rely on existing payments.
-                      // Actually, `SaleFinancials` shows "Due Amount". 
-                      // Maybe just an informational note is enough?
-                      // "Customer will owe an additional..." 
-                      // Let's stick to the Overpayment warning as it's the critical data change.
                       return null;
                     }
                     return null;

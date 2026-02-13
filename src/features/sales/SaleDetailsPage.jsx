@@ -54,6 +54,7 @@ const SaleDetails = () => {
     method: "Cash",
     account: "",
   });
+  const [paymentError, setPaymentError] = useState("");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState({ type: null });
 
@@ -105,6 +106,11 @@ const SaleDetails = () => {
   const handleAddPayment = () => {
     const amount = Number(paymentData.amount);
 
+    if (amount > balanceDue) {
+      showErrorToast(`Amount cannot exceed the balance due (${formatCurrency(balanceDue)})`);
+      return;
+    }
+
     addPaymentMutation.mutate(
       {
         amount,
@@ -119,6 +125,7 @@ const SaleDetails = () => {
           refetch();
           setIsPaymentDialogOpen(false);
           setPaymentData({ amount: "", method: "Cash", account: "" });
+          setPaymentError("");
         },
       },
     );
@@ -255,14 +262,18 @@ const SaleDetails = () => {
               {/* Row 2 (Mobile only border): Status & Amount */}
               <div className="flex flex-row justify-between items-end sm:items-center border-t border-gray-50 pt-3 sm:pt-0 sm:border-0 sm:flex-col sm:items-end sm:gap-1">
                 <span
-                  className={`px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-sm font-medium whitespace-nowrap ${isCancelled
+                  className={`px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-sm font-medium whitespace-nowrap ${sale?.invoiceStatus === "Cancelled"
                     ? "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
-                    : balanceDue > 0
-                      ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                      : "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                    : sale?.paymentStatus === "Paid" || sale?.paymentStatus === "Paid payment"
+                      ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                      : "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
                     }`}
                 >
-                  {isCancelled ? "Cancelled" : balanceDue > 0 ? "Due Payment" : "Paid"}
+                  {sale?.invoiceStatus === "Cancelled"
+                    ? "Cancelled"
+                    : sale?.paymentStatus === "Paid" || sale?.paymentStatus === "Paid payment"
+                      ? "Paid"
+                      : "Due Payment"}
                 </span>
                 <p className="text-base sm:text-2xl font-bold text-gray-900 whitespace-nowrap">
                   {isLoading ? (
@@ -443,138 +454,161 @@ const SaleDetails = () => {
       </div>
 
 
-        <FormDialog
-          open={isPaymentDialogOpen}
-          onClose={() => setIsPaymentDialogOpen(false)}
-          title="Add New Payment"
-          primaryButtonText={
-            addPaymentMutation.isLoading ? "Adding..." : "Add Payment"
-          }
-          secondaryButtonText="Cancel"
-          onSubmit={handleAddPayment}
-          isSubmitting={addPaymentMutation.isLoading}
-        >
-          <div className="space-y-4">
-            <InputField
-              label="Amount"
-              name="amount"
-              type="number"
-              value={paymentData.amount}
-              onChange={(e) =>
-                setPaymentData((p) => ({ ...p, amount: e.target.value }))
-              }
-              placeholder={`Balance Due: ${formatCurrency(balanceDue)}`}
-              max={
-                paymentData.method === "Customer Credit"
-                  ? Math.min(balanceDue, sale?.customer?.customerId?.creditBalance || 0)
-                  : balanceDue
-              }
-              required
-            />
-            <SelectField
-              label="Payment Method"
-              name="method"
-              value={paymentData.method}
-              onChange={(e) => {
-                const newMethod = e.target.value;
-                const availableAccounts = accounts.filter(
-                  (acc) => acc.accountType === newMethod,
-                );
-                setPaymentData((p) => ({
-                  ...p,
-                  method: newMethod,
-                  account:
-                    availableAccounts.length > 0 ? availableAccounts[0]._id : "",
-                }));
-              }}
-              options={[
-                { value: "Cash", label: "Cash" },
-                { value: "Bank", label: "Bank Transfer" },
-                { value: "Mobile Banking", label: "Mobile Banking" },
-                {
-                  value: "Customer Credit",
-                  label: `Customer Credit (${formatCurrency(sale?.customer?.customerId?.creditBalance || 0)})`,
-                  disabled: (sale?.customer?.customerId?.creditBalance || 0) <= 0
+      <FormDialog
+        open={isPaymentDialogOpen}
+        onClose={() => setIsPaymentDialogOpen(false)}
+        title="Add New Payment"
+        primaryButtonText={
+          addPaymentMutation.isLoading ? "Adding..." : "Add Payment"
+        }
+        isPrimaryButtonDisabled={!!paymentError || !paymentData.amount}
+        secondaryButtonText="Cancel"
+        onSubmit={handleAddPayment}
+        isSubmitting={addPaymentMutation.isLoading}
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-2">
+            <div className="flex-grow">
+              <InputField
+                label="Amount"
+                name="amount"
+                type="number"
+                value={paymentData.amount}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setPaymentData((p) => ({ ...p, amount: val }));
+                  if (Number(val) > balanceDue) {
+                    setPaymentError(`Max allowed: ${formatCurrency(balanceDue)}`);
+                  } else {
+                    setPaymentError("");
+                  }
+                }}
+                placeholder={`Balance Due: ${formatCurrency(balanceDue)}`}
+                error={paymentError}
+                max={
+                  paymentData.method === "Customer Credit"
+                    ? Math.min(balanceDue, sale?.customer?.customerId?.creditBalance || 0)
+                    : balanceDue
                 }
-              ]}
-              required
-            />
-            {paymentData.method === "Customer Credit" && (
-              <div className="text-sm text-[var(--color-primary)] bg-blue-50 p-2 rounded">
-                Available Credit:{" "}
-                <span className="font-bold">
-                  {formatCurrency(sale?.customer?.customerId?.creditBalance || 0)}
-                </span>
-              </div>
-            )}
-            {["Bank", "Mobile Banking", "Cash"].includes(paymentData.method) && (
-              <SelectField
-                label="Account"
-                name="account"
-                value={paymentData.account}
-                onChange={(e) =>
-                  setPaymentData((p) => ({ ...p, account: e.target.value }))
-                }
-                options={accounts
-                  .filter((acc) => acc.accountType === paymentData.method)
-                  .map((acc) => ({
-                    value: acc._id,
-                    label: formatAccountLabel(acc),
-                  }))}
                 required
               />
-            )}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-6" // Align with input field (skipping label height)
+              onClick={() => {
+                setPaymentData((p) => ({ ...p, amount: balanceDue }));
+                setPaymentError(""); // Clear any previous errors
+              }}
+            >
+              Full
+            </Button>
           </div>
-        </FormDialog>
-
-        {isUpdateModalOpen && (
-          <AddSalesForm
-            isOpen={isUpdateModalOpen}
-            onClose={() => setIsUpdateModalOpen(false)}
-            editData={sale}
-            onSaleAdded={() => {
-              refetch();
-              setIsUpdateModalOpen(false);
+          <SelectField
+            label="Payment Method"
+            name="method"
+            value={paymentData.method}
+            onChange={(e) => {
+              const newMethod = e.target.value;
+              const availableAccounts = accounts.filter(
+                (acc) => acc.accountType === newMethod,
+              );
+              setPaymentData((p) => ({
+                ...p,
+                method: newMethod,
+                account:
+                  availableAccounts.length > 0 ? availableAccounts[0]._id : "",
+              }));
             }}
+            options={[
+              { value: "Cash", label: "Cash" },
+              { value: "Bank", label: "Bank Transfer" },
+              { value: "Mobile Banking", label: "Mobile Banking" },
+              {
+                value: "Customer Credit",
+                label: `Customer Credit (${formatCurrency(sale?.customer?.customerId?.creditBalance || 0)})`,
+                disabled: (sale?.customer?.customerId?.creditBalance || 0) <= 0
+              }
+            ]}
+            required
           />
-        )}
+          {paymentData.method === "Customer Credit" && (
+            <div className="text-sm text-[var(--color-primary)] bg-blue-50 p-2 rounded">
+              Available Credit:{" "}
+              <span className="font-bold">
+                {formatCurrency(sale?.customer?.customerId?.creditBalance || 0)}
+              </span>
+            </div>
+          )}
+          {["Bank", "Mobile Banking", "Cash"].includes(paymentData.method) && (
+            <SelectField
+              label="Account"
+              name="account"
+              value={paymentData.account}
+              onChange={(e) =>
+                setPaymentData((p) => ({ ...p, account: e.target.value }))
+              }
+              options={accounts
+                .filter((acc) => acc.accountType === paymentData.method)
+                .map((acc) => ({
+                  value: acc._id,
+                  label: formatAccountLabel(acc),
+                }))}
+              required
+            />
+          )}
+        </div>
+      </FormDialog>
 
-        {confirmAction.type && (
-          <ConfirmationModal
-            isOpen={!!confirmAction.type}
-            onClose={() => setConfirmAction({ type: null })}
-            onConfirm={handleConfirmAction}
-            title={
-              confirmAction.type === "delete" ? "Delete Sale" : "Cancel Sale"
-            }
-            description={`Are you sure you want to ${confirmAction.type} this sale? This action cannot be undone.`}
-            confirmText={
-              confirmAction.type === "delete" ? "Delete" : "Confirm Cancel"
-            }
-            isConfirming={
-              deleteSaleMutation.isLoading || cancelSaleMutation.isLoading
-            }
-            icon={confirmAction.type === "delete" ? Trash2 : XCircle}
-          />
-        )}
-        <SaleMobileActions
-          isOpen={isMobileMenuOpen}
-          onClose={() => setIsMobileMenuOpen(false)}
-          hasPermission={hasPermission}
-          sale={sale}
-          isCancelled={isCancelled}
-          canAddPayment={canAddPayment}
-          onUpdateClick={() => setIsUpdateModalOpen(true)}
-          onCancelClick={() => setConfirmAction({ type: "cancel" })}
-          onDeleteClick={() => setConfirmAction({ type: "delete" })}
-          onGenerateInvoiceClick={handleGenerateInvoice}
-          onAddPaymentClick={() => setIsPaymentDialogOpen(true)}
-          deleteLoading={deleteSaleMutation.isLoading}
-          cancelLoading={cancelSaleMutation.isLoading}
-          generateInvoiceLoading={generateInvoiceMutation.isLoading}
+      {isUpdateModalOpen && (
+        <AddSalesForm
+          isOpen={isUpdateModalOpen}
+          onClose={() => setIsUpdateModalOpen(false)}
+          editData={sale}
+          onSaleAdded={() => {
+            refetch();
+            setIsUpdateModalOpen(false);
+          }}
         />
-      </motion.div>
-      );
+      )}
+
+      {confirmAction.type && (
+        <ConfirmationModal
+          isOpen={!!confirmAction.type}
+          onClose={() => setConfirmAction({ type: null })}
+          onConfirm={handleConfirmAction}
+          title={
+            confirmAction.type === "delete" ? "Delete Sale" : "Cancel Sale"
+          }
+          description={`Are you sure you want to ${confirmAction.type} this sale? This action cannot be undone.`}
+          confirmText={
+            confirmAction.type === "delete" ? "Delete" : "Confirm Cancel"
+          }
+          isConfirming={
+            deleteSaleMutation.isLoading || cancelSaleMutation.isLoading
+          }
+          icon={confirmAction.type === "delete" ? Trash2 : XCircle}
+        />
+      )}
+      <SaleMobileActions
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        hasPermission={hasPermission}
+        sale={sale}
+        isCancelled={isCancelled}
+        canAddPayment={canAddPayment}
+        onUpdateClick={() => setIsUpdateModalOpen(true)}
+        onCancelClick={() => setConfirmAction({ type: "cancel" })}
+        onDeleteClick={() => setConfirmAction({ type: "delete" })}
+        onGenerateInvoiceClick={handleGenerateInvoice}
+        onAddPaymentClick={() => setIsPaymentDialogOpen(true)}
+        deleteLoading={deleteSaleMutation.isLoading}
+        cancelLoading={cancelSaleMutation.isLoading}
+        generateInvoiceLoading={generateInvoiceMutation.isLoading}
+      />
+    </motion.div>
+  );
 };
 
-      export default SaleDetails;
+export default SaleDetails;

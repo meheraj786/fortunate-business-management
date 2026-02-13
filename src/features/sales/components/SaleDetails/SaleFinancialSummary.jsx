@@ -114,12 +114,12 @@ const SaleFinancialSummary = ({
             : "text-[var(--color-success)]"
             }`}
         >
-          <span>{balanceDue > 0 ? "Balance Due" : (Math.abs(balanceDue) > 0 ? "Credited to Wallet" : "Balance Due")}</span>
+          <span>Balance Due</span>
           <span>
             {loading ? (
               <ValueSkeleton width="w-24" height="h-6" />
             ) : (
-              formatCurrency(balanceDue > 0 ? balanceDue : Math.abs(balanceDue))
+              formatCurrency(Math.max(0, Math.round(balanceDue * 100) / 100))
             )}
           </span>
         </div>

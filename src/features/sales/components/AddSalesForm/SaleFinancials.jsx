@@ -280,13 +280,13 @@ const SaleFinancials = ({
               {formatCurrency(totalAmountToBePaid)}
             </span>
           </div>
-          {selectedCustomer?.creditBalance > 0 && (
+          {selectedCustomer && (
             <div className="flex justify-between items-center mt-1 pt-1 border-t border-[var(--color-secondary)]/20">
               <span className="text-xs font-medium text-[var(--color-primary)]">
                 Customer Credit Balance:
               </span>
               <span className="text-sm font-bold text-[var(--color-primary)]">
-                {formatCurrency(selectedCustomer.creditBalance)}
+                {formatCurrency(selectedCustomer.creditBalance || 0)}
               </span>
             </div>
           )}
@@ -383,7 +383,24 @@ const SaleFinancials = ({
               step="any"
               register={register}
               error={errors.payments?.[index]?.amount?.message}
-              validation={{ required: "Required", valueAsNumber: true }}
+              validation={{
+                required: "Required",
+                valueAsNumber: true,
+                validate: (value) => {
+                  if (value <= 0) return "Must be positive";
+                  const allPayments = watch("payments") || [];
+                  const otherPayments = allPayments.reduce((sum, p, i) => {
+                    return i === index ? sum : sum + (parseFloat(p.amount) || 0);
+                  }, 0);
+                  // Use a small epsilon for float comparison if needed, but strict check is safer
+                  const remaining = Math.max(0, totalAmountToBePaid - otherPayments);
+                  // Allow slight floating point tolerance (e.g. 0.001)
+                  if (value > remaining + 0.001) {
+                    return `Maximum allowed: ${formatCurrency(remaining)}`;
+                  }
+                  return true;
+                },
+              }}
             />
             <InputField
               label="Date & Time"
