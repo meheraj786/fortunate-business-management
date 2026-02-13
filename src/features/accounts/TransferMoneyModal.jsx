@@ -6,8 +6,10 @@ import { showErrorToast } from "@/utils/notifications";
 import { useAccounts } from "@/api/hooks/account";
 import { useTransferMoney } from "@/api/hooks/transaction";
 import { formatAccountLabel } from "@/utils/format";
+import { useSettings } from "@/context/SettingsContext";
 
 const TransferMoneyModal = ({ isOpen, onClose, onSuccess }) => {
+    const { settings } = useSettings();
     const initialTransferData = {
         fromAccountId: "",
         toAccountId: "",

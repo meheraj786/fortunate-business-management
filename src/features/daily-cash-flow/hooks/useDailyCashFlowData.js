@@ -11,6 +11,8 @@ import {
 } from "../constants";
 import { useAccounts } from "@/api/hooks/account";
 import { getActiveLCs } from "@/api/lc.api";
+import { getBusinessDateISO } from "@/utils/date.util";
+import { useSettings } from "@/context/SettingsContext";
 
 // Helper to get local date string in YYYY-MM-DD format
 const getLocalDateString = (date) => {
@@ -58,6 +60,7 @@ const fetchActiveReferences = async () => {
 // --- Main Hook ---
 export const useDailyCashFlowData = () => {
   const queryClient = useQueryClient();
+  const { settings } = useSettings();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -73,8 +76,8 @@ export const useDailyCashFlowData = () => {
         return dateFromUrl;
       }
     }
-    return getLocalDateString(new Date());
-  }, [location.search]);
+    return getBusinessDateISO(settings?.timezone);
+  }, [location.search, settings?.timezone]);
 
   const [selectedDate, setSelectedDate] = useState(getInitialDate);
 
@@ -280,7 +283,7 @@ export const useDailyCashFlowData = () => {
     isError,
     error,
     getLocalDateString, // Expose helper
-    isToday: selectedDate === getLocalDateString(new Date()),
+    isToday: selectedDate === getBusinessDateISO(settings?.timezone),
 
     // Summary Data
     summary,

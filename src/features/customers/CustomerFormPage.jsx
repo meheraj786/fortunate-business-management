@@ -34,11 +34,14 @@ import {
   useCustomer,
   useUpdateCustomer,
 } from "@/api/hooks/customer";
+import { useSettings } from "@/context/SettingsContext";
+import { getBusinessDateISO } from "@/utils/date.util";
 
 const CustomerForm = ({ onSave }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = !!id;
+  const { settings } = useSettings();
 
   const { data: customerData, isLoading: isCustomerDataLoading } =
     useCustomer(id);
@@ -63,7 +66,7 @@ const CustomerForm = ({ onSave }) => {
           customerStatus: customer.customerStatus || "Active",
           joinDate: customer.joinDate
             ? new Date(customer.joinDate).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0],
+            : getBusinessDateISO(settings?.timezone),
           creditLimit: customer.creditLimit || "",
           phone: customer.phone || "",
           email: customer.email || "",
@@ -78,7 +81,7 @@ const CustomerForm = ({ onSave }) => {
         companyName: "",
         customerType: "Retail",
         customerStatus: "Active",
-        joinDate: new Date().toISOString().split("T")[0],
+        joinDate: getBusinessDateISO(settings?.timezone),
         creditLimit: "",
         phone: "",
         email: "",
@@ -87,7 +90,7 @@ const CustomerForm = ({ onSave }) => {
         openingDue: "",
         documents: [],
       };
-    }, [isEditMode, customer]),
+    }, [isEditMode, customer, settings]),
   });
 
   useEffect(() => {

@@ -7,8 +7,11 @@ import { useAddStoreCredit } from "@/api/hooks/customer";
 import { useAccounts } from "@/api/hooks/account";
 import { formatAccountLabel } from "@/utils/format";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
+import { getBusinessDateTimeISO } from "@/utils/date.util";
+import { useSettings } from "@/context/SettingsContext";
 
 const AddCreditModal = ({ isOpen, onClose, customerId }) => {
+    const { settings } = useSettings();
     const {
         register,
         handleSubmit,
@@ -22,7 +25,7 @@ const AddCreditModal = ({ isOpen, onClose, customerId }) => {
             amount: "",
             paymentMethod: "Cash",
             accountId: "",
-            date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+            date: getBusinessDateTimeISO(settings?.timezone),
         },
     });
 
@@ -38,7 +41,7 @@ const AddCreditModal = ({ isOpen, onClose, customerId }) => {
                 amount: "",
                 paymentMethod: "Cash",
                 accountId: "",
-                date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+                date: getBusinessDateTimeISO(settings?.timezone),
             });
         }
     }, [isOpen, reset]);

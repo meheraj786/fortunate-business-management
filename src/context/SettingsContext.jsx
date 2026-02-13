@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useMemo } from "react";
 import { useSystemSettings } from "@/api/hooks/settingsHooks";
-import { format } from "date-fns";
 
 const SettingsContext = createContext();
 
@@ -56,31 +55,48 @@ export const SettingsProvider = ({ children }) => {
   };
 
   // Helper: Format Date
+  // Helper: Format Date
   const formatDate = (dateString) => {
     if (!dateString) return "";
     try {
       const date = new Date(dateString);
-      // Map settings format to date-fns format
+      // Map settings format to Intl locales
+      // MM/DD/YYYY -> en-US
+      // DD/MM/YYYY -> en-GB
+      // YYYY-MM-DD -> en-CA
       const formatMap = {
-        "MM/DD/YYYY": "MM/dd/yyyy",
-        "DD/MM/YYYY": "dd/MM/yyyy",
-        "YYYY-MM-DD": "yyyy-MM-dd",
+        "MM/DD/YYYY": "en-US",
+        "DD/MM/YYYY": "en-GB",
+        "YYYY-MM-DD": "en-CA",
       };
-      const fmt = formatMap[formattedSettings?.dateFormat] || "MM/dd/yyyy";
-      return format(date, fmt);
+      const locale = formatMap[formattedSettings?.dateFormat] || "en-US";
+
+      return new Intl.DateTimeFormat(locale, {
+        timeZone: formattedSettings?.timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(date);
     } catch (e) {
+      console.error(e);
       return dateString;
     }
   };
 
   // Helper: Format Time
+  // Helper: Format Time
   const formatTime = (dateString) => {
     if (!dateString) return "";
     try {
       const date = new Date(dateString);
-      const fmt = formattedSettings?.timeFormat === "24h" ? "HH:mm" : "hh:mm a";
-      return format(date, fmt);
+      return new Intl.DateTimeFormat("en-US", {
+        timeZone: formattedSettings?.timezone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: formattedSettings?.timeFormat !== "24h"
+      }).format(date);
     } catch (e) {
+      console.error(e);
       return dateString;
     }
   };

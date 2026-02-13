@@ -6,11 +6,14 @@ import { showErrorToast } from "@/utils/notifications";
 import { useAccounts } from "@/api/hooks/account";
 import { useCreateTransaction } from "@/api/hooks/transaction";
 import { formatAccountLabel } from "@/utils/format";
+import { useSettings } from "@/context/SettingsContext";
+import { getBusinessDateISO } from "@/utils/date.util";
 
 const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
+  const { settings } = useSettings();
   const initialTransactionData = {
     account: "",
-    date: new Date().toISOString().split("T")[0],
+    date: getBusinessDateISO(settings?.timezone),
     description: "",
     type: "Credit",
     amount: "",

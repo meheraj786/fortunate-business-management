@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useSettings } from "@/context/SettingsContext";
+import { getBusinessDateISO } from "@/utils/date.util";
 
 // Hook for managing form data
 export const useFormData = (initialData) => {
@@ -26,11 +28,14 @@ export const useFormData = (initialData) => {
     accountId: "",
   });
 
+  const { settings } = useSettings();
+  const timezone = settings?.timezone || "Asia/Dhaka";
+
   const initialFormDataState = useMemo(
     () => ({
       basicInfo: {
         lcNumber: "",
-        lcOpeningDate: new Date().toISOString().split("T")[0],
+        lcOpeningDate: getBusinessDateISO(timezone),
         status: "Draft",
         accountId: "",
         supplierName: "",

@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/components/ui/Button"; // Import the standardized Button component
 import { useSettings } from "@/context/SettingsContext";
+import { getBusinessDateISO } from "@/utils/date.util";
 
 const DailyCashHeader = ({
   onAddTransaction,
@@ -18,7 +19,7 @@ const DailyCashHeader = ({
   isToday,
 }) => {
   const { hasPermission } = useAuth();
-  const { formatDate } = useSettings();
+  const { formatDate, settings } = useSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleOpenDay = () => openDay(selectedDate);
@@ -279,7 +280,7 @@ const DailyCashHeader = ({
                 value={selectedDate}
                 onChange={(e) => handleDateChange(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:border-transparent transition-all"
-                max={getLocalDateString(new Date())}
+                max={getBusinessDateISO(settings?.timezone)}
               />
             </div>
           </div>

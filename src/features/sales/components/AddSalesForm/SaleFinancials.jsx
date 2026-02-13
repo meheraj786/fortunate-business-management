@@ -8,6 +8,7 @@ import SelectField from "@/components/ui/SelectField";
 import Button from "@/components/ui/Button";
 import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
+import { getBusinessDateTimeISO } from "@/utils/date.util";
 
 const SaleFinancials = ({
   register,
@@ -65,12 +66,11 @@ const SaleFinancials = ({
 
   const handlePaymentStatusChange = (status) => {
     if (status === "Paid payment") {
-      const now = new Date();
-      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      const businessDateTime = getBusinessDateTimeISO(settings?.timezone);
       setValue("payments", [
         {
           amount: parseFloat(totalAmountToBePaid).toFixed(2),
-          date: now.toISOString().slice(0, 16),
+          date: businessDateTime,
           method: "",
           accountId: "",
         },
@@ -80,12 +80,11 @@ const SaleFinancials = ({
     } else if (status === "Partial payment") {
       // Initialize with one empty row if there are no existing payments
       if (paymentsFields.length === 0) {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const businessDateTime = getBusinessDateTimeISO(settings?.timezone);
         setValue("payments", [
           {
             amount: "",
-            date: now.toISOString().slice(0, 16),
+            date: businessDateTime,
             method: "",
             accountId: "",
           },
@@ -484,13 +483,10 @@ const SaleFinancials = ({
                   <Button
                     type="button"
                     onClick={() => {
-                      const now = new Date();
-                      now.setMinutes(
-                        now.getMinutes() - now.getTimezoneOffset(),
-                      );
+                      const businessDateTime = getBusinessDateTimeISO(settings?.timezone);
                       appendPayment({
                         amount: "",
-                        date: now.toISOString().slice(0, 16),
+                        date: businessDateTime,
                         method: "",
                         accountId: "",
                       });
