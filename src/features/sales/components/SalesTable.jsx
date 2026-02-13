@@ -220,7 +220,7 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
       </div>
 
       {/* Desktop/Tablet View - Table */}
-      <div className="hidden sm:block overflow-x-auto border border-gray-200 rounded-xl shadow-sm bg-white">
+      <div className="hidden sm:block overflow-x-auto border border-gray-100 bg-white">
         <div className="inline-block min-w-full align-middle">
           <table className="min-w-[1000px] w-full border-separate border-spacing-0">
             <thead className="bg-gray-50">

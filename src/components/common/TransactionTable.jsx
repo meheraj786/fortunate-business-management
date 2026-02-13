@@ -185,7 +185,7 @@ const TransactionTable = memo(
         </div>
 
         {/* Desktop View - Table */}
-        <div className="hidden sm:block overflow-x-auto border border-gray-200 rounded-xl shadow-sm bg-white">
+        <div className="hidden sm:block overflow-x-auto border border-gray-50 rounded-xl bg-white">
           <div className="inline-block min-w-full align-middle">
             <table className="min-w-[1000px] w-full border-separate border-spacing-0">
               <thead className="bg-gray-50">
