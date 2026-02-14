@@ -25,12 +25,24 @@ const Settings = () => {
                   <nav className="flex flex-wrap gap-4">
                     {isSuperAdmin && (
                       <NavLink
+                        to="/settings/backup"
+                        className={({ isActive }) =>
+                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${isActive
+                            ? "text-white bg-[var(--color-primary)]"
+                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                          }`
+                        }
+                      >
+                        Backup
+                      </NavLink>
+                    )}
+                    {isSuperAdmin && (
+                      <NavLink
                         to="/settings/general"
                         className={({ isActive }) =>
-                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${
-                            isActive
-                              ? "text-white bg-[var(--color-primary)]"
-                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${isActive
+                            ? "text-white bg-[var(--color-primary)]"
+                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                           }`
                         }
                       >
@@ -42,10 +54,9 @@ const Settings = () => {
                       <NavLink
                         to="/settings/wipeout"
                         className={({ isActive }) =>
-                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${
-                            isActive
-                              ? "text-red-600 bg-red-50 border border-red-200"
-                              : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${isActive
+                            ? "text-red-600 bg-red-50 border border-red-200"
+                            : "text-gray-500 hover:text-red-600 hover:bg-red-50"
                           }`
                         }
                       >
@@ -58,10 +69,9 @@ const Settings = () => {
                         to="/settings"
                         end
                         className={({ isActive }) =>
-                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${
-                            isActive
-                              ? "text-white bg-[var(--color-primary)]"
-                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${isActive
+                            ? "text-white bg-[var(--color-primary)]"
+                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                           }`
                         }
                       >
@@ -73,10 +83,9 @@ const Settings = () => {
                       <NavLink
                         to="/settings/units"
                         className={({ isActive }) =>
-                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${
-                            isActive
-                              ? "text-white bg-[var(--color-primary)]"
-                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${isActive
+                            ? "text-white bg-[var(--color-primary)]"
+                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                           }`
                         }
                       >

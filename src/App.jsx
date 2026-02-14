@@ -73,6 +73,7 @@ const GeneralSettingsPage = lazy(
 const WipeoutSettingsPage = lazy(
   () => import("@/features/settings/WipeoutSettingsPage"),
 );
+const BackupSettings = lazy(() => import("@/features/settings/BackupSettings"));
 const AccountDetailsPage = lazy(
   () => import("@/features/accounts/AccountDetailsPage"),
 );
@@ -98,6 +99,7 @@ const router = createBrowserRouter([
           { path: "units", element: <UnitsSettingsPage /> },
           { path: "general", element: <GeneralSettingsPage /> },
           { path: "wipeout", element: <WipeoutSettingsPage /> },
+          { path: "backup", element: <BackupSettings /> },
         ],
       },
       { path: "team", element: <TeamPage /> },
