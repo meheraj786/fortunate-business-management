@@ -16,6 +16,7 @@ import {
     FaSync,
     FaCog,
     FaSave,
+    FaLock,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 
@@ -108,19 +109,63 @@ const BackupSettings = () => {
     };
 
     const handleDownload = async (filename) => {
+        const toastId = toast.loading("Downloading backup...");
         try {
             const response = await downloadBackup(filename);
-            // Create blob link to download
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+
+            // Validate response content
+            const contentType = response.headers['content-type'];
+            if (contentType && contentType.includes('application/json')) {
+                // If backend returns JSON despite blob type, parse it
+                const text = await new Response(response.data).text();
+                try {
+                    const errorJson = JSON.parse(text);
+                    throw new Error(errorJson.message || "Download failed");
+                } catch (e) {
+                    throw new Error("Download failed: " + text);
+                }
+            }
+
+            // Create blob
+            const blob = new Blob([response.data], {
+                type: contentType || 'application/octet-stream'
+            });
+
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
             link.setAttribute("download", filename);
+            link.style.display = "none";
             document.body.appendChild(link);
+
+            // Click and wait
             link.click();
-            link.parentNode.removeChild(link);
+
+            // Clean up DOM element but NOT the URL immediately
+            // Changing strategy: Let the URL live for 60s to ensure browser catches it
+            setTimeout(() => {
+                document.body.removeChild(link);
+                // window.URL.revokeObjectURL(url); // Intentionally leaked for stability testing
+            }, 1000);
+
+            toast.success("Download started", { id: toastId });
         } catch (error) {
             console.error("Download failed:", error);
-            toast.error("Failed to download backup");
+            let msg = "Failed to download backup";
+
+            if (error.response && error.response.data instanceof Blob) {
+                try {
+                    const text = await error.response.data.text();
+                    const errObj = JSON.parse(text);
+                    msg = errObj.message || msg;
+                } catch (e) {
+                    // ignore
+                }
+            } else if (error.message) {
+                msg = error.message;
+            }
+
+            toast.error(msg, { id: toastId });
         }
     };
 
@@ -216,6 +261,65 @@ const BackupSettings = () => {
                                 </label>
                             </div>
                         </div>
+
+                        {/* Encryption Section */}
+                        <div className="mt-8 border-t border-gray-200 pt-6">
+                            <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
+                                <FaLock className="text-gray-500" /> Encryption Settings
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-4">
+                                Enable AES-256 encryption to protect your backups with a password.
+                                <br />
+                                <span className="text-amber-600">Note: You will need the provided <code>decrypt_backup.js</code> script to restore these files.</span>
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="flex items-start pt-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={config.encryption?.enabled || false}
+                                            onChange={(e) => {
+                                                setConfig(prev => ({
+                                                    ...prev,
+                                                    encryption: {
+                                                        ...prev.encryption,
+                                                        enabled: e.target.checked
+                                                    }
+                                                }));
+                                            }}
+                                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                                        />
+                                        <span className="text-gray-700 font-medium">Enable Encryption</span>
+                                    </label>
+                                </div>
+
+                                {config.encryption?.enabled && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Backup Password
+                                        </label>
+                                        <input
+                                            type="password"
+                                            value={config.encryption?.password || ""}
+                                            onChange={(e) => {
+                                                setConfig(prev => ({
+                                                    ...prev,
+                                                    encryption: {
+                                                        ...prev.encryption,
+                                                        password: e.target.value
+                                                    }
+                                                }));
+                                            }}
+                                            placeholder="Enter secure password"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Do not lose this password. Data cannot be recovered without it.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="mt-6 flex justify-end">
                             <button
                                 type="submit"
@@ -300,8 +404,13 @@ const BackupSettings = () => {
                                     {backups.map((backup) => (
                                         <tr key={backup.filename} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-2">
-                                                <FaFileArchive className="text-orange-500" />
+                                                <FaFileArchive className={backup.encrypted ? "text-purple-600" : "text-orange-500"} />
                                                 {backup.filename}
+                                                {backup.encrypted && (
+                                                    <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                        <FaLock size={10} /> Encrypted
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4">{backup.size}</td>
                                             <td className="px-6 py-4">
