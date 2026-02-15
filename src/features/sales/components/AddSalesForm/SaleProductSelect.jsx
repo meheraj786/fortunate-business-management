@@ -3,7 +3,7 @@ import { Package, Tag, Ruler, Hash, DollarSign, Plus, Trash2, ShoppingCart } fro
 import { Controller } from "react-hook-form";
 import SelectField from "@/components/ui/SelectField";
 import InputField from "@/components/ui/InputField";
-import Button from "@/components/ui/button"; // Assuming Button component exists
+import Button from "@/components/ui/Button";
 
 const SaleProductSelect = ({
   register,

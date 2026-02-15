@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import PropTypes from "prop-types";
 import TransactionTable from "@/components/common/TransactionTable";
-import StatCard from "./StatCard"; // Import the standalone StatCard component
+import StatCard from "./components/StatCard";
 
 // Empty State Component
 const EmptyTransactions = () => (
