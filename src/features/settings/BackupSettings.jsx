@@ -19,6 +19,7 @@ import {
     FaLock,
 } from "react-icons/fa";
 import Swal from "sweetalert2";
+import SelectField from "@/components/ui/SelectField";
 
 const BackupSettings = () => {
     const [backups, setBackups] = useState([]);
@@ -211,16 +212,12 @@ const BackupSettings = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Frequency
                                 </label>
-                                <select
-                                    name="frequency"
+                                <SelectField
                                     value={config.frequency}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="Daily">Daily</option>
-                                    <option value="Weekly">Weekly</option>
-                                    <option value="Monthly">Monthly</option>
-                                </select>
+                                    onChange={(val) => handleChange({ target: { name: "frequency", value: val } })}
+                                    options={["Daily", "Weekly", "Monthly"]}
+                                    className="mb-0"
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">

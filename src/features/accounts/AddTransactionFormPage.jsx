@@ -71,7 +71,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
           label="Account"
           name="account"
           value={transactionFormData.account}
-          onChange={handleTransactionFormChange}
+          onChange={(val) => handleTransactionFormChange({ target: { name: "account", value: val } })}
           options={accounts.map((acc) => ({
             value: acc._id,
             label: formatAccountLabel(acc),
@@ -84,7 +84,7 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
           label="Transaction Type"
           name="type"
           value={transactionFormData.type}
-          onChange={handleTransactionFormChange}
+          onChange={(val) => handleTransactionFormChange({ target: { name: "type", value: val } })}
           options={[
             { value: "Credit", label: "Incoming (Credit)" },
             { value: "Debit", label: "Outgoing (Debit)" },

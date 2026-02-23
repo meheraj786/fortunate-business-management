@@ -12,6 +12,7 @@ import {
   Filter,
 } from "lucide-react";
 import Button from "@/components/ui/Button"; // Import Button component
+import SelectField from "@/components/ui/SelectField";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -99,16 +100,17 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between gap-3 mb-4 sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm p-3 rounded-xl border border-gray-200 shadow-sm"
         >
-          <div className="flex items-center gap-2 flex-1">
+          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
             <Filter size={16} className="text-gray-400" />
-            <select
+            <SelectField
               value={sortBy}
-              onChange={(e) => onSort(e.target.value)}
-              className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer w-full"
-            >
-              <option value="saleDate">Date</option>
-              <option value="totalAmountToBePaid">Total Amount</option>
-            </select>
+              onChange={onSort}
+              options={[
+                { value: "saleDate", label: "Date" },
+                { value: "totalAmountToBePaid", label: "Total Amount" },
+              ]}
+              className="mb-0 w-full"
+            />
           </div>
           <button
             onClick={() => onSort(sortBy)}
@@ -203,10 +205,10 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                   <div>
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${["Paid", "Paid payment", "Overpaid"].includes(sale.paymentStatus)
-                          ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                          : ["Due", "Due payment", "Partial"].includes(sale.paymentStatus)
-                            ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                            : "bg-gray-100 text-gray-800"
+                        ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                        : ["Due", "Due payment", "Partial"].includes(sale.paymentStatus)
+                          ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+                          : "bg-gray-100 text-gray-800"
                         }`}
                     >
                       {sale.paymentStatus?.replace(" payment", "")}

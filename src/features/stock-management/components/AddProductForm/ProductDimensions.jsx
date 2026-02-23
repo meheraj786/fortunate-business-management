@@ -82,19 +82,14 @@ const ProductDimensions = ({ control, errors, isSubmitting }) => {
         />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Controller
+        <SelectField
           name="color"
           control={control}
-          render={({ field }) => (
-            <SelectField
-              {...field}
-              label="Color/Finish"
-              error={errors.color?.message}
-              options={colorOptions}
-              icon={Palette}
-              disabled={isSubmitting}
-            />
-          )}
+          label="Color/Finish"
+          error={errors.color?.message}
+          options={colorOptions}
+          icon={Palette}
+          disabled={isSubmitting}
         />
       </div>
     </div>

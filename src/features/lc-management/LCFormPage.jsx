@@ -154,6 +154,7 @@ const ProductFields = ({
   removeProductField,
   hasPermission,
   register,
+  control,
   errors,
   setValue,
   watch,
@@ -238,7 +239,7 @@ const ProductFields = ({
         <SelectField
           label="Unit"
           name={`${baseName}.${index}.quantityUnit`}
-          register={register}
+          control={control}
           error={productErrors?.quantityUnit?.message}
           options={units.map((u) => ({ value: u._id, label: u.name })) || []}
           validation={{ required: "Unit is required" }}
@@ -624,7 +625,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
               <SelectField
                 label="Status"
                 name="basicInfo.status"
-                register={register}
+                control={control}
                 error={errors.basicInfo?.status?.message}
                 options={[
                   { value: "Draft", label: "Draft" },
@@ -638,7 +639,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
               <SelectField
                 label="Choose an account"
                 name="basicInfo.accountId"
-                register={register}
+                control={control}
                 error={errors.basicInfo?.accountId?.message}
                 options={accounts
                   .filter((acc) => acc.accountType === "Bank")

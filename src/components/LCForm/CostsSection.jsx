@@ -125,7 +125,7 @@ const CostsSection = ({
               <SelectField
                 label="Payment Method"
                 name={`${section}[${index}].paymentMethod`}
-                register={register}
+                control={control}
                 error={getNestedErrorMessage(
                   `${section}[${index}].paymentMethod`,
                 )}
@@ -142,28 +142,28 @@ const CostsSection = ({
                 <SelectField
                   label="Select Account"
                   name={`${section}[${index}].accountId`}
-                  register={register}
+                  control={control}
                   error={getNestedErrorMessage(
                     `${section}[${index}].accountId`,
                   )}
                   // ... imports
 
 
-              // ... inside component
+                  // ... inside component
 
-              options={accounts
-                .filter(
-                  (acc) =>
-                    acc.accountType ===
-                    watch(`${section}[${index}].paymentMethod`),
-                )
-                .map((acc) => ({
-                  value: acc._id,
-                  label: formatAccountLabel(acc),
-                }))}
-              placeholder="Choose account"
-              validation={{ required: "Account is required" }}
-              disabled={isSubmitting}
+                  options={accounts
+                    .filter(
+                      (acc) =>
+                        acc.accountType ===
+                        watch(`${section}[${index}].paymentMethod`),
+                    )
+                    .map((acc) => ({
+                      value: acc._id,
+                      label: formatAccountLabel(acc),
+                    }))}
+                  placeholder="Choose account"
+                  validation={{ required: "Account is required" }}
+                  disabled={isSubmitting}
                 />
               )}
             </div>

@@ -32,6 +32,7 @@ const AddTransactionDialog = ({
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
     watch,
@@ -242,7 +243,7 @@ const AddTransactionDialog = ({
         <SelectField
           label="Category"
           name="category"
-          register={register}
+          control={control}
           error={errors.category?.message}
           options={transactionCategories.map((item) => ({
             value: item,
@@ -267,7 +268,7 @@ const AddTransactionDialog = ({
           <SelectField
             label="Select LC"
             name="lcId"
-            register={register}
+            control={control}
             error={errors.lcId?.message}
             options={activeLc.map((lc) => ({
               value: lc._id,
@@ -284,7 +285,7 @@ const AddTransactionDialog = ({
           <SelectField
             label="LC Cost Category"
             name="lcCostCategory"
-            register={register}
+            control={control}
             error={errors.lcCostCategory?.message}
             options={[
               { value: "financialInfo", label: "Financial" },
@@ -300,7 +301,7 @@ const AddTransactionDialog = ({
           <SelectField
             label="Select Sale"
             name="salesId"
-            register={register}
+            control={control}
             error={errors.salesId?.message}
             options={activeSales.map((sale) => ({
               value: sale._id,
@@ -331,7 +332,7 @@ const AddTransactionDialog = ({
         <SelectField
           label="Payment Method"
           name="paymentMethod"
-          register={register}
+          control={control}
           error={errors.paymentMethod?.message}
           options={[
             { value: "Cash", label: "💵 Cash" },
@@ -346,7 +347,7 @@ const AddTransactionDialog = ({
             <SelectField
               label="Select Account"
               name="accountId"
-              register={register}
+              control={control}
               error={errors.accountId?.message}
               options={getFilteredAccounts().map((acc) => ({
                 value: acc._id,

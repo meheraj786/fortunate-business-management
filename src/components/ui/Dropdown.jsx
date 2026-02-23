@@ -1,263 +1,153 @@
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiChevronDown } from "react-icons/fi";
-import CustomScrollbar from "./CustomScrollbar";
+import React, { Fragment, useMemo } from 'react';
+import { Listbox, Transition } from '@headlessui/react';
+import { ChevronDown, Check, AlertCircle } from 'lucide-react';
 
 const Dropdown = ({
-  options,
-  selected,
-  onSelect,
-  placeholder,
-  label,
-  icon: Icon,
+  value,
+  onChange,
+  onSelect, // legacy support
+  options = [],
+  placeholder = 'Select an option',
+  disabled = false,
   error,
+  className = '',
+  icon: Icon,
+  loading = false,
+  formatLabel,
+  name,
+  id,
+  label // legacy support
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const dropdownRef = useRef(null);
-  const buttonRef = useRef(null);
-  const optionsRef = useRef([]);
-  const scrollContainerRef = useRef(null);
+  // Support both onSelect and onChange
+  const handleChange = (val) => {
+    if (onChange) onChange(val);
+    if (onSelect) onSelect(val);
+  };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-        setFocusedIndex(-1);
+  // Support legacy selected prop
+  const currentValue = value;
+
+  // Normalize options to ensure they always have label and value
+  const normalizedOptions = useMemo(() => {
+    return options.map(option => {
+      if (typeof option === 'object' && option !== null) {
+        return {
+          value: option._id ?? option.value ?? option,
+          label: option.name ?? option.label ?? option.toString()
+        };
       }
-    };
+      return { value: option, label: String(option) };
+    });
+  }, [options]);
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  useEffect(() => {
-    // Reset focused index when dropdown closes
-    if (!isOpen) {
-      setFocusedIndex(-1);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    // Scroll focused option into view when navigating with keyboard
-    if (isOpen && focusedIndex >= 0 && optionsRef.current[focusedIndex]) {
-      const focusedOption = optionsRef.current[focusedIndex];
-      const scrollContainer = scrollContainerRef.current;
-
-      if (scrollContainer && focusedOption) {
-        const optionRect = focusedOption.getBoundingClientRect();
-        const containerRect = scrollContainer.getBoundingClientRect();
-
-        // Check if option is outside visible area
-        if (optionRect.bottom > containerRect.bottom) {
-          // Option is below visible area, scroll down
-          focusedOption.scrollIntoView({ block: "nearest" });
-        } else if (optionRect.top < containerRect.top) {
-          // Option is above visible area, scroll up
-          focusedOption.scrollIntoView({ block: "nearest" });
-        }
-      }
-    }
-  }, [focusedIndex, isOpen]);
-
-  const handleSelect = (option) => {
-    onSelect(option);
-    setIsOpen(false);
-    setFocusedIndex(-1);
-    // Return focus to button after selection
-    buttonRef.current?.focus();
-  };
-
-  const handleKeyDown = (event) => {
-    switch (event.key) {
-      case "Escape":
-        setIsOpen(false);
-        setFocusedIndex(-1);
-        buttonRef.current?.focus();
-        break;
-
-      case "ArrowDown":
-        event.preventDefault();
-        if (!isOpen) {
-          setIsOpen(true);
-          setFocusedIndex(0);
-        } else {
-          const nextIndex = (focusedIndex + 1) % options.length;
-          setFocusedIndex(nextIndex);
-        }
-        break;
-
-      case "ArrowUp":
-        event.preventDefault();
-        if (!isOpen) {
-          setIsOpen(true);
-          setFocusedIndex(options.length - 1);
-        } else {
-          const prevIndex =
-            (focusedIndex - 1 + options.length) % options.length;
-          setFocusedIndex(prevIndex);
-        }
-        break;
-
-      case "Enter":
-      case " ":
-        event.preventDefault();
-        if (isOpen && focusedIndex >= 0) {
-          handleSelect(options[focusedIndex]);
-        } else if (!isOpen) {
-          setIsOpen(true);
-          setFocusedIndex(0);
-        }
-        break;
-
-      case "Tab":
-        if (isOpen) {
-          setIsOpen(false);
-          setFocusedIndex(-1);
-        }
-        break;
-
-      case "Home":
-        event.preventDefault();
-        if (isOpen) {
-          setFocusedIndex(0);
-        }
-        break;
-
-      case "End":
-        event.preventDefault();
-        if (isOpen) {
-          setFocusedIndex(options.length - 1);
-        }
-        break;
-
-      default:
-        // Handle character keys for quick navigation
-        if (isOpen && event.key.length === 1) {
-          const char = event.key.toLowerCase();
-          const foundIndex = options.findIndex((option) =>
-            option.toLowerCase().startsWith(char)
-          );
-          if (foundIndex !== -1) {
-            setFocusedIndex(foundIndex);
-          }
-        }
-        break;
-    }
-  };
-
-  const handleOptionKeyDown = (event, option) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleSelect(option);
-    }
-  };
-
-  // Calculate max height for dropdown (5 items max)
-  const getDropdownHeight = () => {
-    const itemHeight = 48; // approx height of each option
-    const maxVisibleItems = 4;
-    const calculatedHeight =
-      Math.min(options.length, maxVisibleItems) * itemHeight;
-    return Math.max(calculatedHeight, itemHeight); // at least show one item
-  };
+  const selectedOption = useMemo(() => {
+    return normalizedOptions.find(opt => opt.value === currentValue) || null;
+  }, [currentValue, normalizedOptions]);
 
   return (
-    <div className="relative w-full" ref={dropdownRef}>
-      {label && (
-        <label
-          id="dropdown-label"
-          className="flex items-center text-sm font-medium text-gray-700 mb-2"
-        >
-          {Icon && <Icon className="mr-2 text-gray-400" />}
-          {label}
-        </label>
-      )}
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={() => {
-          setIsOpen(!isOpen);
-          setFocusedIndex(isOpen ? -1 : 0);
-        }}
-        onKeyDown={handleKeyDown}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-labelledby={label ? "dropdown-label" : undefined}
-        aria-describedby={error ? "dropdown-error" : undefined}
-        className={`w-full flex items-center justify-between px-4 py-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 appearance-none bg-white ${
-          error
-            ? "border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]"
-            : "border-gray-300 focus:ring-[var(--color-primary)]"
-        }`}
-      >
-        <span className={selected ? "text-gray-800" : "text-gray-400"}>
-          {selected || placeholder}
-        </span>
-        <FiChevronDown
-          className={`transform transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
-            role="listbox"
-            aria-labelledby={label ? "dropdown-label" : undefined}
-          >
-            <div
-              ref={scrollContainerRef}
-              style={{ maxHeight: getDropdownHeight() }}
+    <Listbox value={currentValue} onChange={handleChange} disabled={disabled || loading} name={name}>
+      {({ open }) => (
+        <div className={`relative ${className}`}>
+          {label && (
+            <Listbox.Label
+              className="flex items-center text-sm font-medium text-gray-700 mb-2"
             >
-              <CustomScrollbar>
-                <div>
-                  {options.map((option, index) => (
-                    <div
-                      key={option}
-                      ref={(el) => (optionsRef.current[index] = el)}
-                      onClick={() => handleSelect(option)}
-                      onKeyDown={(event) =>
-                        handleOptionKeyDown(event, option, index)
-                      }
-                      role="option"
-                      aria-selected={selected === option}
-                      tabIndex={-1}
-                      className={`px-4 py-3 text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors duration-150 ${
-                        focusedIndex === index
-                          ? "bg-[var(--color-primary-light)] border-[var(--color-primary)] border"
-                          : ""
-                      } ${selected === option ? "bg-gray-50 font-medium text-[var(--color-primary)]" : ""}`}
-                    >
-                      {option}
-                    </div>
-                  ))}
-                </div>
-              </CustomScrollbar>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {label}
+            </Listbox.Label>
+          )}
+          <Listbox.Button
+            id={id}
+            className={`
+              relative w-full text-left bg-white
+              border rounded-lg shadow-sm
+              pl-4 sm:pl-3 pr-10 py-3 sm:py-2
+              focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
+              transition-all duration-200
+              ${disabled || loading ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'cursor-pointer'}
+              ${Icon ? 'pl-10 sm:pl-12' : ''}
+              ${error ? 'border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]' : 'border-gray-300'}
+              text-base sm:text-sm
+            `}
+          >
+            {Icon && (
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
+              </span>
+            )}
 
-      {error && (
-        <motion.p
-          id="dropdown-error"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-sm text-[var(--color-danger)] mt-1"
-          role="alert"
-        >
-          {error}
-        </motion.p>
+            <span className={`block truncate ${!selectedOption && !loading ? 'text-gray-500' : 'text-gray-900'}`}>
+              {loading
+                ? 'Loading...'
+                : selectedOption
+                  ? (formatLabel ? formatLabel(selectedOption) : selectedOption.label)
+                  : placeholder}
+            </span>
+
+            <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              {loading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary)]" />
+              ) : error ? (
+                <AlertCircle className="w-4 h-4 text-[var(--color-danger)] mr-6" aria-hidden="true" />
+              ) : null}
+              {!loading && (
+                <ChevronDown
+                  className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${open ? 'transform rotate-180' : ''}`}
+                  aria-hidden="true"
+                />
+              )}
+            </span>
+          </Listbox.Button>
+
+          <Transition
+            as={Fragment}
+            leave="transition ease-in duration-100"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <Listbox.Options className="absolute z-50 w-full py-1 mt-1 overflow-auto text-base sm:text-sm bg-white rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-100">
+              {normalizedOptions.length === 0 ? (
+                <div className="relative cursor-default select-none py-2 px-4 text-gray-500 text-center">
+                  No options available
+                </div>
+              ) : (
+                normalizedOptions.map((option, index) => (
+                  <Listbox.Option
+                    key={option.value || index}
+                    className={({ active }) =>
+                      `relative cursor-pointer select-none py-2 pl-3 pr-9 ${active ? 'bg-blue-50 text-[var(--color-primary)]' : 'text-gray-900'
+                      }`
+                    }
+                    value={option.value}
+                  >
+                    {({ selected, active }) => (
+                      <>
+                        <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                          {formatLabel ? formatLabel(option) : option.label}
+                        </span>
+                        {selected ? (
+                          <span
+                            className={`absolute inset-y-0 right-0 flex items-center pr-3 ${active ? 'text-[var(--color-primary)]' : 'text-[var(--color-primary)]'
+                              }`}
+                          >
+                            <Check className="w-4 h-4" aria-hidden="true" />
+                          </span>
+                        ) : null}
+                      </>
+                    )}
+                  </Listbox.Option>
+                ))
+              )}
+            </Listbox.Options>
+          </Transition>
+
+          {error && (
+            <p className="text-sm text-[var(--color-danger)] mt-1" role="alert">
+              {error}
+            </p>
+          )}
+        </div>
       )}
-    </div>
+    </Listbox>
   );
 };
 

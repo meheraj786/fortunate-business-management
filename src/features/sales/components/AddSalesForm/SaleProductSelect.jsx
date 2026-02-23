@@ -154,55 +154,41 @@ const SaleProductSelect = ({
     <div className="space-y-6">
       {/* Global Selectors */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Controller
+        <SelectField
           name="warehouseId"
           control={control}
-          rules={{ required: "Warehouse is required" }}
-          render={({ field }) => (
-            <SelectField
-              label="Warehouse"
-              name="warehouseId"
-              required={true}
-              value={field.value}
-              error={errors.warehouseId?.message}
-              options={warehouses.map((w) => ({
-                value: w._id,
-                label: w.name,
-              }))}
-              icon={Package}
-              disabled={isEditMode || isInitialLoading || fields.length > 0} // Disable if items added to prevent inconsistency
-              onChange={(e) => {
-                field.onChange(e);
-                handleWarehouseChange(e.target.value);
-              }}
-            />
-          )}
+          validation={{ required: "Warehouse is required" }}
+          label="Warehouse"
+          required={true}
+          error={errors.warehouseId?.message}
+          options={warehouses.map((w) => ({
+            value: w._id,
+            label: w.name,
+          }))}
+          icon={Package}
+          disabled={isEditMode || isInitialLoading || fields.length > 0} // Disable if items added to prevent inconsistency
+          onChange={(val) => {
+            handleWarehouseChange(val);
+          }}
         />
 
-        <Controller
+        <SelectField
           name="categoryId"
           control={control}
-          render={({ field }) => (
-            <SelectField
-              label="Category Filter (Optional)"
-              name="categoryId"
-              value={field.value}
-              error={errors.categoryId?.message}
-              options={[
-                { value: "", label: "All Categories" },
-                ...categories.map((c) => ({
-                  value: c._id,
-                  label: c.name,
-                }))
-              ]}
-              icon={Tag}
-              disabled={!watchedWarehouseId || productsLoading}
-              onChange={(e) => {
-                field.onChange(e);
-                setValue("productId", "");
-              }}
-            />
-          )}
+          label="Category Filter (Optional)"
+          error={errors.categoryId?.message}
+          options={[
+            { value: "", label: "All Categories" },
+            ...categories.map((c) => ({
+              value: c._id,
+              label: c.name,
+            }))
+          ]}
+          icon={Tag}
+          disabled={!watchedWarehouseId || productsLoading}
+          onChange={(val) => {
+            setValue("productId", "");
+          }}
         />
       </div>
 
@@ -224,7 +210,7 @@ const SaleProductSelect = ({
               icon={Package}
               disabled={!watchedWarehouseId || productsLoading}
               loading={productsLoading}
-              onChange={(e) => handleProductChange(e.target.value)}
+              onChange={(val) => handleProductChange(val)}
             />
           </div>
           <div>
@@ -245,7 +231,7 @@ const SaleProductSelect = ({
               value={newItem.unit}
               options={units.map((u) => ({ value: u._id, label: u.name }))}
               icon={Ruler}
-              onChange={(e) => handleUnitChange(e.target.value)}
+              onChange={(val) => handleUnitChange(val)}
             />
           </div>
           <div className="flex items-end gap-2">

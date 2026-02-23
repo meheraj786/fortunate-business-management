@@ -31,55 +31,40 @@ const ProductBasicInfo = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Controller
+        <SelectField
           name="name"
           control={control}
-          rules={{ required: "Product Name is required" }}
-          render={({ field }) => (
-            <InputField
-              {...field}
-              label="Product Name"
-              required={true}
-              error={errors.name?.message}
-              placeholder="Mild Steel Rod"
-              icon={Package}
-              disabled={isSubmitting}
-            />
-          )}
+          validation={{ required: "Product Name is required" }}
+          label="Product Name"
+          required={true}
+          error={errors.name?.message}
+          placeholder="Mild Steel Rod"
+          icon={Package}
+          disabled={isSubmitting}
         />
-        <Controller
+        <SelectField
           name="category"
           control={control}
-          rules={{ required: "Category is required" }}
-          render={({ field }) => (
-            <SelectField
-              {...field}
-              label="Category"
-              required={true}
-              error={errors.category?.message}
-              options={categoryOptions}
-              icon={Tag}
-              disabled={isSubmitting || categoriesLoading}
-              loading={categoriesLoading}
-            />
-          )}
+          validation={{ required: "Category is required" }}
+          label="Category"
+          required={true}
+          error={errors.category?.message}
+          options={categoryOptions}
+          icon={Tag}
+          disabled={isSubmitting || categoriesLoading}
+          loading={categoriesLoading}
         />
-        <Controller
+        <SelectField
           name="LC"
           control={control}
-          rules={{ required: "LC is required" }}
-          render={({ field }) => (
-            <SelectField
-              {...field}
-              label="LC"
-              required={true}
-              error={errors.LC?.message}
-              options={lcOptions}
-              icon={FileText}
-              disabled={isSubmitting || lcsLoading}
-              loading={lcsLoading}
-            />
-          )}
+          validation={{ required: "LC is required" }}
+          label="LC"
+          required={true}
+          error={errors.LC?.message}
+          options={lcOptions}
+          icon={FileText}
+          disabled={isSubmitting || lcsLoading}
+          loading={lcsLoading}
         />
         <Controller
           name="supplierName"

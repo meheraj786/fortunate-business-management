@@ -129,8 +129,8 @@ const Customers = () => {
     setPage(1);
   }, []);
 
-  const handleSortByChange = useCallback((e) => {
-    setSorting((prev) => ({ ...prev, sortBy: e.target.value }));
+  const handleSortByChange = useCallback((val) => {
+    setSorting((prev) => ({ ...prev, sortBy: val }));
     setPage(1);
   }, []);
 
@@ -280,7 +280,7 @@ const Customers = () => {
                   label="Status"
                   name="status"
                   value={filters.status}
-                  onChange={(e) => handleFilterChange("status", e.target.value)}
+                  onChange={(val) => handleFilterChange("status", val)}
                   options={statusOptions}
                 />
               </div>
@@ -289,8 +289,8 @@ const Customers = () => {
                   label="Customer Type"
                   name="customerType"
                   value={filters.customerType}
-                  onChange={(e) =>
-                    handleFilterChange("customerType", e.target.value)
+                  onChange={(val) =>
+                    handleFilterChange("customerType", val)
                   }
                   options={customerTypeOptions}
                 />

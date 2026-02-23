@@ -43,22 +43,17 @@ const ProductPricing = ({
           )}
         />
         {/* ... Unit select is already controlled ... */}
-        <Controller
+        <SelectField
           name="unit"
           control={control}
-          rules={{ required: "Unit is required" }}
-          render={({ field }) => (
-            <SelectField
-              {...field}
-              label="Unit"
-              required={true}
-              error={errors.unit?.message}
-              options={unitOptions}
-              icon={Package}
-              disabled={isSubmitting || unitsLoading}
-              loading={unitsLoading}
-            />
-          )}
+          validation={{ required: "Unit is required" }}
+          label="Unit"
+          required={true}
+          error={errors.unit?.message}
+          options={unitOptions}
+          icon={Package}
+          disabled={isSubmitting || unitsLoading}
+          loading={unitsLoading}
         />
         <Controller
           name="unitPrice"

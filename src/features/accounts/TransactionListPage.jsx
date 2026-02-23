@@ -15,6 +15,7 @@ import Pagination from "@/components/ui/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import Button from "@/components/ui/Button"; // Import Button
 import { motion } from "framer-motion"; // Import motion
+import SelectField from "@/components/ui/SelectField";
 
 const sortOptions = [
   { value: "date", label: "Date" },
@@ -194,18 +195,12 @@ const TransactionList = () => {
               />
             </div>
             <div className="relative w-full md:w-48">
-              <select
+              <SelectField
                 value={sorting.sortBy}
-                onChange={handleSortByChange}
-                className="w-full appearance-none pl-3 pr-10 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
-              >
-                {sortOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                onChange={(val) => handleSortByChange({ target: { value: val } })}
+                options={sortOptions}
+                className="mb-0"
+              />
             </div>
             <Button
               onClick={toggleSortOrder}
@@ -243,50 +238,34 @@ const TransactionList = () => {
                 </Button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <select
-                  name="transactionType"
+                <SelectField
                   value={filters.transactionType}
-                  onChange={(e) =>
-                    handleFilterChange("transactionType", e.target.value)
+                  onChange={(val) =>
+                    handleFilterChange("transactionType", val)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
-                >
-                  {transactionTypeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  name="paymentMethod"
+                  options={transactionTypeOptions}
+                  className="mb-0"
+                />
+                <SelectField
                   value={filters.paymentMethod}
-                  onChange={(e) =>
-                    handleFilterChange("paymentMethod", e.target.value)
+                  onChange={(val) =>
+                    handleFilterChange("paymentMethod", val)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
-                >
-                  {paymentMethodOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  name="category"
+                  options={paymentMethodOptions}
+                  className="mb-0"
+                />
+                <SelectField
                   value={filters.category}
-                  onChange={(e) =>
-                    handleFilterChange("category", e.target.value)
+                  onChange={(val) =>
+                    handleFilterChange("category", val)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] bg-white text-base sm:text-sm"
+                  options={[
+                    { value: "all", label: "All Categories" },
+                    ...categories.map(cat => ({ value: cat, label: cat }))
+                  ]}
                   disabled={categories.length === 0}
-                >
-                  <option value="all">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                  className="mb-0"
+                />
               </div>
             </div>
           )}

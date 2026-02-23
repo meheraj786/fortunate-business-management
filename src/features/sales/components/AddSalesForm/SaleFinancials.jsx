@@ -211,38 +211,28 @@ const SaleFinancials = ({
                 error={errors.costs?.[index]?.amount?.message}
                 validation={{ required: "Required", valueAsNumber: true }}
               />
-              <Controller
+              <SelectField
                 name={`costs.${index}.method`}
                 control={control}
-                rules={{ required: "Required" }}
-                render={({ field }) => (
-                  <SelectField
-                    {...field}
-                    label="Method"
-                    error={errors.costs?.[index]?.method?.message}
-                    options={[
-                      { value: "Cash", label: "Cash" },
-                      { value: "Bank", label: "Bank" },
-                      { value: "Mobile Banking", label: "Mobile Banking" },
-                    ]}
-                  />
-                )}
+                validation={{ required: "Required" }}
+                label="Method"
+                error={errors.costs?.[index]?.method?.message}
+                options={[
+                  { value: "Cash", label: "Cash" },
+                  { value: "Bank", label: "Bank" },
+                  { value: "Mobile Banking", label: "Mobile Banking" },
+                ]}
               />
-              <Controller
+              <SelectField
                 name={`costs.${index}.accountId`}
                 control={control}
-                rules={{ required: "Required" }}
-                render={({ field }) => (
-                  <SelectField
-                    {...field}
-                    label="Account"
-                    error={errors.costs?.[index]?.accountId?.message}
-                    options={getFilteredAccounts(
-                      watch(`costs.${index}.method`),
-                    )}
-                    disabled={!watch(`costs.${index}.method`)}
-                  />
+                validation={{ required: "Required" }}
+                label="Account"
+                error={errors.costs?.[index]?.accountId?.message}
+                options={getFilteredAccounts(
+                  watch(`costs.${index}.method`),
                 )}
+                disabled={!watch(`costs.${index}.method`)}
               />
               <Button
                 type="button"
@@ -298,26 +288,20 @@ const SaleFinancials = ({
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-4">
-          <Controller
+          <SelectField
             name="invoiceStatus"
             control={control}
-            render={({ field }) => (
-              <SelectField
-                {...field}
-                label="Invoice Status"
-                error={errors.invoiceStatus?.message}
-                options={[
-                  { value: "Not-invoiced", label: "Not Invoiced" },
-                  { value: "Invoiced", label: "Invoiced" },
-                ]}
-                icon={FileText}
-                disabled={customerType === "manual"} // Manual customers forced to Invoiced
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleInvoiceStatusChange(e.target.value);
-                }}
-              />
-            )}
+            label="Invoice Status"
+            error={errors.invoiceStatus?.message}
+            options={[
+              { value: "Not-invoiced", label: "Not Invoiced" },
+              { value: "Invoiced", label: "Invoiced" },
+            ]}
+            icon={FileText}
+            disabled={customerType === "manual"} // Manual customers forced to Invoiced
+            onChange={(val) => {
+              handleInvoiceStatusChange(val);
+            }}
           />
           {customerType === "manual" && (
             <p className="text-xs text-amber-600 mt-1">
@@ -327,35 +311,29 @@ const SaleFinancials = ({
         </div>
 
         <div className="space-y-4">
-          <Controller
+          <SelectField
             name="paymentStatus"
             control={control}
-            render={({ field }) => (
-              <SelectField
-                {...field}
-                label="Payment Status"
-                error={errors.paymentStatus?.message}
-                options={[
-                  { value: "Paid payment", label: "Paid" },
-                  {
-                    value: "Due payment",
-                    label: "Due",
-                    disabled: customerType === "manual",
-                  },
-                  {
-                    value: "Partial payment",
-                    label: "Partial",
-                    disabled: customerType === "manual",
-                  },
-                ]}
-                icon={CreditCard}
-                disabled={watchedInvoiceStatus === "Not-invoiced"}
-                onChange={(e) => {
-                  field.onChange(e);
-                  handlePaymentStatusChange(e.target.value);
-                }}
-              />
-            )}
+            label="Payment Status"
+            error={errors.paymentStatus?.message}
+            options={[
+              { value: "Paid payment", label: "Paid" },
+              {
+                value: "Due payment",
+                label: "Due",
+                disabled: customerType === "manual",
+              },
+              {
+                value: "Partial payment",
+                label: "Partial",
+                disabled: customerType === "manual",
+              },
+            ]}
+            icon={CreditCard}
+            disabled={watchedInvoiceStatus === "Not-invoiced"}
+            onChange={(val) => {
+              handlePaymentStatusChange(val);
+            }}
           />
           {customerType === "manual" && (
             <p className="text-xs text-amber-600 mt-1">
@@ -410,62 +388,51 @@ const SaleFinancials = ({
               validation={{ required: "Required" }}
             />
             <div className="space-y-1">
-              <Controller
+              <SelectField
                 name={`payments.${index}.method`}
                 control={control}
-                rules={{ required: "Required" }}
-                render={({ field }) => (
-                  <SelectField
-                    {...field}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      // Refresh customer data when Customer Credit is selected to get latest balance
-                      if (e.target.value === "Customer Credit") {
-                        queryClient.invalidateQueries({ queryKey: ["customers"] });
-                      }
-                    }}
-                    label="Method"
-                    error={errors.payments?.[index]?.method?.message}
-                    options={[
-                      { value: "Cash", label: "Cash" },
-                      { value: "Bank", label: "Bank" },
-                      { value: "Mobile Banking", label: "Mobile Banking" },
-                      {
-                        value: "Customer Credit",
-                        label: "Customer Credit",
-                        disabled:
-                          customerType === "manual" ||
-                          !selectedCustomer?.creditBalance ||
-                          selectedCustomer.creditBalance <= 0,
-                      },
-                    ]}
-                  />
-                )}
+                validation={{ required: "Required" }}
+                onChange={(val) => {
+                  // Refresh customer data when Customer Credit is selected to get latest balance
+                  if (val === "Customer Credit") {
+                    queryClient.invalidateQueries({ queryKey: ["customers"] });
+                  }
+                }}
+                label="Method"
+                error={errors.payments?.[index]?.method?.message}
+                options={[
+                  { value: "Cash", label: "Cash" },
+                  { value: "Bank", label: "Bank" },
+                  { value: "Mobile Banking", label: "Mobile Banking" },
+                  {
+                    value: "Customer Credit",
+                    label: "Customer Credit",
+                    disabled:
+                      customerType === "manual" ||
+                      !selectedCustomer?.creditBalance ||
+                      selectedCustomer.creditBalance <= 0,
+                  },
+                ]}
               />
             </div>
 
-            <Controller
+            <SelectField
               name={`payments.${index}.accountId`}
               control={control}
-              rules={{
+              validation={{
                 required:
                   watch(`payments.${index}.method`) !== "Customer Credit" &&
                   "Required",
               }}
-              render={({ field }) => (
-                <SelectField
-                  {...field}
-                  label="To Account"
-                  error={errors.payments?.[index]?.accountId?.message}
-                  options={getFilteredAccounts(
-                    watch(`payments.${index}.method`),
-                  )}
-                  disabled={
-                    !watch(`payments.${index}.method`) ||
-                    watch(`payments.${index}.method`) === "Customer Credit"
-                  }
-                />
+              label="To Account"
+              error={errors.payments?.[index]?.accountId?.message}
+              options={getFilteredAccounts(
+                watch(`payments.${index}.method`),
               )}
+              disabled={
+                !watch(`payments.${index}.method`) ||
+                watch(`payments.${index}.method`) === "Customer Credit"
+              }
             />
             <div className="flex gap-2">
               {watchedPaymentStatus === "Partial payment" && (

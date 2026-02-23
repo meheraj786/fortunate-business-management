@@ -6,6 +6,7 @@ import { useSettings } from "@/context/SettingsContext";
 
 const SaleCustomerSelect = ({
   register,
+  control,
   errors,
   setValue,
   watch,
@@ -36,7 +37,7 @@ const SaleCustomerSelect = ({
           label="Customer Type"
           name="customerType"
           required={true}
-          register={register}
+          control={control}
           error={errors.customerType?.message}
           options={[
             { value: "existing", label: "Existing Customer" },
@@ -44,9 +45,9 @@ const SaleCustomerSelect = ({
           ]}
           validation={{ required: "Customer type is required" }}
           disabled={isEditMode}
-          onChange={(e) => {
-            setValue("customerType", e.target.value);
-            if (e.target.value === "manual") {
+          onChange={(val) => {
+            setValue("customerType", val);
+            if (val === "manual") {
               setValue("customerId", "");
             } else {
               setValue("customerName", "");
@@ -63,7 +64,7 @@ const SaleCustomerSelect = ({
             label="Select Customer"
             name="customerId"
             required={true}
-            register={register}
+            control={control}
             error={errors.customerId?.message}
             options={customers.map((c) => ({
               value: c._id,
@@ -72,9 +73,9 @@ const SaleCustomerSelect = ({
             validation={{ required: "Customer is required" }}
             icon={User}
             disabled={isEditMode || isInitialLoading}
-            onChange={(e) => {
-              setValue("customerId", e.target.value, { shouldValidate: true });
-              handleCustomerSelect(e.target.value);
+            onChange={(val) => {
+              setValue("customerId", val, { shouldValidate: true });
+              handleCustomerSelect(val);
             }}
           />
           {selectedCustomer && (

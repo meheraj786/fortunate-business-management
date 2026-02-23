@@ -110,42 +110,32 @@ const AddCreditModal = ({ isOpen, onClose, customerId }) => {
                     placeholder="Enter amount"
                 />
 
-                <Controller
+                <SelectField
                     name="paymentMethod"
                     control={control}
-                    rules={{ required: "Payment method is required" }}
-                    render={({ field }) => (
-                        <SelectField
-                            {...field}
-                            label="Payment Method"
-                            error={errors.paymentMethod?.message}
-                            options={[
-                                { value: "Cash", label: "Cash" },
-                                { value: "Bank", label: "Bank Transfer" },
-                                { value: "Mobile Banking", label: "Mobile Banking" },
-                            ]}
-                        />
-                    )}
+                    validation={{ required: "Payment method is required" }}
+                    label="Payment Method"
+                    error={errors.paymentMethod?.message}
+                    options={[
+                        { value: "Cash", label: "Cash" },
+                        { value: "Bank", label: "Bank Transfer" },
+                        { value: "Mobile Banking", label: "Mobile Banking" },
+                    ]}
                 />
 
-                <Controller
+                <SelectField
                     name="accountId"
                     control={control}
-                    rules={{ required: "Account is required" }}
-                    render={({ field }) => (
-                        <SelectField
-                            {...field}
-                            label="Deposit To Account"
-                            error={errors.accountId?.message}
-                            options={accounts
-                                .filter((acc) => acc.accountType === watchedPaymentMethod)
-                                .map((acc) => ({
-                                    value: acc._id,
-                                    label: formatAccountLabel(acc),
-                                }))}
-                            disabled={!watchedPaymentMethod}
-                        />
-                    )}
+                    validation={{ required: "Account is required" }}
+                    label="Deposit To Account"
+                    error={errors.accountId?.message}
+                    options={accounts
+                        .filter((acc) => acc.accountType === watchedPaymentMethod)
+                        .map((acc) => ({
+                            value: acc._id,
+                            label: formatAccountLabel(acc),
+                        }))}
+                    disabled={!watchedPaymentMethod}
                 />
 
                 <InputField

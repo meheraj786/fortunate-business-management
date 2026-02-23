@@ -5,6 +5,7 @@ import {
 } from "@/api/hooks/settingsHooks";
 import { useAuth } from "@/hooks/useAuth"; // Adjust path if needed
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
+import SelectField from "@/components/ui/SelectField";
 
 const TIMEZONES = [
   "America/New_York",
@@ -187,25 +188,17 @@ const GeneralSettingsPage = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Select Timezone
                 </label>
-                <div className="flex gap-3">
-                  <select
-                    value={selectedTimezone}
-                    onChange={(e) => setSelectedTimezone(e.target.value)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
-                    disabled={isLoading}
-                  >
-                    <option value="" disabled>
-                      {isLoading
-                        ? "Loading timezones..."
-                        : "Select a timezone..."}
-                    </option>
-                    {!isLoading &&
-                      TIMEZONES.map((tz) => (
-                        <option key={tz} value={tz}>
-                          {tz}
-                        </option>
-                      ))}
-                  </select>
+                <div className="flex gap-3 items-start">
+                  <div className="w-full">
+                    <SelectField
+                      value={selectedTimezone}
+                      onChange={setSelectedTimezone}
+                      options={TIMEZONES}
+                      placeholder={isLoading ? "Loading timezones..." : "Select a timezone..."}
+                      disabled={isLoading}
+                      className="mb-0"
+                    />
+                  </div>
 
                   <button
                     onClick={handleUpdate}
@@ -260,55 +253,51 @@ const GeneralSettingsPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Currency
               </label>
-              <select
+              <SelectField
                 value={formData.currency}
-                onChange={(e) =>
-                  setFormData({ ...formData, currency: e.target.value })
+                onChange={(val) =>
+                  setFormData({ ...formData, currency: val })
                 }
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
-              >
-                {CURRENCIES.map((currency) => (
-                  <option key={currency.code} value={currency.code}>
-                    {currency.code} ({currency.symbol}) - {currency.name}
-                  </option>
-                ))}
-              </select>
+                options={CURRENCIES.map((c) => ({
+                  value: c.code,
+                  label: `${c.code} (${c.symbol}) - ${c.name}`
+                }))}
+                className="mb-0"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Date Format
               </label>
-              <select
+              <SelectField
                 value={formData.dateFormat}
-                onChange={(e) =>
-                  setFormData({ ...formData, dateFormat: e.target.value })
+                onChange={(val) =>
+                  setFormData({ ...formData, dateFormat: val })
                 }
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
-              >
-                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-              </select>
+                options={["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"]}
+                className="mb-0"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Time Format
               </label>
-              <select
+              <SelectField
                 value={formData.timeFormat}
-                onChange={(e) =>
-                  setFormData({ ...formData, timeFormat: e.target.value })
+                onChange={(val) =>
+                  setFormData({ ...formData, timeFormat: val })
                 }
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
-              >
-                <option value="12h">12 Hour (AM/PM)</option>
-                <option value="24h">24 Hour</option>
-              </select>
+                options={[
+                  { value: "12h", label: "12 Hour (AM/PM)" },
+                  { value: "24h", label: "24 Hour" },
+                ]}
+                className="mb-0"
+              />
             </div>
           </div>
 

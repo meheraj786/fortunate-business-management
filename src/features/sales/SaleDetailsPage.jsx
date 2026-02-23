@@ -509,8 +509,8 @@ const SaleDetails = () => {
             label="Payment Method"
             name="method"
             value={paymentData.method}
-            onChange={(e) => {
-              const newMethod = e.target.value;
+            onChange={(val) => {
+              const newMethod = val;
               const availableAccounts = accounts.filter(
                 (acc) => acc.accountType === newMethod,
               );
@@ -546,8 +546,8 @@ const SaleDetails = () => {
               label="Account"
               name="account"
               value={paymentData.account}
-              onChange={(e) =>
-                setPaymentData((p) => ({ ...p, account: e.target.value }))
+              onChange={(val) =>
+                setPaymentData((p) => ({ ...p, account: val }))
               }
               options={accounts
                 .filter((acc) => acc.accountType === paymentData.method)

@@ -70,7 +70,7 @@ const TransactionFilters = ({
           <SelectField
             name="categoryFilter"
             value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            onChange={setCategoryFilter}
             options={categoryOptions}
             placeholder="Filter by category"
             className="w-full"

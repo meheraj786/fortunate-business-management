@@ -14,6 +14,7 @@ import {
   Filter,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
+import SelectField from "@/components/ui/SelectField";
 import { useAuth } from "@/hooks/useAuth";
 import Pagination from "@/components/ui/Pagination";
 import { useSettings } from "@/context/SettingsContext";
@@ -34,12 +35,10 @@ const SortableHeader = ({
   return (
     <button
       onClick={() => onSort(value)}
-      className={`flex items-center gap-1.5 whitespace-nowrap hover:text-[var(--color-primary)] transition-colors w-full group outline-none ${
-        align === "right" ? "justify-end text-right" : "justify-start text-left"
-      }`}
-      aria-label={`Sort by ${label} ${
-        isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
-      }`}
+      className={`flex items-center gap-1.5 whitespace-nowrap hover:text-[var(--color-primary)] transition-colors w-full group outline-none ${align === "right" ? "justify-end text-right" : "justify-start text-left"
+        }`}
+      aria-label={`Sort by ${label} ${isSorted ? (sortOrder === "asc" ? "ascending" : "descending") : ""
+        }`}
     >
       <span
         className={`text-sm font-semibold ${isSorted ? "text-[var(--color-primary)]" : "text-gray-900"}`}
@@ -269,22 +268,13 @@ const LCTable = ({
               onChange={onSearchChange}
             />
           </div>
-          <div className="relative w-full sm:w-auto">
-            <select
+          <div className="relative w-full sm:w-auto min-w-[200px]">
+            <SelectField
               value={filterStatus}
-              onChange={onStatusChange}
-              className="w-full px-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm appearance-none bg-white pr-10"
-              aria-label="Filter by status"
-            >
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500">
-              <ChevronDown size={16} aria-hidden="true" />
-            </div>
+              onChange={(val) => onStatusChange({ target: { value: val } })}
+              options={statusOptions}
+              className="mb-0"
+            />
           </div>
         </div>
       </div>
@@ -332,18 +322,19 @@ const LCTable = ({
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center justify-between gap-3 mb-4 sticky top-16 z-10 bg-gray-50/95 backdrop-blur-sm p-3 rounded-xl border border-gray-200 shadow-sm"
             >
-              <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2 flex-1 min-w-[200px]">
                 <Filter size={16} className="text-gray-400" />
-                <select
+                <SelectField
                   value={sortBy}
-                  onChange={(e) => onSortChange(e.target.value)}
-                  className="bg-transparent text-sm font-bold text-gray-700 focus:outline-none cursor-pointer w-full"
-                >
-                  <option value="lcNumber">LC Number</option>
-                  <option value="supplierName">Supplier</option>
-                  <option value="openingDate">Opening Date</option>
-                  <option value="totalCost">Total Cost</option>
-                </select>
+                  onChange={onSortChange}
+                  options={[
+                    { value: "lcNumber", label: "LC Number" },
+                    { value: "supplierName", label: "Supplier" },
+                    { value: "openingDate", label: "Opening Date" },
+                    { value: "totalCost", label: "Total Cost" },
+                  ]}
+                  className="mb-0 w-full"
+                />
               </div>
               <button
                 onClick={() => onSortChange(sortBy)}

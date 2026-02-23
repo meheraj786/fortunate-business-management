@@ -44,6 +44,7 @@ export default function UnitsSettings() {
   /* Form */
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
@@ -201,79 +202,79 @@ export default function UnitsSettings() {
           <tbody>
             {isLoading
               ? Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    <td className="py-4 pr-3 pl-4 text-sm sm:pl-6">
-                      <ValueSkeleton width="w-24" />
-                    </td>
-                    <td className="hidden px-3 py-3.5 text-sm lg:table-cell">
-                      <ValueSkeleton width="w-16" />
-                    </td>
-                    <td className="hidden px-3 py-3.5 text-sm lg:table-cell">
-                      <ValueSkeleton width="w-full" />
-                    </td>
-                    <td className="py-3.5 pr-4 pl-3 text-sm sm:pr-6">
-                      <div className="flex justify-center gap-2">
-                        <ValueSkeleton width="w-16" height="h-8" />
-                        <ValueSkeleton width="w-16" height="h-8" />
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                <tr key={i}>
+                  <td className="py-4 pr-3 pl-4 text-sm sm:pl-6">
+                    <ValueSkeleton width="w-24" />
+                  </td>
+                  <td className="hidden px-3 py-3.5 text-sm lg:table-cell">
+                    <ValueSkeleton width="w-16" />
+                  </td>
+                  <td className="hidden px-3 py-3.5 text-sm lg:table-cell">
+                    <ValueSkeleton width="w-full" />
+                  </td>
+                  <td className="py-3.5 pr-4 pl-3 text-sm sm:pr-6">
+                    <div className="flex justify-center gap-2">
+                      <ValueSkeleton width="w-16" height="h-8" />
+                      <ValueSkeleton width="w-16" height="h-8" />
+                    </div>
+                  </td>
+                </tr>
+              ))
               : units.map((unit, unitIdx) => (
-                  <tr key={unit._id}>
-                    <td
-                      className={classNames(
-                        unitIdx === 0 ? "" : "border-t border-gray-200",
-                        "py-4 pl-4 pr-3 text-sm sm:pl-6",
+                <tr key={unit._id}>
+                  <td
+                    className={classNames(
+                      unitIdx === 0 ? "" : "border-t border-gray-200",
+                      "py-4 pl-4 pr-3 text-sm sm:pl-6",
+                    )}
+                  >
+                    {unit.name}
+                  </td>
+                  <td
+                    className={classNames(
+                      unitIdx === 0 ? "" : "border-t border-gray-200",
+                      "hidden px-3 py-3.5 text-sm lg:table-cell",
+                    )}
+                  >
+                    {unit.type}
+                  </td>
+                  <td
+                    className={classNames(
+                      unitIdx === 0 ? "" : "border-t border-gray-200",
+                      "hidden px-3 py-3.5 text-sm lg:table-cell",
+                    )}
+                  >
+                    {unit.conversionFactor}
+                  </td>
+                  <td
+                    className={classNames(
+                      unitIdx === 0 ? "" : "border-t border-gray-200",
+                      "py-3.5 pl-3 pr-4 text-sm sm:pr-6",
+                    )}
+                  >
+                    <div className="flex justify-center gap-2">
+                      {hasPermission("UNIT_UPDATE") && (
+                        <Button
+                          onClick={() => openModal(unit)}
+                          variant="secondary" // Changed to secondary
+                          size="sm"
+                        >
+                          Edit
+                        </Button>
                       )}
-                    >
-                      {unit.name}
-                    </td>
-                    <td
-                      className={classNames(
-                        unitIdx === 0 ? "" : "border-t border-gray-200",
-                        "hidden px-3 py-3.5 text-sm lg:table-cell",
+                      {hasPermission("UNIT_DELETE") && (
+                        <Button
+                          onClick={() => openDeleteModal(unit)}
+                          variant="danger" // Changed to danger
+                          size="sm"
+                        >
+                          Delete
+                        </Button>
                       )}
-                    >
-                      {unit.type}
-                    </td>
-                    <td
-                      className={classNames(
-                        unitIdx === 0 ? "" : "border-t border-gray-200",
-                        "hidden px-3 py-3.5 text-sm lg:table-cell",
-                      )}
-                    >
-                      {unit.conversionFactor}
-                    </td>
-                    <td
-                      className={classNames(
-                        unitIdx === 0 ? "" : "border-t border-gray-200",
-                        "py-3.5 pl-3 pr-4 text-sm sm:pr-6",
-                      )}
-                    >
-                      <div className="flex justify-center gap-2">
-                        {hasPermission("UNIT_UPDATE") && (
-                          <Button
-                            onClick={() => openModal(unit)}
-                            variant="secondary" // Changed to secondary
-                            size="sm"
-                          >
-                            Edit
-                          </Button>
-                        )}
-                        {hasPermission("UNIT_DELETE") && (
-                          <Button
-                            onClick={() => openDeleteModal(unit)}
-                            variant="danger" // Changed to danger
-                            size="sm"
-                          >
-                            Delete
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                    </div>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
@@ -306,7 +307,7 @@ export default function UnitsSettings() {
             id="type"
             name="type"
             label="Type"
-            register={register}
+            control={control}
             error={errors.type?.message}
             validation={{ required: "Unit type is required" }}
             options={[

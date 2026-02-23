@@ -51,6 +51,7 @@ const CustomerForm = ({ onSave }) => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isValid, isSubmitting },
     setValue,
     watch,
@@ -235,7 +236,7 @@ const CustomerForm = ({ onSave }) => {
               <SelectField
                 label="Customer Type"
                 name="customerType"
-                register={register}
+                control={control}
                 options={customerTypes}
                 required
                 icon={Building}
@@ -245,7 +246,7 @@ const CustomerForm = ({ onSave }) => {
               <SelectField
                 label="Customer Status"
                 name="customerStatus"
-                register={register}
+                control={control}
                 options={statusOptions}
                 required
                 icon={Shield}

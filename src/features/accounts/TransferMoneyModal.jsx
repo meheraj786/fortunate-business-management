@@ -94,7 +94,7 @@ const TransferMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                     label="From Account"
                     name="fromAccountId"
                     value={transferData.fromAccountId}
-                    onChange={handleChange}
+                    onChange={(val) => handleChange({ target: { name: "fromAccountId", value: val } })}
                     options={accounts.map((acc) => ({
                         value: acc._id,
                         label: `${formatAccountLabel(acc)} - Balance: ${acc.balance}`,
@@ -108,7 +108,7 @@ const TransferMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                     label="To Account"
                     name="toAccountId"
                     value={transferData.toAccountId}
-                    onChange={handleChange}
+                    onChange={(val) => handleChange({ target: { name: "toAccountId", value: val } })}
                     options={destinationAccounts.map((acc) => ({
                         value: acc._id,
                         label: formatAccountLabel(acc),

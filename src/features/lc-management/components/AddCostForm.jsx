@@ -112,9 +112,9 @@ const AddCostForm = ({
 
   const categoryTitle = category
     ? category
-        .replace(/([A-Z])/g, " $1")
-        .replace(/Info/gi, "")
-        .trim()
+      .replace(/([A-Z])/g, " $1")
+      .replace(/Info/gi, "")
+      .trim()
     : "Cost";
 
   return (
@@ -161,7 +161,7 @@ const AddCostForm = ({
           label="Payment Method"
           name="paymentMethod"
           value={expense.paymentMethod}
-          onChange={handleInputChange}
+          onChange={(val) => handleInputChange({ target: { name: "paymentMethod", value: val } })}
           options={[
             { value: "Cash", label: "Cash" },
             { value: "Bank", label: "Bank" },
@@ -174,28 +174,28 @@ const AddCostForm = ({
         {(expense.paymentMethod === "Bank" ||
           expense.paymentMethod === "Mobile Banking" ||
           expense.paymentMethod === "Cash") && (
-          <SelectField
-            label="Select Account"
-            name="accountId"
-            value={expense.accountId}
-            onChange={handleInputChange}
-            options={getFilteredAccounts().map((acc) => {
-              let label = "";
-              if (acc.accountType === "Bank") {
-                label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
-              } else if (acc.accountType === "Mobile Banking") {
-                label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
-              } else if (acc.accountType === "Cash") {
-                label = `${acc.accountName} (${acc.accountHolderName})`;
-              }
-              return { value: acc._id, label: label };
-            })}
-            placeholder="Select an account"
-            required
-            loading={accountsLoading}
-            error={errors.accountId?.message}
-          />
-        )}
+            <SelectField
+              label="Select Account"
+              name="accountId"
+              value={expense.accountId}
+              onChange={(val) => handleInputChange({ target: { name: "accountId", value: val } })}
+              options={getFilteredAccounts().map((acc) => {
+                let label = "";
+                if (acc.accountType === "Bank") {
+                  label = `${acc.bankName} (${acc.accountHolderName}) - ${acc.accountNumber}`;
+                } else if (acc.accountType === "Mobile Banking") {
+                  label = `${acc.serviceName} (${acc.accountHolderName}) - ${acc.mobileNumber}`;
+                } else if (acc.accountType === "Cash") {
+                  label = `${acc.accountName} (${acc.accountHolderName})`;
+                }
+                return { value: acc._id, label: label };
+              })}
+              placeholder="Select an account"
+              required
+              loading={accountsLoading}
+              error={errors.accountId?.message}
+            />
+          )}
       </div>
     </FormDialog>
   );

@@ -27,6 +27,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import Pagination from "@/components/ui/Pagination";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import Button from "@/components/ui/Button";
+import SelectField from "@/components/ui/SelectField";
 import { showErrorToast } from "@/utils/notifications";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -269,18 +270,12 @@ const WarehouseStock = React.memo(() => {
                 />
               </div>
               <div className="relative w-full md:w-48">
-                <select
+                <SelectField
                   value={sorting.sortBy}
-                  onChange={handleSortByChange}
-                  className="w-full appearance-none pl-3 pr-10 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm bg-white"
-                >
-                  {sortOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                  onChange={(val) => handleSortByChange({ target: { value: val } })}
+                  options={sortOptions}
+                  className="mb-0"
+                />
               </div>
               <Button
                 onClick={toggleSortOrder}
@@ -326,19 +321,14 @@ const WarehouseStock = React.memo(() => {
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                       Stock Status
                     </label>
-                    <select
+                    <SelectField
                       value={filters.stockStatus}
-                      onChange={(e) =>
-                        handleFilterChange("stockStatus", e.target.value)
+                      onChange={(val) =>
+                        handleFilterChange("stockStatus", val)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm"
-                    >
-                      {stockStatusOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                      options={stockStatusOptions}
+                      className="mb-0"
+                    />
                   </div>
                 </div>
               </div>
