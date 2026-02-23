@@ -41,10 +41,15 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   const hasPermission = (permissionToCheck) => {
+    // ADMIN and SUPER_ADMIN have all permissions (matching backend authorize middleware)
+    if (user?.roleName === "SUPER_ADMIN" || user?.roleName === "ADMIN") {
+      return true;
+    }
     return userPermissions.has(permissionToCheck);
   };
 
   const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
+  const isAdmin = user?.roleName === "ADMIN" || isSuperAdmin;
 
   const authInfo = {
     user,
@@ -53,6 +58,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     isLoggingOut: logoutMutation.isPending,
     isSuperAdmin,
+    isAdmin,
     hasPermission,
   };
 

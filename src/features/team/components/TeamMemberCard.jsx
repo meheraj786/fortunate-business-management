@@ -4,7 +4,7 @@ import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 
 const TeamMemberCard = memo(({ user }) => {
-  const { isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex justify-between items-center">
@@ -13,7 +13,7 @@ const TeamMemberCard = memo(({ user }) => {
         <p className="text-gray-600">{user.email}</p>
         <p className="text-gray-500">{user.roleName}</p>
       </div>
-      {isSuperAdmin && (
+      {hasPermission("USER_VIEW_DETAILS") && (
         <Link to={`/team/${user._id}`}>
           <Button variant="outline">View Details</Button>
         </Link>

@@ -41,7 +41,7 @@ const SECTIONS_CONFIG = [
 ];
 
 const AddTeamMemForm = () => {
-  const { hasPermission, isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
   const navigate = useNavigate();
   const {
     register,
@@ -87,7 +87,7 @@ const AddTeamMemForm = () => {
       description: data.description,
     };
 
-    if (isSuperAdmin) {
+    if (hasPermission("USER_CREATE")) {
       const access = Object.entries(ALL_PERMISSIONS_DYNAMIC)
         .map(([module, permissions]) => ({
           module,
@@ -168,7 +168,7 @@ const AddTeamMemForm = () => {
         </div>
       </FormSection>
 
-      {isSuperAdmin && (
+      {hasPermission("USER_CREATE") && (
         <>
           <FormSection
             title="Warehouse Access"
@@ -189,9 +189,9 @@ const AddTeamMemForm = () => {
                   options={
                     Array.isArray(warehousesData?.data?.warehouses)
                       ? warehousesData.data.warehouses.map((wh) => ({
-                          value: wh._id,
-                          label: wh.name,
-                        }))
+                        value: wh._id,
+                        label: wh.name,
+                      }))
                       : []
                   }
                   value={field.value}

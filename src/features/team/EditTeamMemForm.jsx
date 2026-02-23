@@ -42,7 +42,7 @@ const SECTIONS_CONFIG = [
 
 const EditTeamMemForm = () => {
   const { id } = useParams();
-  const { isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
   const navigate = useNavigate();
 
   const { data: user, isLoading: isUserLoading } = useUser(id);
@@ -102,7 +102,7 @@ const EditTeamMemForm = () => {
     }
   }, [user, permissionsData, setValue]);
 
-  if (!isSuperAdmin) {
+  if (!hasPermission("USER_UPDATE")) {
     navigate("/");
     return null;
   }
@@ -211,9 +211,9 @@ const EditTeamMemForm = () => {
                   options={
                     Array.isArray(warehousesData?.data?.warehouses)
                       ? warehousesData.data.warehouses.map((wh) => ({
-                          value: wh._id,
-                          label: wh.name,
-                        }))
+                        value: wh._id,
+                        label: wh.name,
+                      }))
                       : []
                   }
                   value={field.value}
