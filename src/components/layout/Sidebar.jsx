@@ -38,9 +38,8 @@ const getLocalDateString = (date) => {
 const SidebarItem = memo(
   ({ icon: Icon, label, active, onClick, onMouseEnter, index, collapsed }) => (
     <motion.div
-      className={`flex items-center p-3 rounded-lg cursor-pointer group relative ${
-        collapsed ? "justify-center" : "justify-start"
-      }`}
+      className={`flex items-center p-3 rounded-lg cursor-pointer group relative ${collapsed ? "justify-center" : "justify-start"
+        }`}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       initial={{ opacity: 0, x: -15 }}
@@ -49,11 +48,10 @@ const SidebarItem = memo(
       whileHover={{ x: collapsed ? 0 : 5 }}
     >
       <div
-        className={`p-2 rounded-lg shadow-md transition-colors duration-200 ${
-          active
-            ? "bg-[var(--color-primary)] text-white"
-            : "bg-white text-[var(--color-primary)]"
-        }`}
+        className={`p-2 rounded-lg shadow-md transition-colors duration-200 ${active
+          ? "bg-[var(--color-primary)] text-white"
+          : "bg-white text-[var(--color-primary)]"
+          }`}
       >
         <Icon size={18} />
       </div>
@@ -61,11 +59,10 @@ const SidebarItem = memo(
       <AnimatePresence>
         {!collapsed && (
           <motion.span
-            className={`ml-2 transition-colors duration-200 whitespace-nowrap ${
-              active
-                ? "text-gray-800 font-semibold"
-                : "text-gray-500 font-normal"
-            }`}
+            className={`ml-2 transition-colors duration-200 whitespace-nowrap ${active
+              ? "text-gray-800 font-semibold"
+              : "text-gray-500 font-normal"
+              }`}
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -8 }}
@@ -88,7 +85,7 @@ const SidebarItem = memo(
 const Sidebar = memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, hasPermission, isSuperAdmin, isLoggingOut } = useAuth();
+  const { logout, hasPermission, isLoggingOut } = useAuth();
   const { settings } = useSettings(); // Get settings
   const queryClient = useQueryClient();
 
@@ -228,14 +225,10 @@ const Sidebar = memo(() => {
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },
   ];
 
-  const menuItems = isSuperAdmin
-    ? allMenuItems
-    : allMenuItems.filter((item) => {
-        if (item.path === "/settings") {
-          return true; // Settings is always shown
-        }
-        return item.permission ? hasPermission(item.permission) : false;
-      });
+  const menuItems = allMenuItems.filter((item) => {
+    if (!item.permission) return true; // Settings (no permission = always visible)
+    return hasPermission(item.permission);
+  });
 
   const getActive = () => {
     const path = location.pathname;
@@ -364,9 +357,8 @@ const Sidebar = memo(() => {
         <div className="border-r border-gray-300 h-full p-4 flex flex-col">
           <div>
             <div
-              className={`flex items-center border-b border-gray-200 pb-4 mb-6 ${
-                collapsed ? "justify-center" : "justify-between"
-              }`}
+              className={`flex items-center border-b border-gray-200 pb-4 mb-6 ${collapsed ? "justify-center" : "justify-between"
+                }`}
             >
               <AnimatePresence>
                 {!collapsed && (

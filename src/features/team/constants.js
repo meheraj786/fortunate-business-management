@@ -10,5 +10,6 @@ export const MODULES_ORDER = [
   "CUSTOMER",
   "CATEGORY",
   "UNIT",
+  "SETTINGS",
   "TRASH",
 ];

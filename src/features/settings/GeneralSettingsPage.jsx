@@ -54,7 +54,7 @@ const CURRENCIES = [
 const GeneralSettingsPage = () => {
   const { data: settings, isLoading } = useSystemSettings();
   const { mutate: updateSettings, isPending } = useUpdateSystemSettings();
-  const { isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
   const [selectedTimezone, setSelectedTimezone] = useState("");
 
   const [formData, setFormData] = useState({
@@ -78,12 +78,12 @@ const GeneralSettingsPage = () => {
     }
   }, [settings]);
 
-  if (!isSuperAdmin) {
+  if (!hasPermission("SETTINGS_UPDATE")) {
     return (
       <div className="p-6 text-center bg-red-50 rounded-lg border border-red-200">
         <h3 className="text-lg font-medium text-red-800">Access Denied</h3>
         <p className="mt-2 text-sm text-red-600">
-          Only Super Admins can access General Settings.
+          You don't have permission to access General Settings.
         </p>
       </div>
     );

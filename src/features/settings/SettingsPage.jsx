@@ -23,7 +23,7 @@ const Settings = () => {
               <div>
                 <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg">
                   <nav className="flex flex-wrap gap-4">
-                    {isSuperAdmin && (
+                    {hasPermission("SETTINGS_UPDATE") && (
                       <NavLink
                         to="/settings/backup"
                         className={({ isActive }) =>
@@ -36,7 +36,7 @@ const Settings = () => {
                         Backup
                       </NavLink>
                     )}
-                    {isSuperAdmin && (
+                    {hasPermission("SETTINGS_UPDATE") && (
                       <NavLink
                         to="/settings/general"
                         className={({ isActive }) =>
