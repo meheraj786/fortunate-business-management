@@ -524,6 +524,7 @@ const AddSales = ({
 
                 <SaleCustomerSelect
                   register={register}
+                  control={control}
                   errors={errors}
                   setValue={setValue}
                   watch={watch}
