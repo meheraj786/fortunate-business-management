@@ -31,16 +31,21 @@ const ProductBasicInfo = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <SelectField
+        <Controller
           name="name"
           control={control}
-          validation={{ required: "Product Name is required" }}
-          label="Product Name"
-          required={true}
-          error={errors.name?.message}
-          placeholder="Mild Steel Rod"
-          icon={Package}
-          disabled={isSubmitting}
+          rules={{ required: "Product Name is required" }}
+          render={({ field }) => (
+            <InputField
+              {...field}
+              label="Product Name"
+              error={errors.name?.message}
+              placeholder="Mild Steel Rod"
+              icon={Package}
+              disabled={isSubmitting}
+              required={true}
+            />
+          )}
         />
         <SelectField
           name="category"
