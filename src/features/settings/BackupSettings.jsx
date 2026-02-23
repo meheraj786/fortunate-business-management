@@ -197,7 +197,7 @@ const BackupSettings = () => {
         <div className="space-y-6">
             {/* Configuration Card */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="p-6 border-b border-gray-200">
+                <div className="p-4 sm:p-6 border-b border-gray-200">
                     <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                         <FaCog className="text-gray-600" /> Backup Configuration
                     </h2>
@@ -205,7 +205,7 @@ const BackupSettings = () => {
                         Configure automatic backup schedule and retention policy.
                     </p>
                 </div>
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     <form onSubmit={handleUpdateSettings}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -321,7 +321,7 @@ const BackupSettings = () => {
                             <button
                                 type="submit"
                                 disabled={savingSettings || settingsLoading}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto"
                             >
                                 {savingSettings ? (
                                     <>
@@ -341,7 +341,7 @@ const BackupSettings = () => {
 
             {/* Backups List Card */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="p-6 border-b border-gray-200 flex justify-between items-center flex-wrap gap-4">
+                <div className="p-4 sm:p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                             <FaDatabase className="text-blue-600" /> System Backups
@@ -350,10 +350,10 @@ const BackupSettings = () => {
                             Manage your database and file backups.
                         </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <button
                             onClick={fetchBackups}
-                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
                             title="Refresh List"
                         >
                             <FaSync className={loading ? "animate-spin" : ""} /> Refresh
@@ -361,7 +361,7 @@ const BackupSettings = () => {
                         <button
                             onClick={handleCreateBackup}
                             disabled={creating}
-                            className={`px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 ${creating ? "opacity-75 cursor-not-allowed" : ""
+                            className={`px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto ${creating ? "opacity-75 cursor-not-allowed" : ""
                                 }`}
                         >
                             {creating ? (
@@ -378,7 +378,7 @@ const BackupSettings = () => {
                     </div>
                 </div>
 
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     {loading && backups.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">Loading backups...</div>
                     ) : backups.length === 0 ? (
@@ -387,53 +387,93 @@ const BackupSettings = () => {
                             <p>No backups found.</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm text-gray-600">
-                                <thead className="bg-gray-50 text-gray-700 uppercase font-medium">
-                                    <tr>
-                                        <th className="px-6 py-3">Filename</th>
-                                        <th className="px-6 py-3">Size</th>
-                                        <th className="px-6 py-3">Created At</th>
-                                        <th className="px-6 py-3 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {backups.map((backup) => (
-                                        <tr key={backup.filename} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-2">
-                                                <FaFileArchive className={backup.encrypted ? "text-purple-600" : "text-orange-500"} />
-                                                {backup.filename}
+                        <>
+                            {/* Mobile Card Layout */}
+                            <div className="block md:hidden space-y-3">
+                                {backups.map((backup) => (
+                                    <div key={backup.filename} className="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-3">
+                                        <div className="flex items-start gap-2">
+                                            <FaFileArchive className={`mt-0.5 flex-shrink-0 ${backup.encrypted ? "text-purple-600" : "text-orange-500"}`} />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-sm font-medium text-gray-900 break-all">{backup.filename}</p>
                                                 {backup.encrypted && (
-                                                    <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                    <span className="inline-flex items-center gap-1 mt-1 bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full">
                                                         <FaLock size={10} /> Encrypted
                                                     </span>
                                                 )}
-                                            </td>
-                                            <td className="px-6 py-4">{backup.size}</td>
-                                            <td className="px-6 py-4">
-                                                {format(new Date(backup.createdAt), "PPP p")}
-                                            </td>
-                                            <td className="px-6 py-4 text-right flex justify-end gap-3">
-                                                <button
-                                                    onClick={() => handleDownload(backup.filename)}
-                                                    className="text-blue-600 hover:text-blue-800 transition-colors"
-                                                    title="Download"
-                                                >
-                                                    <FaDownload size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(backup.filename)}
-                                                    className="text-red-600 hover:text-red-800 transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <FaTrash size={18} />
-                                                </button>
-                                            </td>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between text-xs text-gray-500">
+                                            <span>{backup.size}</span>
+                                            <span>{format(new Date(backup.createdAt), "PPP p")}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 pt-1 border-t border-gray-200">
+                                            <button
+                                                onClick={() => handleDownload(backup.filename)}
+                                                className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                                            >
+                                                <FaDownload size={14} /> Download
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(backup.filename)}
+                                                className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-800 transition-colors"
+                                            >
+                                                <FaTrash size={14} /> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Desktop Table Layout */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-left text-sm text-gray-600">
+                                    <thead className="bg-gray-50 text-gray-700 uppercase font-medium">
+                                        <tr>
+                                            <th className="px-6 py-3">Filename</th>
+                                            <th className="px-6 py-3">Size</th>
+                                            <th className="px-6 py-3">Created At</th>
+                                            <th className="px-6 py-3 text-right">Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                        {backups.map((backup) => (
+                                            <tr key={backup.filename} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-2">
+                                                    <FaFileArchive className={backup.encrypted ? "text-purple-600" : "text-orange-500"} />
+                                                    {backup.filename}
+                                                    {backup.encrypted && (
+                                                        <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                            <FaLock size={10} /> Encrypted
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">{backup.size}</td>
+                                                <td className="px-6 py-4">
+                                                    {format(new Date(backup.createdAt), "PPP p")}
+                                                </td>
+                                                <td className="px-6 py-4 text-right flex justify-end gap-3">
+                                                    <button
+                                                        onClick={() => handleDownload(backup.filename)}
+                                                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                                                        title="Download"
+                                                    >
+                                                        <FaDownload size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(backup.filename)}
+                                                        className="text-red-600 hover:text-red-800 transition-colors"
+                                                        title="Delete"
+                                                    >
+                                                        <FaTrash size={18} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
                     )}
                 </div>
             </div>

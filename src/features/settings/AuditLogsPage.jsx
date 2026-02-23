@@ -86,50 +86,140 @@ const AuditLogsPage = () => {
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-            <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row gap-4 items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-800">System Audit Trail</h2>
+            <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800">System Audit Trail</h2>
 
-                <div className="flex flex-wrap gap-3 w-full md:w-auto">
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                     {/* Search */}
-                    <div className="relative flex-grow md:flex-grow-0">
+                    <div className="relative w-full sm:w-auto">
                         <input
                             type="text"
                             placeholder="Search descriptions..."
-                            className="w-full md:w-64 pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                            className="w-full sm:w-64 pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                         <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
                     </div>
 
-                    {/* Module Filter */}
-                    <div className="relative">
-                        <select
-                            className="pl-8 pr-8 py-2 border border-gray-300 rounded-md text-sm appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
-                            value={module}
-                            onChange={handleFilterChange(setModule)}
-                        >
-                            <option value="" disabled hidden>Module</option>
-                            {MODULES.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                        <Filter className="absolute left-2.5 top-2.5 text-gray-400" size={14} />
-                    </div>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        {/* Module Filter */}
+                        <div className="relative flex-1 sm:flex-none">
+                            <select
+                                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
+                                value={module}
+                                onChange={handleFilterChange(setModule)}
+                            >
+                                <option value="" disabled hidden>Module</option>
+                                {MODULES.map(m => <option key={m} value={m}>{m}</option>)}
+                            </select>
+                            <Filter className="absolute left-2.5 top-2.5 text-gray-400" size={14} />
+                        </div>
 
-                    {/* Action Filter */}
-                    <div className="relative">
-                        <select
-                            className="pl-3 pr-8 py-2 border border-gray-300 rounded-md text-sm appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
-                            value={action}
-                            onChange={handleFilterChange(setAction)}
-                        >
-                            <option value="" disabled hidden>Action Type</option>
-                            {ACTIONS.map(a => <option key={a} value={a}>{a}</option>)}
-                        </select>
+                        {/* Action Filter */}
+                        <div className="relative flex-1 sm:flex-none">
+                            <select
+                                className="w-full pl-3 pr-3 py-2 border border-gray-300 rounded-md text-sm appearance-none bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
+                                value={action}
+                                onChange={handleFilterChange(setAction)}
+                            >
+                                <option value="" disabled hidden>Action Type</option>
+                                {ACTIONS.map(a => <option key={a} value={a}>{a}</option>)}
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile Card Layout */}
+            <div className="block md:hidden">
+                {isLoading ? (
+                    <div className="px-4 py-8 text-center text-gray-500">Loading audit logs...</div>
+                ) : isError ? (
+                    <div className="px-4 py-8 text-center text-red-500">Failed to load audit logs.</div>
+                ) : auditLogs.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-gray-500">No audit logs found matching the filters.</div>
+                ) : (
+                    <div className="divide-y divide-gray-100">
+                        {auditLogs.map((log) => (
+                            <div key={log._id} className="px-3 py-3 space-y-1.5">
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${getActionColor(log.action)}`}>
+                                            {log.action}
+                                        </span>
+                                        <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs">
+                                            {log.module}
+                                        </span>
+                                    </div>
+                                    {(log.changes || log.metadata) && (
+                                        <button
+                                            onClick={() => toggleRow(log._id)}
+                                            className="p-1 rounded-md hover:bg-gray-200 text-gray-500 transition-colors flex-shrink-0"
+                                            title="View Details"
+                                        >
+                                            {expandedRows.has(log._id) ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="text-sm text-gray-800">
+                                    {log.description}
+                                    {log.displayId && (
+                                        <span className="ml-2 text-xs text-gray-500 font-mono bg-gray-100 px-1 rounded">
+                                            {log.displayId}
+                                        </span>
+                                    )}
+                                </p>
+                                <div className="flex items-center gap-2 text-[11px] text-gray-400 pt-1 flex-wrap">
+                                    <span className="font-medium">{log.userId?.name || "System"}</span>
+                                    <span>·</span>
+                                    <span className="truncate">{formatDateTime(log.timestamp)}</span>
+                                </div>
+
+                                {/* Expanded Details */}
+                                {expandedRows.has(log._id) && (log.changes || log.metadata) && (
+                                    <div className="mt-2 space-y-3">
+                                        {log.changes && (
+                                            <div className="bg-white p-3 rounded border border-gray-200 shadow-sm overflow-x-auto">
+                                                <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                    <FileCode2 size={14} /> Changes
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <div className="text-[10px] text-gray-500 mb-1">BEFORE</div>
+                                                        <pre className="text-xs text-red-600 bg-red-50/50 p-2 rounded whitespace-pre-wrap font-mono overflow-x-auto">
+                                                            {JSON.stringify(log.changes.before, null, 2)}
+                                                        </pre>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-[10px] text-gray-500 mb-1">AFTER</div>
+                                                        <pre className="text-xs text-emerald-600 bg-emerald-50/50 p-2 rounded whitespace-pre-wrap font-mono overflow-x-auto">
+                                                            {JSON.stringify(log.changes.after, null, 2)}
+                                                        </pre>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {log.metadata && !log.changes && (
+                                            <div className="bg-white p-3 rounded border border-gray-200 shadow-sm overflow-x-auto">
+                                                <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                    <FileCode2 size={14} /> Metadata
+                                                </div>
+                                                <pre className="text-xs text-gray-700 p-2 rounded whitespace-pre-wrap font-mono bg-gray-50">
+                                                    {JSON.stringify(log.metadata, null, 2)}
+                                                </pre>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Desktop Table Layout */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-medium">
                         <tr>
@@ -205,22 +295,22 @@ const AuditLogsPage = () => {
                                     {expandedRows.has(log._id) && (log.changes || log.metadata) && (
                                         <tr className="bg-gray-50/80 border-b border-gray-100">
                                             <td colSpan="6" className="px-4 py-3">
-                                                <div className="flex gap-4">
+                                                <div className="flex flex-col lg:flex-row gap-4">
                                                     {log.changes && (
-                                                        <div className="flex-1 bg-white p-3 rounded border border-gray-200 shadow-sm overflow-x-auto">
+                                                        <div className="flex-1 bg-white p-3 rounded border border-gray-200 shadow-sm overflow-x-auto min-w-0">
                                                             <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                                 <FileCode2 size={14} /> Changes
                                                             </div>
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                <div>
+                                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                                <div className="min-w-0">
                                                                     <div className="text-[10px] text-gray-500 mb-1">BEFORE</div>
-                                                                    <pre className="text-xs text-red-600 bg-red-50/50 p-2 rounded whitespace-pre-wrap font-mono">
+                                                                    <pre className="text-xs text-red-600 bg-red-50/50 p-2 rounded whitespace-pre-wrap font-mono overflow-x-auto">
                                                                         {JSON.stringify(log.changes.before, null, 2)}
                                                                     </pre>
                                                                 </div>
-                                                                <div>
+                                                                <div className="min-w-0">
                                                                     <div className="text-[10px] text-gray-500 mb-1">AFTER</div>
-                                                                    <pre className="text-xs text-emerald-600 bg-emerald-50/50 p-2 rounded whitespace-pre-wrap font-mono">
+                                                                    <pre className="text-xs text-emerald-600 bg-emerald-50/50 p-2 rounded whitespace-pre-wrap font-mono overflow-x-auto">
                                                                         {JSON.stringify(log.changes.after, null, 2)}
                                                                     </pre>
                                                                 </div>
@@ -251,8 +341,8 @@ const AuditLogsPage = () => {
 
             {/* Pagination */}
             {pagination.pages > 1 && (
-                <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
+                <div className="px-4 py-3 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="text-sm text-gray-500 text-center sm:text-left">
                         Showing <span className="font-medium">{((page - 1) * limit) + 1}</span> to <span className="font-medium">{Math.min(page * limit, pagination.total)}</span> of <span className="font-medium">{pagination.total}</span> results
                     </div>
                     <div className="flex items-center gap-2">
@@ -264,7 +354,7 @@ const AuditLogsPage = () => {
                         >
                             Previous
                         </Button>
-                        <div className="text-sm px-2 text-gray-600">
+                        <div className="text-sm px-2 text-gray-600 whitespace-nowrap">
                             Page {page} of {pagination.pages}
                         </div>
                         <Button

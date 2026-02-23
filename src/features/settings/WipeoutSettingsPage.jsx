@@ -121,7 +121,7 @@ const WipeoutSettingsPage = () => {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800">
           <Database className="w-8 h-8 text-red-600" />
@@ -292,9 +292,9 @@ const WipeoutSettingsPage = () => {
                     disabled={
                       loading ||
                       confirmationInput !==
-                        (showConfirm === "business"
-                          ? "DELETE BUSINESS DATA"
-                          : "FACTORY RESET")
+                      (showConfirm === "business"
+                        ? "DELETE BUSINESS DATA"
+                        : "FACTORY RESET")
                     }
                     className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >

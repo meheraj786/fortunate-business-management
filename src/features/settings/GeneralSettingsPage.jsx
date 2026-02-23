@@ -106,7 +106,7 @@ const GeneralSettingsPage = () => {
     <div className="space-y-6">
       {/* Timezone Section */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-200 bg-gray-50/50">
+        <div className="p-4 sm:p-6 border-b border-gray-200 bg-gray-50/50">
           <h2 className="text-lg font-bold text-gray-900">
             Timezone Configuration
           </h2>
@@ -116,7 +116,7 @@ const GeneralSettingsPage = () => {
           </p>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           {isLocked ? (
             <div className="flex items-center gap-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200">
               <div className="flex-shrink-0">
@@ -184,11 +184,11 @@ const GeneralSettingsPage = () => {
                 </div>
               </div>
 
-              <div className="max-w-md space-y-2">
+              <div className="w-full sm:max-w-md space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Select Timezone
                 </label>
-                <div className="flex gap-3 items-start">
+                <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start">
                   <div className="w-full">
                     <SelectField
                       value={selectedTimezone}
@@ -220,7 +220,7 @@ const GeneralSettingsPage = () => {
 
       {/* General Preferences Section */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-200 bg-gray-50/50">
+        <div className="p-4 sm:p-6 border-b border-gray-200 bg-gray-50/50">
           <h2 className="text-lg font-bold text-gray-900">
             General Preferences
           </h2>
@@ -229,7 +229,7 @@ const GeneralSettingsPage = () => {
           </p>
         </div>
 
-        <form onSubmit={handleGeneralUpdate} className="p-6 space-y-6">
+        <form onSubmit={handleGeneralUpdate} className="p-4 sm:p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
