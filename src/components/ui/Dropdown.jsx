@@ -222,6 +222,14 @@ const Dropdown = ({
             <Listbox.Button
               ref={buttonRef}
               id={id}
+              type="button"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  // HeadlessUI handles click to toggle
+                  buttonRef.current?.click();
+                }
+              }}
               className={`
                 relative w-full text-left bg-white
                 border rounded-lg
