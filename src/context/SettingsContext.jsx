@@ -10,6 +10,9 @@ export const SettingsProvider = ({ children }) => {
     if (!settings) return null;
     return {
       businessName: settings.businessName || "Fortunate Business Management",
+      businessAddress: settings.businessAddress || "",
+      businessEmail: settings.businessEmail || "",
+      businessPhone: settings.businessPhone || "",
       currency: settings.currency || "USD",
       dateFormat: settings.dateFormat || "MM/DD/YYYY",
       timeFormat: settings.timeFormat || "12h",

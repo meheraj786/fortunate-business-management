@@ -60,6 +60,9 @@ const GeneralSettingsPage = () => {
 
   const [formData, setFormData] = useState({
     businessName: "",
+    businessAddress: "",
+    businessEmail: "",
+    businessPhone: "",
     currency: "USD",
     dateFormat: "MM/DD/YYYY",
     timeFormat: "12h",
@@ -77,6 +80,9 @@ const GeneralSettingsPage = () => {
       }
       setFormData({
         businessName: settings.businessName || "",
+        businessAddress: settings.businessAddress || "",
+        businessEmail: settings.businessEmail || "",
+        businessPhone: settings.businessPhone || "",
         currency: settings.currency || "USD",
         dateFormat: settings.dateFormat || "MM/DD/YYYY",
         timeFormat: settings.timeFormat || "12h",
@@ -261,6 +267,69 @@ const GeneralSettingsPage = () => {
                     }
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
                     placeholder="Enter business name"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Business Address
+              </label>
+              <div className="h-10">
+                {isLoading ? (
+                  <ValueSkeleton width="w-full" height="h-10" />
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.businessAddress}
+                    onChange={(e) =>
+                      setFormData({ ...formData, businessAddress: e.target.value })
+                    }
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
+                    placeholder="e.g. 123 Business Rd, Dhaka"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Business Email
+              </label>
+              <div className="h-10">
+                {isLoading ? (
+                  <ValueSkeleton width="w-full" height="h-10" />
+                ) : (
+                  <input
+                    type="email"
+                    value={formData.businessEmail}
+                    onChange={(e) =>
+                      setFormData({ ...formData, businessEmail: e.target.value })
+                    }
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
+                    placeholder="e.g. contact@company.com"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Business Phone
+              </label>
+              <div className="h-10">
+                {isLoading ? (
+                  <ValueSkeleton width="w-full" height="h-10" />
+                ) : (
+                  <input
+                    type="tel"
+                    value={formData.businessPhone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, businessPhone: e.target.value })
+                    }
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm h-10 px-3 border"
+                    placeholder="e.g. +880 1234 567890"
                   />
                 )}
               </div>

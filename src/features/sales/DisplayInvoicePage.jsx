@@ -3,7 +3,6 @@ import { getInvoiceAsPNG, getInvoiceAsPDF } from "@/api/invoice.api.js";
 import DisplayInvoiceSkeleton from "./components/DisplayInvoiceSkeleton";
 import { useSettings } from "@/context/SettingsContext";
 import { useInvoice } from "@/api/hooks/invoice";
-import { useCustomer } from "@/api/hooks/customer";
 import { AlertTriangle, ArrowLeft, FileX, Printer, Share2 } from "lucide-react";
 import React from "react";
 import Button from "@/components/ui/Button";
@@ -26,9 +25,8 @@ const DisplayInvoice = () => {
   } = useInvoice(invoiceId);
   const invoice = invoiceData?.data;
 
-  // Fetch current customer data if customerId exists
-  const { data: customerData } = useCustomer(invoice?.customerDetails?.customerId);
-  const currentCustomer = customerData?.data;
+  // Credit balance is now included in the getInvoiceById aggregation response
+  const creditBalance = invoice?.customerDetails?.creditBalance;
 
   const handleDownloadPDF = async () => {
     setIsDownloadingPDF(true);
@@ -236,19 +234,32 @@ const DisplayInvoice = () => {
         >
           <article className="p-6 sm:p-12 text-sm">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start mb-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start pb-4 border-b-2 border-black mb-7">
               <div className="flex flex-col mb-4 sm:mb-0">
-                <h1 className="text-3xl font-bold text-black">INVOICE</h1>
-                <p className="text-gray-600"># {invoiceNumber}</p>
+                <h1 className="text-[22px] font-bold text-black tracking-wide">
+                  {settings?.businessName || "Fortunate Business Management"}
+                </h1>
+                <div className="text-[11px] text-gray-500 leading-relaxed">
+                  {settings?.businessAddress && <span>{settings.businessAddress}<br /></span>}
+                  {settings?.businessEmail && <span>{settings.businessEmail}</span>}
+                  {settings?.businessPhone && <span> &bull; {settings.businessPhone}</span>}
+                </div>
               </div>
               <div className="text-left sm:text-right">
-                <h2 className="text-xl font-bold text-black">
-                  {settings?.businessName || "Fortunate Business Management"}
-                </h2>
-                <p className="text-gray-600">
-                  123 Business Rd, Dhaka, Bangladesh
-                </p>
-                <p className="text-gray-600">contact@yourcompany.com</p>
+                <div className="text-[28px] font-bold text-black tracking-[2px]">
+                  INVOICE
+                </div>
+                <p className="text-[13px] text-gray-500 mt-0.5"># {invoiceNumber}</p>
+                {paymentAndAmountInfo.paymentStatus && (
+                  <span
+                    className={`inline-block mt-2 px-3.5 py-0.5 text-[11px] font-bold tracking-wider uppercase border-2 border-black ${paymentAndAmountInfo.paymentStatus === "Paid payment"
+                        ? "bg-black text-white"
+                        : "bg-white text-black"
+                      }`}
+                  >
+                    {paymentAndAmountInfo.paymentStatus === "Paid payment" ? "PAID" : "DUE"}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -259,9 +270,9 @@ const DisplayInvoice = () => {
                 <p className="font-bold text-black">{customerDetails.name}</p>
                 <p className="text-gray-600">{customerDetails.address}</p>
                 <p className="text-gray-600">{customerDetails.phone}</p>
-                {currentCustomer && (
+                {creditBalance != null && (
                   <p className="text-gray-600 font-medium mt-1">
-                    Credit Balance: {formatCurrency(currentCustomer.creditBalance)}
+                    Credit Balance: {formatCurrency(creditBalance)}
                   </p>
                 )}
               </div>
@@ -292,18 +303,21 @@ const DisplayInvoice = () => {
             {/* Items Table */}
             <div className="overflow-x-auto mb-12">
               <table className="w-full">
-                <thead className="border-b-2 border-black">
-                  <tr>
-                    <th className="p-1 sm:p-2 text-left font-bold text-black">
+                <thead>
+                  <tr className="bg-gray-900 text-white">
+                    <th className="p-2 text-center text-[11px] font-semibold uppercase tracking-wider" style={{ width: '40px' }}>
+                      Sl.
+                    </th>
+                    <th className="p-2 text-left text-[11px] font-semibold uppercase tracking-wider">
                       Item
                     </th>
-                    <th className="p-1 sm:p-2 text-center font-bold text-black">
+                    <th className="p-2 text-center text-[11px] font-semibold uppercase tracking-wider" style={{ width: '100px' }}>
                       Qty
                     </th>
-                    <th className="p-1 sm:p-2 text-right font-bold text-black">
+                    <th className="p-2 text-right text-[11px] font-semibold uppercase tracking-wider" style={{ width: '120px' }}>
                       Unit Price
                     </th>
-                    <th className="p-1 sm:p-2 text-right font-bold text-black">
+                    <th className="p-2 text-right text-[11px] font-semibold uppercase tracking-wider" style={{ width: '120px' }}>
                       Total
                     </th>
                   </tr>
@@ -311,20 +325,23 @@ const DisplayInvoice = () => {
                 <tbody>
                   {(invoice.items && invoice.items.length > 0) ? (
                     invoice.items.map((item, index) => (
-                      <tr key={index} className="border-b border-gray-200">
-                        <td className="p-1 sm:p-2 align-top">
-                          <p className="font-semibold text-black">
+                      <tr key={index} className={`border-b border-gray-200 ${index % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                        <td className="p-2 text-center align-top text-[12px]">
+                          {index + 1}
+                        </td>
+                        <td className="p-2 align-top">
+                          <p className="font-semibold text-black text-[12px]">
                             {item.name || item.product?.name || "N/A"}
                           </p>
-                          <p className="text-gray-600">{item.category || item.product?.category?.name || ""}</p>
+                          <p className="text-gray-400 text-[11px]">{item.category || item.product?.category?.name || ""}</p>
                         </td>
-                        <td className="p-1 sm:p-2 text-center align-top">
+                        <td className="p-2 text-center align-top text-[12px]">
                           {item.quantity} {item.unitName || item.unit?.name || ""}
                         </td>
-                        <td className="p-1 sm:p-2 text-right align-top">
+                        <td className="p-2 text-right align-top text-[12px]">
                           {formatCurrency(item.pricePerUnit)}
                         </td>
-                        <td className="p-1 sm:p-2 text-right align-top">
+                        <td className="p-2 text-right align-top text-[12px]">
                           {formatCurrency(item.total || (item.quantity * item.pricePerUnit))}
                         </td>
                       </tr>
