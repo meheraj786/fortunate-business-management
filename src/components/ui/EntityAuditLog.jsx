@@ -17,7 +17,7 @@ const EntityAuditLog = ({ moduleId, moduleName }) => {
             const response = await getAuditLogs({
                 limit: 50, // Grab a good chunk of history
                 module: moduleName,
-                search: moduleId,
+                documentId: moduleId,
             });
             return response.data;
         },

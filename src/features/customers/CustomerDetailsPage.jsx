@@ -827,6 +827,10 @@ const CustomerDetails = () => {
           deletedAt={customerData?.deletedAt}
           isDeleted={customerData?.isDeleted}
         />
+
+        {hasPermission("AUDIT_VIEW") && (
+          <EntityAuditLog moduleId={id} moduleName="Customer" />
+        )}
       </div>
 
       <ConfirmationModal
