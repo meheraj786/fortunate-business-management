@@ -18,10 +18,10 @@ const Dropdown = ({
   id,
   label // legacy support
 }) => {
-  // Support both onSelect and onChange
   const handleChange = (val) => {
-    if (onChange) onChange(val);
-    if (onSelect) onSelect(val);
+    const actualValue = val && typeof val === 'object' && val.target ? val.target.value : val;
+    if (onChange) onChange(actualValue);
+    if (onSelect) onSelect(actualValue);
   };
 
   // Support legacy selected prop
@@ -41,7 +41,17 @@ const Dropdown = ({
   }, [options]);
 
   const selectedOption = useMemo(() => {
-    return normalizedOptions.find(opt => opt.value === currentValue) || null;
+    // Extract actual primitive value defensively in case an event/object was passed by accident
+    let valToMatch = currentValue;
+    if (valToMatch && typeof valToMatch === 'object') {
+      valToMatch = valToMatch?.target?.value ?? valToMatch?._id ?? valToMatch?.value ?? valToMatch;
+    }
+
+    return normalizedOptions.find(opt => {
+      const optVal = opt.value;
+      return optVal === valToMatch ||
+        (optVal != null && valToMatch != null && String(optVal) === String(valToMatch));
+    }) || null;
   }, [currentValue, normalizedOptions]);
 
   return (
@@ -59,8 +69,8 @@ const Dropdown = ({
             id={id}
             className={`
               relative w-full text-left bg-white
-              border rounded-lg shadow-sm
-              pl-4 sm:pl-3 pr-10 py-3 sm:py-2
+              border rounded-lg
+              px-4 sm:px-3 pr-10 py-3 sm:py-2
               focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
               transition-all duration-200
               ${disabled || loading ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'cursor-pointer'}
@@ -80,7 +90,7 @@ const Dropdown = ({
                 ? 'Loading...'
                 : selectedOption
                   ? (formatLabel ? formatLabel(selectedOption) : selectedOption.label)
-                  : placeholder}
+                  : (placeholder || '\u00A0')}
             </span>
 
             <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -104,7 +114,7 @@ const Dropdown = ({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <Listbox.Options className="absolute z-50 w-full py-1 mt-1 overflow-auto text-base sm:text-sm bg-white rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-100">
+            <Listbox.Options className="absolute z-50 w-full py-1 mt-1 overflow-auto text-base sm:text-sm bg-white rounded-md shadow-lg max-h-60 focus:outline-none border border-gray-100">
               {normalizedOptions.length === 0 ? (
                 <div className="relative cursor-default select-none py-2 px-4 text-gray-500 text-center">
                   No options available

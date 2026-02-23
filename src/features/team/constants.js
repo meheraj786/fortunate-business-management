@@ -12,4 +12,5 @@ export const MODULES_ORDER = [
   "UNIT",
   "SETTINGS",
   "TRASH",
+  "AUDIT",
 ];

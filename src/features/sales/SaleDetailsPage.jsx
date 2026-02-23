@@ -34,6 +34,7 @@ import SelectField from "@/components/ui/SelectField";
 import AddSalesForm from "./AddSalesForm";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import AuditInfoSection from "@/components/ui/AuditInfoSection";
+import EntityAuditLog from "@/components/ui/EntityAuditLog";
 
 // Sub-components
 import SaleInfo from "./components/SaleDetails/SaleInfo";
@@ -451,8 +452,13 @@ const SaleDetails = () => {
           deletedAt={sale?.deletedAt}
           isDeleted={sale?.isDeleted}
         />
-      </div>
 
+        {hasPermission("AUDIT_VIEW") && (
+          <div className="mt-6">
+            <EntityAuditLog moduleId={id} moduleName="Sale" />
+          </div>
+        )}
+      </div>
 
       <FormDialog
         open={isPaymentDialogOpen}

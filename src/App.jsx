@@ -78,6 +78,9 @@ const AccountDetailsPage = lazy(
   () => import("@/features/accounts/AccountDetailsPage"),
 );
 const TrashPage = lazy(() => import("./features/trash/TrashPage"));
+const AuditLogsPage = lazy(
+  () => import("@/features/settings/AuditLogsPage"),
+);
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -100,6 +103,7 @@ const router = createBrowserRouter([
           { path: "general", element: <GeneralSettingsPage /> },
           { path: "wipeout", element: <WipeoutSettingsPage /> },
           { path: "backup", element: <BackupSettings /> },
+          { path: "audit-logs", element: <AuditLogsPage /> },
         ],
       },
       { path: "team", element: <TeamPage /> },

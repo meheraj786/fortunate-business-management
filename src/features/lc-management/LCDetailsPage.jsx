@@ -33,6 +33,7 @@ import DataField from "@/components/ui/DataField";
 import CostField from "@/components/ui/CostField";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import AuditInfoSection from "@/components/ui/AuditInfoSection";
+import EntityAuditLog from "@/components/ui/EntityAuditLog";
 
 import {
   useLC,
@@ -838,6 +839,11 @@ const LCdetails = () => {
           deletedAt={lcData?.deletedAt}
           isDeleted={lcData?.isDeleted}
         />
+        {hasPermission("AUDIT_VIEW") && (
+          <div className="mt-6">
+            <EntityAuditLog moduleId={id} moduleName="LC" />
+          </div>
+        )}
       </div>
       <AddCostForm
         open={costModal.isOpen}

@@ -64,6 +64,20 @@ const Settings = () => {
                       </NavLink>
                     )}
 
+                    {hasPermission("AUDIT_VIEW") && (
+                      <NavLink
+                        to="/settings/audit-logs"
+                        className={({ isActive }) =>
+                          `inline-flex items-center px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg whitespace-nowrap ${isActive
+                            ? "text-white bg-[var(--color-primary)]"
+                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                          }`
+                        }
+                      >
+                        Audit Logs
+                      </NavLink>
+                    )}
+
                     {hasPermission("CATEGORY_VIEW") && (
                       <NavLink
                         to="/settings"

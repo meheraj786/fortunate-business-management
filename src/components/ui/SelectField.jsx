@@ -22,6 +22,9 @@ const SelectField = ({
 }) => {
   const id = useId();
 
+  // Compute a descriptive placeholder if none is provided
+  const computedPlaceholder = placeholder || (typeof label === 'string' ? `Select ${label}` : 'Select an option');
+
   // Standard non-RHF usage
   if (!control) {
     return (
@@ -40,7 +43,7 @@ const SelectField = ({
         onChange={onChange}
         onSelect={onSelect}
         options={options}
-        placeholder={placeholder}
+        placeholder={computedPlaceholder}
         disabled={disabled}
         error={error}
         className={className}
@@ -81,7 +84,7 @@ const SelectField = ({
             if (onChange) onChange(val);
           }}
           options={options}
-          placeholder={placeholder}
+          placeholder={computedPlaceholder}
           disabled={disabled}
           error={error || fieldState.error?.message}
           className={className}

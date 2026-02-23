@@ -1,0 +1,145 @@
+
+> fortunate-project-management@0.0.0 build
+> vite build
+
+[36mvite v7.1.12 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 2932 modules transformed.
+
+✨ [vite-plugin-compression]:algorithm=gzip - compressed file successfully: 
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AccountsPage-DXm2sJMI.js.gz           17.96kb / gzip: 4.77kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AccountDetailsPage-DXVgdyko.js.gz     11.59kb / gzip: 3.52kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AddAccountForm-CYuBoE5q.js.gz         3.86kb / gzip: 1.37kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AuditInfoSection-DFatlVxw.js.gz       2.20kb / gzip: 0.96kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AddTeamMemForm-B10V5vpE.js.gz         3.74kb / gzip: 1.59kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AddProductForm-DYeBz9NY.js.gz         9.45kb / gzip: 2.99kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/customer-EicrZfok.js.gz               1.65kb / gzip: 0.50kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/CategorySettingsPage-DzHtOICf.js.gz   5.99kb / gzip: 2.06kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/constants-Gix9pK3u.js.gz              1.85kb / gzip: 0.96kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/CustomerFormPage-hoelVkrn.js.gz       6.72kb / gzip: 2.53kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AddSalesForm-oCj5JQlP.js.gz           28.00kb / gzip: 7.22kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/CustomersPage-Dx9hqzqB.js.gz          10.63kb / gzip: 3.04kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/CustomerDetailsPage-YUG_KqJm.js.gz    24.77kb / gzip: 6.55kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/EditTeamMemForm-C1wWI6gW.js.gz        3.64kb / gzip: 1.56kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/format-1jsM_s2a.js.gz                 1.54kb / gzip: 0.47kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/DisplayInvoicePage-CTgMT8WB.js.gz     12.93kb / gzip: 3.43kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/DailyCashFlowPage-C769-QHS.js.gz      24.32kb / gzip: 7.38kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/lc-Ck-tdTgx.js.gz                     1.79kb / gzip: 0.65kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/FileInput-DovQdo-2.js.gz              4.22kb / gzip: 1.70kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/FormDialog-D07hpP3n.js.gz             1.60kb / gzip: 0.69kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/GeneralSettingsPage-B8sjN3SB.js.gz    7.87kb / gzip: 2.72kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/LCDetailsPage-BXQ1FENp.js.gz          21.90kb / gzip: 5.92kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/LCFormPage-CSuRyxpZ.js.gz             25.13kb / gzip: 5.90kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/Pagination-Dpz0GH7A.js.gz             1.55kb / gzip: 0.76kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/products-Cks1FhtZ.js.gz               1.90kb / gzip: 0.54kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/ProductDetailsPage-BCsvGJ9A.js.gz     12.70kb / gzip: 3.68kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/LCPage-BWfRAu3w.js.gz                 15.86kb / gzip: 4.25kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/sales-DgTSmGA3.js.gz                  2.22kb / gzip: 0.51kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SalesDashboardPage-CMs4_0aW.js.gz     5.78kb / gzip: 2.26kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SalesListingsPage-nJNJzVxU.js.gz      2.17kb / gzip: 1.03kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SearchBar-BqwJLhc7.js.gz              1.00kb / gzip: 0.60kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/index-CQQjYvHY.css.gz                 61.67kb / gzip: 11.06kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SaleDetailsPage-sbIYsJ5V.js.gz        21.38kb / gzip: 5.46kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SettingsPage-BABijAq9.js.gz           2.49kb / gzip: 0.73kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/StatBox-C4HuIrjo.js.gz                1.33kb / gzip: 0.70kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SelectField-CKwbRNf8.js.gz            4.47kb / gzip: 1.76kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/StatusBadge-CgB92dla.js.gz            1.59kb / gzip: 0.73kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TeamDetailsPage-DJWSEgfV.js.gz        6.70kb / gzip: 2.00kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SalesTableSkeleton-Ce7Ttva0.js.gz     12.68kb / gzip: 2.74kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TeamPage-D55s0PSZ.js.gz               2.49kb / gzip: 1.04kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TextAreaField-C2apAMcM.js.gz          2.24kb / gzip: 1.03kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/StockManagementPage-C0hitY31.js.gz    11.72kb / gzip: 3.24kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TransactionTable-CKL8l-Ij.js.gz       12.99kb / gzip: 3.51kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/UnitsSettingsPage-D1b8er4m.js.gz      5.65kb / gzip: 2.09kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/useUrl-DT1gwuJE.js.gz                 3.79kb / gzip: 1.64kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TrashPage-BOstVQiS.js.gz              10.72kb / gzip: 2.83kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/useSectionManager-BfkIYUcV.js.gz      5.17kb / gzip: 1.86kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/WipeoutSettingsPage-Cxxs8sQ2.js.gz    7.23kb / gzip: 2.48kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/WarehouseStockPage-wBUnsouz.js.gz     10.67kb / gzip: 3.44kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/BackupSettings-DWcPgTT2.js.gz         92.12kb / gzip: 25.46kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/utils-vendor-aunQLzAt.js.gz           54.78kb / gzip: 19.72kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/react-vendor-DOr8Lq_E.js.gz           96.03kb / gzip: 32.42kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/index-BQA2Q7rj.js.gz                  275.97kb / gzip: 88.21kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/ui-vendor-CwM9OJfk.js.gz              357.54kb / gzip: 116.87kb
+
+
+
+✨ [vite-plugin-compression]:algorithm=brotliCompress - compressed file successfully: 
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AccountDetailsPage-DXVgdyko.js.br     11.59kb / brotliCompress: 3.09kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AddTeamMemForm-B10V5vpE.js.br         3.74kb / brotliCompress: 1.40kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AddAccountForm-CYuBoE5q.js.br         3.86kb / brotliCompress: 1.21kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AccountsPage-DXm2sJMI.js.br           17.96kb / brotliCompress: 4.21kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AuditInfoSection-DFatlVxw.js.br       2.20kb / brotliCompress: 0.84kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AddProductForm-DYeBz9NY.js.br         9.45kb / brotliCompress: 2.64kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/constants-Gix9pK3u.js.br              1.85kb / brotliCompress: 0.81kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/CategorySettingsPage-DzHtOICf.js.br   5.99kb / brotliCompress: 1.83kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/AddSalesForm-oCj5JQlP.js.br           28.00kb / brotliCompress: 6.36kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/CustomerFormPage-hoelVkrn.js.br       6.72kb / brotliCompress: 2.23kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/CustomerDetailsPage-YUG_KqJm.js.br    24.77kb / brotliCompress: 5.79kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/CustomersPage-Dx9hqzqB.js.br          10.63kb / brotliCompress: 2.71kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/DailyCashFlowPage-C769-QHS.js.br      24.32kb / brotliCompress: 6.51kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/DisplayInvoicePage-CTgMT8WB.js.br     12.93kb / brotliCompress: 2.96kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/customer-EicrZfok.js.br               1.65kb / brotliCompress: 0.44kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/EditTeamMemForm-C1wWI6gW.js.br        3.64kb / brotliCompress: 1.38kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/format-1jsM_s2a.js.br                 1.54kb / brotliCompress: 0.40kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/FormDialog-D07hpP3n.js.br             1.60kb / brotliCompress: 0.59kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/FileInput-DovQdo-2.js.br              4.22kb / brotliCompress: 1.51kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/lc-Ck-tdTgx.js.br                     1.79kb / brotliCompress: 0.54kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/GeneralSettingsPage-B8sjN3SB.js.br    7.87kb / brotliCompress: 2.36kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/LCPage-BWfRAu3w.js.br                 15.86kb / brotliCompress: 3.75kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/LCFormPage-CSuRyxpZ.js.br             25.13kb / brotliCompress: 5.23kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/ProductDetailsPage-BCsvGJ9A.js.br     12.70kb / brotliCompress: 3.27kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/LCDetailsPage-BXQ1FENp.js.br          21.90kb / brotliCompress: 5.25kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/Pagination-Dpz0GH7A.js.br             1.55kb / brotliCompress: 0.68kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/products-Cks1FhtZ.js.br               1.90kb / brotliCompress: 0.47kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SaleDetailsPage-sbIYsJ5V.js.br        21.38kb / brotliCompress: 4.86kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SalesDashboardPage-CMs4_0aW.js.br     5.78kb / brotliCompress: 2.00kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/sales-DgTSmGA3.js.br                  2.22kb / brotliCompress: 0.43kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/index-CQQjYvHY.css.br                 61.67kb / brotliCompress: 9.04kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SearchBar-BqwJLhc7.js.br              1.00kb / brotliCompress: 0.50kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SalesListingsPage-nJNJzVxU.js.br      2.17kb / brotliCompress: 0.91kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SettingsPage-BABijAq9.js.br           2.49kb / brotliCompress: 0.62kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/StatBox-C4HuIrjo.js.br                1.33kb / brotliCompress: 0.59kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/StatusBadge-CgB92dla.js.br            1.59kb / brotliCompress: 0.63kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SelectField-CKwbRNf8.js.br            4.47kb / brotliCompress: 1.56kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TextAreaField-C2apAMcM.js.br          2.24kb / brotliCompress: 0.91kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TeamPage-D55s0PSZ.js.br               2.49kb / brotliCompress: 0.91kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/SalesTableSkeleton-Ce7Ttva0.js.br     12.68kb / brotliCompress: 2.42kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/StockManagementPage-C0hitY31.js.br    11.72kb / brotliCompress: 2.86kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TeamDetailsPage-DJWSEgfV.js.br        6.70kb / brotliCompress: 1.76kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TransactionTable-CKL8l-Ij.js.br       12.99kb / brotliCompress: 3.12kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/useSectionManager-BfkIYUcV.js.br      5.17kb / brotliCompress: 1.66kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/TrashPage-BOstVQiS.js.br              10.72kb / brotliCompress: 2.51kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/useUrl-DT1gwuJE.js.br                 3.79kb / brotliCompress: 1.44kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/UnitsSettingsPage-D1b8er4m.js.br      5.65kb / brotliCompress: 1.84kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/WarehouseStockPage-wBUnsouz.js.br     10.67kb / brotliCompress: 3.09kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/WipeoutSettingsPage-Cxxs8sQ2.js.br    7.23kb / brotliCompress: 2.08kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/BackupSettings-DWcPgTT2.js.br         92.12kb / brotliCompress: 22.32kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/react-vendor-DOr8Lq_E.js.br           96.03kb / brotliCompress: 28.67kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/utils-vendor-aunQLzAt.js.br           54.78kb / brotliCompress: 17.84kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/index-BQA2Q7rj.js.br                  275.97kb / brotliCompress: 76.90kb
+dist/D:/Client Projects/Fortunate Business Management/fortunate-business-management/assets/ui-vendor-CwM9OJfk.js.br              357.54kb / brotliCompress: 100.46kb
+
+
+[31m✗[39m Build failed in 3.92s
+[31merror during build:
+[31msrc/features/settings/AuditLogsPage.jsx (4:9): "formatDateTime" is not exported by "src/utils/date.util.js", imported by "src/features/settings/AuditLogsPage.jsx".[31m
+file: [36mD:/Client Projects/Fortunate Business Management/fortunate-business-management/src/features/settings/AuditLogsPage.jsx:4:9[31m
+[33m
+2: import { useQuery } from "@tanstack/react-query";
+3: import { getAuditLogs } from "@/api/audit.api";
+4: import { formatDateTime } from "@/utils/date.util";
+            ^
+5: import { Filter, Search, ChevronDown, ChevronUp, FileCode2 } from "lucide-react";
+6: import Button from "@/components/ui/Button";
+[31m
+    at getRollupError (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at Module.error (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/node-entry.js:16960:16)
+    at Module.traceVariable (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/node-entry.js:17412:29)
+    at ModuleScope.findVariable (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/node-entry.js:15082:39)
+    at ReturnValueScope.findVariable (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/node-entry.js:5642:38)
+    at FunctionBodyScope.findVariable (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/node-entry.js:5642:38)
+    at ReturnValueScope.findVariable (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/node-entry.js:5642:38)
+    at FunctionBodyScope.findVariable (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/node-entry.js:5642:38)
+    at Identifier.bind (file:///D:/Client%20Projects/Fortunate%20Business%20Management/fortunate-business-management/node_modules/rollup/dist/es/shared/node-entry.js:5413:40)[39m

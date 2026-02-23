@@ -39,6 +39,7 @@ import Pagination from "@/components/ui/Pagination";
 import Button from "@/components/ui/Button";
 import AddCreditModal from "./components/AddCreditModal";
 import CreditHistoryTable from "./components/CreditHistoryTable";
+import EntityAuditLog from "@/components/ui/EntityAuditLog";
 
 // Custom Hooks
 import { useUrl } from "@/hooks/useUrl";
