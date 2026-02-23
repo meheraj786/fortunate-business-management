@@ -12,7 +12,8 @@ const MODULES = [
 
 const ACTIONS = [
     "All", "CREATE", "UPDATE", "DELETE", "RESTORE", "CANCEL",
-    "LOGIN", "LOGOUT", "PAYMENT", "TRANSFER", "BACKUP", "SETTINGS_UPDATE"
+    "LOGIN", "LOGOUT", "PAYMENT", "TRANSFER", "BACKUP", "SETTINGS_UPDATE",
+    "OPEN", "CLOSE", "WIPE"
 ];
 
 const AuditLogsPage = () => {
