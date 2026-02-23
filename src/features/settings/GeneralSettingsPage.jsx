@@ -65,6 +65,11 @@ const GeneralSettingsPage = () => {
     timeFormat: "12h",
   });
 
+  const [loggingData, setLoggingData] = useState({
+    consoleEnabled: true,
+    consoleLevel: "error",
+  });
+
   useEffect(() => {
     if (settings) {
       if (settings.timezone) {
@@ -75,6 +80,10 @@ const GeneralSettingsPage = () => {
         currency: settings.currency || "USD",
         dateFormat: settings.dateFormat || "MM/DD/YYYY",
         timeFormat: settings.timeFormat || "12h",
+      });
+      setLoggingData({
+        consoleEnabled: settings.logging?.consoleEnabled ?? true,
+        consoleLevel: settings.logging?.consoleLevel || "error",
       });
     }
   }, [settings]);
@@ -98,6 +107,11 @@ const GeneralSettingsPage = () => {
   const handleGeneralUpdate = (e) => {
     e.preventDefault();
     updateSettings(formData);
+  };
+
+  const handleLoggingUpdate = (e) => {
+    e.preventDefault();
+    updateSettings({ logging: loggingData });
   };
 
   const isLocked = settings?.isTimezoneSet;
@@ -312,8 +326,93 @@ const GeneralSettingsPage = () => {
           </div>
         </form>
       </div>
+
+      {/* Logging Section */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-6 border-b border-gray-200 bg-gray-50/50">
+          <h2 className="text-lg font-bold text-gray-900">
+            Production Logging
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Control console output for the production server. Useful for
+            debugging during deployments.
+          </p>
+        </div>
+
+        <form onSubmit={handleLoggingUpdate} className="p-4 sm:p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Console Toggle */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Console Logging
+              </label>
+              {isLoading ? (
+                <ValueSkeleton width="w-48" height="h-10" />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLoggingData((prev) => ({
+                      ...prev,
+                      consoleEnabled: !prev.consoleEnabled,
+                    }))
+                  }
+                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ${loggingData.consoleEnabled ? "bg-[var(--color-primary)]" : "bg-gray-200"
+                    }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${loggingData.consoleEnabled ? "translate-x-5" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              )}
+              <p className="text-xs text-gray-400">
+                {loggingData.consoleEnabled
+                  ? "Logs will appear in the server console."
+                  : "Logs will only be written to files."}
+              </p>
+            </div>
+
+            {/* Console Level */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Console Log Level
+              </label>
+              <SelectField
+                value={loggingData.consoleLevel}
+                onChange={(val) =>
+                  setLoggingData((prev) => ({ ...prev, consoleLevel: val }))
+                }
+                options={[
+                  { value: "error", label: "Error — Critical errors only" },
+                  { value: "warn", label: "Warn — Warnings and errors" },
+                  { value: "info", label: "Info — General information" },
+                  { value: "debug", label: "Debug — Verbose debugging" },
+                ]}
+                disabled={!loggingData.consoleEnabled}
+                className="mb-0"
+              />
+              <p className="text-xs text-gray-400">
+                Higher levels include all lower levels. Use "Error" for
+                production, "Debug" only when troubleshooting.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <button
+              type="submit"
+              disabled={isPending}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[var(--color-primary)] hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPending ? "Saving..." : "Save Logging Settings"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
 
 export default GeneralSettingsPage;
+
