@@ -70,12 +70,15 @@ const AddCostForm = ({
     if (!expense.name.trim()) newErrors.name = "Expense name is required";
 
     if (isDocumentSection) {
-      if (!expense.amountUsd) newErrors.amountUsd = "USD amount is required";
-      else if (parseFloat(expense.amountUsd) <= 0)
+      // USD fields are optional, but if provided must be valid
+      if (expense.amountUsd && parseFloat(expense.amountUsd) <= 0)
         newErrors.amountUsd = "USD amount must be greater than 0";
-      if (!expense.costExchangeRate) newErrors.costExchangeRate = "Exchange rate is required";
-      else if (parseFloat(expense.costExchangeRate) <= 0)
+      if (expense.costExchangeRate && parseFloat(expense.costExchangeRate) <= 0)
         newErrors.costExchangeRate = "Exchange rate must be greater than 0";
+      // BDT amount is always required
+      if (!expense.amount) newErrors.amount = "Amount is required";
+      else if (parseFloat(expense.amount) <= 0)
+        newErrors.amount = "Amount must be greater than 0";
     } else {
       if (!expense.amount) newErrors.amount = "Amount is required";
       else if (parseFloat(expense.amount) <= 0)
@@ -125,8 +128,8 @@ const AddCostForm = ({
       date: new Date().toISOString(),
     };
 
-    // Include USD fields only for document section
-    if (isDocumentSection) {
+    // Include USD fields only for document section and only if filled
+    if (isDocumentSection && expense.amountUsd && expense.costExchangeRate) {
       expensePayload.amountUsd = parseFloat(expense.amountUsd);
       expensePayload.costExchangeRate = parseFloat(expense.costExchangeRate);
     } else {
@@ -195,7 +198,6 @@ const AddCostForm = ({
                 value={expense.amountUsd}
                 onChange={handleInputChange}
                 placeholder="e.g., 25000"
-                required
                 icon={DollarSign}
                 error={errors.amountUsd}
                 min="0.01"
@@ -208,20 +210,23 @@ const AddCostForm = ({
                 value={expense.costExchangeRate}
                 onChange={handleInputChange}
                 placeholder="e.g., 115.50"
-                required
                 error={errors.costExchangeRate}
                 min="0.01"
                 step="0.01"
               />
             </div>
             <InputField
-              label={`Amount (${settings?.currency || "BDT"}) — Auto-calculated`}
+              label={`Amount (${settings?.currency || "BDT"})`}
               name="amount"
               type="number"
-              value={autoBdtAmount}
-              disabled
+              value={expense.amount}
+              onChange={handleInputChange}
+              required
               icon={DollarSign}
-              placeholder="Calculated from USD × Rate"
+              error={errors.amount}
+              placeholder={autoBdtAmount ? `Auto: ${autoBdtAmount}` : "Enter amount"}
+              min="0.01"
+              step="0.01"
             />
           </>
         ) : (

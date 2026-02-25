@@ -140,7 +140,6 @@ const CostsSection = ({
                     error={getNestedErrorMessage(`${section}[${index}].amountUsd`)}
                     placeholder="e.g., 25000"
                     validation={{
-                      required: "USD amount is required",
                       min: { value: 0.01, message: "Must be positive" },
                       valueAsNumber: true,
                     }}
@@ -157,7 +156,6 @@ const CostsSection = ({
                     error={getNestedErrorMessage(`${section}[${index}].costExchangeRate`)}
                     placeholder="e.g., 115.50"
                     validation={{
-                      required: "Exchange rate is required",
                       min: { value: 0.01, message: "Must be positive" },
                       valueAsNumber: true,
                     }}
@@ -172,9 +170,13 @@ const CostsSection = ({
                     type="number"
                     register={register}
                     error={getNestedErrorMessage(`${section}[${index}].amount`)}
-                    disabled
-                    placeholder="Auto"
-                    validation={{ valueAsNumber: true }}
+                    placeholder="Enter amount"
+                    validation={{
+                      required: "Amount is required",
+                      min: { value: 0.01, message: "Must be positive" },
+                      valueAsNumber: true,
+                    }}
+                    disabled={isSubmitting}
                   />
                 </div>
               </>

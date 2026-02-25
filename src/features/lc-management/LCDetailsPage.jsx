@@ -567,8 +567,8 @@ const LCdetails = () => {
                 </div>
               )}
 
-              {/* Document Value Summary (Redesigned 2-Column Row) */}
-              {(lcData?.totalDocumentValue > 0 || documentProductInfo?.costs?.length > 0) && (
+              {/* Document Value Summary */}
+              {(lcData?.totalDocumentValue > 0 || totalProductsValueUsd > 0) && (
                 <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
 
@@ -580,12 +580,12 @@ const LCdetails = () => {
                       </p>
                     </div>
 
-                    {/* Column 2: Paid & Balance */}
+                    {/* Column 2: Products Value & Balance */}
                     <div className="flex items-center justify-between md:justify-end gap-6 md:gap-12">
                       <div className="flex flex-col">
-                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Paid (USD)</span>
-                        <span className="text-lg font-bold text-green-700">
-                          ${formatNumber(lcData?.totalDocumentCostUsd || 0)}
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Products Value (USD)</span>
+                        <span className="text-lg font-bold text-[var(--color-primary)]">
+                          ${formatNumber(totalProductsValueUsd)}
                         </span>
                       </div>
 
@@ -594,7 +594,7 @@ const LCdetails = () => {
                       <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Balance (USD)</span>
                         {(() => {
-                          const balance = (lcData?.totalDocumentValue || 0) - (lcData?.totalDocumentCostUsd || 0);
+                          const balance = (lcData?.totalDocumentValue || 0) - totalProductsValueUsd;
                           const colorClass = balance <= 0 ? "text-green-700" : balance < (lcData?.totalDocumentValue || 0) ? "text-amber-600" : "text-red-600";
                           return (
                             <div className="flex items-center gap-2">
@@ -603,7 +603,7 @@ const LCdetails = () => {
                               </span>
                               {balance <= 0 && (
                                 <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                                  Paid
+                                  Matched
                                 </span>
                               )}
                             </div>
