@@ -595,13 +595,14 @@ const LCdetails = () => {
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Balance (USD)</span>
                         {(() => {
                           const balance = (lcData?.totalDocumentValue || 0) - totalProductsValueUsd;
-                          const colorClass = balance <= 0 ? "text-green-700" : balance < (lcData?.totalDocumentValue || 0) ? "text-amber-600" : "text-red-600";
+                          const isMatched = balance === 0;
+                          const colorClass = isMatched ? "text-green-700" : balance > 0 ? "text-red-600" : "text-amber-600";
                           return (
                             <div className="flex items-center gap-2">
                               <span className={`text-xl font-bold ${colorClass}`}>
                                 ${formatNumber(Math.abs(balance))}
                               </span>
-                              {balance <= 0 && (
+                              {isMatched && (
                                 <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
                                   Matched
                                 </span>
