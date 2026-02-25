@@ -18,5 +18,8 @@ export const settleAdvancePayment = (id, data) =>
 export const refundAdvancePayment = (id, data) =>
     api.put(`/advance-payments/${id}/refund`, data);
 
+export const addToAdvancePayment = (id, data) =>
+    api.put(`/advance-payments/${id}/add`, data);
+
 export const deleteAdvancePayment = (id) =>
     api.delete(`/advance-payments/${id}`);

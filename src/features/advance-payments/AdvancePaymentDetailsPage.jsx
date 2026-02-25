@@ -15,6 +15,7 @@ import {
     PieChart,
     HandCoins,
     FileText,
+    PlusCircle,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import CollapsibleCard from "@/components/ui/CollapsibleCard";
@@ -32,6 +33,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
 import SettleAdvanceModal from "./SettleAdvanceModal";
 import RefundAdvanceModal from "./RefundAdvanceModal";
+import AddToAdvanceModal from "./AddToAdvanceModal";
 
 const AdvancePaymentDetailsPage = () => {
     const { id } = useParams();
@@ -50,25 +52,36 @@ const AdvancePaymentDetailsPage = () => {
     });
     const [isSettleOpen, setIsSettleOpen] = useState(false);
     const [isRefundOpen, setIsRefundOpen] = useState(false);
+    const [isAddOpen, setIsAddOpen] = useState(false);
 
     const adv = response?.data;
+
+    // Amounts factoring in additions
+    const addedAmount = useMemo(() => {
+        return (adv?.additions || []).reduce((sum, a) => sum + (a.amount || 0), 0);
+    }, [adv?.additions]);
+
+    const totalAmount = useMemo(() => {
+        return (adv?.amount || 0) + addedAmount;
+    }, [adv?.amount, addedAmount]);
 
     const refundedAmount = useMemo(() => {
         return (adv?.refunds || []).reduce((sum, r) => sum + (r.amount || 0), 0);
     }, [adv?.refunds]);
 
     const remainingAmount = useMemo(() => {
-        return (adv?.amount || 0) - refundedAmount;
-    }, [adv?.amount, refundedAmount]);
+        return totalAmount - refundedAmount;
+    }, [totalAmount, refundedAmount]);
 
     const refundPercentage = useMemo(() => {
-        if (!adv?.amount || adv.amount === 0) return 0;
-        return Math.min(100, Math.round((refundedAmount / adv.amount) * 100));
-    }, [adv?.amount, refundedAmount]);
+        if (!totalAmount || totalAmount === 0) return 0;
+        return Math.min(100, Math.round((refundedAmount / totalAmount) * 100));
+    }, [totalAmount, refundedAmount]);
 
     const canSettle = adv?.status === "Pending" || adv?.status === "Partially Settled";
     const canRefund = adv?.status === "Pending" || adv?.status === "Partially Settled";
-    const hasActions = canSettle || canRefund || hasPermission("ADVANCE_PAYMENT_DELETE");
+    const canAddMore = adv?.status === "Pending" || adv?.status === "Partially Settled";
+    const hasActions = canSettle || canRefund || canAddMore || hasPermission("ADVANCE_PAYMENT_DELETE");
 
     const handleOpenConfirmation = (action) => {
         const actions = {
@@ -141,7 +154,7 @@ const AdvancePaymentDetailsPage = () => {
             {/* Financial Rows */}
             <div className="space-y-2">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-gray-600">Total Advance</span>
+                    <span className="text-sm text-gray-600">Original Amount</span>
                     <span className="text-sm font-medium">
                         {isLoading ? (
                             <ValueSkeleton width="w-20" />
@@ -150,6 +163,24 @@ const AdvancePaymentDetailsPage = () => {
                         )}
                     </span>
                 </div>
+                {addedAmount > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-sm text-gray-600">
+                            Added ({adv?.additions?.length || 0} top-ups)
+                        </span>
+                        <span className="text-sm font-medium text-amber-600">
+                            +{formatCurrency(addedAmount)}
+                        </span>
+                    </div>
+                )}
+                {addedAmount > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-sm text-gray-700 font-medium">Effective Total</span>
+                        <span className="text-sm font-semibold">
+                            {formatCurrency(totalAmount)}
+                        </span>
+                    </div>
+                )}
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                     <span className="text-sm text-gray-600">Total Refunded</span>
                     <span className="text-sm font-medium text-[var(--color-primary)]">
@@ -184,12 +215,23 @@ const AdvancePaymentDetailsPage = () => {
             </div>
 
             {/* Quick Actions — only in desktop sidebar */}
-            {showQuickActions && !isLoading && (canSettle || canRefund) && (
+            {showQuickActions && !isLoading && (canSettle || canRefund || canAddMore) && (
                 <div className="pt-2 border-t border-gray-200 space-y-2">
                     <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">
                         Quick Actions
                     </p>
                     <div className="flex flex-col gap-2">
+                        {canAddMore && hasPermission("ADVANCE_PAYMENT_CREATE") && (
+                            <Button
+                                onClick={() => setIsAddOpen(true)}
+                                variant="secondary"
+                                size="sm"
+                                className="w-full flex items-center justify-center"
+                            >
+                                <PlusCircle className="mr-2 w-4 h-4" />
+                                Add More
+                            </Button>
+                        )}
                         {canSettle && hasPermission("ADVANCE_PAYMENT_SETTLE") && (
                             <Button
                                 onClick={() => setIsSettleOpen(true)}
@@ -240,7 +282,6 @@ const AdvancePaymentDetailsPage = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                         <div className="min-w-0">
                             <div className="flex items-center gap-3">
-                                {/* Hide icon box on very small screens to save space */}
                                 <div
                                     className="hidden sm:flex p-2 bg-[var(--color-primary)] rounded-lg flex-shrink-0"
                                     aria-hidden="true"
@@ -275,6 +316,18 @@ const AdvancePaymentDetailsPage = () => {
                         </div>
                         {/* Action buttons — hidden on mobile (shown in sticky bar instead) */}
                         <div className="hidden sm:flex flex-wrap gap-2">
+                            {canAddMore && hasPermission("ADVANCE_PAYMENT_CREATE") && (
+                                <Button
+                                    onClick={() => setIsAddOpen(true)}
+                                    variant="secondary"
+                                    size="sm"
+                                    className="flex items-center"
+                                    aria-label="Add More to Advance"
+                                >
+                                    <PlusCircle className="mr-2 w-4 h-4" aria-hidden="true" />
+                                    Add More
+                                </Button>
+                            )}
                             {canSettle && hasPermission("ADVANCE_PAYMENT_SETTLE") && (
                                 <Button
                                     onClick={() => setIsSettleOpen(true)}
@@ -383,7 +436,7 @@ const AdvancePaymentDetailsPage = () => {
                                     loading={isLoading}
                                 />
                                 <DataField
-                                    label="Amount"
+                                    label="Original Amount"
                                     value={adv?.amount}
                                     format="currency"
                                     loading={isLoading}
@@ -401,6 +454,62 @@ const AdvancePaymentDetailsPage = () => {
                                 </div>
                             )}
                         </CollapsibleCard>
+
+                        {/* Additions History Card — shows when there are additions */}
+                        {adv?.additions && adv.additions.length > 0 && (
+                            <CollapsibleCard
+                                title={`Top-Up History (${adv.additions.length})`}
+                                icon={<PlusCircle className="text-amber-500" />}
+                                defaultOpen={true}
+                                ariaLabel="Top-Up History Section"
+                            >
+                                <div className="space-y-3">
+                                    {adv.additions.map((addition, index) => {
+                                        const runningTotal = adv.amount + adv.additions
+                                            .slice(0, index + 1)
+                                            .reduce((sum, a) => sum + (a.amount || 0), 0);
+                                        return (
+                                            <div
+                                                key={addition._id || index}
+                                                className="p-3 bg-amber-50 rounded-lg border border-amber-200"
+                                            >
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                            <span className="font-semibold text-gray-800 text-sm">
+                                                                Top-Up #{index + 1}
+                                                            </span>
+                                                            <span className="text-xs text-gray-500">
+                                                                {formatDate(addition.date)}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-xs text-gray-500 truncate">
+                                                            Via {addition.paymentMethod}
+                                                            {addition.accountId &&
+                                                                typeof addition.accountId === "object" &&
+                                                                ` · ${formatAccountLabel(addition.accountId)}`}
+                                                        </p>
+                                                        {addition.note && (
+                                                            <p className="text-xs text-gray-400 mt-1 italic truncate">
+                                                                {addition.note}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-left sm:text-right flex sm:block items-center gap-3 sm:gap-0">
+                                                        <span className="text-base sm:text-lg font-semibold text-amber-600">
+                                                            +{formatCurrency(addition.amount)}
+                                                        </span>
+                                                        <div className="text-xs text-gray-400">
+                                                            Total: {formatCurrency(runningTotal)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </CollapsibleCard>
+                        )}
 
                         {/* Refund History Card */}
                         <CollapsibleCard
@@ -501,6 +610,17 @@ const AdvancePaymentDetailsPage = () => {
             {/* Mobile Sticky Bottom Action Bar */}
             {!isLoading && hasActions && (
                 <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-2 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
+                    {canAddMore && hasPermission("ADVANCE_PAYMENT_CREATE") && (
+                        <Button
+                            onClick={() => setIsAddOpen(true)}
+                            variant="secondary"
+                            size="sm"
+                            className="flex-1 flex items-center justify-center"
+                        >
+                            <PlusCircle className="mr-1.5 w-4 h-4" />
+                            Add
+                        </Button>
+                    )}
                     {canSettle && hasPermission("ADVANCE_PAYMENT_SETTLE") && (
                         <Button
                             onClick={() => setIsSettleOpen(true)}
@@ -551,6 +671,13 @@ const AdvancePaymentDetailsPage = () => {
                 onClose={() => setIsRefundOpen(false)}
                 advancePayment={adv}
                 onSuccess={() => setIsRefundOpen(false)}
+            />
+
+            <AddToAdvanceModal
+                isOpen={isAddOpen}
+                onClose={() => setIsAddOpen(false)}
+                advancePayment={adv}
+                onSuccess={() => setIsAddOpen(false)}
             />
 
             <ConfirmationModal

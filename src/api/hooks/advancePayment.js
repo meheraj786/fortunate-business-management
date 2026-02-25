@@ -65,6 +65,20 @@ export const useRefundAdvancePayment = () => {
     });
 };
 
+// Add More (Top Up)
+export const useAddToAdvancePayment = () => {
+    const qc = useQueryClient();
+    return useApiMutation({
+        mutationFn: ({ id, data }) => api.addToAdvancePayment(id, data),
+        successMessage: "Amount added to advance payment successfully!",
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["advancePayments"] });
+            qc.invalidateQueries({ queryKey: ["accounts"] });
+            qc.invalidateQueries({ queryKey: ["transactions"] });
+        },
+    });
+};
+
 // Delete
 export const useDeleteAdvancePayment = () => {
     const qc = useQueryClient();

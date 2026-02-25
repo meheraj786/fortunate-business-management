@@ -20,15 +20,22 @@ const RefundAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
     const accounts = accountsData?.data || [];
     const refundMutation = useRefundAdvancePayment();
 
+    const addedAmount = advancePayment
+        ? (advancePayment.additions || []).reduce(
+            (sum, a) => sum + (a.amount || 0),
+            0,
+        )
+        : 0;
+    const totalAmount = advancePayment
+        ? advancePayment.amount + addedAmount
+        : 0;
     const refundedAmount = advancePayment
         ? (advancePayment.refunds || []).reduce(
             (sum, r) => sum + (r.amount || 0),
             0,
         )
         : 0;
-    const remainingAmount = advancePayment
-        ? advancePayment.amount - refundedAmount
-        : 0;
+    const remainingAmount = totalAmount - refundedAmount;
 
     const [formData, setFormData] = useState({
         amount: "",
