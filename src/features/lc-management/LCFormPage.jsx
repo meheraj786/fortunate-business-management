@@ -304,6 +304,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
     formState: { errors, isValid, isSubmitting },
     watch,
     setValue,
+    trigger,
   } = useForm({
     mode: "onChange",
     defaultValues: useMemo(() => {
@@ -467,6 +468,21 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
       setValue("financialInfo.lcAmountBdt", 0);
     }
   }, [lcAmountUsd, exchangeRate, setValue]);
+
+  // Re-validate conditionally-required fields when status changes
+  useEffect(() => {
+    // Small delay to let RHF re-register fields with updated validation rules
+    const timer = setTimeout(() => {
+      trigger([
+        "basicInfo.supplierName",
+        "basicInfo.supplierCountry",
+        "basicInfo.accountId",
+        "financialInfo.lcAmountUsd",
+        "financialInfo.exchangeRate",
+      ]);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [watchedStatus, trigger]);
 
   const handleExistingFileRemove = (fileId) => {
     // Remove from react-hook-form state
