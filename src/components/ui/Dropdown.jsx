@@ -1,7 +1,15 @@
-import React, { Fragment, useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import React, {
+  Fragment,
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { Listbox, Transition } from '@headlessui/react';
 import { ChevronDown, Check, AlertCircle } from 'lucide-react';
+import PropTypes from 'prop-types'; // optional, for type checking
 
 // ── Tooltip sub-component (portal-based, works on hover & long-press) ──
 const OptionTooltip = ({ text, anchorRect, visible }) => {
@@ -9,27 +17,38 @@ const OptionTooltip = ({ text, anchorRect, visible }) => {
 
   const gap = 6;
   const tooltipMaxWidth = 280;
-  let top = anchorRect.top - gap;
-  let left = anchorRect.left + anchorRect.width / 2;
+  const viewportHeight = window.innerHeight;
+  const spaceAbove = anchorRect.top;
+  const spaceBelow = viewportHeight - anchorRect.bottom;
 
-  const showBelow = anchorRect.top < 50;
+  // Determine best placement (above or below)
+  const showBelow = spaceBelow >= spaceAbove; // prefer below if enough space
+
+  let top, bottom;
   if (showBelow) {
     top = anchorRect.bottom + gap;
+    bottom = undefined;
+  } else {
+    top = undefined;
+    bottom = viewportHeight - anchorRect.top + gap;
   }
 
+  let left = anchorRect.left + anchorRect.width / 2;
+  // Keep tooltip within viewport horizontally
   if (left - tooltipMaxWidth / 2 < 8) left = tooltipMaxWidth / 2 + 8;
-  if (left + tooltipMaxWidth / 2 > window.innerWidth - 8) left = window.innerWidth - tooltipMaxWidth / 2 - 8;
+  if (left + tooltipMaxWidth / 2 > window.innerWidth - 8)
+    left = window.innerWidth - tooltipMaxWidth / 2 - 8;
 
   return createPortal(
     <div
       style={{
         position: 'fixed',
-        top: showBelow ? top : undefined,
-        bottom: showBelow ? undefined : (window.innerHeight - top),
+        top,
+        bottom,
         left,
         transform: 'translateX(-50%)',
         maxWidth: tooltipMaxWidth,
-        zIndex: 10001,
+        zIndex: 10002,
         pointerEvents: 'none',
       }}
       className="px-2.5 py-1.5 text-xs bg-gray-900 text-white rounded-md shadow-lg whitespace-normal break-words leading-snug"
@@ -44,7 +63,7 @@ const OptionTooltip = ({ text, anchorRect, visible }) => {
   );
 };
 
-// Inline styles for 2-line clamp (reliable cross-browser, doesn't depend on Tailwind)
+// Inline styles for 2-line clamp (reliable cross-browser)
 const lineClamp2Style = {
   display: '-webkit-box',
   WebkitLineClamp: 2,
@@ -68,7 +87,7 @@ const Dropdown = ({
   formatLabel,
   name,
   id,
-  label // legacy support
+  label, // legacy support
 }) => {
   const buttonRef = useRef(null);
   const optionsRef = useRef(null);
@@ -78,11 +97,23 @@ const Dropdown = ({
   const [tooltip, setTooltip] = useState({ visible: false, text: '', rect: null });
   const longPressTimer = useRef(null);
 
-  const handleChange = (val) => {
-    const actualValue = val && typeof val === 'object' && val.target ? val.target.value : val;
-    if (onChange) onChange(actualValue);
-    if (onSelect) onSelect(actualValue);
-  };
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+      }
+    };
+  }, []);
+
+  const handleChange = useCallback(
+    (val) => {
+      const actualValue = val && typeof val === 'object' && val.target ? val.target.value : val;
+      if (onChange) onChange(actualValue);
+      if (onSelect) onSelect(actualValue);
+    },
+    [onChange, onSelect]
+  );
 
   // Calculate fixed position for the portal-rendered options list
   const calculatePosition = useCallback(() => {
@@ -107,7 +138,7 @@ const Dropdown = ({
   // Hide dropdown on external scroll; ignore scrolls inside the options list
   useEffect(() => {
     const handleScroll = (e) => {
-      setTooltip(t => t.visible ? { visible: false, text: '', rect: null } : t);
+      setTooltip((t) => (t.visible ? { visible: false, text: '', rect: null } : t));
 
       // If the scroll is happening inside the dropdown options list itself, ignore
       if (optionsRef.current && optionsRef.current.contains(e.target)) return;
@@ -119,7 +150,7 @@ const Dropdown = ({
     };
 
     const handleResize = () => {
-      setTooltip(t => t.visible ? { visible: false, text: '', rect: null } : t);
+      setTooltip((t) => (t.visible ? { visible: false, text: '', rect: null } : t));
       if (isOpenRef.current) {
         setForceHidden(true);
       }
@@ -153,21 +184,18 @@ const Dropdown = ({
 
   const handleTouchEnd = useCallback(() => {
     clearTimeout(longPressTimer.current);
-    setTimeout(() => {
+    longPressTimer.current = setTimeout(() => {
       setTooltip({ visible: false, text: '', rect: null });
     }, 1500);
   }, []);
 
-  // Support legacy selected prop
-  const currentValue = value;
-
   // Normalize options to ensure they always have label and value
   const normalizedOptions = useMemo(() => {
-    return options.map(option => {
+    return options.map((option) => {
       if (typeof option === 'object' && option !== null) {
         return {
           value: option._id ?? option.value ?? option,
-          label: option.name ?? option.label ?? option.toString()
+          label: option.name ?? option.label ?? option.toString(),
         };
       }
       return { value: option, label: String(option) };
@@ -175,22 +203,29 @@ const Dropdown = ({
   }, [options]);
 
   const selectedOption = useMemo(() => {
-    let valToMatch = currentValue;
+    let valToMatch = value;
     if (valToMatch && typeof valToMatch === 'object') {
       valToMatch = valToMatch?.target?.value ?? valToMatch?._id ?? valToMatch?.value ?? valToMatch;
     }
 
-    return normalizedOptions.find(opt => {
-      const optVal = opt.value;
-      return optVal === valToMatch ||
-        (optVal != null && valToMatch != null && String(optVal) === String(valToMatch));
-    }) || null;
-  }, [currentValue, normalizedOptions]);
+    return (
+      normalizedOptions.find((opt) => {
+        const optVal = opt.value;
+        return (
+          optVal === valToMatch ||
+          (optVal != null && valToMatch != null && String(optVal) === String(valToMatch))
+        );
+      }) || null
+    );
+  }, [value, normalizedOptions]);
 
-  const getDisplayLabel = (option) => formatLabel ? formatLabel(option) : option.label;
+  const getDisplayLabel = (option) => (formatLabel ? formatLabel(option) : option.label);
+
+  // Generate a unique error ID for accessibility
+  const errorId = id ? `${id}-error` : 'dropdown-error';
 
   return (
-    <Listbox value={currentValue} onChange={handleChange} disabled={disabled || loading} name={name}>
+    <Listbox value={value} onChange={handleChange} disabled={disabled || loading} name={name}>
       {({ open }) => {
         // Sync open state to ref for scroll handler
         isOpenRef.current = open;
@@ -213,9 +248,7 @@ const Dropdown = ({
         return (
           <div className={`relative ${className}`}>
             {label && (
-              <Listbox.Label
-                className="flex items-center text-sm font-medium text-gray-700 mb-1.5 sm:mb-2"
-              >
+              <Listbox.Label className="flex items-center text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                 {label}
               </Listbox.Label>
             )}
@@ -223,10 +256,11 @@ const Dropdown = ({
               ref={buttonRef}
               id={id}
               type="button"
+              aria-invalid={!!error}
+              aria-describedby={error ? errorId : undefined}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  // HeadlessUI handles click to toggle
                   buttonRef.current?.click();
                 }
               }}
@@ -239,9 +273,17 @@ const Dropdown = ({
                 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
                 transition-all duration-200
                 active:scale-[0.99]
-                ${disabled || loading ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'cursor-pointer'}
+                ${
+                  disabled || loading
+                    ? 'bg-gray-100 cursor-not-allowed opacity-60'
+                    : 'cursor-pointer'
+                }
                 ${Icon ? 'pl-10 sm:pl-10' : ''}
-                ${error ? 'border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]' : 'border-gray-300'}
+                ${
+                  error
+                    ? 'border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]'
+                    : 'border-gray-300'
+                }
                 text-base sm:text-sm
               `}
             >
@@ -251,23 +293,32 @@ const Dropdown = ({
                 </span>
               )}
 
-              <span className={`block truncate ${!selectedOption && !loading ? 'text-gray-500' : 'text-gray-900'}`}>
+              <span
+                className={`block truncate ${
+                  !selectedOption && !loading ? 'text-gray-500' : 'text-gray-900'
+                }`}
+              >
                 {loading
                   ? 'Loading...'
                   : selectedOption
-                    ? (formatLabel ? formatLabel(selectedOption) : selectedOption.label)
-                    : (placeholder || '\u00A0')}
+                  ? getDisplayLabel(selectedOption)
+                  : placeholder || '\u00A0'}
               </span>
 
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 {loading ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--color-primary)]" />
                 ) : error ? (
-                  <AlertCircle className="w-4 h-4 text-[var(--color-danger)] mr-6" aria-hidden="true" />
+                  <AlertCircle
+                    className="w-4 h-4 text-[var(--color-danger)] mr-2"
+                    aria-hidden="true"
+                  />
                 ) : null}
                 {!loading && (
                   <ChevronDown
-                    className={`w-5 h-5 sm:w-4 sm:h-4 text-gray-400 transition-transform duration-200 ${open ? 'transform rotate-180' : ''}`}
+                    className={`w-5 h-5 sm:w-4 sm:h-4 text-gray-400 transition-transform duration-200 ${
+                      open ? 'transform rotate-180' : ''
+                    }`}
                     aria-hidden="true"
                   />
                 )}
@@ -279,7 +330,6 @@ const Dropdown = ({
               showDropdown ? (
                 <Listbox.Options
                   ref={optionsRef}
-                  static
                   style={portalStyle}
                   className="py-1 overflow-auto text-base sm:text-sm bg-white rounded-lg shadow-xl max-h-60 focus:outline-none border border-gray-200 overscroll-contain animate-in fade-in duration-100"
                 >
@@ -290,9 +340,11 @@ const Dropdown = ({
                   ) : (
                     normalizedOptions.map((option, index) => {
                       const labelText = getDisplayLabel(option);
+                      // Use a composite key to avoid collisions
+                      const optionKey = `${option.value}-${index}`;
                       return (
                         <Listbox.Option
-                          key={option.value || index}
+                          key={optionKey}
                           className={({ active }) =>
                             `relative cursor-pointer select-none
                             py-3 sm:py-2 pl-3 pr-9
@@ -312,7 +364,9 @@ const Dropdown = ({
                           {({ selected }) => (
                             <>
                               <span
-                                className={`block w-full pr-6 ${selected ? 'font-semibold' : 'font-normal'}`}
+                                className={`block w-full pr-6 ${
+                                  selected ? 'font-semibold' : 'font-normal'
+                                }`}
                                 style={lineClamp2Style}
                               >
                                 {labelText}
@@ -341,7 +395,7 @@ const Dropdown = ({
             />
 
             {error && (
-              <p className="text-sm text-[var(--color-danger)] mt-1" role="alert">
+              <p id={errorId} className="text-sm text-[var(--color-danger)] mt-1" role="alert">
                 {error}
               </p>
             )}
@@ -350,6 +404,24 @@ const Dropdown = ({
       }}
     </Listbox>
   );
+};
+
+// Optional PropTypes for documentation
+Dropdown.propTypes = {
+  value: PropTypes.any,
+  onChange: PropTypes.func,
+  onSelect: PropTypes.func,
+  options: PropTypes.array,
+  placeholder: PropTypes.string,
+  disabled: PropTypes.bool,
+  error: PropTypes.string,
+  className: PropTypes.string,
+  icon: PropTypes.elementType,
+  loading: PropTypes.bool,
+  formatLabel: PropTypes.func,
+  name: PropTypes.string,
+  id: PropTypes.string,
+  label: PropTypes.string,
 };
 
 export default Dropdown;

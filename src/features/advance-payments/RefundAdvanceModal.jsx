@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
@@ -28,6 +28,19 @@ const RefundAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
     const accounts = accountsData?.data || [];
     const refundMutation = useRefundAdvancePayment();
 
+    const [formData, setFormData] = useState({
+        amount: "",
+        accountId: "",
+        paymentMethod: "",
+        date: getCurrentDateTimeLocal(),
+        note: "",
+    });
+
+    const filteredAccounts = useMemo(() => {
+        if (!formData.paymentMethod) return [];
+        return accounts.filter((acc) => acc.accountType === formData.paymentMethod);
+    }, [accounts, formData.paymentMethod]);
+
     const addedAmount = advancePayment
         ? (advancePayment.additions || []).reduce(
             (sum, a) => sum + (a.amount || 0),
@@ -44,14 +57,6 @@ const RefundAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
         )
         : 0;
     const remainingAmount = totalAmount - refundedAmount;
-
-    const [formData, setFormData] = useState({
-        amount: "",
-        accountId: "",
-        paymentMethod: "",
-        date: getCurrentDateTimeLocal(),
-        note: "",
-    });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -164,31 +169,33 @@ const RefundAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
                 />
 
                 <SelectField
+                    label="Payment Method"
+                    name="paymentMethod"
+                    value={formData.paymentMethod}
+                    onChange={(val) => {
+                        handleChange({ target: { name: "paymentMethod", value: val } });
+                        handleChange({ target: { name: "accountId", value: "" } });
+                    }}
+                    options={paymentMethods}
+                    required
+                    placeholder="Select payment method"
+                />
+
+                <SelectField
                     label="Receive Into Account"
                     name="accountId"
                     value={formData.accountId}
                     onChange={(val) =>
                         handleChange({ target: { name: "accountId", value: val } })
                     }
-                    options={accounts.map((acc) => ({
+                    options={filteredAccounts.map((acc) => ({
                         value: acc._id,
                         label: formatAccountLabel(acc),
                     }))}
                     required
                     loading={areAccountsLoading}
-                    placeholder="Select account for refund"
-                />
-
-                <SelectField
-                    label="Payment Method"
-                    name="paymentMethod"
-                    value={formData.paymentMethod}
-                    onChange={(val) =>
-                        handleChange({ target: { name: "paymentMethod", value: val } })
-                    }
-                    options={paymentMethods}
-                    required
-                    placeholder="Select payment method"
+                    placeholder={formData.paymentMethod ? "Select account for refund" : "Select payment method first"}
+                    disabled={!formData.paymentMethod}
                 />
 
                 <InputField

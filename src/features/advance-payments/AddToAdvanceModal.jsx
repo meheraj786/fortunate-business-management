@@ -37,6 +37,11 @@ const AddToAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
         note: "",
     });
 
+    const filteredAccounts = useMemo(() => {
+        if (!formData.paymentMethod) return [];
+        return accounts.filter((acc) => acc.accountType === formData.paymentMethod);
+    }, [accounts, formData.paymentMethod]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -177,9 +182,10 @@ const AddToAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
                         label="Payment Method"
                         name="paymentMethod"
                         value={formData.paymentMethod}
-                        onChange={(val) =>
-                            handleChange({ target: { name: "paymentMethod", value: val } })
-                        }
+                        onChange={(val) => {
+                            handleChange({ target: { name: "paymentMethod", value: val } });
+                            handleChange({ target: { name: "accountId", value: "" } });
+                        }}
                         options={paymentMethods}
                         required
                         placeholder="Select method"
@@ -191,13 +197,14 @@ const AddToAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
                         onChange={(val) =>
                             handleChange({ target: { name: "accountId", value: val } })
                         }
-                        options={accounts.map((acc) => ({
+                        options={filteredAccounts.map((acc) => ({
                             value: acc._id,
                             label: formatAccountLabel(acc),
                         }))}
                         required
                         loading={areAccountsLoading}
-                        placeholder="Select account"
+                        placeholder={formData.paymentMethod ? "Select account" : "Select payment method first"}
+                        disabled={!formData.paymentMethod}
                     />
                 </div>
 
