@@ -160,7 +160,8 @@ const ProductFields = ({
   watch,
   units,
   unitsLoading,
-  baseName = "productInfo" // Default to original name
+  baseName = "productInfo",
+  isDraft = false,
 }) => {
   const productQuantity = watch(`${baseName}.${index}.quantity`);
   const productUnitPriceUsd = watch(`${baseName}.${index}.unitPriceUsd`);
@@ -205,7 +206,7 @@ const ProductFields = ({
           name={`${baseName}.${index}.itemName`}
           register={register}
           error={productErrors?.itemName?.message}
-          validation={{ required: "Item name is required" }}
+          validation={{ required: isDraft ? false : "Item name is required" }}
           placeholder="e.g., Hot Rolled Steel Coil"
         />
         <InputField
@@ -242,7 +243,7 @@ const ProductFields = ({
           control={control}
           error={productErrors?.quantityUnit?.message}
           options={units.map((u) => ({ value: u._id, label: u.name })) || []}
-          validation={{ required: "Unit is required" }}
+          validation={{ required: isDraft ? false : "Unit is required" }}
           loading={unitsLoading}
         />
         <InputField
@@ -252,7 +253,7 @@ const ProductFields = ({
           register={register}
           error={productErrors?.quantity?.message}
           validation={{
-            required: "Quantity is required",
+            required: isDraft ? false : "Quantity is required",
             min: { value: 0, message: "Quantity cannot be negative" },
             valueAsNumber: true,
           }}
@@ -266,7 +267,7 @@ const ProductFields = ({
           register={register}
           error={productErrors?.unitPriceUsd?.message}
           validation={{
-            required: "Price is required",
+            required: isDraft ? false : "Price is required",
             min: { value: 0, message: "Price cannot be negative" },
             valueAsNumber: true,
           }}
@@ -344,38 +345,14 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                   2,
                 )
                 : 0),
-          })) || [
-              {
-                id: Math.random(),
-                itemName: "",
-                thickness: "",
-                width: "",
-                length: "",
-                grade: "",
-                quantityUnit: "",
-                quantity: 0,
-                unitPriceUsd: 0,
-                totalValueUsd: 0,
-              },
-            ],
+          })) || [],
           documentProductInfo: {
             products: initialData.documentProductInfo?.products?.map((p) => ({
               ...p,
               id: p._id || p.id || Math.random(),
               quantityUnit: p.quantityUnit?._id || p.quantityUnit || "",
               totalValueUsd: p.totalValueUsd || (p.quantity && p.unitPriceUsd ? (parseFloat(p.quantity) * parseFloat(p.unitPriceUsd)).toFixed(2) : 0)
-            })) || [{
-              id: Math.random(),
-              itemName: "",
-              thickness: "",
-              width: "",
-              length: "",
-              grade: "",
-              quantityUnit: "",
-              quantity: 0,
-              unitPriceUsd: 0,
-              totalValueUsd: 0,
-            }],
+            })) || [],
             costs: initialData.documentProductInfo?.costs?.map(mapCostAccountIds) || []
           },
           shippingCustomsInfo: {
@@ -425,33 +402,9 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
           lcAmountBdt: 0,
           costs: [],
         },
-        productInfo: [
-          {
-            id: Math.random(),
-            itemName: "",
-            thickness: "",
-            width: "",
-            length: "",
-            grade: "",
-            quantityUnit: "",
-            quantity: 0,
-            unitPriceUsd: 0,
-            totalValueUsd: 0,
-          },
-        ],
+        productInfo: [],
         documentProductInfo: {
-          products: [{
-            id: Math.random(),
-            itemName: "",
-            thickness: "",
-            width: "",
-            length: "",
-            grade: "",
-            quantityUnit: "",
-            quantity: 0,
-            unitPriceUsd: 0,
-            totalValueUsd: 0,
-          }],
+          products: [],
           costs: []
         },
         shippingCustomsInfo: {
@@ -503,6 +456,8 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
   // Watch fields for calculations
   const lcAmountUsd = watch("financialInfo.lcAmountUsd");
   const exchangeRate = watch("financialInfo.exchangeRate");
+  const watchedStatus = watch("basicInfo.status");
+  const isDraft = watchedStatus === "Draft";
 
   useEffect(() => {
     if (lcAmountUsd && exchangeRate) {
@@ -648,7 +603,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                     label: formatAccountLabel(acc),
                   }))}
                 placeholder="Select Bank"
-                validation={{ required: "Bank account is required" }}
+                validation={{ required: isDraft ? false : "Bank account is required" }}
                 loading={accountsLoading}
               />
 
@@ -657,7 +612,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 name="basicInfo.supplierName"
                 register={register}
                 error={errors.basicInfo?.supplierName?.message}
-                validation={{ required: "Supplier Name is required" }}
+                validation={{ required: isDraft ? false : "Supplier Name is required" }}
                 placeholder="e.g., Global Steel Inc."
               />
               <InputField
@@ -665,7 +620,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 name="basicInfo.supplierCountry"
                 register={register}
                 error={errors.basicInfo?.supplierCountry?.message}
-                validation={{ required: "Supplier Country is required" }}
+                validation={{ required: isDraft ? false : "Supplier Country is required" }}
                 placeholder="e.g., South Korea"
               />
             </div>
@@ -680,7 +635,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                   register={register}
                   error={errors.financialInfo?.lcAmountUsd?.message}
                   validation={{
-                    required: "LC Amount (USD) is required",
+                    required: isDraft ? false : "LC Amount (USD) is required",
                     min: { value: 0, message: "Amount cannot be negative" },
                     valueAsNumber: true,
                   }}
@@ -694,7 +649,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                   register={register}
                   error={errors.financialInfo?.exchangeRate?.message}
                   validation={{
-                    required: "Exchange Rate is required",
+                    required: isDraft ? false : "Exchange Rate is required",
                     min: { value: 0, message: "Rate cannot be negative" },
                     valueAsNumber: true,
                   }}
@@ -740,6 +695,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                     watch={watch}
                     units={units}
                     unitsLoading={unitsLoading}
+                    isDraft={isDraft}
                   />
                 ))}
               </AnimatePresence>
@@ -791,6 +747,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                       units={units}
                       unitsLoading={unitsLoading}
                       baseName="documentProductInfo.products"
+                      isDraft={isDraft}
                     />
                   ))}
                 </AnimatePresence>
