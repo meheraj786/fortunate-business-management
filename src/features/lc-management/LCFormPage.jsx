@@ -58,7 +58,7 @@ const SECTIONS_CONFIG = [
   },
   {
     id: "documentProductInfo",
-    title: "Document Product Information",
+    title: "Document Information",
     icon: Package,
     defaultOpen: true,
   },
@@ -787,7 +787,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                     disabled={isSubmitting}
                   >
                     <Plus className="w-5 h-5 mr-2" />
-                    <span>Add Another Document Product</span>
+                    <span>Add Another Document Item</span>
                   </Button>
                 )}
               </div>
@@ -800,10 +800,12 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                   register={register}
                   errors={errors}
                   watch={watch}
+                  setValue={setValue}
                   section="documentProductInfo.costs"
                   accounts={accounts}
                   paymentMethods={["Cash", "Bank", "Mobile Banking"]}
                   isSubmitting={formSubmitting}
+                  isDocumentSection={true}
                 />
               </div>
             </div>

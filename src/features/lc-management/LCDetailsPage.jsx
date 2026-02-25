@@ -483,10 +483,10 @@ const LCdetails = () => {
               )}
             </CollapsibleCard>
             <CollapsibleCard
-              title="Document Product Information"
+              title="Document Information"
               icon={<Package className="text-[var(--color-primary)] opacity-70" />}
               defaultOpen={true}
-              ariaLabel="Document Product Information Section"
+              ariaLabel="Document Information Section"
               headerActions={
                 hasPermission("LC_UPDATE") ? (
                   <AddCostButton category="documentProductInfo" />
@@ -561,15 +561,65 @@ const LCdetails = () => {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {documentProductInfo.costs.map((cost) => (
-                      <CostField key={cost._id} cost={cost} />
+                      <CostField key={cost._id} cost={cost} showDetails />
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* Document Value Summary (Redesigned 2-Column Row) */}
+              {(lcData?.totalDocumentValue > 0 || documentProductInfo?.costs?.length > 0) && (
+                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+
+                    {/* Column 1: Total Value */}
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Total Document Value</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        ${formatNumber(lcData?.totalDocumentValue || 0)}
+                      </p>
+                    </div>
+
+                    {/* Column 2: Paid & Balance */}
+                    <div className="flex items-center justify-between md:justify-end gap-6 md:gap-12">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Paid (USD)</span>
+                        <span className="text-lg font-bold text-green-700">
+                          ${formatNumber(lcData?.totalDocumentCostUsd || 0)}
+                        </span>
+                      </div>
+
+                      <div className="w-px h-10 bg-gray-300"></div>
+
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Balance (USD)</span>
+                        {(() => {
+                          const balance = (lcData?.totalDocumentValue || 0) - (lcData?.totalDocumentCostUsd || 0);
+                          const colorClass = balance <= 0 ? "text-green-700" : balance < (lcData?.totalDocumentValue || 0) ? "text-amber-600" : "text-red-600";
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xl font-bold ${colorClass}`}>
+                                ${formatNumber(Math.abs(balance))}
+                              </span>
+                              {balance <= 0 && (
+                                <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                  Paid
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
               {(!documentProductInfo?.products?.length && !documentProductInfo?.costs?.length) && (
                 <div className="text-center py-6 text-gray-500">
                   <Package className="w-12 h-12 mx-auto mb-2 text-gray-300 opacity-50" />
-                  <p>No document products or costs added</p>
+                  <p>No document items or costs added</p>
                 </div>
               )}
             </CollapsibleCard>

@@ -12,6 +12,8 @@ import { useSettings } from "@/context/SettingsContext";
 const INITIAL_EXPENSE_STATE = {
   name: "",
   amount: "",
+  amountUsd: "",
+  costExchangeRate: "",
   paymentMethod: "Cash",
   accountId: "",
 };
@@ -30,12 +32,16 @@ const AddCostForm = ({
   const addExpenseMutation = useAddExpenseToLC();
   const { settings } = useSettings();
 
+  const isDocumentSection = category === "documentProductInfo";
+
   useEffect(() => {
     if (open) {
       if (initialData) {
         setExpense({
           name: initialData.name || "",
           amount: initialData.amount || "",
+          amountUsd: initialData.amountUsd || "",
+          costExchangeRate: initialData.costExchangeRate || "",
           date: initialData.date
             ? new Date(initialData.date).toISOString().split("T")[0]
             : new Date().toISOString().split("T")[0],
@@ -49,12 +55,33 @@ const AddCostForm = ({
     }
   }, [open, initialData]);
 
+  // Auto-calculate BDT amount from USD × Exchange Rate for document section
+  useEffect(() => {
+    if (isDocumentSection && expense.amountUsd && expense.costExchangeRate) {
+      const usd = parseFloat(expense.amountUsd) || 0;
+      const rate = parseFloat(expense.costExchangeRate) || 0;
+      const bdt = (usd * rate).toFixed(2);
+      setExpense((prev) => ({ ...prev, amount: bdt }));
+    }
+  }, [expense.amountUsd, expense.costExchangeRate, isDocumentSection]);
+
   const validateForm = () => {
     const newErrors = {};
     if (!expense.name.trim()) newErrors.name = "Expense name is required";
-    if (!expense.amount) newErrors.amount = "Amount is required";
-    else if (parseFloat(expense.amount) <= 0)
-      newErrors.amount = "Amount must be greater than 0";
+
+    if (isDocumentSection) {
+      if (!expense.amountUsd) newErrors.amountUsd = "USD amount is required";
+      else if (parseFloat(expense.amountUsd) <= 0)
+        newErrors.amountUsd = "USD amount must be greater than 0";
+      if (!expense.costExchangeRate) newErrors.costExchangeRate = "Exchange rate is required";
+      else if (parseFloat(expense.costExchangeRate) <= 0)
+        newErrors.costExchangeRate = "Exchange rate must be greater than 0";
+    } else {
+      if (!expense.amount) newErrors.amount = "Amount is required";
+      else if (parseFloat(expense.amount) <= 0)
+        newErrors.amount = "Amount must be greater than 0";
+    }
+
     if (
       (expense.paymentMethod === "Bank" ||
         expense.paymentMethod === "Mobile Banking" ||
@@ -92,14 +119,25 @@ const AddCostForm = ({
       return;
     }
 
+    const expensePayload = {
+      ...expense,
+      amount: parseFloat(expense.amount),
+      date: new Date().toISOString(),
+    };
+
+    // Include USD fields only for document section
+    if (isDocumentSection) {
+      expensePayload.amountUsd = parseFloat(expense.amountUsd);
+      expensePayload.costExchangeRate = parseFloat(expense.costExchangeRate);
+    } else {
+      delete expensePayload.amountUsd;
+      delete expensePayload.costExchangeRate;
+    }
+
     const payload = {
       lcId,
       category,
-      expense: {
-        ...expense,
-        amount: parseFloat(expense.amount),
-        date: new Date().toISOString(),
-      },
+      expense: expensePayload,
     };
 
     addExpenseMutation.mutate(payload, {
@@ -116,6 +154,11 @@ const AddCostForm = ({
       .replace(/Info/gi, "")
       .trim()
     : "Cost";
+
+  // Calculate auto BDT for display
+  const autoBdtAmount = isDocumentSection && expense.amountUsd && expense.costExchangeRate
+    ? (parseFloat(expense.amountUsd || 0) * parseFloat(expense.costExchangeRate || 0)).toFixed(2)
+    : "";
 
   return (
     <FormDialog
@@ -138,11 +181,50 @@ const AddCostForm = ({
           onChange={handleInputChange}
           placeholder="e.g., Bank Fees"
           required
-          error={errors.name?.message}
+          error={errors.name}
           autoFocus
         />
 
-        <div className="space-y-4">
+        {isDocumentSection ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <InputField
+                label="Amount (USD)"
+                name="amountUsd"
+                type="number"
+                value={expense.amountUsd}
+                onChange={handleInputChange}
+                placeholder="e.g., 25000"
+                required
+                icon={DollarSign}
+                error={errors.amountUsd}
+                min="0.01"
+                step="0.01"
+              />
+              <InputField
+                label="Exchange Rate"
+                name="costExchangeRate"
+                type="number"
+                value={expense.costExchangeRate}
+                onChange={handleInputChange}
+                placeholder="e.g., 115.50"
+                required
+                error={errors.costExchangeRate}
+                min="0.01"
+                step="0.01"
+              />
+            </div>
+            <InputField
+              label={`Amount (${settings?.currency || "BDT"}) — Auto-calculated`}
+              name="amount"
+              type="number"
+              value={autoBdtAmount}
+              disabled
+              icon={DollarSign}
+              placeholder="Calculated from USD × Rate"
+            />
+          </>
+        ) : (
           <InputField
             label={`Amount (${settings?.currency || "BDT"})`}
             name="amount"
@@ -152,11 +234,12 @@ const AddCostForm = ({
             placeholder="Enter amount"
             required
             icon={DollarSign}
-            error={errors.amount?.message}
+            error={errors.amount}
             min="0.01"
             step="0.01"
           />
-        </div>
+        )}
+
         <SelectField
           label="Payment Method"
           name="paymentMethod"
@@ -168,7 +251,7 @@ const AddCostForm = ({
             { value: "Mobile Banking", label: "Mobile Banking" },
           ]}
           required
-          error={errors.paymentMethod?.message}
+          error={errors.paymentMethod}
         />
 
         {(expense.paymentMethod === "Bank" ||
@@ -193,7 +276,7 @@ const AddCostForm = ({
               placeholder="Select an account"
               required
               loading={accountsLoading}
-              error={errors.accountId?.message}
+              error={errors.accountId}
             />
           )}
       </div>
@@ -210,6 +293,8 @@ AddCostForm.propTypes = {
   initialData: PropTypes.shape({
     name: PropTypes.string,
     amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    amountUsd: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    costExchangeRate: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     paymentMethod: PropTypes.string,
     accountId: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   }),

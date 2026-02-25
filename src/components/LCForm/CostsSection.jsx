@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
@@ -14,11 +14,13 @@ const CostsSection = ({
   register, // from react-hook-form
   errors, // from react-hook-form
   watch, // from react-hook-form
+  setValue, // from react-hook-form (needed for auto-calc)
   section, // the path to the costs array in the form data
   accounts,
   paymentMethods,
   className = "",
   isSubmitting = false,
+  isDocumentSection = false,
 }) => {
   const { fields, append, remove } = useFieldArray({
     control,
@@ -52,6 +54,10 @@ const CostsSection = ({
         first: "e.g., Utility Bills",
         other: "e.g., Miscellaneous expenses",
       },
+      "documentProductInfo.costs": {
+        first: "e.g., Document Payment",
+        other: "e.g., Shipment Payment",
+      },
     };
 
     const sectionPlaceholders = placeholders[sectionName];
@@ -78,6 +84,23 @@ const CostsSection = ({
     [errors],
   );
 
+  // Auto-calculate BDT amount for document section costs
+  const watchedCosts = isDocumentSection ? watch(section) : null;
+  useEffect(() => {
+    if (!isDocumentSection || !watchedCosts) return;
+    watchedCosts.forEach((cost, index) => {
+      if (cost.amountUsd && cost.costExchangeRate) {
+        const usd = parseFloat(cost.amountUsd) || 0;
+        const rate = parseFloat(cost.costExchangeRate) || 0;
+        const bdt = (usd * rate).toFixed(2);
+        const currentAmount = watch(`${section}[${index}].amount`);
+        if (String(currentAmount) !== bdt) {
+          setValue(`${section}[${index}].amount`, parseFloat(bdt));
+        }
+      }
+    });
+  }, [watchedCosts, isDocumentSection, section, setValue, watch]);
+
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
@@ -94,7 +117,7 @@ const CostsSection = ({
             {...sectionAnimation}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 p-4 bg-gray-50 rounded-lg"
           >
-            <div className="lg:col-span-3 md:col-span-1">
+            <div className={isDocumentSection ? "lg:col-span-3 md:col-span-1" : "lg:col-span-3 md:col-span-1"}>
               <InputField
                 label={`Cost Name ${index + 1}`}
                 name={`${section}[${index}].name`}
@@ -105,23 +128,76 @@ const CostsSection = ({
                 disabled={isSubmitting}
               />
             </div>
-            <div className="lg:col-span-3 md:col-span-1">
-              <InputField
-                label={`Amount (${settings?.currency || "BDT"})`}
-                name={`${section}[${index}].amount`}
-                type="number"
-                register={register}
-                error={getNestedErrorMessage(`${section}[${index}].amount`)}
-                placeholder="e.g., 5000"
-                validation={{
-                  required: "Amount is required",
-                  min: { value: 0.01, message: "Amount must be positive" },
-                  valueAsNumber: true,
-                }}
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="lg:col-span-3 md:col-span-1">
+
+            {isDocumentSection ? (
+              <>
+                <div className="lg:col-span-2 md:col-span-1">
+                  <InputField
+                    label="Amount (USD)"
+                    name={`${section}[${index}].amountUsd`}
+                    type="number"
+                    register={register}
+                    error={getNestedErrorMessage(`${section}[${index}].amountUsd`)}
+                    placeholder="e.g., 25000"
+                    validation={{
+                      required: "USD amount is required",
+                      min: { value: 0.01, message: "Must be positive" },
+                      valueAsNumber: true,
+                    }}
+                    disabled={isSubmitting}
+                    step="0.01"
+                  />
+                </div>
+                <div className="lg:col-span-2 md:col-span-1">
+                  <InputField
+                    label="Rate"
+                    name={`${section}[${index}].costExchangeRate`}
+                    type="number"
+                    register={register}
+                    error={getNestedErrorMessage(`${section}[${index}].costExchangeRate`)}
+                    placeholder="e.g., 115.50"
+                    validation={{
+                      required: "Exchange rate is required",
+                      min: { value: 0.01, message: "Must be positive" },
+                      valueAsNumber: true,
+                    }}
+                    disabled={isSubmitting}
+                    step="0.01"
+                  />
+                </div>
+                <div className="lg:col-span-2 md:col-span-1">
+                  <InputField
+                    label={`${settings?.currency || "BDT"}`}
+                    name={`${section}[${index}].amount`}
+                    type="number"
+                    register={register}
+                    error={getNestedErrorMessage(`${section}[${index}].amount`)}
+                    disabled
+                    placeholder="Auto"
+                    validation={{ valueAsNumber: true }}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="lg:col-span-3 md:col-span-1">
+                <InputField
+                  label={`Amount (${settings?.currency || "BDT"})`}
+                  name={`${section}[${index}].amount`}
+                  type="number"
+                  register={register}
+                  error={getNestedErrorMessage(`${section}[${index}].amount`)}
+                  placeholder="e.g., 5000"
+                  validation={{
+                    required: "Amount is required",
+                    min: { value: 0.01, message: "Amount must be positive" },
+                    valueAsNumber: true,
+                  }}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
+
+            <div className={isDocumentSection ? "lg:col-span-2 md:col-span-1" : "lg:col-span-3 md:col-span-1"}>
               <SelectField
                 label="Payment Method"
                 name={`${section}[${index}].paymentMethod`}
@@ -137,7 +213,7 @@ const CostsSection = ({
                 disabled={isSubmitting}
               />
             </div>
-            <div className="lg:col-span-2 md:col-span-1">
+            <div className={isDocumentSection ? "lg:col-span-2 md:col-span-1" : "lg:col-span-2 md:col-span-1"}>
               {watch(`${section}[${index}].paymentMethod`) && ( // Watch the paymentMethod for this specific cost
                 <SelectField
                   label="Select Account"
@@ -146,11 +222,6 @@ const CostsSection = ({
                   error={getNestedErrorMessage(
                     `${section}[${index}].accountId`,
                   )}
-                  // ... imports
-
-
-                  // ... inside component
-
                   options={accounts
                     .filter(
                       (acc) =>
@@ -186,7 +257,13 @@ const CostsSection = ({
       <Button
         type="button"
         onClick={() =>
-          append({ name: "", amount: "", paymentMethod: "Cash", accountId: "" })
+          append({
+            name: "",
+            amount: "",
+            ...(isDocumentSection ? { amountUsd: "", costExchangeRate: "" } : {}),
+            paymentMethod: "Cash",
+            accountId: "",
+          })
         }
         variant="secondary"
         className="w-full border-dashed border-gray-400 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
@@ -204,11 +281,13 @@ CostsSection.propTypes = {
   register: PropTypes.func.isRequired,
   errors: PropTypes.object.isRequired,
   watch: PropTypes.func.isRequired,
+  setValue: PropTypes.func,
   section: PropTypes.string.isRequired,
   accounts: PropTypes.array.isRequired,
   paymentMethods: PropTypes.arrayOf(PropTypes.string).isRequired,
   className: PropTypes.string,
   isSubmitting: PropTypes.bool,
+  isDocumentSection: PropTypes.bool,
 };
 
 export default memo(CostsSection);
