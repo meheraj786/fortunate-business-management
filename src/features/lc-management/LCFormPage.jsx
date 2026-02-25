@@ -458,7 +458,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
   const lcAmountUsd = watch("financialInfo.lcAmountUsd");
   const exchangeRate = watch("financialInfo.exchangeRate");
   const watchedStatus = watch("basicInfo.status");
-  const isDraft = watchedStatus === "Draft";
+  const isDraft = watchedStatus === "Draft" || watchedStatus === "Cancelled";
 
   useEffect(() => {
     if (lcAmountUsd && exchangeRate) {
