@@ -572,20 +572,20 @@ const LCdetails = () => {
                 <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
 
-                    {/* Column 1: Total Value */}
+                    {/* Column 1: Total products Value */}
                     <div>
-                      <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Total Document Value</p>
+                      <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-1">Total Products Value</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        ${formatNumber(lcData?.totalDocumentValue || 0)}
+                        ${formatNumber(totalProductsValueUsd)}
                       </p>
                     </div>
 
-                    {/* Column 2: Products Value & Balance */}
+                    {/* Column 2: document   Value & Balance */}
                     <div className="flex items-center justify-between md:justify-end gap-6 md:gap-12">
                       <div className="flex flex-col">
-                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Products Value (USD)</span>
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Document Value (USD)</span>
                         <span className="text-lg font-bold text-[var(--color-primary)]">
-                          ${formatNumber(totalProductsValueUsd)}
+                           ${formatNumber(lcData?.totalDocumentValue || 0)}
                         </span>
                       </div>
 
