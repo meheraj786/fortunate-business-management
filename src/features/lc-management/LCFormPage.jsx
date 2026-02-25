@@ -13,6 +13,7 @@ import {
   FileIcon,
 } from "lucide-react";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
+import { getBusinessDateTimeISO } from "@/utils/date.util";
 import PropTypes from "prop-types";
 import { useForm, useFieldArray } from "react-hook-form";
 
@@ -321,7 +322,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
             lcOpeningDate: initialData.basicInfo?.lcOpeningDate
               ? new Date(initialData.basicInfo.lcOpeningDate)
                 .toISOString()
-                .split("T")[0]
+                .slice(0, 16)
               : "",
             status: initialData.basicInfo?.status || "Draft",
             accountId: initialData.basicInfo?.accountId?._id || "",
@@ -365,7 +366,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
               ?.expectedArrivalDate
               ? new Date(initialData.shippingCustomsInfo.expectedArrivalDate)
                 .toISOString()
-                .split("T")[0]
+                .slice(0, 16)
               : "",
             costs:
               initialData.shippingCustomsInfo?.costs?.map(mapCostAccountIds) ||
@@ -391,7 +392,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
       return {
         basicInfo: {
           lcNumber: "",
-          lcOpeningDate: new Date().toISOString().split("T")[0],
+          lcOpeningDate: getBusinessDateTimeISO(settings?.timezone),
           status: "Draft",
           accountId: "",
           supplierName: "",
@@ -588,7 +589,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
               <InputField
                 label="LC Opening Date"
                 name="basicInfo.lcOpeningDate"
-                type="date"
+                type="datetime-local"
                 register={register}
                 error={errors.basicInfo?.lcOpeningDate?.message}
                 validation={{ required: "LC Opening Date is required" }}
@@ -830,7 +831,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 <InputField
                   label="Expected Arrival Date"
                   name="shippingCustomsInfo.expectedArrivalDate"
-                  type="date"
+                  type="datetime-local"
                   register={register}
                   error={
                     errors.shippingCustomsInfo?.expectedArrivalDate?.message

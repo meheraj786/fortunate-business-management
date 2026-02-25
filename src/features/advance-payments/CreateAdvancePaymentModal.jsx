@@ -9,6 +9,14 @@ import { formatAccountLabel } from "@/utils/format";
 import { useSettings } from "@/context/SettingsContext";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
+// Helper: current local datetime in YYYY-MM-DDTHH:MM format for datetime-local input
+const getCurrentDateTimeLocal = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const local = new Date(now.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+};
+
 const initialData = {
     supplierName: "",
     supplierPhone: "",
@@ -16,7 +24,7 @@ const initialData = {
     amount: "",
     accountId: "",
     paymentMethod: "",
-    date: new Date().toISOString().split("T")[0],
+    date: getCurrentDateTimeLocal(),
     notes: "",
 };
 
@@ -150,9 +158,9 @@ const CreateAdvancePaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                 placeholder="0.00"
                             />
                             <InputField
-                                label="Date"
+                                label="Date & Time"
                                 name="date"
-                                type="date"
+                                type="datetime-local"
                                 value={formData.date}
                                 onChange={handleChange}
                                 required
@@ -191,8 +199,8 @@ const CreateAdvancePaymentModal = ({ isOpen, onClose, onSuccess }) => {
                         {selectedAccount && parsedAmount > 0 && (
                             <div
                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isInsufficientBalance
-                                        ? "bg-red-50 border-red-200 text-[var(--color-danger)]"
-                                        : "bg-green-50 border-green-200 text-green-700"
+                                    ? "bg-red-50 border-red-200 text-[var(--color-danger)]"
+                                    : "bg-green-50 border-green-200 text-green-700"
                                     }`}
                             >
                                 {isInsufficientBalance ? (

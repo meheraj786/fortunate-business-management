@@ -7,13 +7,13 @@ import { useAccounts } from "@/api/hooks/account";
 import { useCreateTransaction } from "@/api/hooks/transaction";
 import { formatAccountLabel } from "@/utils/format";
 import { useSettings } from "@/context/SettingsContext";
-import { getBusinessDateISO } from "@/utils/date.util";
+import { getBusinessDateISO, getBusinessDateTimeISO } from "@/utils/date.util";
 
 const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   const { settings } = useSettings();
   const initialTransactionData = {
     account: "",
-    date: getBusinessDateISO(settings?.timezone),
+    date: getBusinessDateTimeISO(settings?.timezone),
     description: "",
     type: "Credit",
     amount: "",
@@ -107,9 +107,9 @@ const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
           required={true}
         />
         <InputField
-          label="Date"
+          label="Date & Time"
           name="date"
-          type="date"
+          type="datetime-local"
           value={transactionFormData.date}
           onChange={handleTransactionFormChange}
           required={true}

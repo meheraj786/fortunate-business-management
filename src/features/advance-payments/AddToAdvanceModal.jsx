@@ -9,6 +9,14 @@ import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
+// Helper: current local datetime in YYYY-MM-DDTHH:MM format for datetime-local input
+const getCurrentDateTimeLocal = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const local = new Date(now.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+};
+
 const paymentMethods = [
     { value: "Cash", label: "Cash" },
     { value: "Bank", label: "Bank" },
@@ -25,7 +33,7 @@ const AddToAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
         amount: "",
         accountId: "",
         paymentMethod: "",
-        date: new Date().toISOString().split("T")[0],
+        date: getCurrentDateTimeLocal(),
         note: "",
     });
 
@@ -91,7 +99,7 @@ const AddToAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
                         amount: "",
                         accountId: "",
                         paymentMethod: "",
-                        date: new Date().toISOString().split("T")[0],
+                        date: getCurrentDateTimeLocal(),
                         note: "",
                     });
                     onSuccess();
@@ -105,7 +113,7 @@ const AddToAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
             amount: "",
             accountId: "",
             paymentMethod: "",
-            date: new Date().toISOString().split("T")[0],
+            date: getCurrentDateTimeLocal(),
             note: "",
         });
         onClose();
@@ -197,8 +205,8 @@ const AddToAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
                 {selectedAccount && parsedAmount > 0 && (
                     <div
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isInsufficientBalance
-                                ? "bg-red-50 border-red-200 text-[var(--color-danger)]"
-                                : "bg-green-50 border-green-200 text-green-700"
+                            ? "bg-red-50 border-red-200 text-[var(--color-danger)]"
+                            : "bg-green-50 border-green-200 text-green-700"
                             }`}
                     >
                         {isInsufficientBalance ? (
@@ -219,9 +227,9 @@ const AddToAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
                 )}
 
                 <InputField
-                    label="Date"
+                    label="Date & Time"
                     name="date"
-                    type="date"
+                    type="datetime-local"
                     value={formData.date}
                     onChange={handleChange}
                     required

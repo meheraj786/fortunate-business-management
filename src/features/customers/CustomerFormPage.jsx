@@ -35,7 +35,7 @@ import {
   useUpdateCustomer,
 } from "@/api/hooks/customer";
 import { useSettings } from "@/context/SettingsContext";
-import { getBusinessDateISO } from "@/utils/date.util";
+import { getBusinessDateISO, getBusinessDateTimeISO } from "@/utils/date.util";
 
 const CustomerForm = ({ onSave }) => {
   const { id } = useParams();
@@ -66,8 +66,8 @@ const CustomerForm = ({ onSave }) => {
           customerType: customer.customerType || "Retail",
           customerStatus: customer.customerStatus || "Active",
           joinDate: customer.joinDate
-            ? new Date(customer.joinDate).toISOString().split("T")[0]
-            : getBusinessDateISO(settings?.timezone),
+            ? new Date(customer.joinDate).toISOString().slice(0, 16)
+            : getBusinessDateTimeISO(settings?.timezone),
           creditLimit: customer.creditLimit || "",
           phone: customer.phone || "",
           email: customer.email || "",
@@ -82,7 +82,7 @@ const CustomerForm = ({ onSave }) => {
         companyName: "",
         customerType: "Retail",
         customerStatus: "Active",
-        joinDate: getBusinessDateISO(settings?.timezone),
+        joinDate: getBusinessDateTimeISO(settings?.timezone),
         creditLimit: "",
         phone: "",
         email: "",
@@ -102,8 +102,8 @@ const CustomerForm = ({ onSave }) => {
         customerType: customer.customerType || "Retail",
         customerStatus: customer.customerStatus || "Active",
         joinDate: customer.joinDate
-          ? new Date(customer.joinDate).toISOString().split("T")[0]
-          : new Date().toISOString().split("T")[0],
+          ? new Date(customer.joinDate).toISOString().slice(0, 16)
+          : getBusinessDateTimeISO(settings?.timezone),
         creditLimit: customer.creditLimit || "",
         phone: customer.phone || "",
         email: customer.email || "",
@@ -254,10 +254,10 @@ const CustomerForm = ({ onSave }) => {
                 validation={{ required: "Customer status is required" }}
               />
               <InputField
-                label="Customer Join"
+                label="Customer Join Date & Time"
                 name="joinDate"
                 register={register}
-                type="date"
+                type="datetime-local"
                 required
                 icon={Calendar}
                 error={errors.joinDate?.message}
