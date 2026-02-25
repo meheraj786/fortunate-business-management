@@ -4,6 +4,7 @@ import { useSettings } from "@/context/SettingsContext"; // Import useSettings
 import {
   ChartColumnIncreasing,
   CreditCard,
+  HandCoins,
   LogOut,
   Trash,
   WalletMinimal,
@@ -209,6 +210,12 @@ const Sidebar = memo(() => {
       label: "Accounts",
       path: "/accounts",
       permission: "ACCOUNT_VIEW_ALL",
+    },
+    {
+      icon: HandCoins,
+      label: "Advance Payments",
+      path: "/advance-payments",
+      permission: "ADVANCE_PAYMENT_VIEW",
     },
     {
       icon: RiTeamFill,

@@ -81,6 +81,12 @@ const TrashPage = lazy(() => import("./features/trash/TrashPage"));
 const AuditLogsPage = lazy(
   () => import("@/features/settings/AuditLogsPage"),
 );
+const AdvancePaymentsPage = lazy(
+  () => import("@/features/advance-payments/AdvancePaymentsPage"),
+);
+const AdvancePaymentDetailsPage = lazy(
+  () => import("@/features/advance-payments/AdvancePaymentDetailsPage"),
+);
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -133,6 +139,8 @@ const router = createBrowserRouter([
       { path: "lc-form/:id", element: <LCFormPage /> },
       { path: "customer-form", element: <CustomerFormPage /> },
       { path: "customer-form/:id", element: <CustomerFormPage /> },
+      { path: "advance-payments", element: <AdvancePaymentsPage /> },
+      { path: "advance-payments/:id", element: <AdvancePaymentDetailsPage /> },
       { path: "trash/:moduleName", element: <TrashPage /> },
     ],
   },
