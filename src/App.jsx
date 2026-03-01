@@ -13,78 +13,93 @@ import LoginPage from "@/features/login/LoginPage";
 import Layout from "@/components/layout/Layout";
 import PrivateRoute from "@/routes/PrivateRoutes";
 
+// Auto-reload once if a lazy chunk fails to load (stale cache after deploy)
+const lazyWithRetry = (importFn) =>
+  lazy(() =>
+    importFn().catch(() => {
+      const hasReloaded = sessionStorage.getItem("chunk_reload");
+      if (!hasReloaded) {
+        sessionStorage.setItem("chunk_reload", "1");
+        window.location.reload();
+        return new Promise(() => { }); // never resolves — page is reloading
+      }
+      sessionStorage.removeItem("chunk_reload");
+      return importFn(); // retry once more, let it throw naturally if still broken
+    }),
+  );
+
 // Lazy-loaded components
-const LCPage = lazy(() => import("@/features/lc-management/LCPage"));
-const CustomersPage = lazy(() => import("@/features/customers/CustomersPage"));
-const SettingsPage = lazy(() => import("@/features/settings/SettingsPage"));
-const LCDetailsPage = lazy(
+const LCPage = lazyWithRetry(() => import("@/features/lc-management/LCPage"));
+const CustomersPage = lazyWithRetry(() => import("@/features/customers/CustomersPage"));
+const SettingsPage = lazyWithRetry(() => import("@/features/settings/SettingsPage"));
+const LCDetailsPage = lazyWithRetry(
   () => import("@/features/lc-management/LCDetailsPage"),
 );
-const CustomerDetailsPage = lazy(
+const CustomerDetailsPage = lazyWithRetry(
   () => import("@/features/customers/CustomerDetailsPage"),
 );
-const StockManagementPage = lazy(
+const StockManagementPage = lazyWithRetry(
   () => import("@/features/stock-management/StockManagementPage"),
 );
-const WarehouseStockPage = lazy(
+const WarehouseStockPage = lazyWithRetry(
   () => import("@/features/stock-management/WarehouseStockPage"),
 );
-const TeamPage = lazy(() => import("@/features/team/TeamPage"));
-const AddTeamMemForm = lazy(() => import("@/features/team/AddTeamMemForm"));
-const SalesDashboardPage = lazy(
+const TeamPage = lazyWithRetry(() => import("@/features/team/TeamPage"));
+const AddTeamMemForm = lazyWithRetry(() => import("@/features/team/AddTeamMemForm"));
+const SalesDashboardPage = lazyWithRetry(
   () => import("@/features/sales/SalesDashboardPage"),
 );
-const DailyCashFlowPage = lazy(
+const DailyCashFlowPage = lazyWithRetry(
   () => import("@/features/daily-cash-flow/DailyCashFlowPage"),
 );
-const AccountsPage = lazy(() => import("@/features/accounts/AccountsPage"));
-const LCFormPage = lazy(() => import("@/features/lc-management/LCFormPage"));
-const CustomerFormPage = lazy(
+const AccountsPage = lazyWithRetry(() => import("@/features/accounts/AccountsPage"));
+const LCFormPage = lazyWithRetry(() => import("@/features/lc-management/LCFormPage"));
+const CustomerFormPage = lazyWithRetry(
   () => import("@/features/customers/CustomerFormPage"),
 );
-const ProductDetailsPage = lazy(
+const ProductDetailsPage = lazyWithRetry(
   () => import("@/features/stock-management/ProductDetailsPage"),
 );
-const SaleDetailsPage = lazy(() => import("@/features/sales/SaleDetailsPage"));
-const EditTeamMemForm = lazy(() => import("@/features/team/EditTeamMemForm"));
-const TeamDetailsPage = lazy(() => import("@/features/team/TeamDetailsPage"));
-const NotInvoicedSalesPage = lazy(
+const SaleDetailsPage = lazyWithRetry(() => import("@/features/sales/SaleDetailsPage"));
+const EditTeamMemForm = lazyWithRetry(() => import("@/features/team/EditTeamMemForm"));
+const TeamDetailsPage = lazyWithRetry(() => import("@/features/team/TeamDetailsPage"));
+const NotInvoicedSalesPage = lazyWithRetry(
   () => import("@/features/sales/NotInvoicedSalesPage"),
 );
-const DueInvoicesPage = lazy(() => import("@/features/sales/DueInvoicesPage"));
-const PaidInvoicesPage = lazy(
+const DueInvoicesPage = lazyWithRetry(() => import("@/features/sales/DueInvoicesPage"));
+const PaidInvoicesPage = lazyWithRetry(
   () => import("@/features/sales/PaidInvoicesPage"),
 );
-const CancelledSalesPage = lazy(
+const CancelledSalesPage = lazyWithRetry(
   () => import("@/features/sales/CancelledSalesPage"),
 );
-const DisplayInvoicePage = lazy(
+const DisplayInvoicePage = lazyWithRetry(
   () => import("@/features/sales/DisplayInvoicePage"),
 );
-const CategorySettingsPage = lazy(
+const CategorySettingsPage = lazyWithRetry(
   () => import("@/features/settings/CategorySettingsPage"),
 );
-const UnitsSettingsPage = lazy(
+const UnitsSettingsPage = lazyWithRetry(
   () => import("@/features/settings/UnitsSettingsPage"),
 );
-const GeneralSettingsPage = lazy(
+const GeneralSettingsPage = lazyWithRetry(
   () => import("@/features/settings/GeneralSettingsPage"),
 );
-const WipeoutSettingsPage = lazy(
+const WipeoutSettingsPage = lazyWithRetry(
   () => import("@/features/settings/WipeoutSettingsPage"),
 );
-const BackupSettings = lazy(() => import("@/features/settings/BackupSettings"));
-const AccountDetailsPage = lazy(
+const BackupSettings = lazyWithRetry(() => import("@/features/settings/BackupSettings"));
+const AccountDetailsPage = lazyWithRetry(
   () => import("@/features/accounts/AccountDetailsPage"),
 );
-const TrashPage = lazy(() => import("./features/trash/TrashPage"));
-const AuditLogsPage = lazy(
+const TrashPage = lazyWithRetry(() => import("./features/trash/TrashPage"));
+const AuditLogsPage = lazyWithRetry(
   () => import("@/features/settings/AuditLogsPage"),
 );
-const AdvancePaymentsPage = lazy(
+const AdvancePaymentsPage = lazyWithRetry(
   () => import("@/features/advance-payments/AdvancePaymentsPage"),
 );
-const AdvancePaymentDetailsPage = lazy(
+const AdvancePaymentDetailsPage = lazyWithRetry(
   () => import("@/features/advance-payments/AdvancePaymentDetailsPage"),
 );
 
