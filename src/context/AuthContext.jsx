@@ -7,7 +7,11 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
-  const { data: user, isLoading: loading } = useProfile();
+  const { data: user, isLoading: loading, isError } = useProfile();
+
+  // If the profile query errored (e.g. 401 after refresh failure), treat as unauthenticated
+  const resolvedUser = isError ? null : user;
+
   const loginMutation = useLogin();
   const logoutMutation = useLogout();
 
@@ -30,29 +34,29 @@ export const AuthProvider = ({ children }) => {
 
   const userPermissions = useMemo(() => {
     const permissions = new Set();
-    if (user?.access) {
-      user.access.forEach((module) => {
+    if (resolvedUser?.access) {
+      resolvedUser.access.forEach((module) => {
         module.permissions.forEach((permission) => {
           permissions.add(permission);
         });
       });
     }
     return permissions;
-  }, [user]);
+  }, [resolvedUser]);
 
   const hasPermission = (permissionToCheck) => {
     // ADMIN and SUPER_ADMIN have all permissions (matching backend authorize middleware)
-    if (user?.roleName === "SUPER_ADMIN" || user?.roleName === "ADMIN") {
+    if (resolvedUser?.roleName === "SUPER_ADMIN" || resolvedUser?.roleName === "ADMIN") {
       return true;
     }
     return userPermissions.has(permissionToCheck);
   };
 
-  const isSuperAdmin = user?.roleName === "SUPER_ADMIN";
-  const isAdmin = user?.roleName === "ADMIN" || isSuperAdmin;
+  const isSuperAdmin = resolvedUser?.roleName === "SUPER_ADMIN";
+  const isAdmin = resolvedUser?.roleName === "ADMIN" || isSuperAdmin;
 
   const authInfo = {
-    user,
+    user: resolvedUser,
     loading,
     login,
     logout,
@@ -68,3 +72,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthProvider;
+

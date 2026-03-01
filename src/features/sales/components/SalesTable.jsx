@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import Button from "@/components/ui/Button"; // Import Button component
 import SelectField from "@/components/ui/SelectField";
-import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSaleById } from "@/api/sales.api"; // Assuming this path for getSaleById
@@ -57,7 +56,6 @@ const SortableHeader = ({
 };
 
 const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
-  const { hasPermission } = useAuth();
   const { formatCurrency, formatDate } = useSettings();
   const queryClient = useQueryClient();
 
@@ -82,13 +80,6 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
       </div>
     );
   }
-
-  // Helper to calculate due amount
-  const getDueAmount = (sale) => {
-    const totalPaid = sale.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-    const due = (sale.totalAmountToBePaid || 0) - totalPaid;
-    return due > 0 ? due : 0;
-  };
 
   return (
     <div className="-mx-4 sm:mx-0">

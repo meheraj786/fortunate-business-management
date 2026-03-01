@@ -133,7 +133,6 @@ const MobileSalesCard = ({ sale, productId }) => {
 
 const SalesHistory = ({ warehouseId, productId }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const { formatCurrency, formatDate } = useSettings();
   const {
     data: salesData,
     isLoading,

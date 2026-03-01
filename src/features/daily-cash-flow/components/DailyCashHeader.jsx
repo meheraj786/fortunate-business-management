@@ -15,7 +15,6 @@ const DailyCashHeader = ({
   closeDay,
   isOpeningDay,
   isClosingDay,
-  getLocalDateString,
   isToday,
 }) => {
   const { hasPermission } = useAuth();

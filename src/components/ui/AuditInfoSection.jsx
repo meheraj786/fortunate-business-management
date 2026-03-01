@@ -8,7 +8,7 @@ const formatDate = (dateString) => {
   if (!dateString) return "N/A";
   try {
     return format(new Date(dateString), "PPpp"); // e.g., Apr 29, 2021, 5:30:00 PM
-  } catch (error) {
+  } catch {
     return "Invalid Date";
   }
 };

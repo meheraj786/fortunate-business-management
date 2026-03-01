@@ -13,8 +13,6 @@ import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 const SaleInfo = ({
   sale,
-  isRegisteredCustomer,
-  hasPermission,
   loading = false,
 }) => {
   const { formatCurrency, formatNumber } = useSettings();

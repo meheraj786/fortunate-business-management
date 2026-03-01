@@ -14,21 +14,21 @@ export const useProfile = () =>
   useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
-      try {
-        const response = await getProfile();
-        return response.data.data;
-      } catch (error) {
-        // If unauthorized or token invalid, return null
-        if (error.response?.status === 401) {
-          return null;
-        }
-        throw error;
-      }
+      // Let the axios interceptor handle 401 transparently — it will
+      // refresh the access token and retry this request automatically.
+      // Do NOT catch 401 here; that would bypass the interceptor's retry
+      // and cause the user to flash to the login page on every token refresh.
+      const response = await getProfile();
+      return response.data.data;
     },
-    retry: false, // Don't retry on auth errors
-    staleTime: 0, // Always fetch fresh data
-    refetchOnMount: true, // Refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window regains focus
+    retry: (failureCount, error) => {
+      // Don't retry on auth errors (the interceptor already tried refreshing)
+      if (error.response?.status === 401) return false;
+      return failureCount < 2;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes — no need to refetch profile constantly
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
 export const useLogin = () => {
@@ -69,10 +69,10 @@ export const useUpdateUser = () => {
     onSuccess: (response, variables) => {
       // Invalidate and refetch users list
       qc.invalidateQueries({ queryKey: ["users"] });
-      
+
       // Invalidate the specific user query that was edited
       qc.invalidateQueries({ queryKey: ["users", variables.id] });
-      
+
       // Always invalidate and refetch the current user's profile to ensure permissions are up-to-date
       qc.invalidateQueries({ queryKey: ["profile"] });
     },
@@ -84,7 +84,7 @@ export const useCreateUser = () => {
   const qc = useQueryClient();
 
   return useApiMutation({
-    mutationFn: registerUser, 
+    mutationFn: registerUser,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
     },

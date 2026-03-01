@@ -50,8 +50,9 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, false);
-        // Redirect to login — session is fully expired
-        window.location.href = "/login";
+        // Don't use window.location.href — it causes a hard browser reload.
+        // Just reject the error; PrivateRoute will detect null user and
+        // navigate to /login via React Router (smooth, no reload).
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

@@ -119,7 +119,7 @@ const Sidebar = memo(() => {
             staleTime,
           });
           break;
-        case "/daily-cash-flow":
+        case "/daily-cash-flow": {
           import("@/features/daily-cash-flow/DailyCashFlowPage");
           const today = getLocalDateString(new Date());
           queryClient.prefetchQuery({
@@ -140,6 +140,7 @@ const Sidebar = memo(() => {
             staleTime,
           });
           break;
+        }
         case "/accounts":
           import("@/features/accounts/AccountsPage");
           queryClient.prefetchQuery({

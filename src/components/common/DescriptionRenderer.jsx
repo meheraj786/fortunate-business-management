@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import { useSettings } from "@/context/SettingsContext";
 
 /**
  * Enhanced Description Renderer Component
@@ -16,9 +15,9 @@ import { useSettings } from "@/context/SettingsContext";
  * - Cash: Green/Success (e.g., "Main Cash")
  */
 const DescriptionRenderer = ({ description }) => {
-    if (!description) return <span className="text-gray-500 italic">No description</span>;
-
     const parts = useMemo(() => {
+        if (!description) return [];
+
         // Improved Regex to handle:
         // 1. Account: Match until the end of the string, optionally stripping a trailing dot.
         // 2. Transfer to/from: Match until " - " or end of string.
@@ -46,11 +45,6 @@ const DescriptionRenderer = ({ description }) => {
                 let rawLabel = fullMatch.substring(9);
                 if (rawLabel.endsWith(".")) {
                     rawLabel = rawLabel.slice(0, -1);
-                    // We don't add the dot back to 'content' here because it's usually just a terminator.
-                    // But if we want to preserve it as text outside the chip, we can.
-                    // For now, let's treat the chip as the value and the dot as implicit or removed for aesthetics.
-                    // Actually, let's keep the dot as a text node AFTER the chip if strictly needed, 
-                    // but removing it for the "Account" case looks cleaner as the chip acts as a visual block.
                 }
                 label = rawLabel.trim();
             } else if (fullMatch.startsWith("Transfer to")) {
@@ -79,6 +73,8 @@ const DescriptionRenderer = ({ description }) => {
 
         return result;
     }, [description]);
+
+    if (!description) return <span className="text-gray-500 italic">No description</span>;
 
     const getChipStyle = (label) => {
         const lowerLabel = label.toLowerCase();

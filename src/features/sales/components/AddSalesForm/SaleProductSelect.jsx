@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Package, Tag, Ruler, Hash, DollarSign, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { Controller } from "react-hook-form";
 import SelectField from "@/components/ui/SelectField";
@@ -186,7 +186,7 @@ const SaleProductSelect = ({
           ]}
           icon={Tag}
           disabled={!watchedWarehouseId || productsLoading}
-          onChange={(val) => {
+          onChange={() => {
             setValue("productId", "");
           }}
         />

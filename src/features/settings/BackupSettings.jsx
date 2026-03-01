@@ -122,7 +122,7 @@ const BackupSettings = () => {
                 try {
                     const errorJson = JSON.parse(text);
                     throw new Error(errorJson.message || "Download failed");
-                } catch (e) {
+                } catch {
                     throw new Error("Download failed: " + text);
                 }
             }
@@ -159,7 +159,7 @@ const BackupSettings = () => {
                     const text = await error.response.data.text();
                     const errObj = JSON.parse(text);
                     msg = errObj.message || msg;
-                } catch (e) {
+                } catch {
                     // ignore
                 }
             } else if (error.message) {

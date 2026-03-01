@@ -7,7 +7,7 @@ import { useAccounts } from "@/api/hooks/account";
 import { useCreateTransaction } from "@/api/hooks/transaction";
 import { formatAccountLabel } from "@/utils/format";
 import { useSettings } from "@/context/SettingsContext";
-import { getBusinessDateISO, getBusinessDateTimeISO } from "@/utils/date.util";
+import { getBusinessDateTimeISO } from "@/utils/date.util";
 
 const AddTransactionForm = ({ isOpen, onClose, onSuccess }) => {
   const { settings } = useSettings();

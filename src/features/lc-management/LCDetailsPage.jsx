@@ -41,7 +41,6 @@ import {
   useExportLC,
   useDeleteLCDocument,
 } from "@/api/hooks/lc";
-import { useQueryClient } from "@tanstack/react-query";
 import { useUrl } from "@/hooks/useUrl";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
@@ -54,7 +53,6 @@ const LCdetails = () => {
   const { baseUrl } = useUrl();
   const { hasPermission } = useAuth();
   const { formatCurrency, formatDate, formatNumber, settings } = useSettings();
-  const queryClient = useQueryClient();
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -585,7 +583,7 @@ const LCdetails = () => {
                       <div className="flex flex-col">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Document Value (USD)</span>
                         <span className="text-lg font-bold text-[var(--color-primary)]">
-                           ${formatNumber(lcData?.totalDocumentValue || 0)}
+                          ${formatNumber(lcData?.totalDocumentValue || 0)}
                         </span>
                       </div>
 

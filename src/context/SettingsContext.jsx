@@ -30,7 +30,6 @@ export const SettingsProvider = ({ children }) => {
   // Helper: Format Compact Number (e.g. 1.2M, 500K)
   const formatCompactNumber = (amount) => {
     if (amount === undefined || amount === null) return "";
-    const symbol = getCurrencySymbol(formattedSettings?.currency || "USD");
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: formattedSettings?.currency || "USD",

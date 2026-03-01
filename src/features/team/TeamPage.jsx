@@ -9,7 +9,7 @@ import SearchBar from "@/components/ui/SearchBar";
 import { showErrorToast } from "@/utils/notifications";
 
 const TeamPage = () => {
-  const { data: users, isLoading, error } = useUsers();
+  const { data: users, isLoading } = useUsers();
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");

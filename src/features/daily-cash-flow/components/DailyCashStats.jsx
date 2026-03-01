@@ -18,12 +18,8 @@ const DailyCashStats = ({ summary, isLoading }) => {
     totalIncome,
     totalExpenses,
     runningBalance,
-    totalCashIncome,
-    totalCashExpenses,
     totalBusinessCashIncome,
     totalBusinessCashExpenses,
-    incomeTransactionsCount,
-    expenseTransactionsCount,
   } = summary;
 
   const getRunningBalanceColor = () => {

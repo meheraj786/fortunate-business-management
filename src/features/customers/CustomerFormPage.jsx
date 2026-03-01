@@ -35,7 +35,7 @@ import {
   useUpdateCustomer,
 } from "@/api/hooks/customer";
 import { useSettings } from "@/context/SettingsContext";
-import { getBusinessDateISO, getBusinessDateTimeISO } from "@/utils/date.util";
+import { getBusinessDateTimeISO } from "@/utils/date.util";
 
 const CustomerForm = ({ onSave }) => {
   const { id } = useParams();
