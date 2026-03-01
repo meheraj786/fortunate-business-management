@@ -49,11 +49,12 @@ const closeDailyCash = async (date) => {
 const fetchActiveReferences = async () => {
   const [lcRes, salesRes] = await Promise.all([
     getActiveLCs(),
-    api.get(`/sales/get-all-sales?status=Invoiced&paymentStatus=Due%20payment`),
+    api.get(`/sales/get-all-sales?status=Invoiced&paymentStatus=Due%20payment&limit=9999`),
   ]);
+  const salesData = salesRes.data.data;
   return {
     activeLc: lcRes.data.data || [],
-    activeSales: salesRes.data.data || [],
+    activeSales: salesData?.docs || salesData || [],
   };
 };
 

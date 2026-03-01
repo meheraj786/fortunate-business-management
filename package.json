@@ -20,8 +20,6 @@
     "flowbite": "^4.0.0",
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.544.0",
-    "motion": "^12.23.24",
-    "multer": "^2.0.2",
     "prop-types": "^15.8.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

@@ -20,3 +20,6 @@ export const getUserById = (id) =>
 
 export const updateUser = (id, data) =>
   api.patch(`/user/update-user/${id}`, data);
+
+export const refreshToken = () =>
+  api.post("/user/refresh-token");

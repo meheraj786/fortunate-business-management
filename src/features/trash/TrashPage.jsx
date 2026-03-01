@@ -42,16 +42,18 @@ const TrashPage = memo(() => {
     if (lower === "lc") return "LC";
     if (lower === "dailycash") return "DailyCash";
     if (lower === "account") return "Account";
+    if (lower === "advancepayment" || lower === "advance-payment") return "AdvancePayment";
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
   const currentModule = formatModule(moduleName);
-  const viewPermission = `TRASH_VIEW_${currentModule.toUpperCase()}`;
+  const permissionModule = currentModule === "AdvancePayment" ? "ADVANCE_PAYMENT" : currentModule.toUpperCase();
+  const viewPermission = `TRASH_VIEW_${permissionModule}`;
 
-  const restorePermission = `TRASH_RESTORE_${currentModule.toUpperCase()}`;
+  const restorePermission = `TRASH_RESTORE_${permissionModule}`;
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const deleteMutation = useDeleteTrashPermanently();
-  const deletePermission = `TRASH_DELETE_${currentModule.toUpperCase()}`;
+  const deletePermission = `TRASH_DELETE_${permissionModule}`;
 
   useEffect(() => {
     if (!hasPermission(viewPermission)) {
@@ -254,7 +256,7 @@ const TrashPage = memo(() => {
                             }
                           >
                             {deleteMutation.isLoading &&
-                            showDeleteConfirm?._id === item._id ? (
+                              showDeleteConfirm?._id === item._id ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
                             ) : (
                               <Trash2 className="w-3.5 h-3.5 mr-1" />
@@ -361,7 +363,7 @@ const TrashPage = memo(() => {
                           }
                         >
                           {deleteMutation.isLoading &&
-                          showDeleteConfirm?._id === item._id ? (
+                            showDeleteConfirm?._id === item._id ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             <Trash2 className="w-3.5 h-3.5" />
