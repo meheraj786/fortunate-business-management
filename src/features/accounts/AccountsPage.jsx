@@ -77,8 +77,8 @@ const Accounts = () => {
           loading={isLoadingStats}
         />
         <StatBox
-          title="Cash transfers"
-          number={formatCurrency(transactionStats?.totalCashTransactionCount || 0)}
+          title="Cash Transfers"
+          number={transactionStats?.totalCashTransactionCount || 0}
           Icon={DollarSign}
           textColor="success"
           loading={isLoadingStats}

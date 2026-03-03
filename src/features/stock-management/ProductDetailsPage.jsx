@@ -41,11 +41,11 @@ const formatNumber = (num) => {
 const getStockStatusBadgeStyle = (status) => {
   switch (status) {
     case "OK":
-      return "bg-green-100 text-green-800 border-green-200";
+      return "bg-[var(--color-success-light)] text-[var(--color-success)] border-[var(--color-success-light)]";
     case "Low":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      return "bg-[var(--color-warning-light)] text-[var(--color-warning)] border-[var(--color-warning-light)]";
     case "No Stock":
-      return "bg-red-100 text-red-800 border-red-200";
+      return "bg-[var(--color-danger-light)] text-[var(--color-danger)] border-[var(--color-danger-light)]";
     default:
       return "bg-gray-100 text-gray-800 border-gray-200";
   }
@@ -349,8 +349,7 @@ const ProductDetails = () => {
                     isLoading ? (
                       <ValueSkeleton width="w-16" />
                     ) : (
-                      `${formatNumber(product?.quantity)} ${
-                        product?.unit?.name || ""
+                      `${formatNumber(product?.quantity)} ${product?.unit?.name || ""
                       }`
                     )
                   }

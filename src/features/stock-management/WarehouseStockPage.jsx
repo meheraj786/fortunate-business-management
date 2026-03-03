@@ -8,11 +8,9 @@ import {
   CheckCircle,
   Box,
   XCircle,
-  Filter,
   ArrowUp,
   ArrowDown,
   X,
-  ChevronDown,
   Trash,
   Loader2,
 } from "lucide-react";
@@ -60,7 +58,7 @@ const WarehouseStock = React.memo(() => {
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-  const [showFilters, setShowFilters] = useState(false);
+
   const [showAddProductForm, setShowAddProductForm] = useState(false);
 
   useEffect(() => {
@@ -116,11 +114,12 @@ const WarehouseStock = React.memo(() => {
     setPage(1);
   };
 
+  const isFiltered = filters.stockStatus !== "" || searchTerm !== "";
+
   const clearFilters = () => {
     setFilters({ stockStatus: "" });
     setSearchTerm("");
     setSorting({ sortBy: "createdAt", sortOrder: "desc" });
-    setShowFilters(false);
     setPage(1);
   };
 
@@ -254,8 +253,8 @@ const WarehouseStock = React.memo(() => {
           </div>
 
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex-1 min-w-[200px] relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <label htmlFor="search-product" className="sr-only">
                   Search by name or LC number
@@ -264,12 +263,20 @@ const WarehouseStock = React.memo(() => {
                   id="search-product"
                   type="text"
                   placeholder="Search by name or LC number..."
-                  className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm"
+                  className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm transition-shadow"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="relative w-full md:w-48">
+              <div className="w-full sm:w-auto">
+                <SelectField
+                  value={filters.stockStatus}
+                  onChange={(val) => handleFilterChange("stockStatus", val)}
+                  options={stockStatusOptions}
+                  className="mb-0"
+                />
+              </div>
+              <div className="w-full sm:w-auto">
                 <SelectField
                   value={sorting.sortBy}
                   onChange={(val) => handleSortByChange({ target: { value: val } })}
@@ -281,7 +288,8 @@ const WarehouseStock = React.memo(() => {
                 onClick={toggleSortOrder}
                 variant="secondary"
                 size="sm"
-                className="flex items-center justify-center gap-2 w-full md:w-auto"
+                className="flex items-center justify-center"
+                aria-label={sorting.sortOrder === "asc" ? "Sort descending" : "Sort ascending"}
               >
                 {sorting.sortOrder === "asc" ? (
                   <ArrowUp className="w-4 h-4" />
@@ -289,50 +297,17 @@ const WarehouseStock = React.memo(() => {
                   <ArrowDown className="w-4 h-4" />
                 )}
               </Button>
-              <Button
-                onClick={() => setShowFilters(!showFilters)}
-                variant="secondary"
-                size="sm"
-                className="flex items-center justify-center gap-2 w-full md:w-auto"
-              >
-                <Filter className="w-4 h-4" /> <span>Filters</span>
-                {filters.stockStatus && (
-                  <span className="w-2 h-2 bg-[var(--color-danger)] rounded-full"></span>
-                )}
-              </Button>
+              {isFiltered && (
+                <Button
+                  onClick={clearFilters}
+                  variant="subtle"
+                  size="sm"
+                  className="text-sm text-[var(--color-danger)] flex items-center gap-1"
+                >
+                  <X size={16} /> Clear
+                </Button>
+              )}
             </div>
-            {showFilters && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                  <h3 className="text-sm font-semibold text-gray-700">
-                    Filter Products
-                  </h3>
-                  <Button
-                    onClick={clearFilters}
-                    variant="subtle"
-                    size="sm"
-                    className="flex items-center gap-2 text-[var(--color-danger)] hover:text-[var(--color-danger)]"
-                  >
-                    <X className="w-4 h-4" /> Clear All Filters
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Stock Status
-                    </label>
-                    <SelectField
-                      value={filters.stockStatus}
-                      onChange={(val) =>
-                        handleFilterChange("stockStatus", val)
-                      }
-                      options={stockStatusOptions}
-                      className="mb-0"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 

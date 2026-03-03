@@ -3,13 +3,10 @@ import { Link } from "react-router";
 import {
   Info,
   Package,
-  FileText,
-  DollarSign,
-  User,
-  ExternalLink,
 } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
+import StatusBadge from "@/components/ui/StatusBadge";
 
 const SaleInfo = ({
   sale,
@@ -93,30 +90,24 @@ const SaleInfo = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-200 pt-4">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
               Invoice Status
             </label>
-            <div className="flex items-center text-gray-900">
-              <FileText className="h-4 w-4 mr-2 text-gray-400" />
-              {loading ? (
-                <ValueSkeleton width="w-20" height="h-4" />
-              ) : (
-                sale?.invoiceStatus
-              )}
-            </div>
+            {loading ? (
+              <ValueSkeleton width="w-20" height="h-5" />
+            ) : (
+              <StatusBadge status={sale?.invoiceStatus} size="sm" />
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
               Payment Status
             </label>
-            <div className="flex items-center text-gray-900">
-              <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
-              {loading ? (
-                <ValueSkeleton width="w-24" height="h-4" />
-              ) : (
-                sale?.paymentStatus || "N/A"
-              )}
-            </div>
+            {loading ? (
+              <ValueSkeleton width="w-24" height="h-5" />
+            ) : (
+              <StatusBadge status={sale?.paymentStatus || "N/A"} size="sm" />
+            )}
           </div>
         </div>
       </div>

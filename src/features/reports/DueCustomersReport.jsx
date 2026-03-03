@@ -447,7 +447,7 @@ const DueCustomersReport = () => {
                                                 </th>
                                                 <th
                                                     scope="col"
-                                                    className="px-3 py-3 text-center text-sm font-semibold text-gray-900 border-b border-gray-200 hidden sm:table-cell"
+                                                    className="px-3 py-3 text-center text-sm font-semibold text-gray-900 border-b border-gray-200"
                                                 >
                                                     <SortableHeader
                                                         label="Due Invoices"
@@ -460,7 +460,7 @@ const DueCustomersReport = () => {
                                                 </th>
                                                 <th
                                                     scope="col"
-                                                    className="px-3 py-3 text-right text-sm font-semibold text-gray-900 border-b border-gray-200 hidden md:table-cell"
+                                                    className="px-3 py-3 text-right text-sm font-semibold text-gray-900 border-b border-gray-200"
                                                 >
                                                     <SortableHeader
                                                         label="Total Paid"
@@ -473,7 +473,7 @@ const DueCustomersReport = () => {
                                                 </th>
                                                 <th
                                                     scope="col"
-                                                    className="px-3 py-3 text-left text-sm font-semibold text-gray-900 border-b border-gray-200 hidden lg:table-cell"
+                                                    className="px-3 py-3 text-left text-sm font-semibold text-gray-900 border-b border-gray-200"
                                                 >
                                                     <SortableHeader
                                                         label="Last Purchase"
@@ -485,7 +485,7 @@ const DueCustomersReport = () => {
                                                 </th>
                                                 <th
                                                     scope="col"
-                                                    className="py-3 pl-3 pr-4 text-center text-sm font-semibold text-gray-900 sm:pr-6 border-b border-gray-200 hidden md:table-cell"
+                                                    className="py-3 pl-3 pr-4 text-center text-sm font-semibold text-gray-900 sm:pr-6 border-b border-gray-200"
                                                 >
                                                     Status
                                                 </th>
@@ -539,7 +539,7 @@ const DueCustomersReport = () => {
                                                                     title={`Call ${customer.phone}`}
                                                                 >
                                                                     <Phone className="w-3.5 h-3.5 text-gray-400 group-hover/phone:text-[var(--color-primary)] flex-shrink-0" />
-                                                                    <span className="max-w-[100px] sm:max-w-[130px] truncate">
+                                                                    <span>
                                                                         {customer.phone}
                                                                     </span>
                                                                 </a>
@@ -551,18 +551,18 @@ const DueCustomersReport = () => {
                                                         <td className="whitespace-nowrap px-3 py-3 sm:py-4 text-sm text-right font-bold text-[var(--color-danger)] border-b border-gray-100">
                                                             {formatCurrency(customer.totalDue || 0)}
                                                         </td>
-                                                        <td className="whitespace-nowrap px-3 py-3 sm:py-4 text-sm text-center text-gray-700 font-medium border-b border-gray-100 hidden sm:table-cell">
+                                                        <td className="whitespace-nowrap px-3 py-3 sm:py-4 text-sm text-center text-gray-700 font-medium border-b border-gray-100">
                                                             {customer.dueSalesCount || 0}
                                                         </td>
-                                                        <td className="whitespace-nowrap px-3 py-3 sm:py-4 text-sm text-right text-green-600 font-medium border-b border-gray-100 hidden md:table-cell">
+                                                        <td className="whitespace-nowrap px-3 py-3 sm:py-4 text-sm text-right text-green-600 font-medium border-b border-gray-100">
                                                             {formatCurrency(customer.totalPaid || 0)}
                                                         </td>
-                                                        <td className="whitespace-nowrap px-3 py-3 sm:py-4 text-sm text-gray-500 border-b border-gray-100 hidden lg:table-cell">
+                                                        <td className="whitespace-nowrap px-3 py-3 sm:py-4 text-sm text-gray-500 border-b border-gray-100">
                                                             {customer.lastPurchaseDate
                                                                 ? formatDate(customer.lastPurchaseDate)
                                                                 : "—"}
                                                         </td>
-                                                        <td className="whitespace-nowrap py-3 sm:py-4 pl-3 pr-4 text-sm text-center sm:pr-6 border-b border-gray-100 hidden md:table-cell">
+                                                        <td className="whitespace-nowrap py-3 sm:py-4 pl-3 pr-4 text-sm text-center sm:pr-6 border-b border-gray-100">
                                                             {customer.customerStatus && (
                                                                 <StatusBadge
                                                                     status={customer.customerStatus}

@@ -12,7 +12,8 @@ import {
   Warehouse as WarehouseIcon,
 } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { showSuccessToast, showErrorToast } from "@/utils/notifications";
+import Button from "@/components/ui/Button";
+import { showErrorToast } from "@/utils/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/api/hooks/user";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
@@ -33,13 +34,7 @@ const TeamDetails = () => {
     }
   }, [user, hasPermission, navigate]);
 
-  const copyToClipboard = (text, type) => {
-    if (!text) return;
-    navigator.clipboard
-      .writeText(text)
-      .then(() => showSuccessToast(`${type} copied!`))
-      .catch(() => showErrorToast("Failed to copy"));
-  };
+
 
   if ((isError || !member) && !isLoading) {
     return (
@@ -78,12 +73,15 @@ const TeamDetails = () => {
           </div>
           <div className="mt-4 sm:mt-0 flex space-x-3">
             {hasPermission("USER_UPDATE") ? (
-              <Link
-                to={`/team/edit/${id}`}
-                className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-              >
-                <Edit3 size={18} className="mr-2" />
-                Edit Access
+              <Link to={`/team/edit/${id}`}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Edit3 size={18} />
+                  Edit Access
+                </Button>
               </Link>
             ) : null}
           </div>
@@ -122,16 +120,15 @@ const TeamDetails = () => {
               </div>
 
               <div className="space-y-3 pt-4 border-t border-gray-200">
-                <div
-                  onClick={() =>
-                    member?.email && copyToClipboard(member.email, "Email")
-                  }
-                  className="flex items-start p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
+                <a
+                  href={member?.email ? `mailto:${member.email}` : undefined}
+                  className="flex items-start p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                  title="Send email"
                 >
                   <Mail size={18} className="text-gray-400 mr-3 mt-0.5" />
                   <div className="overflow-hidden">
                     <p className="text-xs text-gray-500">Email</p>
-                    <p className="text-sm text-gray-900 break-all">
+                    <p className="text-sm text-gray-900 break-all hover:text-[var(--color-primary)] transition-colors">
                       {isLoading ? (
                         <ValueSkeleton width="w-full" height="h-4" />
                       ) : (
@@ -139,25 +136,24 @@ const TeamDetails = () => {
                       )}
                     </p>
                   </div>
-                </div>
-                <div
-                  onClick={() =>
-                    member?.phone && copyToClipboard(member.phone, "Phone")
-                  }
-                  className="flex items-start p-3 hover:bg-gray-50 rounded-lg cursor-pointer"
+                </a>
+                <a
+                  href={member?.phone ? `tel:${member.phone}` : undefined}
+                  className="flex items-start p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                  title="Call"
                 >
                   <Phone size={18} className="text-gray-400 mr-3 mt-0.5" />
                   <div>
                     <p className="text-xs text-gray-500">Phone</p>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-sm text-gray-900 hover:text-[var(--color-primary)] transition-colors">
                       {isLoading ? (
                         <ValueSkeleton width="w-24" height="h-4" />
                       ) : (
-                        member?.phone
+                        member?.phone || "N/A"
                       )}
                     </p>
                   </div>
-                </div>
+                </a>
               </div>
             </div>
           </div>
@@ -257,7 +253,7 @@ const TeamDetails = () => {
                     return (
                       <div
                         key={module.module}
-                        className="border rounded-lg p-5 border-gray-200 bg-green-50/20"
+                        className="border rounded-lg p-5 border-gray-200 bg-[var(--color-success-light)]/20"
                       >
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-md font-bold text-gray-800">
@@ -268,7 +264,7 @@ const TeamDetails = () => {
                           {module.permissions.map((permission) => (
                             <div
                               key={permission}
-                              className="flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-green-50"
+                              className="flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-[var(--color-success-light)]"
                             >
                               <CheckCheck className="w-4 h-4 text-green-600" />
                               <span className="text-xs font-semibold uppercase">

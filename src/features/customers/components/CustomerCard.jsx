@@ -69,11 +69,20 @@ const CustomerCard = ({ customer }) => {
 
       {/* Contact Information */}
       <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-gray-600">
+        <div className="flex items-center gap-2">
           <Phone size={14} className="flex-shrink-0 text-gray-400" />
-          <span className="text-sm truncate">
-            {customer.phone || "No phone"}
-          </span>
+          {customer.phone ? (
+            <a
+              href={`tel:${customer.phone}`}
+              className="text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors"
+              title={`Call ${customer.phone}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {customer.phone}
+            </a>
+          ) : (
+            <span className="text-sm text-gray-400">No phone</span>
+          )}
         </div>
         {customer.billingAddress && (
           <div className="flex items-center gap-2 text-gray-600">
@@ -87,7 +96,7 @@ const CustomerCard = ({ customer }) => {
 
       {/* Financial Summary */}
       <div className="border-t border-gray-100 pt-4">
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className={`grid ${creditBalance > 0 ? "grid-cols-3" : "grid-cols-2"} gap-2 mb-3`}>
           <div className="space-y-1">
             <div className="flex items-center gap-1 text-gray-600">
               <ShoppingBag size={12} />
@@ -108,15 +117,17 @@ const CustomerCard = ({ customer }) => {
             </p>
           </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center gap-1 text-[var(--color-primary)]">
-              <Wallet size={12} />
-              <span className="text-xs font-medium">Credit</span>
+          {creditBalance > 0 && (
+            <div className="space-y-1">
+              <div className="flex items-center gap-1 text-[var(--color-primary)]">
+                <Wallet size={12} />
+                <span className="text-xs font-medium">Credit</span>
+              </div>
+              <p className="font-semibold text-[var(--color-primary)] text-sm">
+                {formatCurrency(creditBalance)}
+              </p>
             </div>
-            <p className="font-semibold text-[var(--color-primary)] text-sm">
-              {formatCurrency(creditBalance)}
-            </p>
-          </div>
+          )}
         </div>
 
         {/* Last Purchase and Credit Limit */}

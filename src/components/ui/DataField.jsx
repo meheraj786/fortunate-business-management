@@ -50,15 +50,16 @@ const DataField = ({
         </a>
       ) : (
         <div
-          className={`text-gray-900 font-medium truncate ${
-            type === "email"
+          className={`text-gray-900 font-medium truncate ${type === "email" || type === "tel"
               ? "text-[var(--color-primary)] hover:underline cursor-pointer"
               : ""
-          }`}
+            }`}
           onClick={
             type === "email"
               ? () => (window.location.href = `mailto:${value}`)
-              : undefined
+              : type === "tel"
+                ? () => (window.location.href = `tel:${value}`)
+                : undefined
           }
         >
           {loading ? (

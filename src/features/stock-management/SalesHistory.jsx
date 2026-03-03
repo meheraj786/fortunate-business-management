@@ -13,12 +13,12 @@ const formatNumber = (num) => {
 const getStatusBadge = (status, type) => {
   const styles = {
     invoice: {
-      Invoiced: "bg-green-100 text-green-800 border border-green-200",
-      "Not Invoiced": "bg-yellow-100 text-yellow-800 border border-yellow-200",
+      Invoiced: "bg-[var(--color-success-light)] text-[var(--color-success)] border border-[var(--color-success-light)]",
+      "Not Invoiced": "bg-[var(--color-warning-light)] text-[var(--color-warning)] border border-[var(--color-warning-light)]",
     },
     payment: {
-      "Paid Payment": "bg-green-100 text-green-800 border border-green-200",
-      "Due Payment": "bg-yellow-100 text-yellow-800 border border-yellow-200",
+      "Paid Payment": "bg-[var(--color-success-light)] text-[var(--color-success)] border border-[var(--color-success-light)]",
+      "Due Payment": "bg-[var(--color-warning-light)] text-[var(--color-warning)] border border-[var(--color-warning-light)]",
       "N/A": "bg-gray-100 text-gray-800 border border-gray-200",
     },
   };

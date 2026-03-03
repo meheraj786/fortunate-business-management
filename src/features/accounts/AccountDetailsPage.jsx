@@ -14,11 +14,9 @@ import {
   Trash2,
   Wallet,
   Search,
-  Filter,
   ArrowUp,
   ArrowDown,
   X,
-  ChevronDown,
 } from "lucide-react";
 import { useAccountDetails, useDeleteAccount } from "@/api/hooks/account";
 import { useAccountTransactions } from "@/api/hooks/transaction";
@@ -106,7 +104,6 @@ const AccountDetails = () => {
     category: "all",
   });
   const [sorting, setSorting] = useState({ sortBy: "date", sortOrder: "desc" });
-  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     if (!hasPermission("ACCOUNT_VIEW_DETAILS")) {
@@ -174,6 +171,12 @@ const AccountDetails = () => {
     setPage(1);
   };
 
+  const isFiltered =
+    filters.transactionType !== "all" ||
+    filters.paymentMethod !== "all" ||
+    filters.category !== "all" ||
+    searchTerm !== "";
+
   const clearFilters = () => {
     setFilters({
       transactionType: "all",
@@ -182,7 +185,6 @@ const AccountDetails = () => {
     });
     setSearchTerm("");
     setSorting({ sortBy: "date", sortOrder: "desc" });
-    setShowFilters(false);
     setPage(1);
   };
 
@@ -442,8 +444,8 @@ const AccountDetails = () => {
             </p>
           </div>
           <div className="p-4 border-b border-gray-200">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex-1 min-w-[200px] relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <label htmlFor="transaction-search" className="sr-only">
                   Search by description
@@ -457,7 +459,35 @@ const AccountDetails = () => {
                   className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm transition-shadow"
                 />
               </div>
-              <div className="relative w-full md:w-48">
+              <div className="w-full sm:w-auto">
+                <SelectField
+                  value={filters.transactionType}
+                  onChange={(val) => handleFilterChange("transactionType", val)}
+                  options={transactionTypeOptions}
+                  className="mb-0"
+                />
+              </div>
+              <div className="w-full sm:w-auto">
+                <SelectField
+                  value={filters.paymentMethod}
+                  onChange={(val) => handleFilterChange("paymentMethod", val)}
+                  options={paymentMethodOptions}
+                  className="mb-0"
+                />
+              </div>
+              <div className="w-full sm:w-auto">
+                <SelectField
+                  value={filters.category}
+                  onChange={(val) => handleFilterChange("category", val)}
+                  options={[
+                    { value: "all", label: "All Categories" },
+                    ...categories.map(cat => ({ value: cat, label: cat }))
+                  ]}
+                  disabled={categories.length === 0}
+                  className="mb-0"
+                />
+              </div>
+              <div className="w-full sm:w-auto">
                 <SelectField
                   value={sorting.sortBy}
                   onChange={(val) => handleSortByChange({ target: { value: val } })}
@@ -469,7 +499,8 @@ const AccountDetails = () => {
                 onClick={toggleSortOrder}
                 variant="secondary"
                 size="sm"
-                className="flex items-center justify-center gap-2"
+                className="flex items-center justify-center"
+                aria-label={sorting.sortOrder === "asc" ? "Sort descending" : "Sort ascending"}
               >
                 {sorting.sortOrder === "asc" ? (
                   <ArrowUp className="w-4 h-4" />
@@ -477,60 +508,17 @@ const AccountDetails = () => {
                   <ArrowDown className="w-4 h-4" />
                 )}
               </Button>
-              <Button
-                onClick={() => setShowFilters(!showFilters)}
-                variant="secondary"
-                size="sm"
-                className="flex items-center justify-center gap-2"
-              >
-                <Filter className="w-4 h-4" />
-                <span>Filters</span>
-              </Button>
+              {isFiltered && (
+                <Button
+                  onClick={clearFilters}
+                  variant="subtle"
+                  size="sm"
+                  className="text-sm text-[var(--color-danger)] flex items-center gap-1"
+                >
+                  <X size={16} /> Clear
+                </Button>
+              )}
             </div>
-            {showFilters && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold">Filter Options</h3>
-                  <Button
-                    onClick={clearFilters}
-                    variant="subtle"
-                    className="text-sm text-[var(--color-danger)] flex items-center gap-1"
-                  >
-                    <X size={16} /> Clear
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <SelectField
-                    value={filters.transactionType}
-                    onChange={(val) =>
-                      handleFilterChange("transactionType", val)
-                    }
-                    options={transactionTypeOptions}
-                    className="mb-0"
-                  />
-                  <SelectField
-                    value={filters.paymentMethod}
-                    onChange={(val) =>
-                      handleFilterChange("paymentMethod", val)
-                    }
-                    options={paymentMethodOptions}
-                    className="mb-0"
-                  />
-                  <SelectField
-                    value={filters.category}
-                    onChange={(val) =>
-                      handleFilterChange("category", val)
-                    }
-                    options={[
-                      { value: "all", label: "All Categories" },
-                      ...categories.map(cat => ({ value: cat, label: cat }))
-                    ]}
-                    disabled={categories.length === 0}
-                    className="mb-0"
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {isLoadingTransactions ? (

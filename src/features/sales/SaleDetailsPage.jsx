@@ -334,8 +334,15 @@ const SaleDetails = () => {
                       <p className="text-sm text-gray-900">
                         {isLoading ? (
                           <ValueSkeleton width="w-28" height="h-4" />
+                        ) : sale?.customer?.phone ? (
+                          <a
+                            href={`tel:${sale.customer.phone}`}
+                            className="hover:text-[var(--color-primary)] transition-colors"
+                          >
+                            {sale.customer.phone}
+                          </a>
                         ) : (
-                          sale?.customer?.phone || "N/A"
+                          "N/A"
                         )}
                       </p>
                     </div>

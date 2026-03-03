@@ -30,7 +30,7 @@ const TransactionFilters = ({
       initial={{ opacity: 0, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="bg-white rounded-lg shadow-sm p-4 sm:p-6 space-y-4"
+      className="space-y-4"
     >
       {/* Filters Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">

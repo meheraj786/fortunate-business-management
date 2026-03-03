@@ -1,13 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
 import CustomerCard from "./components/CustomerCard";
 import {
-  Filter,
   Plus,
   Search,
   ArrowUp,
   ArrowDown,
   X,
-  ChevronDown,
   Users,
   Trash,
 } from "lucide-react";
@@ -85,7 +83,6 @@ const Customers = () => {
     sortBy: "joinDate",
     sortOrder: "desc",
   });
-  const [showFilters, setShowFilters] = useState(false);
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
 
@@ -146,7 +143,6 @@ const Customers = () => {
     setFilters({ status: "", customerType: "" });
     setSearchTerm("");
     setSorting({ sortBy: "joinDate", sortOrder: "desc" });
-    setShowFilters(false);
     setPage(1);
   }, []);
 
@@ -203,8 +199,9 @@ const Customers = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex flex-col md:flex-row gap-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
+        <div className="flex flex-col md:flex-row gap-3">
+          {/* Search */}
           <div className="flex-1 relative">
             <InputField
               id="customer-search"
@@ -217,87 +214,66 @@ const Customers = () => {
             />
           </div>
 
-          <div className="relative w-full md:w-48">
+          {/* Status Filter */}
+          <div className="w-full md:w-36">
             <SelectField
-              name="sortBy"
-              value={sorting.sortBy}
-              onChange={handleSortByChange}
-              options={sortOptions}
+              name="status"
+              value={filters.status}
+              onChange={(val) => handleFilterChange("status", val)}
+              options={statusOptions}
               className="mb-0"
             />
           </div>
 
-          <Button
-            onClick={toggleSortOrder}
-            variant="secondary"
-            size="sm"
-            className="flex items-center justify-center gap-2 w-full md:w-auto"
-          >
-            {sorting.sortOrder === "asc" ? (
-              <>
-                <ArrowUp className="w-4 h-4" />
-                <span className="hidden sm:inline">Ascending</span>
-              </>
-            ) : (
-              <>
-                <ArrowDown className="w-4 h-4" />
-                <span className="hidden sm:inline">Descending</span>
-              </>
-            )}
-          </Button>
-
-          <Button
-            onClick={() => setShowFilters(!showFilters)}
-            variant="secondary"
-            size="sm"
-            className="flex items-center justify-center gap-2 w-full md:w-auto"
-          >
-            <Filter className="w-4 h-4" />
-            <span>Filters</span>
-            {(filters.status || filters.customerType) && (
-              <span className="w-2 h-2 bg-[var(--color-danger)] rounded-full"></span>
-            )}
-          </Button>
-        </div>
-
-        {showFilters && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-              <h3 className="text-sm font-semibold text-gray-700">
-                Filter Customers
-              </h3>
-              <Button
-                onClick={clearFilters}
-                variant="subtle"
-                className="flex items-center gap-2 text-sm text-[var(--color-danger)] hover:text-[var(--color-danger-dark)]"
-              >
-                <X className="w-4 h-4" /> Clear All Filters
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <SelectField
-                  label="Status"
-                  name="status"
-                  value={filters.status}
-                  onChange={(val) => handleFilterChange("status", val)}
-                  options={statusOptions}
-                />
-              </div>
-              <div>
-                <SelectField
-                  label="Customer Type"
-                  name="customerType"
-                  value={filters.customerType}
-                  onChange={(val) =>
-                    handleFilterChange("customerType", val)
-                  }
-                  options={customerTypeOptions}
-                />
-              </div>
-            </div>
+          {/* Type Filter */}
+          <div className="w-full md:w-36">
+            <SelectField
+              name="customerType"
+              value={filters.customerType}
+              onChange={(val) => handleFilterChange("customerType", val)}
+              options={customerTypeOptions}
+              className="mb-0"
+            />
           </div>
-        )}
+
+          {/* Sort */}
+          <div className="flex gap-2">
+            <div className="w-full md:w-40">
+              <SelectField
+                name="sortBy"
+                value={sorting.sortBy}
+                onChange={handleSortByChange}
+                options={sortOptions}
+                className="mb-0"
+              />
+            </div>
+            <Button
+              onClick={toggleSortOrder}
+              variant="secondary"
+              size="sm"
+              className="flex items-center justify-center gap-1 flex-shrink-0 px-3"
+              aria-label={`Sort ${sorting.sortOrder === "asc" ? "ascending" : "descending"}`}
+            >
+              {sorting.sortOrder === "asc" ? (
+                <ArrowUp className="w-4 h-4" />
+              ) : (
+                <ArrowDown className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+
+          {/* Clear — only when filters active */}
+          {(filters.status || filters.customerType || searchTerm) && (
+            <Button
+              onClick={clearFilters}
+              variant="subtle"
+              size="sm"
+              className="flex items-center justify-center gap-1 text-[var(--color-danger)] hover:text-[var(--color-danger-dark)] flex-shrink-0"
+            >
+              <X className="w-4 h-4" /> Clear
+            </Button>
+          )}
+        </div>
       </div>
 
       <div>

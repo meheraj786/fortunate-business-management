@@ -10,7 +10,6 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
-  ChevronDown,
   Filter,
 } from "lucide-react";
 import Button from "@/components/ui/Button";

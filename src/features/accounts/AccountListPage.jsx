@@ -245,9 +245,13 @@ const AccountList = memo(({ onAddAccount }) => {
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <Phone className="w-3 h-3 text-gray-500" />
-                          <span className="font-mono text-sm">
+                          <a
+                            href={`tel:${account.mobileNumber}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-mono text-sm hover:text-[var(--color-primary)] transition-colors"
+                          >
                             {account.mobileNumber}
-                          </span>
+                          </a>
                           <Button
                             onClick={(e) =>
                               copyToClipboard(e, account.mobileNumber, "mobile")

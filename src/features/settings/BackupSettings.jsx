@@ -228,7 +228,7 @@ const BackupSettings = () => {
                                     name="time"
                                     value={config.time}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 />
                             </div>
                             <div>
@@ -242,7 +242,7 @@ const BackupSettings = () => {
                                     max="365"
                                     value={config.retentionCount}
                                     onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 />
                             </div>
                             <div className="flex items-center pt-6">
@@ -252,7 +252,7 @@ const BackupSettings = () => {
                                         name="includeFiles"
                                         checked={config.includeFiles}
                                         onChange={handleChange}
-                                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                                        className="w-5 h-5 text-[var(--color-primary)] rounded focus:ring-[var(--color-primary)] border-gray-300"
                                     />
                                     <span className="text-gray-700 font-medium">Include Uploads Folder</span>
                                 </label>
@@ -285,7 +285,7 @@ const BackupSettings = () => {
                                                     }
                                                 }));
                                             }}
-                                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                                            className="w-5 h-5 text-[var(--color-primary)] rounded focus:ring-[var(--color-primary)] border-gray-300"
                                         />
                                         <span className="text-gray-700 font-medium">Enable Encryption</span>
                                     </label>
@@ -309,7 +309,7 @@ const BackupSettings = () => {
                                                 }));
                                             }}
                                             placeholder="Enter secure password"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                         />
                                         <p className="text-xs text-gray-500 mt-1">Do not lose this password. Data cannot be recovered without it.</p>
                                     </div>
@@ -321,7 +321,7 @@ const BackupSettings = () => {
                             <button
                                 type="submit"
                                 disabled={savingSettings || settingsLoading}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto"
+                                className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto"
                             >
                                 {savingSettings ? (
                                     <>
@@ -344,7 +344,7 @@ const BackupSettings = () => {
                 <div className="p-4 sm:p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                            <FaDatabase className="text-blue-600" /> System Backups
+                            <FaDatabase className="text-[var(--color-primary)]" /> System Backups
                         </h2>
                         <p className="text-sm text-gray-500 mt-1">
                             Manage your database and file backups.
@@ -361,7 +361,7 @@ const BackupSettings = () => {
                         <button
                             onClick={handleCreateBackup}
                             disabled={creating}
-                            className={`px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto ${creating ? "opacity-75 cursor-not-allowed" : ""
+                            className={`px-4 py-2 text-white bg-[var(--color-primary)] rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto ${creating ? "opacity-75 cursor-not-allowed" : ""
                                 }`}
                         >
                             {creating ? (
@@ -410,7 +410,7 @@ const BackupSettings = () => {
                                         <div className="flex items-center gap-3 pt-1 border-t border-gray-200">
                                             <button
                                                 onClick={() => handleDownload(backup.filename)}
-                                                className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                                                className="flex items-center gap-1.5 text-sm text-[var(--color-primary)] hover:opacity-75 transition-colors"
                                             >
                                                 <FaDownload size={14} /> Download
                                             </button>
@@ -455,7 +455,7 @@ const BackupSettings = () => {
                                                 <td className="px-6 py-4 text-right flex justify-end gap-3">
                                                     <button
                                                         onClick={() => handleDownload(backup.filename)}
-                                                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                                                        className="text-[var(--color-primary)] hover:opacity-75 transition-colors"
                                                         title="Download"
                                                     >
                                                         <FaDownload size={18} />

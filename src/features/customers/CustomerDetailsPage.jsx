@@ -12,15 +12,12 @@ import {
   FileText,
   Calendar,
   Download,
-  PieChart,
   Edit,
   Trash2,
   Building,
-  Star,
   CreditCard,
   FileIcon,
   Wallet,
-  Hash,
   ShoppingBag,
   AlertCircle,
   Receipt,
@@ -53,26 +50,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { downloadCustomerDocument } from "../../api/customer.api";
 import { getSaleById } from "@/api/sales.api";
 import { useSettings } from "@/context/SettingsContext";
-
-
-// --- Helper: Quick Glance Item ---
-const QuickGlanceItem = ({ icon: Icon, label, value, loading }) => (
-  <div className="flex items-start gap-3 py-2.5">
-    <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
-      {Icon && <Icon size={16} className="text-gray-500" />}
-    </div>
-    <div className="min-w-0 flex-1">
-      <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-      {loading ? (
-        <ValueSkeleton width="w-20" height="h-4" />
-      ) : (
-        <div className="font-medium text-gray-800 text-sm truncate">
-          {value || "N/A"}
-        </div>
-      )}
-    </div>
-  </div>
-);
 
 
 const CustomerDetails = () => {
@@ -385,16 +362,17 @@ const CustomerDetails = () => {
           />
         </div>
 
-        {/* ===== BENTO GRID ===== */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-          {/* --- LEFT COLUMN (2/3) --- */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+        {/* ===== CONTENT SECTIONS ===== */}
+        <div className="space-y-4 sm:space-y-6">
+          {/* Contact (2/3) + Documents (1/3) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
             {/* Contact & Identity */}
             <CollapsibleCard
               title="Contact & Identity"
               icon={<User className="text-[var(--color-primary)]" />}
               defaultOpen={true}
               ariaLabel="Contact & Identity Section"
+              className="lg:col-span-2"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <DataField
@@ -449,113 +427,11 @@ const CustomerDetails = () => {
               </div>
             </CollapsibleCard>
 
-            {/* Wallet & Credit */}
-            <CollapsibleCard
-              title="Wallet & Credit"
-              icon={<Wallet className="text-[var(--color-primary)]" />}
-              defaultOpen={true}
-              ariaLabel="Wallet & Credit Section"
-            >
-              <div className="space-y-4">
-                <div className="flex flex-row justify-between items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-blue-100">
-                  <div className="min-w-0">
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
-                      Available Credit
-                    </p>
-                    <p className="text-2xl font-bold text-[var(--color-primary)] mt-1">
-                      {loadingCustomer ? (
-                        <ValueSkeleton width="w-20" height="h-7" />
-                      ) : (
-                        customerStats.creditBalance
-                      )}
-                    </p>
-                  </div>
-                  {hasPermission("CUSTOMER_UPDATE") && (
-                    <Button
-                      onClick={() => setIsAddCreditModalOpen(true)}
-                      variant="primary"
-                      size="sm"
-                    >
-                      Add Credit
-                    </Button>
-                  )}
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">
-                    History
-                  </h4>
-                  <CreditHistoryTable customerId={id} />
-                </div>
-              </div>
-            </CollapsibleCard>
-          </div>
-
-          {/* --- RIGHT COLUMN (1/3) --- */}
-          <div className="space-y-4 sm:space-y-6">
-            {/* Quick Glance */}
-            <motion.div
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-5"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <Star size={18} className="text-[var(--color-primary)]" />
-                Quick Glance
-              </h3>
-              <div className="divide-y divide-gray-100">
-                <QuickGlanceItem
-                  icon={Hash}
-                  label="Customer ID"
-                  value={customerData?.customerId}
-                  loading={loadingCustomer}
-                />
-                <div className="flex items-start gap-3 py-2.5">
-                  <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
-                    <Building size={16} className="text-gray-500" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-gray-500 mb-0.5">Customer Type</p>
-                    {loadingCustomer ? (
-                      <ValueSkeleton width="w-16" height="h-5" />
-                    ) : (
-                      <CustomerTypePill type={customerData?.customerType} />
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 py-2.5">
-                  <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
-                    <Star size={16} className="text-gray-500" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-gray-500 mb-0.5">Status</p>
-                    {loadingCustomer ? (
-                      <ValueSkeleton width="w-16" height="h-5" />
-                    ) : (
-                      <StatusBadge status={customerData?.customerStatus} size="sm" />
-                    )}
-                  </div>
-                </div>
-                <QuickGlanceItem
-                  icon={Calendar}
-                  label="Join Date"
-                  value={customerData?.joinDate ? formatDate(customerData.joinDate) : null}
-                  loading={loadingCustomer}
-                />
-                <QuickGlanceItem
-                  icon={CreditCard}
-                  label="Credit Limit"
-                  value={customerData?.creditLimit ? formatCurrency(customerData.creditLimit) : null}
-                  loading={loadingCustomer}
-                />
-              </div>
-            </motion.div>
-
-            {/* Documents & Note */}
+            {/* Documents & Note — 1/3 width sidebar */}
             <CollapsibleCard
               title="Documents & Note"
               icon={<FileText className="text-[var(--color-primary)]" />}
-              defaultOpen={true}
+              defaultOpen={false}
               ariaLabel="Documents & Note Section"
             >
               <div className="space-y-3">
@@ -626,211 +502,192 @@ const CustomerDetails = () => {
               </div>
             </CollapsibleCard>
           </div>
-        </div>
 
-        {/* ===== RECENT PURCHASES (Full Width) ===== */}
-        {hasPermission("SALE_VIEW_TABLE") && (
-          <div className="mt-4 sm:mt-6">
-            <CollapsibleCard
-              title="Recent Purchases"
-              icon={<DollarSign className="text-[var(--color-primary)]" />}
-              defaultOpen={true}
-              ariaLabel="Recent Purchases Section"
-            >
-              {loadingSales ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        {Array.from({ length: 6 }).map((_, i) => (
-                          <th key={i} className="px-4 py-3 text-left">
-                            <ValueSkeleton width="w-16" height="h-4" />
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <tr key={i}>
-                          {Array.from({ length: 6 }).map((_, j) => (
-                            <td key={j} className="px-4 py-3">
-                              <ValueSkeleton width="w-full" height="h-4" />
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          {/* Wallet & Credit — full width */}
+          <CollapsibleCard
+            title="Wallet & Credit"
+            icon={<Wallet className="text-[var(--color-primary)]" />}
+            defaultOpen={true}
+            ariaLabel="Wallet & Credit Section"
+          >
+            <div className="space-y-4">
+              <div className="flex flex-row justify-between items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 sm:p-4 rounded-xl border border-blue-100">
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                    Available Credit
+                  </p>
+                  <p className="text-2xl font-bold text-[var(--color-primary)] mt-1">
+                    {loadingCustomer ? (
+                      <ValueSkeleton width="w-20" height="h-7" />
+                    ) : (
+                      customerStats.creditBalance
+                    )}
+                  </p>
                 </div>
-              ) : salesData.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                  <p>No purchases found for this customer</p>
-                </div>
-              ) : (
-                <>
-                  {/* Mobile View */}
-                  <div className="block sm:hidden space-y-3">
-                    {salesData.map((sale) => (
-                      <div
-                        key={sale._id}
-                        className="border border-gray-200 rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/sales/${sale._id}`)}
-                        onMouseEnter={() => prefetchSale(sale._id)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            navigate(`/sales/${sale._id}`);
-                          }
-                        }}
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1">
-                            {sale.saleId?.startsWith("OPEN-BAL-") ? (
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-semibold text-gray-900 text-sm">
-                                  Opening Balance
-                                </h4>
-                                <span className="px-2 py-0.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full">
-                                  Automated
-                                </span>
-                              </div>
-                            ) : (
-                              <h4 className="font-semibold text-[var(--color-primary)] text-sm">
-                                {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "Unknown Product")}
-                              </h4>
-                            )}
-                            <p className="text-xs text-gray-500 mt-1">
-                              {formatDate(sale.saleDate)}
-                            </p>
-                            <div className="mt-1">
-                              {sale.saleId && !sale.saleId.startsWith("OPEN-BAL-") && (
-                                <span className="text-xs text-gray-400">#{sale.saleId}</span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-bold text-gray-900 text-sm">
-                              {formatCurrency(sale.totalAmountToBePaid)}
-                            </div>
-                            <div className={`text-xs font-medium mt-1 ${getDueAmount(sale) > 0 ? "text-red-500" : "text-green-500"}`}>
-                              Due: {formatCurrency(getDueAmount(sale))}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                          <StatusBadge status={sale.invoiceStatus} size="sm" />
-                          <StatusBadge status={sale.paymentStatus} size="sm" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                {hasPermission("CUSTOMER_UPDATE") && (
+                  <Button
+                    onClick={() => setIsAddCreditModalOpen(true)}
+                    variant="primary"
+                    size="sm"
+                  >
+                    Add Credit
+                  </Button>
+                )}
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  History
+                </h4>
+                <CreditHistoryTable customerId={id} />
+              </div>
+            </div>
+          </CollapsibleCard>
 
-                  {/* Desktop View */}
-                  <div className="hidden sm:block overflow-x-auto">
+          {/* ===== RECENT PURCHASES (Full Width) ===== */}
+          {hasPermission("SALE_VIEW_TABLE") && (
+            <div className="mt-4 sm:mt-6">
+              <CollapsibleCard
+                title="Recent Purchases"
+                icon={<DollarSign className="text-[var(--color-primary)]" />}
+                defaultOpen={true}
+                ariaLabel="Recent Purchases Section"
+              >
+                {loadingSales ? (
+                  <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Sale ID / Description
-                          </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Due Amount
-                          </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Total
-                          </th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Invoice Status
-                          </th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Payment Status
-                          </th>
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {Array.from({ length: 6 }).map((_, i) => (
+                            <th key={i} className="px-4 py-3 text-left">
+                              <ValueSkeleton width="w-16" height="h-4" />
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {salesData.map((sale) => (
-                          <tr
-                            key={sale._id}
-                            className="hover:bg-gray-50 cursor-pointer"
-                            onClick={() => navigate(`/sales/${sale._id}`)}
-                            onMouseEnter={() => prefetchSale(sale._id)}
-                          >
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                              {formatDate(sale.saleDate)}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm">
-                              {sale.saleId?.startsWith("OPEN-BAL-") ? (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-gray-900">Opening Balance</span>
-                                  <span className="px-2 py-0.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full">
-                                    Automated
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="flex flex-col">
-                                  <span className="font-medium text-gray-900">{sale.saleId || "N/A"}</span>
-                                  <span className="text-xs text-gray-500">
-                                    {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "")}
-                                  </span>
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium">
-                              <span className={getDueAmount(sale) > 0 ? "text-red-600" : "text-green-600"}>
-                                {formatCurrency(getDueAmount(sale))}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-[var(--color-primary)]">
-                              {formatCurrency(sale.totalAmountToBePaid)}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-center">
-                              <StatusBadge status={sale.invoiceStatus} size="sm" />
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-center">
-                              <StatusBadge status={sale.paymentStatus} size="sm" />
-                            </td>
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <tr key={i}>
+                            {Array.from({ length: 6 }).map((_, j) => (
+                              <td key={j} className="px-4 py-3">
+                                <ValueSkeleton width="w-full" height="h-4" />
+                              </td>
+                            ))}
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-
-                  {/* Pagination */}
-                  {pagination.totalPages > 1 && (
-                    <div className="mt-4">
-                      <Pagination
-                        currentPage={pagination.currentPage}
-                        totalPages={pagination.totalPages}
-                        onPageChange={handleSalesPageChange}
-                        isLoading={loadingSales}
-                        totalItems={pagination.totalItems}
-                      />
+                ) : salesData.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <p>No purchases found for this customer</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-[650px] w-full divide-y divide-gray-200">
+                        <thead>
+                          <tr className="bg-gray-50">
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Sale ID / Description
+                            </th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Due Amount
+                            </th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Total
+                            </th>
+                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Invoice
+                            </th>
+                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Payment
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {salesData.map((sale) => (
+                            <tr
+                              key={sale._id}
+                              className="hover:bg-gray-50 cursor-pointer"
+                              onClick={() => navigate(`/sales/${sale._id}`)}
+                              onMouseEnter={() => prefetchSale(sale._id)}
+                            >
+                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                {formatDate(sale.saleDate)}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-sm">
+                                {sale.saleId?.startsWith("OPEN-BAL-") ? (
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-gray-900">Opening Balance</span>
+                                    <span className="px-2 py-0.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full">
+                                      Automated
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col">
+                                    <span className="font-medium text-gray-900">{sale.saleId || "N/A"}</span>
+                                    <span className="text-xs text-gray-500">
+                                      {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "")}
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium">
+                                <span className={getDueAmount(sale) > 0 ? "text-red-600" : "text-green-600"}>
+                                  {formatCurrency(getDueAmount(sale))}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-[var(--color-primary)]">
+                                {formatCurrency(sale.totalAmountToBePaid)}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-center">
+                                <StatusBadge status={sale.invoiceStatus} size="sm" />
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-center">
+                                <StatusBadge status={sale.paymentStatus} size="sm" />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  )}
-                </>
-              )}
-            </CollapsibleCard>
-          </div>
-        )}
 
-        <AuditInfoSection
-          createdBy={customerData?.createdBy}
-          createdAt={customerData?.createdAt}
-          modifiedBy={customerData?.modifiedBy}
-          updatedAt={customerData?.updatedAt}
-          deletedBy={customerData?.deletedBy}
-          deletedAt={customerData?.deletedAt}
-          isDeleted={customerData?.isDeleted}
-        />
+                    {/* Pagination */}
+                    {pagination.totalPages > 1 && (
+                      <div className="mt-4">
+                        <Pagination
+                          currentPage={pagination.currentPage}
+                          totalPages={pagination.totalPages}
+                          onPageChange={handleSalesPageChange}
+                          isLoading={loadingSales}
+                          totalItems={pagination.totalItems}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </CollapsibleCard>
+            </div>
+          )}
 
-        {hasPermission("AUDIT_VIEW") && (
-          <EntityAuditLog moduleId={id} moduleName="Customer" />
-        )}
+          <AuditInfoSection
+            createdBy={customerData?.createdBy}
+            createdAt={customerData?.createdAt}
+            modifiedBy={customerData?.modifiedBy}
+            updatedAt={customerData?.updatedAt}
+            deletedBy={customerData?.deletedBy}
+            deletedAt={customerData?.deletedAt}
+            isDeleted={customerData?.isDeleted}
+          />
+
+          {hasPermission("AUDIT_VIEW") && (
+            <EntityAuditLog moduleId={id} moduleName="Customer" />
+          )}
+        </div>
       </div>
 
       <ConfirmationModal
