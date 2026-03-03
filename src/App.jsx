@@ -102,6 +102,12 @@ const AdvancePaymentsPage = lazyWithRetry(
 const AdvancePaymentDetailsPage = lazyWithRetry(
   () => import("@/features/advance-payments/AdvancePaymentDetailsPage"),
 );
+const ReportsPage = lazyWithRetry(
+  () => import("@/features/reports/ReportsPage"),
+);
+const DueCustomersReport = lazyWithRetry(
+  () => import("@/features/reports/DueCustomersReport"),
+);
 
 const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -156,6 +162,13 @@ const router = createBrowserRouter([
       { path: "customer-form/:id", element: <CustomerFormPage /> },
       { path: "advance-payments", element: <AdvancePaymentsPage /> },
       { path: "advance-payments/:id", element: <AdvancePaymentDetailsPage /> },
+      {
+        path: "reports",
+        element: <ReportsPage />,
+        children: [
+          { index: true, element: <DueCustomersReport /> },
+        ],
+      },
       { path: "trash/:moduleName", element: <TrashPage /> },
     ],
   },

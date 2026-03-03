@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext"; // Import useSettings
 import {
   ChartColumnIncreasing,
+  ClipboardList,
   CreditCard,
   HandCoins,
   LogOut,
@@ -27,6 +28,7 @@ import { getAllTransactions } from "@/api/transaction.api";
 import { getDailyCashStatus, getDailyCashSummary } from "@/api/cash.api";
 import { getAllAccounts } from "@/api/account.api";
 import { getCustomersSummary } from "@/api/customer.api";
+import { getDueCustomers } from "@/api/customer.api";
 
 // Helper to get local date string in YYYY-MM-DD format
 const getLocalDateString = (date) => {
@@ -157,6 +159,15 @@ const Sidebar = memo(() => {
             staleTime,
           });
           break;
+        case "/reports":
+          import("@/features/reports/ReportsPage");
+          import("@/features/reports/DueCustomersReport");
+          queryClient.prefetchQuery({
+            queryKey: ["customers", "due", { page: 1, limit: 15, search: "", sortBy: "totalDue", sortOrder: "desc" }],
+            queryFn: async () => (await getDueCustomers({ page: 1, limit: 15, sortBy: "totalDue", sortOrder: "desc" })).data,
+            staleTime,
+          });
+          break;
         case "/team":
           import("@/features/team/TeamPage");
           break;
@@ -228,6 +239,12 @@ const Sidebar = memo(() => {
       icon: MdPeopleAlt,
       label: "Customers",
       path: "/customers",
+      permission: "CUSTOMER_VIEW_TABLE",
+    },
+    {
+      icon: ClipboardList,
+      label: "Reports",
+      path: "/reports",
       permission: "CUSTOMER_VIEW_TABLE",
     },
     { icon: RiSettings3Fill, label: "Settings", path: "/settings" },

@@ -98,3 +98,14 @@ export const useCreditHistory = (id, params) => {
     keepPreviousData: true,
   });
 };
+
+export const useDueCustomers = (params) => {
+  return useQuery({
+    queryKey: ["customers", "due", params],
+    queryFn: async () => {
+      const res = await api.getDueCustomers(params);
+      return res.data;
+    },
+    keepPreviousData: true,
+  });
+};

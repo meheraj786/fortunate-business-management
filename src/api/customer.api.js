@@ -33,3 +33,6 @@ export const addStoreCredit = (id, data) =>
 
 export const getCreditHistory = (id, params) =>
   api.get(`/customer/${id}/credit-history`, { params });
+
+export const getDueCustomers = (params) =>
+  api.get("/customer/due-customers", { params });
