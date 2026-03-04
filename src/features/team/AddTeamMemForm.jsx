@@ -11,12 +11,13 @@ import FormPageLayout from "@/components/ui/FormPageLayout";
 import MultiSelectField from "@/components/ui/MultiSelectField";
 import FormSection from "@/components/ui/FormSection";
 import { useSectionManager } from "@/hooks/useSectionManager";
-import { showErrorToast } from "@/utils/notifications";
 import { MODULES_ORDER } from "./constants"; // Import MODULES_ORDER
 import {
   FileText,
   Warehouse as WarehouseIcon,
   ShieldCheck,
+  Phone,
+  MapPin,
 } from "lucide-react";
 
 const SECTIONS_CONFIG = [
@@ -47,8 +48,11 @@ const AddTeamMemForm = () => {
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm();
+
+  const passwordValue = watch("password", "");
   const createUserMutation = useCreateUser();
   const { data: warehousesData, isLoading: isWarehousesLoading } =
     useWarehouses();
@@ -85,6 +89,8 @@ const AddTeamMemForm = () => {
       password: data.password,
       roleName: data.roleName,
       description: data.description,
+      phone: data.phone || undefined,
+      address: data.address || undefined,
     };
 
     if (hasPermission("USER_CREATE")) {
@@ -101,8 +107,8 @@ const AddTeamMemForm = () => {
     try {
       await createUserMutation.mutateAsync(payload);
       navigate("/team");
-    } catch (error) {
-      showErrorToast(error, "Failed to create user.");
+    } catch {
+      // Error toast is handled automatically by useApiMutation
     }
   };
 
@@ -142,15 +148,46 @@ const AddTeamMemForm = () => {
             validation={{ required: "Email is required" }}
             error={errors.email?.message}
           />
-          <InputField
-            label="Password"
-            name="password"
-            required={true}
-            type="password"
-            register={register}
-            validation={{ required: "Password is required" }}
-            error={errors.password?.message}
-          />
+          <div className="relative">
+            <InputField
+              label="Password"
+              name="password"
+              required={true}
+              type="password"
+              register={register}
+              validation={{
+                required: "Password is required",
+                minLength: {
+                  value: 8,
+                  message: "Password must be at least 8 characters",
+                },
+              }}
+              error={errors.password?.message}
+            />
+            {passwordValue?.length > 0 && (
+              <div className="mt-1.5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="h-1.5 flex-1 bg-gray-200 rounded-full overflow-hidden mr-3">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ease-out ${passwordValue.length >= 8
+                          ? "bg-emerald-500"
+                          : passwordValue.length >= 5
+                            ? "bg-amber-400"
+                            : "bg-red-400"
+                        }`}
+                      style={{ width: `${Math.min((passwordValue.length / 8) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <span className={`text-xs font-medium tabular-nums ${passwordValue.length >= 8
+                      ? "text-emerald-600"
+                      : "text-gray-400"
+                    }`}>
+                    {passwordValue.length}/8
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
           <InputField
             label="Role Name"
             name="roleName"
@@ -164,6 +201,21 @@ const AddTeamMemForm = () => {
             name="description"
             register={register}
             className="md:col-span-2"
+          />
+          <InputField
+            label="Phone Number"
+            name="phone"
+            type="tel"
+            register={register}
+            placeholder="e.g. +880 1XXX-XXXXXX"
+            icon={Phone}
+          />
+          <InputField
+            label="Address"
+            name="address"
+            register={register}
+            placeholder="e.g. Dhaka, Bangladesh"
+            icon={MapPin}
           />
         </div>
       </FormSection>

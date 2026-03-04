@@ -154,6 +154,21 @@ const TeamDetails = () => {
                     </p>
                   </div>
                 </a>
+                <div
+                  className="flex items-start p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <MapPin size={18} className="text-gray-400 mr-3 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500">Address</p>
+                    <p className="text-sm text-gray-900">
+                      {isLoading ? (
+                        <ValueSkeleton width="w-32" height="h-4" />
+                      ) : (
+                        member?.address || "N/A"
+                      )}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -12,11 +12,12 @@ import FormPageLayout from "@/components/ui/FormPageLayout";
 import MultiSelectField from "@/components/ui/MultiSelectField";
 import FormSection from "@/components/ui/FormSection"; // New import
 import { useSectionManager } from "@/hooks/useSectionManager"; // New import
-import { showErrorToast } from "@/utils/notifications";
 import {
   FileText,
   Warehouse as WarehouseIcon,
   ShieldCheck,
+  Phone,
+  MapPin,
 } from "lucide-react"; // New import
 
 const SECTIONS_CONFIG = [
@@ -87,6 +88,8 @@ const EditTeamMemForm = () => {
       setValue("email", user.email);
       setValue("roleName", user.roleName);
       setValue("description", user.description);
+      setValue("phone", user.phone === "Not Provided" ? "" : user.phone || "");
+      setValue("address", user.address || "");
       setValue(
         "warehouse",
         user.warehouse.map((wh) => wh._id),
@@ -120,6 +123,8 @@ const EditTeamMemForm = () => {
       email: data.email,
       roleName: data.roleName,
       description: data.description,
+      phone: data.phone || undefined,
+      address: data.address || undefined,
       warehouse: data.warehouse,
       access,
     };
@@ -127,8 +132,8 @@ const EditTeamMemForm = () => {
     try {
       await updateUserMutation.mutateAsync({ id, data: payload });
       navigate(`/team/${id}`);
-    } catch (error) {
-      showErrorToast(error, "Failed to update user.");
+    } catch {
+      // Error toast is handled automatically by useApiMutation
     }
   };
 
@@ -189,6 +194,21 @@ const EditTeamMemForm = () => {
                 label="Description"
                 name="description"
                 register={register}
+              />
+              <InputField
+                label="Phone Number"
+                name="phone"
+                type="tel"
+                register={register}
+                placeholder="e.g. +880 1XXX-XXXXXX"
+                icon={Phone}
+              />
+              <InputField
+                label="Address"
+                name="address"
+                register={register}
+                placeholder="e.g. Dhaka, Bangladesh"
+                icon={MapPin}
               />
             </div>
           </FormSection>
