@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { Link } from "react-router";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     ArrowUp,
@@ -21,6 +21,7 @@ import Button from "@/components/ui/Button";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCustomerById } from "@/api/customer.api";
+import { showErrorToast } from "@/utils/notifications";
 
 // --- Date Preset Helpers ---
 const getDatePresetRange = (preset) => {
@@ -150,6 +151,7 @@ const StatsSkeleton = () => (
 
 // --- Main Component ---
 const DueCustomersReport = () => {
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState("totalDue");
@@ -161,6 +163,13 @@ const DueCustomersReport = () => {
     const { hasPermission } = useAuth();
     const { formatCurrency, formatDate, formatNumber } = useSettings();
     const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (!hasPermission("CUSTOMER_VIEW_TABLE")) {
+            showErrorToast("You don't have permission to view this report.");
+            navigate("/");
+        }
+    }, [hasPermission, navigate]);
 
     const params = useMemo(
         () => ({

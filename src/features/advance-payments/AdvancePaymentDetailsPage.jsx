@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { motion } from "framer-motion";
 import {
@@ -31,6 +31,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
+import { showErrorToast } from "@/utils/notifications";
 import SettleAdvanceModal from "./SettleAdvanceModal";
 import RefundAdvanceModal from "./RefundAdvanceModal";
 import AddToAdvanceModal from "./AddToAdvanceModal";
@@ -53,6 +54,13 @@ const AdvancePaymentDetailsPage = () => {
     const [isSettleOpen, setIsSettleOpen] = useState(false);
     const [isRefundOpen, setIsRefundOpen] = useState(false);
     const [isAddOpen, setIsAddOpen] = useState(false);
+
+    useEffect(() => {
+        if (!hasPermission("ADVANCE_PAYMENT_VIEW_DETAILS")) {
+            showErrorToast("You don't have permission to view advance payment details.");
+            navigate("/advance-payments");
+        }
+    }, [hasPermission, navigate]);
 
     const adv = response?.data;
 

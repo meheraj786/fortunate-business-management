@@ -426,8 +426,8 @@ const AdvancePaymentsPage = () => {
                                     {advances.map((adv) => (
                                         <tr
                                             key={adv._id}
-                                            onClick={() => navigate(`/advance-payments/${adv._id}`)}
-                                            className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
+                                            onClick={() => hasPermission("ADVANCE_PAYMENT_VIEW_DETAILS") && navigate(`/advance-payments/${adv._id}`)}
+                                            className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${hasPermission("ADVANCE_PAYMENT_VIEW_DETAILS") ? "cursor-pointer" : "cursor-default"}`}
                                         >
                                             <td className="py-3 px-4 font-mono text-xs text-[var(--color-primary)] font-medium">
                                                 {adv.advanceId}
@@ -465,10 +465,10 @@ const AdvancePaymentsPage = () => {
                         {/* Mobile Cards */}
                         <div className="md:hidden space-y-3">
                             {advances.map((adv) => (
-                                <Link
+                                <div
                                     key={adv._id}
-                                    to={`/advance-payments/${adv._id}`}
-                                    className="block bg-white rounded-lg border border-gray-200 p-4 hover:bg-gray-50 transition-colors"
+                                    onClick={() => hasPermission("ADVANCE_PAYMENT_VIEW_DETAILS") && navigate(`/advance-payments/${adv._id}`)}
+                                    className={`block bg-white rounded-lg border border-gray-200 p-4 hover:bg-gray-50 transition-colors ${hasPermission("ADVANCE_PAYMENT_VIEW_DETAILS") ? "cursor-pointer" : "cursor-default"}`}
                                 >
                                     <div className="flex justify-between items-start mb-3">
                                         <div className="flex-1 min-w-0">
@@ -502,7 +502,7 @@ const AdvancePaymentsPage = () => {
                                             {adv.accountId && ` • ${formatAccountLabel(adv.accountId)}`}
                                         </div>
                                     </div>
-                                </Link>
+                                </div>
                             ))}
                         </div>
                     </motion.div>
