@@ -4,7 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useParams } from "react-router";
 import { useUser, useUpdateUser } from "@/api/hooks/user";
 import { useWarehouses } from "@/api/hooks/warehouse";
-import { MODULES_ORDER, PERMISSION_BUNDLES } from "./constants";
+import {
+  MODULES_ORDER,
+  PERMISSION_BUNDLES,
+  MODULE_LABELS,
+  formatPermissionLabel,
+} from "./constants";
 import { usePermissions } from "@/api/hooks/permissions";
 import InputField from "@/components/ui/InputField";
 import Button from "@/components/ui/Button";
@@ -67,25 +72,37 @@ const EditTeamMemForm = () => {
   const handlePermissionChange = useCallback((permission, checked) => {
     setValue(`permissions.${permission}`, checked);
     if (checked) {
-      const bundled = PERMISSION_BUNDLES[permission];
-      if (bundled) {
-        const newAutoBundled = new Set();
-        bundled.forEach((prereq) => {
-          if (!getValues(`permissions.${prereq}`)) {
-            setValue(`permissions.${prereq}`, true);
-            newAutoBundled.add(prereq);
-          }
-        });
-        if (newAutoBundled.size > 0) {
-          setAutoBundled((prev) => new Set([...prev, ...newAutoBundled]));
-          setTimeout(() => {
-            setAutoBundled((prev) => {
-              const next = new Set(prev);
-              newAutoBundled.forEach((p) => next.delete(p));
-              return next;
-            });
-          }, 1500);
+      // Recursively collect ALL transitive prerequisites
+      const allPrereqs = new Set();
+      const collectPrereqs = (perm) => {
+        const bundled = PERMISSION_BUNDLES[perm];
+        if (bundled) {
+          bundled.forEach((prereq) => {
+            if (!allPrereqs.has(prereq)) {
+              allPrereqs.add(prereq);
+              collectPrereqs(prereq); // cascade
+            }
+          });
         }
+      };
+      collectPrereqs(permission);
+
+      const newAutoBundled = new Set();
+      allPrereqs.forEach((prereq) => {
+        if (!getValues(`permissions.${prereq}`)) {
+          setValue(`permissions.${prereq}`, true);
+          newAutoBundled.add(prereq);
+        }
+      });
+      if (newAutoBundled.size > 0) {
+        setAutoBundled((prev) => new Set([...prev, ...newAutoBundled]));
+        setTimeout(() => {
+          setAutoBundled((prev) => {
+            const next = new Set(prev);
+            newAutoBundled.forEach((p) => next.delete(p));
+            return next;
+          });
+        }, 1500);
       }
     }
   }, [setValue, getValues]);
@@ -286,14 +303,14 @@ const EditTeamMemForm = () => {
                 if (!permissions || permissions.length === 0) return null;
                 return (
                   <div key={moduleName} className="mt-2">
-                    <h4 className="font-semibold">{moduleName}</h4>
+                    <h4 className="font-semibold">{MODULE_LABELS[moduleName] || moduleName}</h4>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-1">
                       {permissions.map((permission) => (
                         <label
                           key={permission}
                           className={`flex items-center space-x-2 text-sm rounded-md px-2 py-1.5 transition-all duration-300 ${autoBundled.has(permission)
-                              ? "bg-blue-50 ring-1 ring-blue-300"
-                              : ""
+                            ? "bg-blue-50 ring-1 ring-blue-300"
+                            : ""
                             }`}
                         >
                           <input
@@ -302,12 +319,8 @@ const EditTeamMemForm = () => {
                             onChange={(e) => handlePermissionChange(permission, e.target.checked)}
                             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                           />
-                          <span className="text-gray-700">
-                            {permission
-                              .split("_")
-                              .slice(1)
-                              .join(" ")
-                              .toLowerCase()}
+                          <span className="text-gray-700 select-none">
+                            {formatPermissionLabel(permission)}
                           </span>
                           {autoBundled.has(permission) && (
                             <span className="text-[10px] text-blue-500 font-medium ml-auto">auto</span>
