@@ -22,6 +22,7 @@ import FormSkeleton from "./components/AddSaleFormSkeleton";
 import SaleProductSelect from "./components/AddSalesForm/SaleProductSelect";
 import SaleCustomerSelect from "./components/AddSalesForm/SaleCustomerSelect";
 import SaleFinancials from "./components/AddSalesForm/SaleFinancials";
+import TextAreaField from "@/components/ui/TextAreaField";
 
 const AddSales = ({
   onClose,
@@ -529,6 +530,22 @@ const AddSales = ({
                   append={append}
                   remove={remove}
                 />
+
+                {/* Sale Notes Input */}
+                <div className="space-y-4 border-t border-gray-100 pt-4">
+                  <h3 className="text-lg font-medium text-gray-800">Additional Notes</h3>
+                  <div className="w-full">
+                    <TextAreaField
+                      name="notes"
+                      register={register}
+                      placeholder="Enter any additional notes or details about this sale..."
+                      rows={3}
+                      maxRows={5}
+                      error={errors.notes?.message}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
 
                 <SaleCustomerSelect
                   register={register}

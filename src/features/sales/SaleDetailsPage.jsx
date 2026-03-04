@@ -378,7 +378,7 @@ const SaleDetails = () => {
                 </div>
               )}
 
-              {/* Additional Details (Notes & History) - Kept Inline for now as they are small */}
+              {/* Additional Details (History) */}
               <div className="bg-white rounded-lg shadow-sm p-5">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Additional Details
@@ -424,14 +424,6 @@ const SaleDetails = () => {
                       </div>
                     </div>
                   )}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Notes
-                    </h4>
-                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                      {sale?.notes || "No additional notes"}
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>

@@ -88,6 +88,18 @@ const SaleInfo = ({
           </table>
         </div>
 
+        {/* Notes Section directly underneath Sale Items Table */}
+        {(!loading && sale?.notes) && (
+          <div className="mt-6 mb-6">
+            <h3 className="block text-sm font-medium text-gray-600 mb-2">
+              Additional Notes
+            </h3>
+            <p className="text-sm text-gray-800 bg-gray-50 p-3.5 rounded-md border border-gray-100 whitespace-pre-wrap">
+              {sale.notes}
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-200 pt-4">
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1.5">
@@ -109,10 +121,9 @@ const SaleInfo = ({
               <StatusBadge status={sale?.paymentStatus || "N/A"} size="sm" />
             )}
           </div>
+
         </div>
       </div>
-
-
     </div>
   );
 };

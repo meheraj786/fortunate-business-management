@@ -259,7 +259,7 @@ const SaleProductSelect = ({
       </div>
 
       {/* Items List */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
