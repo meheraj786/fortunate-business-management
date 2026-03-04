@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
@@ -11,7 +11,7 @@ import FormPageLayout from "@/components/ui/FormPageLayout";
 import MultiSelectField from "@/components/ui/MultiSelectField";
 import FormSection from "@/components/ui/FormSection";
 import { useSectionManager } from "@/hooks/useSectionManager";
-import { MODULES_ORDER } from "./constants"; // Import MODULES_ORDER
+import { MODULES_ORDER, PERMISSION_BUNDLES } from "./constants";
 import {
   FileText,
   Warehouse as WarehouseIcon,
@@ -49,10 +49,39 @@ const AddTeamMemForm = () => {
     handleSubmit,
     control,
     watch,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm();
 
   const passwordValue = watch("password", "");
+  const [autoBundled, setAutoBundled] = useState(new Set());
+
+  const handlePermissionChange = useCallback((permission, checked) => {
+    setValue(`permissions.${permission}`, checked);
+    if (checked) {
+      const bundled = PERMISSION_BUNDLES[permission];
+      if (bundled) {
+        const newAutoBundled = new Set();
+        bundled.forEach((prereq) => {
+          if (!getValues(`permissions.${prereq}`)) {
+            setValue(`permissions.${prereq}`, true);
+            newAutoBundled.add(prereq);
+          }
+        });
+        if (newAutoBundled.size > 0) {
+          setAutoBundled((prev) => new Set([...prev, ...newAutoBundled]));
+          setTimeout(() => {
+            setAutoBundled((prev) => {
+              const next = new Set(prev);
+              newAutoBundled.forEach((p) => next.delete(p));
+              return next;
+            });
+          }, 1500);
+        }
+      }
+    }
+  }, [setValue, getValues]);
   const createUserMutation = useCreateUser();
   const { data: warehousesData, isLoading: isWarehousesLoading } =
     useWarehouses();
@@ -170,17 +199,17 @@ const AddTeamMemForm = () => {
                   <div className="h-1.5 flex-1 bg-gray-200 rounded-full overflow-hidden mr-3">
                     <div
                       className={`h-full rounded-full transition-all duration-300 ease-out ${passwordValue.length >= 8
-                          ? "bg-emerald-500"
-                          : passwordValue.length >= 5
-                            ? "bg-amber-400"
-                            : "bg-red-400"
+                        ? "bg-emerald-500"
+                        : passwordValue.length >= 5
+                          ? "bg-amber-400"
+                          : "bg-red-400"
                         }`}
                       style={{ width: `${Math.min((passwordValue.length / 8) * 100, 100)}%` }}
                     />
                   </div>
                   <span className={`text-xs font-medium tabular-nums ${passwordValue.length >= 8
-                      ? "text-emerald-600"
-                      : "text-gray-400"
+                    ? "text-emerald-600"
+                    : "text-gray-400"
                     }`}>
                     {passwordValue.length}/8
                   </span>
@@ -278,11 +307,15 @@ const AddTeamMemForm = () => {
                         {permissions.map((permission) => (
                           <label
                             key={permission}
-                            className="flex items-center space-x-2 text-sm"
+                            className={`flex items-center space-x-2 text-sm rounded-md px-2 py-1.5 transition-all duration-300 ${autoBundled.has(permission)
+                                ? "bg-blue-50 ring-1 ring-blue-300"
+                                : ""
+                              }`}
                           >
                             <input
                               type="checkbox"
                               {...register(`permissions.${permission}`)}
+                              onChange={(e) => handlePermissionChange(permission, e.target.checked)}
                               className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                             />
                             <span className="text-gray-700">
@@ -292,6 +325,9 @@ const AddTeamMemForm = () => {
                                 .join(" ")
                                 .toLowerCase()}
                             </span>
+                            {autoBundled.has(permission) && (
+                              <span className="text-[10px] text-blue-500 font-medium ml-auto">auto</span>
+                            )}
                           </label>
                         ))}
                       </div>

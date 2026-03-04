@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useCallback, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useParams } from "react-router";
 import { useUser, useUpdateUser } from "@/api/hooks/user";
 import { useWarehouses } from "@/api/hooks/warehouse";
-import { MODULES_ORDER } from "./constants";
+import { MODULES_ORDER, PERMISSION_BUNDLES } from "./constants";
 import { usePermissions } from "@/api/hooks/permissions";
 import InputField from "@/components/ui/InputField";
 import Button from "@/components/ui/Button";
@@ -58,8 +58,37 @@ const EditTeamMemForm = () => {
     handleSubmit,
     control,
     setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm();
+
+  const [autoBundled, setAutoBundled] = useState(new Set());
+
+  const handlePermissionChange = useCallback((permission, checked) => {
+    setValue(`permissions.${permission}`, checked);
+    if (checked) {
+      const bundled = PERMISSION_BUNDLES[permission];
+      if (bundled) {
+        const newAutoBundled = new Set();
+        bundled.forEach((prereq) => {
+          if (!getValues(`permissions.${prereq}`)) {
+            setValue(`permissions.${prereq}`, true);
+            newAutoBundled.add(prereq);
+          }
+        });
+        if (newAutoBundled.size > 0) {
+          setAutoBundled((prev) => new Set([...prev, ...newAutoBundled]));
+          setTimeout(() => {
+            setAutoBundled((prev) => {
+              const next = new Set(prev);
+              newAutoBundled.forEach((p) => next.delete(p));
+              return next;
+            });
+          }, 1500);
+        }
+      }
+    }
+  }, [setValue, getValues]);
 
   const { expandedSections, toggleSection, setSectionRef } =
     useSectionManager(SECTIONS_CONFIG);
@@ -262,19 +291,27 @@ const EditTeamMemForm = () => {
                       {permissions.map((permission) => (
                         <label
                           key={permission}
-                          className="flex items-center space-x-2"
+                          className={`flex items-center space-x-2 text-sm rounded-md px-2 py-1.5 transition-all duration-300 ${autoBundled.has(permission)
+                              ? "bg-blue-50 ring-1 ring-blue-300"
+                              : ""
+                            }`}
                         >
                           <input
                             type="checkbox"
                             {...register(`permissions.${permission}`)}
+                            onChange={(e) => handlePermissionChange(permission, e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                           />
-                          <span>
+                          <span className="text-gray-700">
                             {permission
                               .split("_")
                               .slice(1)
                               .join(" ")
                               .toLowerCase()}
                           </span>
+                          {autoBundled.has(permission) && (
+                            <span className="text-[10px] text-blue-500 font-medium ml-auto">auto</span>
+                          )}
                         </label>
                       ))}
                     </div>
