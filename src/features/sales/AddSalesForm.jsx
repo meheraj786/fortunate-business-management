@@ -455,12 +455,20 @@ const AddSales = ({
       const {
         customer: _c,
         costs: _co,
-        payments: _p,
         product: _pr,
         warehouse: _w,
         category: _ca,
-        ...updatableData
+        ...restData
       } = salesData;
+
+      // Extract payments by default to prevent overwriting existing ones during normal edits
+      let { payments: _p, ...updatableData } = restData;
+
+      // EXCEPTION: If this is a manual customer (no customerId) and we are now Invoicing them,
+      // we MUST send the payments array to satisfy the 'fully paid when invoiced' backend rule.
+      if (!salesData.customer?.customerId && salesData.invoiceStatus === "Invoiced") {
+        updatableData.payments = salesData.payments;
+      }
       updateSaleMutation.mutate(
         { id: editData._id, ...updatableData },
         mutationOptions,

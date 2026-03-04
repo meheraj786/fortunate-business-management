@@ -2,7 +2,7 @@ import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFieldArray, Controller } from "react-hook-form";
-import { PlusCircle, MinusCircle, FileText, CreditCard } from "lucide-react";
+import { PlusCircle, MinusCircle, FileText, CreditCard, Info } from "lucide-react";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import Button from "@/components/ui/Button";
@@ -299,6 +299,21 @@ const SaleFinancials = ({
       <h3 className="text-lg font-medium text-gray-800 pt-4 border-t border-gray-100">
         Payment & Invoice
       </h3>
+
+      {customerType === "manual" && watchedInvoiceStatus === "Invoiced" && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3 text-blue-800 mb-1"
+        >
+          <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <span className="font-semibold block mb-0.5">Full Payment Required</span>
+            Guest sales do not support due or partial balances. The total amount must be paid in full to issue an invoice.
+          </div>
+        </motion.div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-4">
           <SelectField
@@ -315,11 +330,6 @@ const SaleFinancials = ({
               handleInvoiceStatusChange(val);
             }}
           />
-          {customerType === "manual" && watchedInvoiceStatus === "Invoiced" && (
-            <p className="text-xs text-amber-600 mt-1">
-              Guest sales accept full payment only when invoiced.
-            </p>
-          )}
         </div>
 
         <div className="space-y-4">
@@ -330,28 +340,17 @@ const SaleFinancials = ({
             error={errors.paymentStatus?.message}
             options={[
               { value: "Paid payment", label: "Paid" },
-              {
-                value: "Due payment",
-                label: "Due",
-                disabled: customerType === "manual",
-              },
-              {
-                value: "Partial payment",
-                label: "Partial",
-                disabled: customerType === "manual",
-              },
+              ...(customerType !== "manual" ? [
+                { value: "Due payment", label: "Due" },
+                { value: "Partial payment", label: "Partial" },
+              ] : []),
             ]}
             icon={CreditCard}
-            disabled={watchedInvoiceStatus === "Not-invoiced"}
+            disabled={watchedInvoiceStatus === "Not-invoiced" || customerType === "manual"} // lock it completely if manual since Paid is forced
             onChange={(val) => {
               handlePaymentStatusChange(val);
             }}
           />
-          {customerType === "manual" && watchedInvoiceStatus === "Invoiced" && (
-            <p className="text-xs text-amber-600 mt-1">
-              Guest sales accept full payment only.
-            </p>
-          )}
         </div>
       </div>
 
