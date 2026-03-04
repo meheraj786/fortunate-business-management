@@ -16,6 +16,7 @@ import {
   Trash2,
   User,
   FileText,
+  ShieldAlert,
 } from "lucide-react";
 import { useProduct, useDeleteProduct } from "@/api/hooks/products";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -406,8 +407,16 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
-        {hasPermission("SALE_VIEW_TABLE") && (
+        {hasPermission("SALE_VIEW_TABLE") ? (
           <SalesHistory warehouseId={warehouseId} productId={productId} />
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-6 text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
+              <ShieldAlert size={24} className="text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-1">Sales History Restricted</h3>
+            <p className="text-sm text-gray-500">You don't have permission to view sales history for this product. Contact your administrator for access.</p>
+          </div>
         )}
         <AuditInfoSection
           createdBy={product?.createdBy}

@@ -544,135 +544,133 @@ const CustomerDetails = () => {
           </CollapsibleCard>
 
           {/* ===== RECENT PURCHASES (Full Width) ===== */}
-          {hasPermission("SALE_VIEW_TABLE") && (
-            <div className="mt-4 sm:mt-6">
-              <CollapsibleCard
-                title="Recent Purchases"
-                icon={<DollarSign className="text-[var(--color-primary)]" />}
-                defaultOpen={true}
-                ariaLabel="Recent Purchases Section"
-              >
-                {loadingSales ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          {Array.from({ length: 6 }).map((_, i) => (
-                            <th key={i} className="px-4 py-3 text-left">
-                              <ValueSkeleton width="w-16" height="h-4" />
-                            </th>
+          <div className="mt-4 sm:mt-6">
+            <CollapsibleCard
+              title="Recent Purchases"
+              icon={<DollarSign className="text-[var(--color-primary)]" />}
+              defaultOpen={true}
+              ariaLabel="Recent Purchases Section"
+            >
+              {loadingSales ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <th key={i} className="px-4 py-3 text-left">
+                            <ValueSkeleton width="w-16" height="h-4" />
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <tr key={i}>
+                          {Array.from({ length: 6 }).map((_, j) => (
+                            <td key={j} className="px-4 py-3">
+                              <ValueSkeleton width="w-full" height="h-4" />
+                            </td>
                           ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : salesData.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                  <p>No purchases found for this customer</p>
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-[650px] w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Sale ID / Description
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Due Amount
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Total
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Invoice
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Payment
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                          <tr key={i}>
-                            {Array.from({ length: 6 }).map((_, j) => (
-                              <td key={j} className="px-4 py-3">
-                                <ValueSkeleton width="w-full" height="h-4" />
-                              </td>
-                            ))}
+                        {salesData.map((sale) => (
+                          <tr
+                            key={sale._id}
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => hasPermission("SALE_VIEW_DETAILS") && navigate(`/sales/${sale._id}`)}
+                            onMouseEnter={() => hasPermission("SALE_VIEW_DETAILS") && prefetchSale(sale._id)}
+                          >
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                              {formatDate(sale.saleDate)}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm">
+                              {sale.saleId?.startsWith("OPEN-BAL-") ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-gray-900">Opening Balance</span>
+                                  <span className="px-2 py-0.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full">
+                                    Automated
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-gray-900">{sale.saleId || "N/A"}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "")}
+                                  </span>
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium">
+                              <span className={getDueAmount(sale) > 0 ? "text-red-600" : "text-green-600"}>
+                                {formatCurrency(getDueAmount(sale))}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-[var(--color-primary)]">
+                              {formatCurrency(sale.totalAmountToBePaid)}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-center">
+                              <StatusBadge status={sale.invoiceStatus} size="sm" />
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-center">
+                              <StatusBadge status={sale.paymentStatus} size="sm" />
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                ) : salesData.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <DollarSign className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                    <p>No purchases found for this customer</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-[650px] w-full divide-y divide-gray-200">
-                        <thead>
-                          <tr className="bg-gray-50">
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Date
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Sale ID / Description
-                            </th>
-                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Due Amount
-                            </th>
-                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Total
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Invoice
-                            </th>
-                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Payment
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {salesData.map((sale) => (
-                            <tr
-                              key={sale._id}
-                              className="hover:bg-gray-50 cursor-pointer"
-                              onClick={() => navigate(`/sales/${sale._id}`)}
-                              onMouseEnter={() => prefetchSale(sale._id)}
-                            >
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                                {formatDate(sale.saleDate)}
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm">
-                                {sale.saleId?.startsWith("OPEN-BAL-") ? (
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium text-gray-900">Opening Balance</span>
-                                    <span className="px-2 py-0.5 text-xs font-medium text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded-full">
-                                      Automated
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <div className="flex flex-col">
-                                    <span className="font-medium text-gray-900">{sale.saleId || "N/A"}</span>
-                                    <span className="text-xs text-gray-500">
-                                      {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "")}
-                                    </span>
-                                  </div>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-medium">
-                                <span className={getDueAmount(sale) > 0 ? "text-red-600" : "text-green-600"}>
-                                  {formatCurrency(getDueAmount(sale))}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-[var(--color-primary)]">
-                                {formatCurrency(sale.totalAmountToBePaid)}
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-center">
-                                <StatusBadge status={sale.invoiceStatus} size="sm" />
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap text-center">
-                                <StatusBadge status={sale.paymentStatus} size="sm" />
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
 
-                    {/* Pagination */}
-                    {pagination.totalPages > 1 && (
-                      <div className="mt-4">
-                        <Pagination
-                          currentPage={pagination.currentPage}
-                          totalPages={pagination.totalPages}
-                          onPageChange={handleSalesPageChange}
-                          isLoading={loadingSales}
-                          totalItems={pagination.totalItems}
-                        />
-                      </div>
-                    )}
-                  </>
-                )}
-              </CollapsibleCard>
-            </div>
-          )}
+                  {/* Pagination */}
+                  {pagination.totalPages > 1 && (
+                    <div className="mt-4">
+                      <Pagination
+                        currentPage={pagination.currentPage}
+                        totalPages={pagination.totalPages}
+                        onPageChange={handleSalesPageChange}
+                        isLoading={loadingSales}
+                        totalItems={pagination.totalItems}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </CollapsibleCard>
+          </div>
 
           <AuditInfoSection
             createdBy={customerData?.createdBy}
