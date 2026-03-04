@@ -60,7 +60,20 @@ const SaleFinancials = ({
       setValue("paymentStatus", "");
       setValue("payments", []);
     } else if (status === "Invoiced") {
-      setValue("paymentStatus", "Due payment");
+      if (customerType === "manual") {
+        setValue("paymentStatus", "Paid payment");
+        const businessDateTime = getBusinessDateTimeISO(settings?.timezone);
+        setValue("payments", [
+          {
+            amount: parseFloat(totalAmountToBePaid).toFixed(2),
+            date: businessDateTime,
+            method: "",
+            accountId: "",
+          },
+        ]);
+      } else {
+        setValue("paymentStatus", "Due payment");
+      }
     }
   };
 
@@ -298,14 +311,13 @@ const SaleFinancials = ({
               { value: "Invoiced", label: "Invoiced" },
             ]}
             icon={FileText}
-            disabled={customerType === "manual"} // Manual customers forced to Invoiced
             onChange={(val) => {
               handleInvoiceStatusChange(val);
             }}
           />
-          {customerType === "manual" && (
+          {customerType === "manual" && watchedInvoiceStatus === "Invoiced" && (
             <p className="text-xs text-amber-600 mt-1">
-              Guest sales must be fully invoiced.
+              Guest sales accept full payment only when invoiced.
             </p>
           )}
         </div>
@@ -335,7 +347,7 @@ const SaleFinancials = ({
               handlePaymentStatusChange(val);
             }}
           />
-          {customerType === "manual" && (
+          {customerType === "manual" && watchedInvoiceStatus === "Invoiced" && (
             <p className="text-xs text-amber-600 mt-1">
               Guest sales accept full payment only.
             </p>
