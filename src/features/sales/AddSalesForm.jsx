@@ -13,6 +13,7 @@ import { useProductsForSale } from "@/api/hooks/products";
 import { useCreateSale, useUpdateSale } from "@/api/hooks/sales";
 
 import { useSettings } from "@/context/SettingsContext";
+import { useAuth } from "@/hooks/useAuth";
 
 import FormHeader from "@/components/ui/FormHeader";
 import FormActions from "@/components/ui/FormActions";
@@ -33,6 +34,12 @@ const AddSales = ({
   const isEditMode = !!editData;
   const [, setNewUploadedFiles] = useState([]);
   const { formatCurrency } = useSettings();
+  const { hasPermission } = useAuth();
+
+  // Determine if items should be locked (invoiced/cancelled sales)
+  const isItemsLocked = isEditMode && (editData?.invoiceStatus === 'Invoiced' || editData?.invoiceStatus === 'Cancelled');
+  const canAddItem = !isItemsLocked && (!isEditMode || hasPermission('SALE_ITEM_ADD'));
+  const canDeleteItem = !isItemsLocked && (!isEditMode || hasPermission('SALE_ITEM_DELETE'));
 
   // Block background interaction and auto-fill when modal is open
   useEffect(() => {
@@ -529,6 +536,10 @@ const AddSales = ({
                   fields={fields}
                   append={append}
                   remove={remove}
+                  isItemsLocked={isItemsLocked}
+                  canAddItem={canAddItem}
+                  canDeleteItem={canDeleteItem}
+                  invoiceStatus={editData?.invoiceStatus}
                 />
 
                 {/* Sale Notes Input */}
