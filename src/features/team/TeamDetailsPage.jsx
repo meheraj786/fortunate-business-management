@@ -17,7 +17,7 @@ import { showErrorToast } from "@/utils/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/api/hooks/user";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
-import AuditInfoSection from "@/components/ui/AuditInfoSection";
+import EntityAuditLog from "@/components/ui/EntityAuditLog";
 
 const TeamDetails = () => {
   const { id } = useParams();
@@ -302,15 +302,11 @@ const TeamDetails = () => {
           </div>
         </div>
 
-        <AuditInfoSection
-          createdBy={member?.createdBy}
-          createdAt={member?.createdAt}
-          modifiedBy={member?.modifiedBy}
-          updatedAt={member?.updatedAt}
-          deletedBy={member?.deletedBy}
-          deletedAt={member?.deletedAt}
-          isDeleted={member?.isDeleted}
-        />
+        {hasPermission("AUDIT_VIEW") && (
+          <div className="mt-6">
+            <EntityAuditLog moduleId={id} moduleName="User" />
+          </div>
+        )}
       </div>
     </div>
   );

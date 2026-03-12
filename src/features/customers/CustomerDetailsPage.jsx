@@ -672,16 +672,6 @@ const CustomerDetails = () => {
             </CollapsibleCard>
           </div>
 
-          <AuditInfoSection
-            createdBy={customerData?.createdBy}
-            createdAt={customerData?.createdAt}
-            modifiedBy={customerData?.modifiedBy}
-            updatedAt={customerData?.updatedAt}
-            deletedBy={customerData?.deletedBy}
-            deletedAt={customerData?.deletedAt}
-            isDeleted={customerData?.isDeleted}
-          />
-
           {hasPermission("AUDIT_VIEW") && (
             <EntityAuditLog moduleId={id} moduleName="Customer" />
           )}

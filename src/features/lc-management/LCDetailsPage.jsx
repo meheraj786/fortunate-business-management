@@ -32,7 +32,6 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import DataField from "@/components/ui/DataField";
 import CostField from "@/components/ui/CostField";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
-import AuditInfoSection from "@/components/ui/AuditInfoSection";
 import EntityAuditLog from "@/components/ui/EntityAuditLog";
 
 import {
@@ -879,15 +878,6 @@ const LCdetails = () => {
             </CollapsibleCard>
           </div>
         </div>
-        <AuditInfoSection
-          createdBy={lcData?.createdBy}
-          createdAt={lcData?.createdAt}
-          modifiedBy={lcData?.modifiedBy}
-          updatedAt={lcData?.updatedAt}
-          deletedBy={lcData?.deletedBy}
-          deletedAt={lcData?.deletedAt}
-          isDeleted={lcData?.isDeleted}
-        />
         {hasPermission("AUDIT_VIEW") && (
           <div className="mt-6">
             <EntityAuditLog moduleId={id} moduleName="LC" />

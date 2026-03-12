@@ -34,8 +34,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSettings } from "@/context/SettingsContext";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
-import AuditInfoSection from "@/components/ui/AuditInfoSection";
 import SelectField from "@/components/ui/SelectField";
+import EntityAuditLog from "@/components/ui/EntityAuditLog";
 
 const sortOptions = [
   { value: "date", label: "Date" },
@@ -579,15 +579,11 @@ const AccountDetails = () => {
         </div>
       )}
 
-      <AuditInfoSection
-        createdBy={account?.createdBy}
-        createdAt={account?.createdAt}
-        modifiedBy={account?.modifiedBy}
-        updatedAt={account?.updatedAt}
-        deletedBy={account?.deletedBy}
-        deletedAt={account?.deletedAt}
-        isDeleted={account?.isDeleted}
-      />
+      {hasPermission("AUDIT_VIEW") && (
+        <div className="mt-6">
+          <EntityAuditLog moduleId={accountId} moduleName="Account" />
+        </div>
+      )}
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}

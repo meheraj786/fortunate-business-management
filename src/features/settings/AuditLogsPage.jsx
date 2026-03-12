@@ -72,6 +72,11 @@ const AuditLogsPage = () => {
         setExpandedRows(newExpanded);
     };
 
+    const hasData = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0;
+    const hasChanges = (log) => log.changes && (hasData(log.changes.before) || hasData(log.changes.after));
+    const hasMetadata = (log) => log.metadata && Object.keys(log.metadata).length > 0;
+    const isExpandable = (log) => hasChanges(log) || hasMetadata(log);
+
     const getActionColor = (actionType) => {
         switch (actionType) {
             case "CREATE": return "text-emerald-700 bg-emerald-50 border-emerald-200";
@@ -152,7 +157,7 @@ const AuditLogsPage = () => {
                                             {log.module}
                                         </span>
                                     </div>
-                                    {(log.changes || log.metadata) && (
+                                    {isExpandable(log) && (
                                         <button
                                             onClick={() => toggleRow(log._id)}
                                             className="p-1 rounded-md hover:bg-gray-200 text-gray-500 transition-colors flex-shrink-0"
@@ -177,9 +182,9 @@ const AuditLogsPage = () => {
                                 </div>
 
                                 {/* Expanded Details */}
-                                {expandedRows.has(log._id) && (log.changes || log.metadata) && (
+                                {expandedRows.has(log._id) && isExpandable(log) && (
                                     <div className="mt-2 space-y-3">
-                                        {log.changes && (
+                                        {hasChanges(log) && (
                                             <div className="bg-white p-3 rounded border border-gray-200 shadow-sm overflow-x-auto">
                                                 <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                     <FileCode2 size={14} /> Changes
@@ -200,7 +205,7 @@ const AuditLogsPage = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        {log.metadata && !log.changes && (
+                                        {hasMetadata(log) && (
                                             <div className="bg-white p-3 rounded border border-gray-200 shadow-sm overflow-x-auto">
                                                 <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                     <FileCode2 size={14} /> Metadata
@@ -279,7 +284,7 @@ const AuditLogsPage = () => {
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-center">
-                                            {(log.changes || log.metadata) && (
+                                            {isExpandable(log) && (
                                                 <button
                                                     onClick={() => toggleRow(log._id)}
                                                     className="p-1 rounded-md hover:bg-gray-200 text-gray-500 transition-colors"
@@ -292,11 +297,11 @@ const AuditLogsPage = () => {
                                     </tr>
 
                                     {/* Expanded Row for JSON details */}
-                                    {expandedRows.has(log._id) && (log.changes || log.metadata) && (
+                                    {expandedRows.has(log._id) && isExpandable(log) && (
                                         <tr className="bg-gray-50/80 border-b border-gray-100">
                                             <td colSpan="6" className="px-4 py-3">
                                                 <div className="flex flex-col lg:flex-row gap-4">
-                                                    {log.changes && (
+                                                    {hasChanges(log) && (
                                                         <div className="flex-1 bg-white p-3 rounded border border-gray-200 shadow-sm overflow-x-auto min-w-0">
                                                             <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                                 <FileCode2 size={14} /> Changes
@@ -318,7 +323,7 @@ const AuditLogsPage = () => {
                                                         </div>
                                                     )}
 
-                                                    {log.metadata && !log.changes && (
+                                                    {hasMetadata(log) && (
                                                         <div className="bg-white p-3 rounded border border-gray-200 shadow-sm w-full overflow-x-auto">
                                                             <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                                                 <FileCode2 size={14} /> Metadata

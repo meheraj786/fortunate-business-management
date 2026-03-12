@@ -22,8 +22,8 @@ import CollapsibleCard from "@/components/ui/CollapsibleCard";
 import DataField from "@/components/ui/DataField";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
-import AuditInfoSection from "@/components/ui/AuditInfoSection";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import EntityAuditLog from "@/components/ui/EntityAuditLog";
 import {
     useAdvancePayment,
     useDeleteAdvancePayment,
@@ -589,16 +589,6 @@ const AdvancePaymentDetailsPage = () => {
                                 </div>
                             )}
                         </CollapsibleCard>
-
-                        {/* Audit Info */}
-                        {adv && (
-                            <AuditInfoSection
-                                createdBy={adv.createdBy}
-                                modifiedBy={adv.modifiedBy}
-                                createdAt={adv.createdAt}
-                                updatedAt={adv.updatedAt}
-                            />
-                        )}
                     </div>
 
                     {/* Desktop Sidebar — hidden on mobile (shown above instead) */}
@@ -613,6 +603,12 @@ const AdvancePaymentDetailsPage = () => {
                         </CollapsibleCard>
                     </div>
                 </div>
+
+                {hasPermission("AUDIT_VIEW") && (
+                    <div className="mt-6">
+                        <EntityAuditLog moduleId={id} moduleName="AdvancePayment" />
+                    </div>
+                )}
             </div>
 
             {/* Mobile Sticky Bottom Action Bar */}

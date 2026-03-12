@@ -32,7 +32,7 @@ import { getCategories } from "@/api/category.api";
 import { getCompletedLCs } from "@/api/lc.api";
 import { getUnits } from "@/api/unit.api";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
-import AuditInfoSection from "@/components/ui/AuditInfoSection";
+import EntityAuditLog from "@/components/ui/EntityAuditLog";
 
 const formatNumber = (num) => {
   if (typeof num !== "number") return num;
@@ -418,15 +418,11 @@ const ProductDetails = () => {
             <p className="text-sm text-gray-500">You don't have permission to view sales history for this product. Contact your administrator for access.</p>
           </div>
         )}
-        <AuditInfoSection
-          createdBy={product?.createdBy}
-          createdAt={product?.createdAt}
-          modifiedBy={product?.modifiedBy}
-          updatedAt={product?.updatedAt}
-          deletedBy={product?.deletedBy}
-          deletedAt={product?.deletedAt}
-          isDeleted={product?.isDeleted}
-        />
+        {hasPermission("AUDIT_VIEW") && (
+          <div className="mt-6">
+            <EntityAuditLog moduleId={productId} moduleName="Product" />
+          </div>
+        )}
       </div>
       {showEditForm && (
         <AddProductForm

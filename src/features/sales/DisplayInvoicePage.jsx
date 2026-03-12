@@ -7,7 +7,6 @@ import { AlertTriangle, ArrowLeft, FileX, Printer, Share2 } from "lucide-react";
 import React from "react";
 import Button from "@/components/ui/Button";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import AuditInfoSection from "@/components/ui/AuditInfoSection";
 import { showErrorToast } from "@/utils/notifications";
 
 const DisplayInvoice = () => {

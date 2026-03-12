@@ -33,7 +33,6 @@ import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
 import AddSalesForm from "./AddSalesForm";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
-import AuditInfoSection from "@/components/ui/AuditInfoSection";
 import EntityAuditLog from "@/components/ui/EntityAuditLog";
 
 // Sub-components
@@ -442,15 +441,6 @@ const SaleDetails = () => {
             />
           )}
         </div>
-        <AuditInfoSection
-          createdBy={sale?.createdBy}
-          createdAt={sale?.createdAt}
-          modifiedBy={sale?.modifiedBy}
-          updatedAt={sale?.updatedAt}
-          deletedBy={sale?.deletedBy}
-          deletedAt={sale?.deletedAt}
-          isDeleted={sale?.isDeleted}
-        />
 
         {hasPermission("AUDIT_VIEW") && (
           <div className="mt-6">
