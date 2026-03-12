@@ -7,6 +7,7 @@ export const useSystemSettings = () => {
     queryKey: ["systemSettings"],
     queryFn: getSystemSettings,
     select: (data) => data.data,
+    enabled: localStorage.getItem("isAuthenticated") === "true",
   });
 };
 

@@ -17,11 +17,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await loginMutation.mutateAsync({ email, password });
+    localStorage.setItem("isAuthenticated", "true");
     await queryClient.invalidateQueries();
     return response;
   };
 
   const logout = async () => {
+    localStorage.removeItem("isAuthenticated");
     try {
       await logoutMutation.mutateAsync();
     } catch (err) {

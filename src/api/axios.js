@@ -50,6 +50,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, false);
+        localStorage.removeItem("isAuthenticated");
         // Don't use window.location.href — it causes a hard browser reload.
         // Just reject the error; PrivateRoute will detect null user and
         // navigate to /login via React Router (smooth, no reload).

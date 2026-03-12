@@ -21,6 +21,7 @@ export const useProfile = () =>
       const response = await getProfile();
       return response.data.data;
     },
+    enabled: localStorage.getItem("isAuthenticated") === "true",
     retry: (failureCount, error) => {
       // Don't retry on auth errors (the interceptor already tried refreshing)
       if (error.response?.status === 401) return false;

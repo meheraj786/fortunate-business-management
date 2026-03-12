@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import "@/styles/Login.css";
 import { useAuth } from "@/hooks/useAuth";
@@ -58,27 +57,15 @@ const Login = () => {
 
       {/* Form content */}
       <div className="relative z-10 w-full flex justify-center">
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ maxWidth: "26rem" }}
-            className="w-full"
-          >
-            <form
+        <div style={{ maxWidth: "26rem" }} className="w-full animate-fade-in-up">
+          <form
               onSubmit={handleSubmit(onSubmit)} // Use handleSubmit from react-hook-form
               className="bg-[#f7f8ff] rounded-lg shadow-xl p-6 space-y-5 border border-gray-100"
             >
               <div className="text-center">
-                <motion.h1
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
-                  className="text-2xl font-bold text-gray-800"
-                >
+                <h1 className="text-2xl font-bold text-gray-800 animate-fade-in-up">
                   Welcome Back
-                </motion.h1>
+                </h1>
                 <p className="text-gray-600 mt-1 text-sm">
                   Access your account
                 </p>
@@ -130,19 +117,14 @@ const Login = () => {
                   </button>
                 </div>
               </InputField>
-              <AnimatePresence>
-                {errors.password && (
-                  <motion.p
-                    id="password-error"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="text-sm text-[var(--color-danger)]"
-                  >
-                    {errors.password.message}
-                  </motion.p>
-                )}
-              </AnimatePresence>
+              {errors.password && (
+                <p
+                  id="password-error"
+                  className="text-sm text-[var(--color-danger)]"
+                >
+                  {errors.password.message}
+                </p>
+              )}
 
               {/* Submit Button */}
               <Button
@@ -154,8 +136,7 @@ const Login = () => {
                 {isSubmitting ? "Signing in..." : "Sign in"}
               </Button>
             </form>
-          </motion.div>
-        </AnimatePresence>
+        </div>
       </div>
     </div>
   );
