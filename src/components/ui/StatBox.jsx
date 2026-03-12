@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "framer-motion";
 import ValueSkeleton from "./ValueSkeleton";
 
 const StatBox = ({
@@ -24,10 +23,8 @@ const StatBox = ({
     }
   })();
   return (
-    <motion.div
-      className="xl:flex-1 xl:w-auto w-full relative group hover:shadow-xl transition-shadow duration-300 cursor-pointer rounded-xl sm:rounded-lg bg-white p-4"
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+    <div
+      className="xl:flex-1 xl:w-auto w-full relative group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer rounded-xl sm:rounded-lg bg-white p-4"
     >
       <div className="flex justify-between items-center relative z-10">
         <div>
@@ -51,7 +48,7 @@ const StatBox = ({
         )}
       </div>
       <div className="absolute bottom-0 left-0 z-0 bg-gray-100 w-0 group-hover:w-[70%] rounded-tr-full h-[70%] transition-all duration-300"></div>
-    </motion.div>
+    </div>
   );
 };
 

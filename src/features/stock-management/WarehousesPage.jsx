@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { Link } from "react-router"; // Changed to react-router
 import {
   Box,
@@ -17,12 +17,13 @@ import {
 } from "lucide-react";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
-import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatBox from "@/components/ui/StatBox";
-import AddWarehouseForm from "./AddWarehouseForm";
 import { useAuth } from "@/hooks/useAuth";
 import { useWarehouses, useDeleteWarehouse } from "@/api/hooks/warehouse";
 import Button from "@/components/ui/Button"; // Import Button component
+
+const AddWarehouseForm = lazy(() => import("./AddWarehouseForm"));
+const ConfirmationModal = lazy(() => import("@/components/ui/ConfirmationModal"));
 
 const Warehouses = () => {
   const {
@@ -35,6 +36,7 @@ const Warehouses = () => {
   const deleteWarehouseMutation = useDeleteWarehouse();
 
   const [showAddWarehouseForm, setShowAddWarehouseForm] = useState(false);
+  const [hasOpenedForm, setHasOpenedForm] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [warehouseToDelete, setWarehouseToDelete] = useState(null);
 
@@ -59,11 +61,13 @@ const Warehouses = () => {
   const handleAddClick = () => {
     setEditingWarehouse(null);
     setShowAddWarehouseForm(true);
+    setHasOpenedForm(true);
   };
 
   const handleEditClick = (warehouse) => {
     setEditingWarehouse(warehouse);
     setShowAddWarehouseForm(true);
+    setHasOpenedForm(true);
   };
 
   const handleDeleteClick = (warehouse) => {
@@ -373,25 +377,29 @@ const Warehouses = () => {
           </div>
         )}
       </div>
-      <AddWarehouseForm
-        isOpen={showAddWarehouseForm}
-        onClose={handleFormClose}
-        onWarehouseAdded={handleFormClose}
-        onWarehouseUpdated={handleFormClose}
-        editingWarehouse={editingWarehouse}
-      />
-      {warehouseToDelete && (
-        <ConfirmationModal
-          isOpen={!!warehouseToDelete}
-          onClose={() => setWarehouseToDelete(null)}
-          onConfirm={confirmDelete}
-          title="Delete Warehouse"
-          description={`Are you sure you want to delete the warehouse "${warehouseToDelete?.name}"? This action cannot be undone.`}
-          confirmText="Delete"
-          isConfirming={deleteWarehouseMutation.isLoading}
-          confirmingText="Deleting..."
-        />
-      )}
+      <Suspense fallback={null}>
+        {hasOpenedForm && (
+          <AddWarehouseForm
+            isOpen={showAddWarehouseForm}
+            onClose={handleFormClose}
+            onWarehouseAdded={handleFormClose}
+            onWarehouseUpdated={handleFormClose}
+            editingWarehouse={editingWarehouse}
+          />
+        )}
+        {warehouseToDelete && (
+          <ConfirmationModal
+            isOpen={!!warehouseToDelete}
+            onClose={() => setWarehouseToDelete(null)}
+            onConfirm={confirmDelete}
+            title="Delete Warehouse"
+            description={`Are you sure you want to delete the warehouse "${warehouseToDelete?.name}"? This action cannot be undone.`}
+            confirmText="Delete"
+            isConfirming={deleteWarehouseMutation.isLoading}
+            confirmingText="Deleting..."
+          />
+        )}
+      </Suspense>
     </div>
   );
 };
