@@ -18,7 +18,6 @@ import { IoHome } from "react-icons/io5";
 import { BsFillCreditCardFill } from "react-icons/bs";
 import { MdPeopleAlt } from "react-icons/md";
 import { RiSettings3Fill, RiMenuLine } from "react-icons/ri";
-import { motion, AnimatePresence } from "framer-motion";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { getLCSummary } from "@/api/lc.api";
@@ -40,15 +39,11 @@ const getLocalDateString = (date) => {
 
 const SidebarItem = memo(
   ({ icon: Icon, label, active, onClick, onMouseEnter, index, collapsed }) => (
-    <motion.div
-      className={`flex items-center p-3 rounded-lg cursor-pointer group relative ${collapsed ? "justify-center" : "justify-start"
+    <div
+      className={`flex items-center p-3 rounded-lg cursor-pointer group relative transition-transform duration-200 ${collapsed ? "justify-center" : "justify-start hover:translate-x-1"
         }`}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
-      initial={{ opacity: 0, x: -15 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.25, delay: index * 0.04 }}
-      whileHover={{ x: collapsed ? 0 : 5 }}
     >
       <div
         className={`p-2 rounded-lg shadow-md transition-colors duration-200 ${active
@@ -59,29 +54,23 @@ const SidebarItem = memo(
         <Icon size={18} />
       </div>
 
-      <AnimatePresence>
-        {!collapsed && (
-          <motion.span
-            className={`ml-2 transition-colors duration-200 whitespace-nowrap ${active
-              ? "text-gray-800 font-semibold"
-              : "text-gray-500 font-normal"
-              }`}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -8 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-          >
-            {label}
-          </motion.span>
-        )}
-      </AnimatePresence>
+      {!collapsed && (
+        <span
+          className={`ml-2 transition-colors duration-200 whitespace-nowrap ${active
+            ? "text-gray-800 font-semibold"
+            : "text-gray-500 font-normal"
+            }`}
+        >
+          {label}
+        </span>
+      )}
 
       {collapsed && (
-        <div className="absolute left-full ml-3 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity z-30 whitespace-nowrap">
+        <div className="absolute left-full ml-3 px-2 py-1 bg-gray-800 text-white text-sm rounded pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-30 whitespace-nowrap">
           {label}
         </div>
       )}
-    </motion.div>
+    </div>
   ),
 );
 
@@ -299,29 +288,21 @@ const Sidebar = memo(() => {
           <RiMenuLine size={20} />
         </button>
 
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div
-              className="fixed inset-0 bg-black/40 backdrop-blur-md z-30"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              onClick={() => setMobileOpen(false)}
-            />
-          )}
-        </AnimatePresence>
+        {/* Mobile Overlay */}
+        <div
+          className={`fixed inset-0 bg-black/40 backdrop-blur-md z-30 transition-opacity duration-300 ${
+            mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={() => setMobileOpen(false)}
+        />
 
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div
-              className="fixed inset-y-0 left-0 w-64 bg-[#f8f9fa] z-40 shadow-lg overflow-y-auto"
-              initial={{ x: -300, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -300, opacity: 0 }}
-              transition={{ type: "tween", duration: 0.35, ease: "easeInOut" }}
-            >
-              <div className="p-6 h-full flex flex-col">
+        {/* Mobile Sidebar */}
+        <div
+          className={`fixed inset-y-0 left-0 w-64 bg-[#f8f9fa] z-40 shadow-lg overflow-y-auto transition-transform duration-300 ease-in-out ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="p-6 h-full flex flex-col">
                 <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-6">
                   <div className="font-inter text-lg font-bold">
                     {settings?.businessName || "BUSINESS MANAGEMENT SYSTEM"}
@@ -353,9 +334,7 @@ const Sidebar = memo(() => {
                   />
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
         <ConfirmationModal
           isOpen={isLogoutModalOpen}
           onClose={() => setIsLogoutModalOpen(false)}
@@ -374,10 +353,8 @@ const Sidebar = memo(() => {
   // Desktop sidebar
   return (
     <>
-      <motion.div
-        className="bg-[#f8f9fa] h-screen sticky top-0 z-20"
-        animate={{ width: collapsed ? 80 : 256 }}
-        transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+      <div
+        className={`bg-[#f8f9fa] h-screen sticky top-0 z-20 transition-all duration-300 ease-in-out ${collapsed ? "w-20" : "w-64"}`}
       >
         <div className="border-r border-gray-300 h-full p-4 flex flex-col">
           <div>
@@ -385,19 +362,11 @@ const Sidebar = memo(() => {
               className={`flex items-center border-b border-gray-200 pb-4 mb-6 ${collapsed ? "justify-center" : "justify-between"
                 }`}
             >
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.div
-                    className="font-inter text-lg font-bold"
-                    initial={{ opacity: 0, x: -15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -15 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
-                  >
-                    {settings?.businessName || "BUSINESS MANAGEMENT SYSTEM"}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {!collapsed && (
+                <div className="font-inter text-lg font-bold truncate pr-2 transition-opacity duration-300">
+                  {settings?.businessName || "BUSINESS MANAGEMENT SYSTEM"}
+                </div>
+              )}
 
               <button
                 onClick={toggleSidebar}
@@ -433,7 +402,7 @@ const Sidebar = memo(() => {
             />
           </div>
         </div>
-      </motion.div>
+      </div>
       <ConfirmationModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}

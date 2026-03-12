@@ -117,14 +117,6 @@ const Login = () => {
                   </button>
                 </div>
               </InputField>
-              {errors.password && (
-                <p
-                  id="password-error"
-                  className="text-sm text-[var(--color-danger)]"
-                >
-                  {errors.password.message}
-                </p>
-              )}
 
               {/* Submit Button */}
               <Button

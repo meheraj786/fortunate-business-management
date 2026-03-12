@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import React, { memo, useId } from "react";
 import PropTypes from "prop-types";
 import { AlertCircle } from "lucide-react";
@@ -25,7 +24,8 @@ const InputField = ({
   children,
 }) => {
   const id = useId();
-  const errorId = `${id}-error`;
+  const errorTextId = `${id}-error-text`;
+  const errorIconId = `${id}-error-icon`;
 
   const inputProps = register
     ? { ...register(name, { required, ...validation }) }
@@ -49,7 +49,7 @@ const InputField = ({
           )}
         </label>
       )}
-      <motion.div className="relative" whileFocus={{ scale: 1.02 }}>
+      <div className="relative focus-within:scale-[1.02] transition-transform duration-200">
         {Icon && (
           <div
             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
@@ -69,7 +69,7 @@ const InputField = ({
           disabled={disabled}
           autoComplete={autoComplete}
           aria-invalid={!!error}
-          aria-describedby={error ? errorId : undefined}
+          aria-describedby={error ? errorTextId : undefined}
           className={`
             w-full px-4 py-3 sm:px-3 sm:py-2
             border rounded-lg
@@ -87,16 +87,16 @@ const InputField = ({
         {children}
         {error && (
           <div
-            id={errorId}
+            id={errorIconId}
             className="absolute right-3 top-1/2 transform -translate-y-1/2"
             aria-hidden="true"
           >
             <AlertCircle className="w-4 h-4 text-[var(--color-danger)]" />
           </div>
         )}
-      </motion.div>
+      </div>
       {error && (
-        <p id={errorId} className="text-sm text-[var(--color-danger)] mt-1">
+        <p id={errorTextId} className="text-sm text-[var(--color-danger)] mt-1">
           {error}
         </p>
       )}

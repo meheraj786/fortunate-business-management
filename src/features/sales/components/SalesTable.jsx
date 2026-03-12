@@ -1,6 +1,5 @@
 import React, { memo } from "react";
 import { Link } from "react-router"; // Changed to react-router
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
   X,
@@ -86,9 +85,7 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
       {/* Mobile View - Cards */}
       <div className="block sm:hidden space-y-4 px-4 sm:px-0">
         {/* Mobile Sorting Controls */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="flex items-center justify-between gap-3 mb-4 sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm p-3 rounded-xl border border-gray-200 shadow-sm"
         >
           <div className="flex items-center gap-2 flex-1 min-w-[200px]">
@@ -107,48 +104,38 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
             onClick={() => onSort(sortBy)}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-gray-700 shadow-sm active:scale-95 transition-all outline-none"
           >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={sortOrder}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="flex items-center gap-1.5"
-              >
-                {sortOrder === "desc" ? (
-                  <>
-                    <ArrowDown
-                      size={14}
-                      className="text-[var(--color-primary)]"
-                    />
-                    DESC
-                  </>
-                ) : (
-                  <>
-                    <ArrowUp
-                      size={14}
-                      className="text-[var(--color-primary)]"
-                    />
-                    ASC
-                  </>
-                )}
-              </motion.div>
-            </AnimatePresence>
+            <div
+              key={sortOrder}
+              className="flex items-center gap-1.5"
+            >
+              {sortOrder === "desc" ? (
+                <>
+                  <ArrowDown
+                    size={14}
+                    className="text-[var(--color-primary)]"
+                  />
+                  DESC
+                </>
+              ) : (
+                <>
+                  <ArrowUp
+                    size={14}
+                    className="text-[var(--color-primary)]"
+                  />
+                  ASC
+                </>
+              )}
+            </div>
           </button>
-        </motion.div>
+        </div>
 
         <div className="space-y-4">
-          <AnimatePresence initial={false}>
-            {sales.map((sale) => (
-              <motion.div
-                key={sale._id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm active:bg-gray-50 transition-colors"
-                transition={{ duration: 0.12 }}
-                onMouseEnter={() => prefetchSaleDetails(sale._id)}
-              >
+          {sales.map((sale) => (
+            <div
+              key={sale._id}
+              className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm active:bg-gray-50 transition-colors"
+              onMouseEnter={() => prefetchSaleDetails(sale._id)}
+            >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 min-w-0 mr-2">
                     <div className="flex items-center gap-2 mb-1">
@@ -206,9 +193,8 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                     </span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </AnimatePresence>
         </div>
       </div>
 
@@ -282,17 +268,12 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
               </tr>
             </thead>
             <tbody className="bg-white relative">
-              <AnimatePresence initial={false}>
-                {sales.map((sale) => (
-                  <motion.tr
-                    key={sale._id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="hover:bg-gray-50 transition-colors group"
-                    transition={{ duration: 0.12 }}
-                    onMouseEnter={() => prefetchSaleDetails(sale._id)}
-                  >
+              {sales.map((sale) => (
+                <tr
+                  key={sale._id}
+                  className="hover:bg-gray-50 transition-colors group"
+                  onMouseEnter={() => prefetchSaleDetails(sale._id)}
+                >
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 border-b border-gray-100">
                       <Link
                         to={`/sales/${sale._id}`}
@@ -358,9 +339,8 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                     <td className="whitespace-nowrap py-4 pl-3 pr-4 text-sm text-gray-500 sm:pr-6 border-b border-gray-100">
                       {formatDate(sale.saleDate)}
                     </td>
-                  </motion.tr>
+                  </tr>
                 ))}
-              </AnimatePresence>
             </tbody>
           </table>
         </div>

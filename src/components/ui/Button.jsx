@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
 import { Loader2 } from 'lucide-react';
 
@@ -45,28 +44,27 @@ const Button = React.forwardRef(
     const disabledState = isLoading || disabled;
 
     return (
-      <motion.button
+      <button
         ref={ref}
         type={type}
         onClick={onClick}
         disabled={disabledState}
         className={clsx(
-          'inline-flex items-center justify-center rounded-lg font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] gap-2', // increased border-radius
+          'inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] gap-2', // increased border-radius
           'min-h-[48px] sm:min-h-[44px]', // Ensure minimum touch target height, detailed for mobile
           buttonVariants[variant],
           buttonSizes[size],
           {
             'opacity-50 cursor-not-allowed': disabledState,
+            'hover:scale-[1.02] active:scale-[0.98]': !disabledState,
           },
           className
         )}
-        whileHover={!disabledState ? { scale: 1.02 } : {}}
-        whileTap={!disabledState ? { scale: 0.98 } : {}}
         {...props}
       >
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {children}
-      </motion.button>
+      </button>
     );
   }
 );

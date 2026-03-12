@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import LoginPage from "@/features/login/LoginPage";
 import Layout from "@/components/layout/Layout";
 import PrivateRoute from "@/routes/PrivateRoutes";
+import IndexRedirect from "@/routes/IndexRedirect";
 
 // Auto-reload once if a lazy chunk fails to load (stale cache after deploy)
 const lazyWithRetry = (importFn) =>
@@ -145,7 +146,7 @@ const router = createBrowserRouter([
         path: "stock/:warehouseId/product/:productId",
         element: <ProductDetailsPage />,
       },
-      { index: true, element: <SalesDashboardPage /> },
+      { index: true, element: <IndexRedirect /> },
       { path: "sales", element: <SalesDashboardPage /> },
       { path: "sales/not-invoiced", element: <NotInvoicedSalesPage /> },
       { path: "sales/due-invoices", element: <DueInvoicesPage /> },
