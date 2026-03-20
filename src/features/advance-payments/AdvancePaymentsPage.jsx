@@ -219,8 +219,8 @@ const AdvancePaymentsPage = () => {
                         }`}
                 >
                     <StatBox
-                        title="Pending Amount"
-                        number={formatCurrency(stats.totalPendingAmount || 0)}
+                        title="Total Remaining"
+                        number={formatCurrency(stats.totalRemainingAmount || 0)}
                         Icon={Clock}
                         textColor="warning"
                         loading={isLoadingStats}

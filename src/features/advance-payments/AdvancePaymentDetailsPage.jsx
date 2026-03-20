@@ -207,6 +207,14 @@ const AdvancePaymentDetailsPage = () => {
                         </span>
                     </div>
                 )}
+                {adv?.settlementNote && (
+                    <div className="py-2 border-b border-gray-100">
+                        <span className="text-sm text-gray-600 block mb-1">Settlement Note</span>
+                        <p className="text-sm text-amber-800 bg-amber-50 rounded-md px-3 py-2 whitespace-pre-wrap">
+                            {adv.settlementNote}
+                        </p>
+                    </div>
+                )}
             </div>
 
             <div className="pt-2 border-t border-gray-200">
