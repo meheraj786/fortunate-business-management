@@ -10,6 +10,7 @@ import {
   XCircle,
   ArrowUp,
   ArrowDown,
+  ArrowUpDown,
   X,
   Trash,
   Loader2,
@@ -18,7 +19,7 @@ import { useWarehouse } from "@/api/hooks/warehouse";
 import { useProducts as useProductsFromProductHook } from "@/api/hooks/products";
 import { useAuth } from "@/hooks/useAuth";
 
-import ProductCard from "./components/ProductCard";
+import ProductTableRow from "./components/ProductTableRow";
 import StatBox from "@/components/ui/StatBox";
 import AddProductForm from "./AddProductForm";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -29,13 +30,18 @@ import SelectField from "@/components/ui/SelectField";
 import { showErrorToast } from "@/utils/notifications";
 import { useDebounce } from "@/hooks/useDebounce";
 
-const sortOptions = [
-  { value: "createdAt", label: "Creation Date" },
-  { value: "name", label: "Name" },
-  { value: "quantity", label: "Quantity" },
-  { value: "unitPrice", label: "Unit Price" },
-  { value: "updatedAt", label: "Last Updated" },
-];
+
+
+const SortIcon = ({ field, currentSort }) => {
+  if (currentSort.sortBy !== field) {
+    return <ArrowUpDown size={12} className="text-gray-300 opacity-0 group-hover:opacity-100 transition-all" />;
+  }
+  return currentSort.sortOrder === "asc" ? (
+    <ArrowUp size={12} className="text-[var(--color-primary)]" />
+  ) : (
+    <ArrowDown size={12} className="text-[var(--color-primary)]" />
+  );
+};
 
 const stockStatusOptions = [
   { value: "", label: "All Stock Statuses" },
@@ -101,16 +107,15 @@ const WarehouseStock = React.memo(() => {
     setPage(1);
   };
 
-  const handleSortByChange = (e) => {
-    setSorting((prev) => ({ ...prev, sortBy: e.target.value }));
-    setPage(1);
-  };
-
-  const toggleSortOrder = () => {
-    setSorting((prev) => ({
-      ...prev,
-      sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
-    }));
+  const handleSort = (field) => {
+    if (sorting.sortBy === field) {
+      setSorting((prev) => ({
+        ...prev,
+        sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
+      }));
+    } else {
+      setSorting({ sortBy: field, sortOrder: "desc" });
+    }
     setPage(1);
   };
 
@@ -251,118 +256,158 @@ const WarehouseStock = React.memo(() => {
               loading={warehouseLoading}
             />
           </div>
+        </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex-1 min-w-[200px] relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <label htmlFor="search-product" className="sr-only">
-                  Search by name or LC number
-                </label>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {/* TOOLBAR */}
+            <div className="p-3 sm:p-4 border-b border-gray-200 bg-white flex flex-col xl:flex-row gap-3 xl:gap-4 items-start xl:items-center justify-between">
+              <div className="flex-1 w-full sm:max-w-xs relative bg-gray-50 rounded-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
-                  id="search-product"
                   type="text"
-                  placeholder="Search by name or LC number..."
-                  className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent text-base sm:text-sm transition-shadow"
+                  placeholder="Search products..."
+                  className="w-full pl-9 pr-3 py-2 bg-transparent border border-gray-300 rounded-md focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-white text-sm transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="w-full sm:w-auto">
-                <SelectField
-                  value={filters.stockStatus}
-                  onChange={(val) => handleFilterChange("stockStatus", val)}
-                  options={stockStatusOptions}
-                  className="mb-0"
-                />
-              </div>
-              <div className="w-full sm:w-auto">
-                <SelectField
-                  value={sorting.sortBy}
-                  onChange={(val) => handleSortByChange({ target: { value: val } })}
-                  options={sortOptions}
-                  className="mb-0"
-                />
-              </div>
-              <Button
-                onClick={toggleSortOrder}
-                variant="secondary"
-                size="sm"
-                className="flex items-center justify-center"
-                aria-label={sorting.sortOrder === "asc" ? "Sort descending" : "Sort ascending"}
-              >
-                {sorting.sortOrder === "asc" ? (
-                  <ArrowUp className="w-4 h-4" />
-                ) : (
-                  <ArrowDown className="w-4 h-4" />
+              <div className="flex items-center gap-1.5 overflow-x-auto w-full xl:w-auto pb-1 xl:pb-0 scrollbar-hide">
+                {stockStatusOptions.map((option) => {
+                  const isActive = filters.stockStatus === option.value;
+                  const label = option.value === "" ? "All" : option.label;
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => handleFilterChange("stockStatus", option.value)}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-full whitespace-nowrap transition-all border ${
+                        isActive
+                          ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-sm"
+                          : "bg-white border-gray-200 text-gray-600 hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)]/20"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+                {isFiltered && (
+                  <button
+                    onClick={clearFilters}
+                    title="Clear Filters"
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-[var(--color-danger-light)] hover:text-[var(--color-danger)] transition-colors flex-shrink-0 ml-1"
+                  >
+                    <X size={16} />
+                  </button>
                 )}
-              </Button>
-              {isFiltered && (
-                <Button
-                  onClick={clearFilters}
-                  variant="subtle"
-                  size="sm"
-                  className="text-sm text-[var(--color-danger)] flex items-center gap-1"
-                >
-                  <X size={16} /> Clear
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {productsLoading ? (
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-lg border border-gray-200 p-4 animate-pulse"
-              >
-                <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
-                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                </div>
               </div>
-            ))}
-          </div>
-        ) : products.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-              {products.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  warehouseId={warehouseId}
-                />
-              ))}
             </div>
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              isLoading={productsLoading}
-              totalItems={totalProducts}
-              itemsPerPage={12}
-              className="mt-8 pt-6 border-t border-gray-200"
-            />
-          </>
-        ) : (
-          <div className="text-center py-8 sm:py-12 bg-white rounded-lg border border-gray-200">
-            <Package size={48} className="text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 text-lg mb-2">
-              {searchTerm || filters.stockStatus
-                ? "No products match your search"
-                : "No products found"}
-            </p>
-            <p className="text-gray-400 text-sm">
-              {searchTerm || filters.stockStatus
-                ? "Try adjusting your search or filter criteria"
-                : "Add your first product to get started"}
-            </p>
+
+            {/* TABLE BODY */}
+            {productsLoading ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500 font-semibold">
+                      <th className="px-2 py-2 sm:px-4 sm:py-2.5 w-1/3 min-w-[160px] sm:min-w-[200px]">Product</th>
+                      <th className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap sm:min-w-[100px]">Size</th>
+                      <th className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap sm:min-w-[100px]">LC Number</th>
+                      <th className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap text-right sm:min-w-[100px]">Unit Price</th>
+                      <th className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap text-right sm:min-w-[110px]">Quantity</th>
+                      <th className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap text-center sm:min-w-[90px]">Status</th>
+                      <th className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap text-right w-8 sm:w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        <td className="px-2 py-1.5 sm:px-4 sm:py-2">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="h-4 bg-gray-200 rounded w-28 sm:w-48"></div>
+                            <div className="h-3 bg-gray-100 rounded w-20 sm:w-32"></div>
+                          </div>
+                        </td>
+                        <td className="px-2 py-1.5 sm:px-4 sm:py-2"><div className="h-4 bg-gray-200 rounded w-12 sm:w-16"></div></td>
+                        <td className="px-2 py-1.5 sm:px-4 sm:py-2"><div className="h-4 bg-gray-200 rounded w-16 sm:w-24"></div></td>
+                        <td className="px-2 py-1.5 sm:px-4 sm:py-2"><div className="h-4 bg-gray-200 rounded w-14 sm:w-16 ml-auto"></div></td>
+                        <td className="px-2 py-1.5 sm:px-4 sm:py-2"><div className="h-4 bg-gray-200 rounded w-16 sm:w-20 ml-auto"></div></td>
+                        <td className="px-2 py-1.5 sm:px-4 sm:py-2"><div className="h-5 bg-gray-200 rounded w-14 sm:w-16 mx-auto"></div></td>
+                        <td className="px-2 py-1.5 sm:px-4 sm:py-2"></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : products.length > 0 ? (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500 font-semibold select-none">
+                        <th onClick={() => handleSort("name")} className="px-2 py-2 sm:px-4 sm:py-2.5 w-1/3 min-w-[160px] sm:min-w-[200px] cursor-pointer hover:bg-gray-100 transition-colors group">
+                          <div className="flex items-center gap-1">
+                            Product
+                            <SortIcon field="name" currentSort={sorting} />
+                          </div>
+                        </th>
+                        <th className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap sm:min-w-[100px]">Size</th>
+                        <th className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap sm:min-w-[100px]">LC Number</th>
+                        <th onClick={() => handleSort("unitPrice")} className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors group sm:min-w-[100px]">
+                          <div className="flex items-center justify-end gap-1">
+                            Unit Price
+                            <SortIcon field="unitPrice" currentSort={sorting} />
+                          </div>
+                        </th>
+                        <th onClick={() => handleSort("quantity")} className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors group sm:min-w-[110px]">
+                          <div className="flex items-center justify-end gap-1">
+                            Quantity
+                            <SortIcon field="quantity" currentSort={sorting} />
+                          </div>
+                        </th>
+                        <th onClick={() => handleSort("stockStatus")} className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap cursor-pointer hover:bg-gray-100 transition-colors group sm:min-w-[90px]">
+                          <div className="flex items-center justify-center gap-1">
+                            Status
+                            <SortIcon field="stockStatus" currentSort={sorting} />
+                          </div>
+                        </th>
+                        <th className="px-2 py-2 sm:px-4 sm:py-2.5 whitespace-nowrap w-8 sm:w-10"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {products.map((product) => (
+                        <ProductTableRow
+                          key={product._id}
+                          product={product}
+                          warehouseId={warehouseId}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  isLoading={productsLoading}
+                  totalItems={totalProducts}
+                  itemsPerPage={12}
+                  className="p-4 border-t border-gray-200 bg-gray-50/50"
+                />
+              </>
+            ) : (
+              <div className="text-center py-12 sm:py-16">
+                <Package size={48} className="text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600 text-lg mb-2 font-medium">
+                  {searchTerm || filters.stockStatus
+                    ? "No products match criteria"
+                    : "No products in warehouse"}
+                </p>
+                <p className="text-gray-400 text-sm">
+                  {searchTerm || filters.stockStatus
+                    ? "Try adjusting search or clear filters"
+                    : "Add your first product to get started"}
+                </p>
+              </div>
+            )}
           </div>
-        )}
       </div>
 
       {showAddProductForm && (
