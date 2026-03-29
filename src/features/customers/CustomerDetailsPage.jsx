@@ -25,6 +25,7 @@ import {
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import AuditInfoSection from "@/components/ui/AuditInfoSection";
 import StatBox from "@/components/ui/StatBox";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 
 // Components
@@ -267,6 +268,11 @@ const CustomerDetails = () => {
       </div>
     );
 
+  const breadcrumbItems = [
+    { label: "Customers", path: "/customers" },
+    { label: customerData?.name || "Customer Profile" },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -274,6 +280,8 @@ const CustomerDetails = () => {
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
       <div className="max-w-7xl mx-auto">
+        <Breadcrumb items={breadcrumbItems} />
+        
         {/* ===== HEADER ===== */}
         <motion.div
           className="mb-4 sm:mb-6 p-4 sm:p-6 bg-white rounded-lg shadow-sm border border-gray-200"
