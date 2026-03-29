@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import PropTypes from "prop-types";
 import { useParams, useNavigate, Link } from "react-router";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
   Mail,
@@ -343,31 +343,38 @@ const CustomerDetails = () => {
         </motion.div>
 
         {/* ===== OUTSTANDING OPENING BALANCE ALERT ===== */}
-        {openingBalanceSale && openingBalanceSale.balanceDue > 0 && (
-          <motion.div
-            className="mb-4 sm:mb-6 p-4 lg:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white shadow-sm"
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mr-4 flex-shrink-0">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Action Required</p>
-                <p className="text-sm font-semibold text-gray-900">
-                  Customer has an unpaid opening balance of <span className="text-red-600 font-bold">{formatCurrency(openingBalanceSale.balanceDue)}</span>
-                </p>
-              </div>
-            </div>
-            <Link
-              to={`/sales/${openingBalanceSale._id}`}
-              className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+        <AnimatePresence>
+          {openingBalanceSale && openingBalanceSale.balanceDue > 0 && (
+            <motion.div
+              layout
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden mb-4 sm:mb-6"
             >
-               View & Repay
-            </Link>
-          </motion.div>
-        )}
+              <div className="p-4 lg:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50/50 shadow-sm">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-4 flex-shrink-0">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Action Required</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      Customer has an unpaid opening balance of <span className="text-red-600 font-bold">{formatCurrency(openingBalanceSale.balanceDue)}</span>
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  to={`/sales/${openingBalanceSale._id}`}
+                  className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold bg-[var(--color-danger)] text-white hover:bg-[var(--color-danger-hover)] rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                >
+                   View & Repay
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ===== STATS ROW ===== */}
         <div className="mb-4 sm:mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
@@ -654,7 +661,7 @@ const CustomerDetails = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {salesData.map((sale) => (
+                        {salesData.slice(0, 10).map((sale) => (
                           <tr
                             key={sale._id}
                             className="hover:bg-gray-50 cursor-pointer"
@@ -701,16 +708,16 @@ const CustomerDetails = () => {
                     </table>
                   </div>
 
-                  {/* Pagination */}
-                  {pagination.totalPages > 1 && (
-                    <div className="mt-4">
-                      <Pagination
-                        currentPage={pagination.currentPage}
-                        totalPages={pagination.totalPages}
-                        onPageChange={handleSalesPageChange}
-                        isLoading={loadingSales}
-                        totalItems={pagination.totalItems}
-                      />
+                  {/* View All Button */}
+                  {salesData.length > 0 && (
+                    <div className="p-4 border-t border-gray-200 bg-gray-50 text-center rounded-b-lg">
+                      <Link
+                        to={`/customer-details/${id}/sales`}
+                        className="text-sm font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors inline-flex items-center"
+                      >
+                        View All Purchases
+                        <span className="ml-1">→</span>
+                      </Link>
                     </div>
                   )}
                 </>

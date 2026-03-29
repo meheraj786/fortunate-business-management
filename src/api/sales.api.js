@@ -21,8 +21,8 @@ export const cancelSale = (id) =>
 export const getSalesSummary = () =>
   api.get("/sales/sales-summary");
 
-export const getSalesByCustomerId = (customerId) =>
-  api.get(`/sales/customer/${customerId}`);
+export const getSalesByCustomerId = (customerId, params) =>
+  api.get(`/sales/customer/${customerId}`, { params });
 
 export const getInvoiceStatusCount = () =>
   api.get("/sales/get-all-invoices-status-count");

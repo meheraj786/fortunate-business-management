@@ -61,6 +61,9 @@ const CustomerFormPage = lazyWithRetry(
 const CustomerWalletPage = lazyWithRetry(
   () => import("@/features/customers/CustomerWalletPage"),
 );
+const CustomerSalesPage = lazyWithRetry(
+  () => import("@/features/customers/CustomerSalesPage"),
+);
 const ProductDetailsPage = lazyWithRetry(
   () => import("@/features/stock-management/ProductDetailsPage"),
 );
@@ -144,6 +147,7 @@ const router = createBrowserRouter([
       { path: "lc-details/:id", element: <LCDetailsPage /> },
       { path: "customer-details/:id", element: <CustomerDetailsPage /> },
       { path: "customer-details/:id/wallet", element: <CustomerWalletPage /> },
+      { path: "customer-details/:id/sales", element: <CustomerSalesPage /> },
       { path: "stock-management", element: <StockManagementPage /> },
       { path: "stock/:warehouseId", element: <WarehouseStockPage /> },
       {
