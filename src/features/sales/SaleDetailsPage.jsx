@@ -148,6 +148,8 @@ const SaleDetails = () => {
       {
         label: isLoading ? (
           <ValueSkeleton width="w-24" height="h-3" />
+        ) : sale?.saleId?.startsWith("OPEN-BAL-") ? (
+          "Opening Balance"
         ) : (
           `Sale #${sale?.saleId || ""}`
         ),
@@ -167,6 +169,7 @@ const SaleDetails = () => {
   const customerId = sale?.customer?.customerId?._id || sale?.customer?.customerId;
   const isRegisteredCustomer = !!customerId;
   const validPayments = sale?.payments?.filter((p) => p.amount) || [];
+  const isOpeningBalance = sale?.saleId?.startsWith("OPEN-BAL-");
 
   return (
     <motion.div
@@ -190,6 +193,8 @@ const SaleDetails = () => {
                     <h1 className="text-base sm:text-2xl font-bold text-gray-900 truncate">
                       {isLoading ? (
                         <ValueSkeleton width="w-24" height="h-6 sm:h-7" />
+                      ) : isOpeningBalance ? (
+                        "Opening Balance Record"
                       ) : (
                         `#${sale.saleId}`
                       )}
@@ -220,7 +225,7 @@ const SaleDetails = () => {
 
                 {/* Desktop Actions */}
                 <div className="hidden md:flex flex-shrink-0 flex-wrap gap-2">
-                  {hasPermission("SALE_UPDATE") && (
+                  {hasPermission("SALE_UPDATE") && !isOpeningBalance && (
                     <Button
                       onClick={() => setIsUpdateModalOpen(true)}
                       disabled={isCancelled || deleteSaleMutation.isLoading || cancelSaleMutation.isLoading}
@@ -232,7 +237,7 @@ const SaleDetails = () => {
                       <span>Update Sale</span>
                     </Button>
                   )}
-                  {hasPermission("SALE_CANCEL") && (
+                  {hasPermission("SALE_CANCEL") && !isOpeningBalance && (
                     <Button
                       onClick={() => setConfirmAction({ type: "cancel" })}
                       disabled={isCancelled || deleteSaleMutation.isLoading || cancelSaleMutation.isLoading}
@@ -244,7 +249,7 @@ const SaleDetails = () => {
                       <span>Cancel Sale</span>
                     </Button>
                   )}
-                  {hasPermission("SALE_DELETE") && (
+                  {hasPermission("SALE_DELETE") && !isOpeningBalance && (
                     <Button
                       onClick={() => setConfirmAction({ type: "delete" })}
                       disabled={deleteSaleMutation.isLoading || cancelSaleMutation.isLoading}
@@ -293,6 +298,7 @@ const SaleDetails = () => {
                 isRegisteredCustomer={isRegisteredCustomer}
                 hasPermission={hasPermission}
                 loading={isLoading}
+                isOpeningBalance={isOpeningBalance}
               />
               <SaleFinancialSummary
                 sale={sale}
@@ -302,6 +308,7 @@ const SaleDetails = () => {
                 hasPermission={hasPermission}
                 onAddPaymentClick={() => setIsPaymentDialogOpen(true)}
                 loading={isLoading}
+                isOpeningBalance={isOpeningBalance}
               />
             </div>
 
@@ -383,11 +390,11 @@ const SaleDetails = () => {
                   Additional Details
                 </h3>
                 <div className="space-y-4">
-                  {validPayments.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">
-                        Payment History
-                      </h4>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">
+                      Payment History
+                    </h4>
+                    {validPayments.length > 0 ? (
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
                         <AnimatePresence initial={false}>
                           {validPayments.map((p, i) => (
@@ -421,14 +428,18 @@ const SaleDetails = () => {
                           ))}
                         </AnimatePresence>
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded border border-gray-100">
+                        No payments have been made yet.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {sale?.invoiceStatus === "Invoiced" && !isCancelled && (
+          {sale?.invoiceStatus === "Invoiced" && !isCancelled && !isOpeningBalance && (
             <SaleInvoiceHistory
               invoiceHistory={invoiceHistory}
               hasPermission={hasPermission}
@@ -452,7 +463,7 @@ const SaleDetails = () => {
       <FormDialog
         open={isPaymentDialogOpen}
         onClose={() => setIsPaymentDialogOpen(false)}
-        title="Add New Payment"
+        title={isOpeningBalance ? "Repay Balance" : "Add New Payment"}
         primaryButtonText={
           addPaymentMutation.isLoading ? "Adding..." : "Add Payment"
         }
@@ -593,6 +604,7 @@ const SaleDetails = () => {
         sale={sale}
         isCancelled={isCancelled}
         canAddPayment={canAddPayment}
+        isOpeningBalance={isOpeningBalance}
         onUpdateClick={() => setIsUpdateModalOpen(true)}
         onCancelClick={() => setConfirmAction({ type: "cancel" })}
         onDeleteClick={() => setConfirmAction({ type: "delete" })}

@@ -11,6 +11,7 @@ import StatusBadge from "@/components/ui/StatusBadge";
 const SaleInfo = ({
   sale,
   loading = false,
+  isOpeningBalance = false,
 }) => {
   const { formatCurrency, formatNumber } = useSettings();
   return (
@@ -19,10 +20,11 @@ const SaleInfo = ({
       <div className="bg-white rounded-lg shadow-sm p-5">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
           <Info className="h-5 w-5 mr-2 text-[var(--color-primary)]" />
-          Sale Items
+          {isOpeningBalance ? "Transaction Details" : "Sale Items"}
         </h2>
 
-        <div className="overflow-x-auto mb-6 border-gray-200 border rounded-lg">
+        {!isOpeningBalance ? (
+          <div className="overflow-x-auto mb-6 border-gray-200 border rounded-lg">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -87,6 +89,14 @@ const SaleInfo = ({
             </tbody>
           </table>
         </div>
+        ) : (
+          <div className="mb-6 bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-center">
+            <Info className="h-6 w-6 text-[var(--color-primary)] mr-3 flex-shrink-0" />
+            <p className="text-sm text-gray-800">
+              This is an automated opening balance record created during customer onboarding or update. It represents the starting debt for this customer and does not contain related products.
+            </p>
+          </div>
+        )}
 
         {/* Notes Section directly underneath Sale Items Table */}
         {(!loading && sale?.notes) && (

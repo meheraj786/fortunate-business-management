@@ -18,6 +18,7 @@ const SaleMobileActions = ({
   deleteLoading,
   cancelLoading,
   generateInvoiceLoading,
+  isOpeningBalance = false,
 }) => {
   return (
     <AnimatePresence>
@@ -50,7 +51,7 @@ const SaleMobileActions = ({
             </div>
 
             <div className="space-y-2.5">
-              {hasPermission("SALE_UPDATE") && (
+              {hasPermission("SALE_UPDATE") && !isOpeningBalance && (
                 <Button
                   onClick={() => {
                     onUpdateClick();
@@ -64,7 +65,7 @@ const SaleMobileActions = ({
                   <span>Update Sale</span>
                 </Button>
               )}
-              {hasPermission("SALE_CANCEL") && (
+              {hasPermission("SALE_CANCEL") && !isOpeningBalance && (
                 <Button
                   onClick={() => {
                     onCancelClick();
@@ -78,7 +79,7 @@ const SaleMobileActions = ({
                   <span>Cancel Sale</span>
                 </Button>
               )}
-              {hasPermission("SALE_DELETE") && (
+              {hasPermission("SALE_DELETE") && !isOpeningBalance && (
                 <Button
                   onClick={() => {
                     onDeleteClick();
@@ -94,7 +95,7 @@ const SaleMobileActions = ({
               )}
               {hasPermission("SALE_GENERATE_INVOICE") &&
                 sale.invoiceStatus !== "Invoiced" &&
-                !isCancelled && (
+                !isCancelled && !isOpeningBalance && (
                   <Button
                     onClick={() => {
                       onGenerateInvoiceClick();
@@ -119,7 +120,7 @@ const SaleMobileActions = ({
                   className="w-full flex items-center justify-center gap-1.5"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
-                  <span>Add Payment</span>
+                  <span>{isOpeningBalance ? "Repay Balance" : "Add Payment"}</span>
                 </Button>
               )}
             </div>

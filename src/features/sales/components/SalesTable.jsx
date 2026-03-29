@@ -149,9 +149,18 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                     {/* Replaced Product Name with "Items" count or generic text since we have multi-product */}
                     <Link
                       to={`/sales/${sale._id}`}
-                      className="text-base font-bold text-gray-900 truncate block hover:text-[var(--color-primary)] transition-colors"
+                      className="text-base font-bold text-gray-900 truncate flex flex-col hover:text-[var(--color-primary)] transition-colors"
                     >
-                      {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "Unknown Product")}
+                      {sale.saleId?.startsWith("OPEN-BAL-") ? (
+                        <div className="flex items-center gap-2">
+                          <span>Opening Balance</span>
+                          <span className="px-1.5 py-0.5 text-[10px] uppercase font-bold text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded">
+                            Automated
+                          </span>
+                        </div>
+                      ) : (
+                        sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "Unknown Product")
+                      )}
                     </Link>
                     <div className="text-sm text-gray-500 truncate mt-0.5 flex items-center gap-1">
                       <span className="w-1 h-1 rounded-full bg-gray-300"></span>
@@ -277,10 +286,15 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 border-b border-gray-100">
                       <Link
                         to={`/sales/${sale._id}`}
-                        className="text-[var(--color-primary)] hover:text-[#004b95]"
+                        className="text-[var(--color-primary)] hover:text-[#004b95] block"
                       >
                         {sale.saleId || `#${sale._id.slice(-6)}`}
                       </Link>
+                      {sale.saleId?.startsWith("OPEN-BAL-") && (
+                        <span className="inline-block mt-1 px-1.5 py-0.5 text-[10px] uppercase font-bold text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded">
+                          Opening Balance
+                        </span>
+                      )}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 border-b border-gray-100">
                       <div

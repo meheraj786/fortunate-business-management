@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
 import PropTypes from "prop-types";
-import { useParams, useNavigate } from "react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useParams, useNavigate, Link } from "react-router";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   User,
@@ -48,7 +48,7 @@ import {
 } from "../../api/hooks/customer";
 import { useAuth } from "@/hooks/useAuth";
 import { downloadCustomerDocument } from "../../api/customer.api";
-import { getSaleById } from "@/api/sales.api";
+import { getSaleById, getSalesSummaryTable } from "@/api/sales.api";
 import { useSettings } from "@/context/SettingsContext";
 
 
@@ -99,6 +99,25 @@ const CustomerDetails = () => {
   useEffect(() => {
     refetchCustomer();
   }, [refetchCustomer]);
+
+  const { data: openingBalanceSale } = useQuery({
+    queryKey: ["sales", "opening-balance", customerData?.customerId],
+    queryFn: async () => {
+      try {
+        const response = await getSalesSummaryTable({ search: `OPEN-BAL-${customerData.customerId}`, limit: 1 });
+        const sales = response?.data?.data?.sales;
+        if (sales && sales.length > 0) {
+          const exactMatch = sales.find(s => s.saleId === `OPEN-BAL-${customerData.customerId}`);
+          return exactMatch || null;
+        }
+        return null;
+      } catch (error) {
+        console.error("Failed to fetch opening balance sale ID", error);
+        return null;
+      }
+    },
+    enabled: !!(customerData?.customerId && customerData?.openingDue > 0),
+  });
 
   useEffect(() => {
     fetchSales(pagination.currentPage);
@@ -322,6 +341,33 @@ const CustomerDetails = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* ===== OUTSTANDING OPENING BALANCE ALERT ===== */}
+        {openingBalanceSale && openingBalanceSale.balanceDue > 0 && (
+          <motion.div
+            className="mb-4 sm:mb-6 p-4 lg:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-gray-200 bg-white shadow-sm"
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex items-center">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mr-4 flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Action Required</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  Customer has an unpaid opening balance of <span className="text-red-600 font-bold">{formatCurrency(openingBalanceSale.balanceDue)}</span>
+                </p>
+              </div>
+            </div>
+            <Link
+              to={`/sales/${openingBalanceSale._id}`}
+              className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] rounded-lg shadow-sm transition-all active:scale-95 whitespace-nowrap"
+            >
+               View & Repay
+            </Link>
+          </motion.div>
+        )}
 
         {/* ===== STATS ROW ===== */}
         <div className="mb-4 sm:mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
