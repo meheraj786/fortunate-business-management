@@ -238,10 +238,8 @@ const CustomerForm = ({ onSave }) => {
                 name="customerType"
                 control={control}
                 options={customerTypes}
-                required
                 icon={Building}
                 error={errors.customerType?.message}
-                validation={{ required: "Customer type is required" }}
               />
               <SelectField
                 label="Customer Status"
@@ -299,14 +297,12 @@ const CustomerForm = ({ onSave }) => {
                 label="Phone Number"
                 name="phone"
                 register={register}
-                required
                 placeholder="+880 1712-345678"
                 icon={Phone}
                 error={errors.phone?.message}
                 validation={{
-                  required: "Phone number is required",
                   pattern: {
-                    value: /^[+]?[0-9\s\-()]+$/,
+                    value: /^([+]?[0-9\s\-()]+)?$/,
                     message: "Invalid phone number format",
                   },
                 }}
@@ -331,12 +327,10 @@ const CustomerForm = ({ onSave }) => {
                   label="Billing Address"
                   name="billingAddress"
                   register={register}
-                  required
                   placeholder="45 Dhanmondi Road, Dhaka-1205, Bangladesh"
                   rows={2}
                   autoResize
                   error={errors.billingAddress?.message}
-                  validation={{ required: "Billing address is required" }}
                 />
               </div>
             </div>

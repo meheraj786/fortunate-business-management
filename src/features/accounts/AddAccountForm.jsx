@@ -161,7 +161,11 @@ const AddAccountForm = ({
           name="accountHolderName"
           register={register}
           error={errors.accountHolderName?.message}
-          validation={{ required: "Account Holder Name is required" }}
+          validation={
+            watchedAccountType === "Cash"
+              ? { required: "Account Holder Name is required" }
+              : undefined
+          }
           placeholder="e.g., John Doe"
         />
         <InputField
@@ -194,7 +198,6 @@ const AddAccountForm = ({
               name="branchName"
               register={register}
               error={errors.branchName?.message}
-              validation={{ required: "Branch Name is required" }}
               placeholder="e.g., Gulshan Branch"
             />
             <InputField

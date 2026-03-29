@@ -134,7 +134,6 @@ const AddWarehouseForm = ({
                   name="address"
                   register={register}
                   error={errors.address?.message}
-                  validation={{ required: "Warehouse address is required" }}
                   placeholder="e.g., 123 Industrial Park, Dhaka"
                   icon={MapPin}
                   disabled={isSubmitting}

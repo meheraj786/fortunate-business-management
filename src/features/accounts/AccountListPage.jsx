@@ -84,7 +84,7 @@ const AccountList = memo(({ onAddAccount }) => {
       return (
         <Link
           to={`/accounts/${account._id}`}
-          className="block border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+          className="block border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors"
           onMouseEnter={() => prefetchAccountDetails(account._id)}
         >
           {children}
@@ -92,7 +92,7 @@ const AccountList = memo(({ onAddAccount }) => {
       );
     }
     return (
-      <div className="block border border-gray-200 rounded-lg p-4">
+      <div className="block border border-gray-200 rounded-lg p-3">
         {children}
       </div>
     );
@@ -134,31 +134,27 @@ const AccountList = memo(({ onAddAccount }) => {
                 <motion.div key={account._id}>
                   <AccountCard account={account}>
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
-                        {account.bankName}
-                      </h3>
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold text-lg text-[var(--color-success)]">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 text-sm">
+                          {account.bankName}
+                        </h3>
+                        {account.accountName && (
+                          <p className="text-xs text-gray-500 truncate mt-0.5">
+                            {account.accountName}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="font-bold text-sm text-[var(--color-success)]">
                           {formatCurrency(account.balance)}
                         </span>
                       </div>
                     </div>
-                    <div className="space-y-2 text-xs sm:text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-3 h-3" />
-                        <span>{account.branchName}</span>
-                      </div>
+                    
+                    <div className="space-y-1 text-xs text-gray-600 mt-2 pt-2 border-t border-gray-100">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <User className="w-3 h-3" />
-                          <span>
-                            {account.accountHolderName} ({account.accountName})
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">
-                          A/C: {account.accountNumber}
+                        <span className="font-medium flex items-center gap-1">
+                          A/C: <span className="text-gray-900">{account.accountNumber}</span>
                         </span>
                         <Button
                           onClick={(e) =>
@@ -166,20 +162,37 @@ const AccountList = memo(({ onAddAccount }) => {
                           }
                           variant="subtle"
                           size="sm"
-                          className="!p-1" // Override padding for small icon button
+                          className="!p-0.5 hover:bg-gray-100" 
                           aria-label="Copy account number"
                         >
                           {copiedText === `account_${account.accountNumber}` ? (
-                            <Check className="w-3 h-3 text-[var(--color-success)]" />
+                            <Check className="w-3.5 h-3.5 text-[var(--color-success)]" />
                           ) : (
-                            <Copy className="w-3 h-3 text-gray-500" />
+                            <Copy className="w-3.5 h-3.5 text-gray-400" />
                           )}
                         </Button>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        Routing: {account.routingNumber} | Swift:{" "}
-                        {account.swiftCode}
-                      </div>
+
+                      {account.accountHolderName && (
+                        <div className="flex items-center gap-1.5">
+                          <User className="w-3 h-3 text-gray-400" />
+                          <span className="truncate">{account.accountHolderName}</span>
+                        </div>
+                      )}
+                      
+                      {account.branchName && (
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3 h-3 text-gray-400" />
+                          <span className="truncate">{account.branchName}</span>
+                        </div>
+                      )}
+
+                      {(account.routingNumber || account.swiftCode) && (
+                        <div className="text-gray-500 flex items-center gap-2 mt-1">
+                          {account.routingNumber && <span>Routing: {account.routingNumber}</span>}
+                          {account.swiftCode && <span>Swift: {account.swiftCode}</span>}
+                        </div>
+                      )}
                     </div>
                   </AccountCard>
                 </motion.div>
@@ -226,49 +239,58 @@ const AccountList = memo(({ onAddAccount }) => {
               {mobileBankingAccounts.map((account) => (
                 <motion.div key={account._id}>
                   <AccountCard account={account}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
-                            {account.serviceName}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-gray-600">
-                            {account.accountHolderName}
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 text-sm">
+                          {account.serviceName}
+                        </h3>
+                        {account.accountName && (
+                          <p className="text-xs text-gray-500 truncate mt-0.5">
+                            {account.accountName}
                           </p>
-                        </div>
+                        )}
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-3 justify-end">
-                          <p className="font-bold text-lg text-[var(--color-success)]">
-                            {formatCurrency(account.balance)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Phone className="w-3 h-3 text-gray-500" />
-                          <a
-                            href={`tel:${account.mobileNumber}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="font-mono text-sm hover:text-[var(--color-primary)] transition-colors"
-                          >
-                            {account.mobileNumber}
-                          </a>
+                      <div className="flex flex-col items-end">
+                        <span className="font-bold text-sm text-[var(--color-success)]">
+                          {formatCurrency(account.balance)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-gray-100 flex flex-col gap-1.5 text-xs">
+                       <div className="flex items-center justify-between gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <Phone className="w-3 h-3 text-gray-400" />
+                            <a
+                              href={`tel:${account.mobileNumber}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-medium text-gray-900 hover:text-[var(--color-primary)] transition-colors"
+                            >
+                              {account.mobileNumber}
+                            </a>
+                          </div>
                           <Button
                             onClick={(e) =>
                               copyToClipboard(e, account.mobileNumber, "mobile")
                             }
                             variant="subtle"
                             size="sm"
-                            className="!p-1" // Override padding for small icon button
+                            className="!p-0.5 hover:bg-gray-100"
                             aria-label="Copy mobile number"
                           >
                             {copiedText === `mobile_${account.mobileNumber}` ? (
-                              <Check className="w-3 h-3 text-[var(--color-success)]" />
+                              <Check className="w-3.5 h-3.5 text-[var(--color-success)]" />
                             ) : (
-                              <Copy className="w-3 h-3 text-gray-500" />
+                              <Copy className="w-3.5 h-3.5 text-gray-400" />
                             )}
                           </Button>
                         </div>
-                      </div>
+                        {account.accountHolderName && (
+                          <div className="flex items-center gap-1.5 text-gray-600">
+                            <User className="w-3 h-3 text-gray-400" />
+                            <span className="truncate">{account.accountHolderName}</span>
+                          </div>
+                        )}
                     </div>
                   </AccountCard>
                 </motion.div>
@@ -315,24 +337,25 @@ const AccountList = memo(({ onAddAccount }) => {
               {cashAccounts.map((account) => (
                 <motion.div key={account._id}>
                   <AccountCard account={account}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
-                            {account.accountName}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-gray-600">
-                            {account.accountHolderName}
-                          </p>
-                        </div>
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 text-sm">
+                          {account.accountName}
+                        </h3>
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-3 justify-end">
-                          <p className="font-bold text-lg text-[var(--color-success)]">
-                            {formatCurrency(account.balance)}
-                          </p>
-                        </div>
+                      <div className="flex flex-col items-end">
+                        <span className="font-bold text-sm text-[var(--color-success)]">
+                          {formatCurrency(account.balance)}
+                        </span>
                       </div>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-gray-100 text-xs">
+                       <div className="flex items-center gap-1.5 text-gray-600">
+                         <User className="w-3 h-3 text-gray-400" />
+                         <span className="truncate">
+                           {account.accountHolderName}
+                         </span>
+                       </div>
                     </div>
                   </AccountCard>
                 </motion.div>
