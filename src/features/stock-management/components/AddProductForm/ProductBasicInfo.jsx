@@ -62,9 +62,7 @@ const ProductBasicInfo = ({
         <SelectField
           name="LC"
           control={control}
-          validation={{ required: "LC is required" }}
-          label="LC"
-          required={true}
+          label="LC (Optional)"
           error={errors.LC?.message}
           options={lcOptions}
           icon={FileText}

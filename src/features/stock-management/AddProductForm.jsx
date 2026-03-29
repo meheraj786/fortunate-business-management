@@ -149,6 +149,10 @@ const AddProductForm = ({
       unitPrice: Number(data.unitPrice),
     };
 
+    if (!dataToSave.LC) {
+      delete dataToSave.LC;
+    }
+
     const mutationOptions = {
       onSuccess: () => {
         if (isEditMode) onProductUpdated?.();

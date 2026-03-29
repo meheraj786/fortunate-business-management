@@ -259,7 +259,7 @@ const ProductDetails = () => {
                     isLoading ? (
                       <ValueSkeleton width="w-24" />
                     ) : (
-                      product?.LC?.basicInfo?.supplierName || "N/A"
+                      product?.supplierName || "N/A"
                     )
                   }
                   icon={User}
