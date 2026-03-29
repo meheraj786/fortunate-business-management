@@ -26,12 +26,15 @@ const StatBox = ({
     <div
       className="xl:flex-1 xl:w-auto w-full relative group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer rounded-xl sm:rounded-lg bg-white p-4"
     >
-      <div className="flex justify-between items-center relative z-10">
-        <div>
-          <h4 className="font-semibold mb-1 sm:mb-2 text-base sm:text-sm text-gray-700">
+      <div className="flex flex-wrap sm:flex-nowrap justify-between items-start sm:items-center relative z-10 gap-2">
+        <div className="min-w-0 flex-1 w-full sm:w-auto">
+          <h4 className="font-semibold mb-1 sm:mb-2 text-base sm:text-sm text-gray-700 truncate" title={title}>
             {title}
           </h4>
-          <h3 className={`text-2xl sm:text-2xl md:text-3xl font-bold break-words tracking-tight ${textColorClass}`}>
+          <h3 
+            className={`text-[clamp(1.25rem,5vw,1.875rem)] font-bold tracking-tight truncate ${textColorClass}`}
+            title={typeof number === "string" || typeof number === "number" ? number.toString() : ""}
+          >
             {loading ? (
               <ValueSkeleton width="w-24" height="h-8" className="mt-1" />
             ) : (
@@ -41,7 +44,7 @@ const StatBox = ({
         </div>
         {Icon && (
           <span
-            className={`p-3 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-lg`}
+            className={`p-2.5 sm:p-3 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-lg flex-shrink-0`}
           >
             <Icon size={24} />
           </span>

@@ -70,7 +70,7 @@ const ProductDetails = () => {
   const { warehouseId, productId } = useParams();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
-  const { formatCurrency, formatDate } = useSettings();
+  const { formatCurrency, formatCompactNumber, formatCompactQuantity, formatDate } = useSettings();
   const queryClient = useQueryClient();
 
   const [showEditForm, setShowEditForm] = useState(false);
@@ -173,7 +173,7 @@ const ProductDetails = () => {
     <div className="">
       <div className="max-w-7xl mx-auto">
         <Breadcrumb items={breadcrumbItems} />
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -235,8 +235,8 @@ const ProductDetails = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-4 sm:p-6 space-y-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
                 General Information
@@ -372,20 +372,20 @@ const ProductDetails = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-6 min-w-[320px]">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 min-w-0 lg:min-w-[320px]">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
               Sales Overview
             </h2>
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
               <StatBox
                 title="Total Units Sold"
-                number={formatNumber(product?.totalUnitsSold)}
+                number={formatCompactQuantity(product?.totalUnitsSold)}
                 Icon={ShoppingCart}
                 loading={isLoading}
               />
               <StatBox
                 title="Total Revenue"
-                number={formatCurrency(product?.totalRevenue)}
+                number={formatCompactNumber(product?.totalRevenue)}
                 Icon={DollarSign}
                 textColor="green"
                 loading={isLoading}

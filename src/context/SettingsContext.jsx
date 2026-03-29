@@ -27,12 +27,21 @@ export const SettingsProvider = ({ children }) => {
     return `${symbol}${Number(amount).toLocaleString()}`;
   };
 
-  // Helper: Format Compact Number (e.g. 1.2M, 500K)
+  // Helper: Format Compact Currency (e.g. $1.2M, $500K)
   const formatCompactNumber = (amount) => {
     if (amount === undefined || amount === null) return "";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: formattedSettings?.currency || "USD",
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(amount);
+  };
+
+  // Helper: Format Compact Quantity (e.g. 1.2M, 500K)
+  const formatCompactQuantity = (amount) => {
+    if (amount === undefined || amount === null) return "";
+    return new Intl.NumberFormat("en-US", {
       notation: "compact",
       maximumFractionDigits: 1,
     }).format(amount);
@@ -124,6 +133,7 @@ export const SettingsProvider = ({ children }) => {
     formatDateTime,
     formatNumber,
     formatCompactNumber,
+    formatCompactQuantity,
   };
 
   return (
