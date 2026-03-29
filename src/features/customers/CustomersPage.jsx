@@ -80,8 +80,8 @@ const Customers = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [filters, setFilters] = useState({ status: "", customerType: "" });
   const [sorting, setSorting] = useState({
-    sortBy: "joinDate",
-    sortOrder: "desc",
+    sortBy: "name",
+    sortOrder: "asc",
   });
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
@@ -142,7 +142,7 @@ const Customers = () => {
   const clearFilters = useCallback(() => {
     setFilters({ status: "", customerType: "" });
     setSearchTerm("");
-    setSorting({ sortBy: "joinDate", sortOrder: "desc" });
+    setSorting({ sortBy: "name", sortOrder: "asc" });
     setPage(1);
   }, []);
 
