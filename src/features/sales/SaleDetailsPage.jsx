@@ -45,6 +45,7 @@ const SaleDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const canViewSensitive = hasPermission("CUSTOMER_VIEW_SENSITIVE") || hasPermission("CUSTOMER_UPDATE");
   const { formatCurrency, formatDate } = useSettings();
 
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
@@ -341,12 +342,16 @@ const SaleDetails = () => {
                         {isLoading ? (
                           <ValueSkeleton width="w-28" height="h-4" />
                         ) : sale?.customer?.phone ? (
-                          <a
-                            href={`tel:${sale.customer.phone}`}
-                            className="hover:text-[var(--color-primary)] transition-colors"
-                          >
-                            {sale.customer.phone}
-                          </a>
+                          canViewSensitive ? (
+                            <a
+                              href={`tel:${sale.customer.phone}`}
+                              className="hover:text-[var(--color-primary)] transition-colors"
+                            >
+                              {sale.customer.phone}
+                            </a>
+                          ) : (
+                            "***-****"
+                          )
                         ) : (
                           "N/A"
                         )}
@@ -363,7 +368,7 @@ const SaleDetails = () => {
                             {isLoading ? (
                               <ValueSkeleton width="w-full" height="h-4" />
                             ) : (
-                              sale?.customer?.address
+                              canViewSensitive ? sale?.customer?.address : "Restricted View"
                             )}
                           </span>
                         </div>

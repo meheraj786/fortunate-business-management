@@ -60,6 +60,7 @@ const CustomerDetails = () => {
   const deleteCustomerMutation = useDeleteCustomer();
   const deleteDocMutation = useDeleteCustomerDocument();
   const { hasPermission } = useAuth();
+  const canViewSensitive = hasPermission("CUSTOMER_VIEW_SENSITIVE") || hasPermission("CUSTOMER_UPDATE");
   const { formatCurrency, formatDate } = useSettings();
   const queryClient = useQueryClient();
 
@@ -451,9 +452,9 @@ const CustomerDetails = () => {
                 />
                 <DataField
                   label="Phone"
-                  value={customerData?.phone}
+                  value={canViewSensitive ? customerData?.phone : (customerData?.phone ? "***-****" : "")}
                   icon={Phone}
-                  type="tel"
+                  type={canViewSensitive ? "tel" : "text"}
                   loading={loadingCustomer}
                 />
                 <DataField
@@ -480,7 +481,7 @@ const CustomerDetails = () => {
                 <div className="sm:col-span-2">
                   <DataField
                     label="Billing Address"
-                    value={customerData?.billingAddress}
+                    value={canViewSensitive ? customerData?.billingAddress : (customerData?.billingAddress ? "Restricted View" : "")}
                     icon={MapPin}
                     loading={loadingCustomer}
                   />

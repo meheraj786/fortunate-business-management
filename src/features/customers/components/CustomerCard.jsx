@@ -30,6 +30,7 @@ const CustomerCard = ({ customer }) => {
   };
 
   const canViewDetails = hasPermission("CUSTOMER_VIEW_DETAILS");
+  const canViewSensitive = hasPermission("CUSTOMER_VIEW_SENSITIVE") || hasPermission("CUSTOMER_UPDATE");
 
   const totalPurchased = customer.totalSpent || 0;
   const totalDue = customer.totalDue || 0;
@@ -67,28 +68,31 @@ const CustomerCard = ({ customer }) => {
         </div>
       </div>
 
-      {/* Contact Information */}
       <div className="space-y-2 mb-4">
         <div className="flex items-center gap-2">
           <Phone size={14} className="flex-shrink-0 text-gray-400" />
-          {customer.phone ? (
-            <a
-              href={`tel:${customer.phone}`}
-              className="text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors"
-              title={`Call ${customer.phone}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {customer.phone}
-            </a>
+          {canViewSensitive ? (
+            customer.phone ? (
+              <a
+                href={`tel:${customer.phone}`}
+                className="text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors"
+                title={`Call ${customer.phone}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {customer.phone}
+              </a>
+            ) : (
+              <span className="text-sm text-gray-400">No phone</span>
+            )
           ) : (
-            <span className="text-sm text-gray-400">No phone</span>
+             <span className="text-sm text-gray-400">***-****</span>
           )}
         </div>
         {customer.billingAddress && (
           <div className="flex items-center gap-2 text-gray-600">
             <MapPin size={14} className="flex-shrink-0 text-gray-400 mt-0.5" />
             <span className="text-sm line-clamp-2">
-              {customer.billingAddress}
+              {canViewSensitive ? customer.billingAddress : "Restricted View"}
             </span>
           </div>
         )}

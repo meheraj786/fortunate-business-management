@@ -161,6 +161,7 @@ const DueCustomersReport = () => {
     const [dateTo, setDateTo] = useState("");
 
     const { hasPermission } = useAuth();
+    const canViewSensitive = hasPermission("CUSTOMER_VIEW_SENSITIVE") || hasPermission("CUSTOMER_UPDATE");
     const { formatCurrency, formatDate, formatNumber } = useSettings();
     const queryClient = useQueryClient();
 
@@ -541,19 +542,23 @@ const DueCustomersReport = () => {
                                                             </div>
                                                         </td>
                                                         <td className="whitespace-nowrap px-3 py-3 sm:py-4 text-sm border-b border-gray-100">
-                                                            {customer.phone ? (
-                                                                <a
-                                                                    href={`tel:${customer.phone}`}
-                                                                    className="text-gray-600 hover:text-[var(--color-primary)] inline-flex items-center gap-1.5 group/phone"
-                                                                    title={`Call ${customer.phone}`}
-                                                                >
-                                                                    <Phone className="w-3.5 h-3.5 text-gray-400 group-hover/phone:text-[var(--color-primary)] flex-shrink-0" />
-                                                                    <span>
-                                                                        {customer.phone}
-                                                                    </span>
-                                                                </a>
+                                                            {canViewSensitive ? (
+                                                                customer.phone ? (
+                                                                    <a
+                                                                        href={`tel:${customer.phone}`}
+                                                                        className="text-gray-600 hover:text-[var(--color-primary)] inline-flex items-center gap-1.5 group/phone"
+                                                                        title={`Call ${customer.phone}`}
+                                                                    >
+                                                                        <Phone className="w-3.5 h-3.5 text-gray-400 group-hover/phone:text-[var(--color-primary)] flex-shrink-0" />
+                                                                        <span>
+                                                                            {customer.phone}
+                                                                        </span>
+                                                                    </a>
+                                                                ) : (
+                                                                    <span className="text-gray-400">—</span>
+                                                                )
                                                             ) : (
-                                                                <span className="text-gray-400">—</span>
+                                                                <span className="text-gray-400">***-****</span>
                                                             )}
                                                         </td>
 
