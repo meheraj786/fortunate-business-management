@@ -12,6 +12,7 @@ import {
   User,
   MapPin,
   ExternalLink,
+  Tag,
 } from "lucide-react";
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
@@ -52,6 +53,7 @@ const SaleDetails = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [paymentData, setPaymentData] = useState({
     amount: "",
+    discount: "",
     method: "Cash",
     account: "",
   });
@@ -105,27 +107,40 @@ const SaleDetails = () => {
   };
 
   const handleAddPayment = () => {
-    const amount = Number(paymentData.amount);
+    const amount = Number(paymentData.amount) || 0;
+    const discount = Number(paymentData.discount) || 0;
 
-    if (amount > balanceDue) {
-      showErrorToast(`Amount cannot exceed the balance due (${formatCurrency(balanceDue)})`);
+    if (amount + discount > balanceDue + 0.01) {
+      showErrorToast(`Amount + Discount cannot exceed the balance due (${formatCurrency(balanceDue)})`);
       return;
     }
 
+    if (!amount && !discount) {
+      showErrorToast("Please enter an amount or discount.");
+      return;
+    }
+
+    const mutationPayload = {
+      amount,
+      discount,
+      date: new Date().toISOString(),
+    };
+
+    // Only include payment method and account when there's an actual payment
+    if (amount > 0) {
+      mutationPayload.paymentMethod = paymentData.method;
+      if (paymentData.method !== "Customer Credit" && paymentData.account) {
+        mutationPayload.accountId = paymentData.account;
+      }
+    }
+
     addPaymentMutation.mutate(
-      {
-        amount,
-        date: new Date().toISOString(),
-        paymentMethod: paymentData.method,
-        ...(paymentData.method !== "Customer Credit" && paymentData.account
-          ? { accountId: paymentData.account }
-          : {}),
-      },
+      mutationPayload,
       {
         onSuccess: () => {
           refetch();
           setIsPaymentDialogOpen(false);
-          setPaymentData({ amount: "", method: "Cash", account: "" });
+          setPaymentData({ amount: "", discount: "", method: "Cash", account: "" });
           setPaymentError("");
         },
       },
@@ -169,7 +184,7 @@ const SaleDetails = () => {
     !isCancelled && ["Due", "Due payment", "Partial"].includes(sale?.paymentStatus) && balanceDue > 0;
   const customerId = sale?.customer?.customerId?._id || sale?.customer?.customerId;
   const isRegisteredCustomer = !!customerId;
-  const validPayments = sale?.payments?.filter((p) => p.amount) || [];
+  const validPayments = sale?.payments?.filter((p) => p.amount || p.discount) || [];
   const isOpeningBalance = sale?.saleId?.startsWith("OPEN-BAL-");
 
   return (
@@ -420,15 +435,24 @@ const SaleDetails = () => {
                                   })}
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                  {p.method}{" "}
-                                  {p.accountId
+                                  {p.method === "Discount" ? "Discount Adjustment" : p.method}{" "}
+                                  {p.accountId && p.method !== "Discount"
                                     ? `(${formatAccountLabel(p.accountId)})`
                                     : ""}
                                 </p>
                               </div>
-                              <span className="text-sm font-medium text-[var(--color-success)]">
-                                {formatCurrency(p.amount)}
-                              </span>
+                              <div className="text-right">
+                                {p.amount > 0 && (
+                                  <span className="text-sm font-medium text-[var(--color-success)]">
+                                    {formatCurrency(p.amount)}
+                                  </span>
+                                )}
+                                {p.discount > 0 && (
+                                  <span className="block text-xs font-medium text-[var(--color-primary)] bg-blue-50 px-1.5 py-0.5 rounded mt-0.5">
+                                    Discount: {formatCurrency(p.discount)}
+                                  </span>
+                                )}
+                              </div>
                             </motion.div>
                           ))}
                         </AnimatePresence>
@@ -472,102 +496,194 @@ const SaleDetails = () => {
         primaryButtonText={
           addPaymentMutation.isLoading ? "Adding..." : "Add Payment"
         }
-        isPrimaryButtonDisabled={!!paymentError || !paymentData.amount}
+        isPrimaryButtonDisabled={!!paymentError || (!paymentData.amount && !paymentData.discount)}
         secondaryButtonText="Cancel"
         onSubmit={handleAddPayment}
         isSubmitting={addPaymentMutation.isLoading}
       >
         <div className="space-y-4">
+          {/* Balance Due Info Banner */}
+          <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+            <span className="text-sm text-gray-600">Balance Due</span>
+            <span className="text-sm font-bold text-gray-900">{formatCurrency(balanceDue)}</span>
+          </div>
+
           <div className="flex items-start gap-2">
             <div className="flex-grow">
               <InputField
-                label="Amount"
+                label="Payment Amount"
                 name="amount"
                 type="number"
                 value={paymentData.amount}
                 onChange={(e) => {
                   const val = e.target.value;
                   setPaymentData((p) => ({ ...p, amount: val }));
-                  if (Number(val) > balanceDue) {
-                    setPaymentError(`Max allowed: ${formatCurrency(balanceDue)}`);
+                  const totalSettlement = (Number(val) || 0) + (Number(paymentData.discount) || 0);
+                  if (totalSettlement > balanceDue + 0.01) {
+                    setPaymentError(`Amount + Discount cannot exceed ${formatCurrency(balanceDue)}`);
                   } else {
                     setPaymentError("");
                   }
                 }}
-                placeholder={`Balance Due: ${formatCurrency(balanceDue)}`}
+                placeholder="0"
                 error={paymentError}
+                min={0}
                 max={
                   paymentData.method === "Customer Credit"
-                    ? Math.min(balanceDue, sale?.customer?.customerId?.creditBalance || 0)
-                    : balanceDue
+                    ? Math.min(balanceDue - (Number(paymentData.discount) || 0), sale?.customer?.customerId?.creditBalance || 0)
+                    : balanceDue - (Number(paymentData.discount) || 0)
                 }
-                required
               />
             </div>
             <Button
               type="button"
               variant="outline"
-              className="mt-6" // Align with input field (skipping label height)
+              className="mt-6"
               onClick={() => {
-                setPaymentData((p) => ({ ...p, amount: balanceDue }));
-                setPaymentError(""); // Clear any previous errors
+                const discountVal = Number(paymentData.discount) || 0;
+                const maxPayment = Math.max(0, balanceDue - discountVal);
+                setPaymentData((p) => ({ ...p, amount: maxPayment }));
+                setPaymentError("");
               }}
             >
               Full
             </Button>
           </div>
-          <SelectField
-            label="Payment Method"
-            name="method"
-            value={paymentData.method}
-            onChange={(val) => {
-              const newMethod = val;
-              const availableAccounts = accounts.filter(
-                (acc) => acc.accountType === newMethod,
-              );
-              setPaymentData((p) => ({
-                ...p,
-                method: newMethod,
-                account:
-                  availableAccounts.length > 0 ? availableAccounts[0]._id : "",
-              }));
-            }}
-            options={[
-              { value: "Cash", label: "Cash" },
-              { value: "Bank", label: "Bank Transfer" },
-              { value: "Mobile Banking", label: "Mobile Banking" },
-              {
-                value: "Customer Credit",
-                label: `Customer Credit (${formatCurrency(sale?.customer?.customerId?.creditBalance || 0)})`,
-                disabled: (sale?.customer?.customerId?.creditBalance || 0) <= 0
-              }
-            ]}
-            required
-          />
-          {paymentData.method === "Customer Credit" && (
-            <div className="text-sm text-[var(--color-primary)] bg-blue-50 p-2 rounded">
-              Available Credit:{" "}
-              <span className="font-bold">
-                {formatCurrency(sale?.customer?.customerId?.creditBalance || 0)}
-              </span>
+
+          {/* Discount Field */}
+          <div className="flex items-start gap-2">
+            <div className="flex-grow">
+              <InputField
+                label={
+                  <span className="flex items-center gap-1">
+                    <Tag className="h-3 w-3" />
+                    Discount
+                  </span>
+                }
+                name="discount"
+                type="number"
+                value={paymentData.discount}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setPaymentData((p) => ({ ...p, discount: val }));
+                  const totalSettlement = (Number(paymentData.amount) || 0) + (Number(val) || 0);
+                  if (totalSettlement > balanceDue + 0.01) {
+                    setPaymentError(`Amount + Discount cannot exceed ${formatCurrency(balanceDue)}`);
+                  } else {
+                    setPaymentError("");
+                  }
+                }}
+                placeholder="0"
+                min={0}
+                max={balanceDue - (Number(paymentData.amount) || 0)}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-6"
+              onClick={() => {
+                const amountVal = Number(paymentData.amount) || 0;
+                const maxDiscount = Math.max(0, balanceDue - amountVal);
+                setPaymentData((p) => ({ ...p, discount: maxDiscount }));
+                setPaymentError("");
+              }}
+            >
+              Rest
+            </Button>
+          </div>
+
+          {/* Settlement Summary */}
+          {((Number(paymentData.amount) || 0) > 0 || (Number(paymentData.discount) || 0) > 0) && (
+            <div className="bg-blue-50 rounded-lg p-3 space-y-1 border border-blue-100">
+              {(Number(paymentData.amount) || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Payment</span>
+                  <span className="font-medium text-gray-900">{formatCurrency(Number(paymentData.amount) || 0)}</span>
+                </div>
+              )}
+              {(Number(paymentData.discount) || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Discount</span>
+                  <span className="font-medium text-[var(--color-success)]">-{formatCurrency(Number(paymentData.discount) || 0)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm font-semibold border-t border-blue-200 pt-1 mt-1">
+                <span className="text-gray-700">Remaining Due</span>
+                <span className={`${
+                  balanceDue - (Number(paymentData.amount) || 0) - (Number(paymentData.discount) || 0) <= 0
+                    ? 'text-[var(--color-success)]'
+                    : 'text-[var(--color-danger)]'
+                }`}>
+                  {formatCurrency(Math.max(0, balanceDue - (Number(paymentData.amount) || 0) - (Number(paymentData.discount) || 0)))}
+                </span>
+              </div>
             </div>
           )}
-          {["Bank", "Mobile Banking", "Cash"].includes(paymentData.method) && (
-            <SelectField
-              label="Account"
-              name="account"
-              value={paymentData.account}
-              onChange={(val) =>
-                setPaymentData((p) => ({ ...p, account: val }))
-              }
-              options={accounts
-                .filter((acc) => acc.accountType === paymentData.method)
-                .map((acc) => ({
-                  value: acc._id,
-                  label: formatAccountLabel(acc),
-                }))}
-              required
-            />
+          {/* Payment Method & Account — only needed when there's an actual payment */}
+          {(Number(paymentData.amount) || 0) > 0 && (
+            <>
+              <SelectField
+                label="Payment Method"
+                name="method"
+                value={paymentData.method}
+                onChange={(val) => {
+                  const newMethod = val;
+                  const availableAccounts = accounts.filter(
+                    (acc) => acc.accountType === newMethod,
+                  );
+                  setPaymentData((p) => ({
+                    ...p,
+                    method: newMethod,
+                    account:
+                      availableAccounts.length > 0 ? availableAccounts[0]._id : "",
+                  }));
+                }}
+                options={[
+                  { value: "Cash", label: "Cash" },
+                  { value: "Bank", label: "Bank Transfer" },
+                  { value: "Mobile Banking", label: "Mobile Banking" },
+                  {
+                    value: "Customer Credit",
+                    label: `Customer Credit (${formatCurrency(sale?.customer?.customerId?.creditBalance || 0)})`,
+                    disabled: (sale?.customer?.customerId?.creditBalance || 0) <= 0
+                  }
+                ]}
+                required
+              />
+              {paymentData.method === "Customer Credit" && (
+                <div className="text-sm text-[var(--color-primary)] bg-blue-50 p-2 rounded">
+                  Available Credit:{" "}
+                  <span className="font-bold">
+                    {formatCurrency(sale?.customer?.customerId?.creditBalance || 0)}
+                  </span>
+                </div>
+              )}
+              {["Bank", "Mobile Banking", "Cash"].includes(paymentData.method) && (
+                <SelectField
+                  label="Account"
+                  name="account"
+                  value={paymentData.account}
+                  onChange={(val) =>
+                    setPaymentData((p) => ({ ...p, account: val }))
+                  }
+                  options={accounts
+                    .filter((acc) => acc.accountType === paymentData.method)
+                    .map((acc) => ({
+                      value: acc._id,
+                      label: formatAccountLabel(acc),
+                    }))}
+                  required
+                />
+              )}
+            </>
+          )}
+          {/* Discount-only info */}
+          {(Number(paymentData.amount) || 0) === 0 && (Number(paymentData.discount) || 0) > 0 && (
+            <div className="text-sm text-gray-600 bg-amber-50 border border-amber-200 p-3 rounded-lg flex items-center gap-2">
+              <Tag className="h-4 w-4 text-amber-500 flex-shrink-0" />
+              <span>This is a <strong>discount-only</strong> adjustment. No payment method or account is required.</span>
+            </div>
           )}
         </div>
       </FormDialog>

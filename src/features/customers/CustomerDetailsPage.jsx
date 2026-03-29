@@ -36,6 +36,7 @@ import DataField from "@/components/ui/DataField";
 import Pagination from "@/components/ui/Pagination";
 import Button from "@/components/ui/Button";
 import AddCreditModal from "./components/AddCreditModal";
+import WithdrawCreditModal from "./components/WithdrawCreditModal";
 import CreditHistoryTable from "./components/CreditHistoryTable";
 import EntityAuditLog from "@/components/ui/EntityAuditLog";
 
@@ -75,6 +76,7 @@ const CustomerDetails = () => {
     docId: null,
   });
   const [isAddCreditModalOpen, setIsAddCreditModalOpen] = useState(false);
+  const [isWithdrawCreditModalOpen, setIsWithdrawCreditModalOpen] = useState(false);
 
   useEffect(() => {
     if (!hasPermission("CUSTOMER_VIEW_DETAILS")) {
@@ -459,8 +461,13 @@ const CustomerDetails = () => {
                 />
                 <DataField
                   label="Credit Limit"
-                  value={customerData?.creditLimit}
-                  format="currency"
+                  value={
+                    customerData?.creditLimit == null
+                      ? "No Limit"
+                      : customerData?.creditLimit === 0
+                        ? `${formatCurrency(0)} (No Due Allowed)`
+                        : formatCurrency(customerData?.creditLimit)
+                  }
                   icon={CreditCard}
                   loading={loadingCustomer}
                 />
@@ -587,13 +594,24 @@ const CustomerDetails = () => {
                   </p>
                 </div>
                 {hasPermission("CUSTOMER_UPDATE") && (
-                  <Button
-                    onClick={() => setIsAddCreditModalOpen(true)}
-                    variant="primary"
-                    size="sm"
-                  >
-                    Add Credit
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setIsAddCreditModalOpen(true)}
+                      variant="primary"
+                      size="sm"
+                    >
+                      Add Credit
+                    </Button>
+                    {(customerData?.creditBalance || 0) > 0 && (
+                      <Button
+                        onClick={() => setIsWithdrawCreditModalOpen(true)}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        Withdraw
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
               <div>
@@ -768,6 +786,12 @@ const CustomerDetails = () => {
         isOpen={isAddCreditModalOpen}
         onClose={() => setIsAddCreditModalOpen(false)}
         customerId={id}
+      />
+      <WithdrawCreditModal
+        isOpen={isWithdrawCreditModalOpen}
+        onClose={() => setIsWithdrawCreditModalOpen(false)}
+        customerId={id}
+        creditBalance={customerData?.creditBalance || 0}
       />
     </motion.div>
   );

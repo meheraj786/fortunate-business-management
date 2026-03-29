@@ -31,6 +31,9 @@ export const downloadCustomerDocument = (customerId, docId) =>
 export const addStoreCredit = (id, data) =>
   api.post(`/customer/${id}/store-credit`, data);
 
+export const withdrawStoreCredit = (id, data) =>
+  api.post(`/customer/${id}/store-credit/withdraw`, data);
+
 export const getCreditHistory = (id, params) =>
   api.get(`/customer/${id}/credit-history`, { params });
 

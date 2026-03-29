@@ -21,6 +21,7 @@ const InputField = ({
   className = "",
   inputClassName = "",
   autoComplete = "off",
+  helperText,
   children,
 }) => {
   const id = useId();
@@ -100,6 +101,11 @@ const InputField = ({
           {error}
         </p>
       )}
+      {!error && helperText && (
+        <p className="text-xs text-gray-400 mt-1">
+          {helperText}
+        </p>
+      )}
     </div>
   );
 };
@@ -123,6 +129,7 @@ InputField.propTypes = {
   className: PropTypes.string,
   inputClassName: PropTypes.string,
   autoComplete: PropTypes.string,
+  helperText: PropTypes.string,
   children: PropTypes.node,
 };
 

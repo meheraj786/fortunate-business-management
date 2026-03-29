@@ -87,6 +87,18 @@ export const useAddStoreCredit = () => {
   });
 };
 
+export const useWithdrawStoreCredit = () => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: ({ id, data }) => api.withdrawStoreCredit(id, data),
+    successMessage: "Credit withdrawn successfully!",
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["customers", id] });
+      qc.invalidateQueries({ queryKey: ["customers", id, "credit-history"] });
+    },
+  });
+};
+
 export const useCreditHistory = (id, params) => {
   return useQuery({
     queryKey: ["customers", id, "credit-history", params],

@@ -68,7 +68,7 @@ const CustomerForm = ({ onSave }) => {
           joinDate: customer.joinDate
             ? new Date(customer.joinDate).toISOString().slice(0, 16)
             : getBusinessDateTimeISO(settings?.timezone),
-          creditLimit: customer.creditLimit || "",
+          creditLimit: customer.creditLimit != null ? customer.creditLimit : "",
           phone: customer.phone || "",
           email: customer.email || "",
           billingAddress: customer.billingAddress || "",
@@ -104,7 +104,7 @@ const CustomerForm = ({ onSave }) => {
         joinDate: customer.joinDate
           ? new Date(customer.joinDate).toISOString().slice(0, 16)
           : getBusinessDateTimeISO(settings?.timezone),
-        creditLimit: customer.creditLimit || "",
+        creditLimit: customer.creditLimit != null ? customer.creditLimit : "",
         phone: customer.phone || "",
         email: customer.email || "",
         billingAddress: customer.billingAddress || "",
@@ -166,8 +166,16 @@ const CustomerForm = ({ onSave }) => {
   };
 
   const onSubmit = async (data) => {
+    // Transform creditLimit: empty = null (disabled), otherwise parse as number
+    const processedData = {
+      ...data,
+      creditLimit: data.creditLimit === "" || data.creditLimit === null || data.creditLimit === undefined
+        ? null
+        : Number(data.creditLimit),
+    };
+
     const formData = new FormData();
-    formData.append("customerData", JSON.stringify(data));
+    formData.append("customerData", JSON.stringify(processedData));
     newUploadedFiles.forEach((file) => formData.append("documents", file));
 
     const mutationOptions = {
@@ -266,15 +274,15 @@ const CustomerForm = ({ onSave }) => {
                 name="creditLimit"
                 register={register}
                 type="number"
-                placeholder="5000"
+                placeholder="Leave empty for no limit"
                 icon={DollarSign}
                 min="0"
                 step="0.01"
                 error={errors.creditLimit?.message}
                 validation={{
-                  valueAsNumber: true,
                   min: { value: 0, message: "Credit limit cannot be negative" },
                 }}
+                helperText="Empty = No limit | 0 = No due allowed | Amount = Ceiling"
               />
               <InputField
                 label="Opening Due"

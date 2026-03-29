@@ -141,10 +141,16 @@ const CustomerCard = ({ customer }) => {
             <span>Last: {lastPurchaseDate}</span>
           </div>
 
-          {customer.creditLimit > 0 && (
-            <div className="text-xs bg-gray-100 px-2 py-1 rounded">
-              Limit: {formatCurrency(customer.creditLimit)}
-            </div>
+          {customer.creditLimit != null && (
+            customer.creditLimit === 0 ? (
+              <div className="text-xs bg-red-50 text-[var(--color-danger)] px-2 py-1 rounded font-medium">
+                No Due
+              </div>
+            ) : (
+              <div className="text-xs bg-gray-100 px-2 py-1 rounded">
+                Limit: {formatCurrency(customer.creditLimit)}
+              </div>
+            )
           )}
         </div>
       </div>
