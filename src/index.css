@@ -23,6 +23,10 @@
   --color-success-light: #e8f5e9;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   font-family: var(--font-inter);
   text-rendering: optimizeLegibility;

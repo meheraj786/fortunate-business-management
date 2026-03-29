@@ -1,20 +1,18 @@
-import React, { useState } from "react";
+import React from "react";
+import { Link } from "react-router";
 import { useCreditHistory } from "@/api/hooks/customer";
 import { useSettings } from "@/context/SettingsContext";
-import Pagination from "@/components/ui/Pagination";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 
 const CreditHistoryTable = ({ customerId }) => {
-    const [page, setPage] = useState(1);
     const { formatCurrency, formatDate } = useSettings();
     const { data: historyData, isLoading } = useCreditHistory(customerId, {
-        page,
+        page: 1,
         limit: 10,
     });
 
     const history = historyData?.data?.history || [];
     const total = historyData?.data?.total || 0;
-    const totalPages = Math.ceil(total / 10);
 
     if (isLoading) {
         return <ValueSkeleton width="w-full" height="h-32" />;
@@ -123,15 +121,14 @@ const CreditHistoryTable = ({ customerId }) => {
                     </tbody>
                 </table>
             </div>
-            {totalPages > 1 && (
-                <div className="mt-4">
-                    <Pagination
-                        currentPage={page}
-                        totalPages={totalPages}
-                        onPageChange={setPage}
-                        isLoading={isLoading}
-                        totalItems={total}
-                    />
+            {total > 10 && (
+                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-center">
+                    <Link
+                        to={`/customer-details/${customerId}/wallet`}
+                        className="inline-flex items-center text-sm font-bold text-[var(--color-primary)] hover:text-[#004b95] transition-colors"
+                    >
+                        View All Transactions <span className="ml-1 text-lg leading-none">→</span>
+                    </Link>
                 </div>
             )}
         </div>

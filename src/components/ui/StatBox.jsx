@@ -24,7 +24,7 @@ const StatBox = ({
   })();
   return (
     <div
-      className="xl:flex-1 xl:w-auto w-full relative group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer rounded-xl sm:rounded-lg bg-white p-4"
+      className="xl:flex-1 xl:w-auto w-full relative group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer rounded-xl sm:rounded-lg bg-white p-4 shadow-sm"
     >
       <div className="flex flex-wrap sm:flex-nowrap justify-between items-start sm:items-center relative z-10 gap-2">
         <div className="min-w-0 flex-1 w-full sm:w-auto">
