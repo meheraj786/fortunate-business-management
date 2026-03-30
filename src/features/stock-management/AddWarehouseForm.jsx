@@ -22,11 +22,13 @@ const AddWarehouseForm = ({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting: formSubmitting },
   } = useForm({
     defaultValues: {
       name: "",
-      address: "",
+      location: "",
     },
   });
 
@@ -35,10 +37,10 @@ const AddWarehouseForm = ({
       if (isEditMode && editingWarehouse) {
         reset({
           name: editingWarehouse.name,
-          address: editingWarehouse.location,
+          location: editingWarehouse.location || "",
         });
       } else {
-        reset({ name: "", address: "" });
+        reset({ name: "", location: "" });
       }
     }
   }, [editingWarehouse, isOpen, isEditMode, reset]);
@@ -46,7 +48,7 @@ const AddWarehouseForm = ({
   const onSubmit = async (data) => {
     const payload = {
       name: data.name,
-      location: data.address,
+      location: data.location,
     };
 
     const mutationOptions = {
@@ -122,7 +124,8 @@ const AddWarehouseForm = ({
                 <InputField
                   label="Warehouse Name"
                   name="name"
-                  register={register}
+                  value={watch("name")}
+                  onChange={(e) => setValue("name", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   error={errors.name?.message}
                   validation={{ required: "Warehouse name is required" }}
                   placeholder="e.g., Main Warehouse"
@@ -130,10 +133,11 @@ const AddWarehouseForm = ({
                   disabled={isSubmitting}
                 />
                 <InputField
-                  label="Warehouse Address"
-                  name="address"
-                  register={register}
-                  error={errors.address?.message}
+                  label="Warehouse Location"
+                  name="location"
+                  value={watch("location")}
+                  onChange={(e) => setValue("location", e.target.value, { shouldValidate: true, shouldDirty: true })}
+                  error={errors.location?.message}
                   placeholder="e.g., 123 Industrial Park, Dhaka"
                   icon={MapPin}
                   disabled={isSubmitting}
