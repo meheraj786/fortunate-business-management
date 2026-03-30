@@ -89,6 +89,9 @@ const CategorySettingsPage = lazyWithRetry(
 const UnitsSettingsPage = lazyWithRetry(
   () => import("@/features/settings/UnitsSettingsPage"),
 );
+const CountrySettingsPage = lazyWithRetry(
+  () => import("@/features/settings/CountrySettingsPage"),
+);
 const GeneralSettingsPage = lazyWithRetry(
   () => import("@/features/settings/GeneralSettingsPage"),
 );
@@ -133,6 +136,7 @@ const router = createBrowserRouter([
         element: <SettingsPage />,
         children: [
           { index: true, element: <CategorySettingsPage /> },
+          { path: "countries", element: <CountrySettingsPage /> },
           { path: "units", element: <UnitsSettingsPage /> },
           { path: "general", element: <GeneralSettingsPage /> },
           { path: "wipeout", element: <WipeoutSettingsPage /> },

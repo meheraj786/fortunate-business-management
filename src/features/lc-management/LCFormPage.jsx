@@ -21,6 +21,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { useSectionManager } from "@/hooks/useSectionManager";
 import { useUnits } from "@/api/hooks/unit";
 import { useAccounts } from "@/api/hooks/account";
+import { useCountries } from "@/api/hooks/country";
 import { useLC, useCreateLC, useUpdateLC } from "@/api/hooks/lc";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -292,8 +293,10 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
 
   const { data: unitsData, isLoading: unitsLoading } = useUnits();
   const { data: accountsData, isLoading: accountsLoading } = useAccounts();
+  const { data: countriesData, isLoading: countriesLoading } = useCountries();
   const units = unitsData?.data || [];
   const accounts = accountsData?.data || [];
+  const countries = countriesData?.data || [];
 
   const { expandedSections, toggleSection, setSectionRef } =
     useSectionManager(SECTIONS_CONFIG);
@@ -546,7 +549,7 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
     }
   };
 
-  const isLoading = unitsLoading || accountsLoading; // General loading for external data
+  const isLoading = unitsLoading || accountsLoading || countriesLoading; // General loading for external data
   const formSubmitting =
     createLCMutation.isLoading || updateLCMutation.isLoading;
 
@@ -632,13 +635,15 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 validation={{ required: isDraft ? false : "Supplier Name is required" }}
                 placeholder="e.g., Global Steel Inc."
               />
-              <InputField
+              <SelectField
                 label="Supplier Country"
                 name="basicInfo.supplierCountry"
-                register={register}
+                control={control}
                 error={errors.basicInfo?.supplierCountry?.message}
+                options={countries.map((c) => ({ value: c.name, label: c.name }))}
                 validation={{ required: isDraft ? false : "Supplier Country is required" }}
-                placeholder="e.g., South Korea"
+                placeholder="Select Country"
+                loading={countriesLoading}
               />
             </div>
           )}

@@ -26,6 +26,7 @@ const Settings = () => {
     { to: "/settings/wipeout", label: "Data Wipeout", show: isSuperAdmin, isDanger: true },
     { to: "/settings/audit-logs", label: "Audit Logs", show: hasPermission("AUDIT_VIEW") },
     { to: "/settings", label: "Category", show: hasPermission("CATEGORY_VIEW"), end: true },
+    { to: "/settings/countries", label: "Countries", show: hasPermission("COUNTRY_VIEW") },
     { to: "/settings/units", label: "Units", show: hasPermission("UNIT_VIEW") },
   ];
 
