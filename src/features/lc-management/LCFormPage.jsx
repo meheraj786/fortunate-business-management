@@ -586,7 +586,6 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 register={register}
                 error={errors.basicInfo?.lcNumber?.message}
                 validation={{ required: "LC Number is required" }}
-                disabled={isEditMode}
                 placeholder="e.g., LC-2024-001"
               />
               <InputField
