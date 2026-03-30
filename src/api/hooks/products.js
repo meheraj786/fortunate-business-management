@@ -86,3 +86,19 @@ export const useDeleteProduct = (warehouseId, productId) => {
     },
   });
 };
+
+// Close lot (zero out stock)
+export const useCloseLot = (warehouseId, productId) => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: () => api.closeLot(warehouseId, productId),
+    successMessage: "Lot closed successfully — stock set to zero.",
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products", warehouseId] });
+      qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
+      qc.invalidateQueries({ queryKey: ["products", "for-sale", warehouseId] });
+      qc.invalidateQueries({ queryKey: ["warehouses", warehouseId] });
+      qc.invalidateQueries({ queryKey: ["warehouses"] });
+    },
+  });
+};

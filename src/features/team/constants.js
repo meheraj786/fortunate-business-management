@@ -50,6 +50,7 @@ export const PERMISSION_BUNDLES = {
   PRODUCT_CREATE: ["PRODUCT_VIEW_TABLE", "PRODUCT_VIEW_DETAILS"],
   PRODUCT_UPDATE: ["PRODUCT_VIEW_TABLE", "PRODUCT_VIEW_DETAILS"],
   PRODUCT_DELETE: ["PRODUCT_VIEW_TABLE", "PRODUCT_VIEW_DETAILS"],
+  PRODUCT_LOT_CLOSE: ["PRODUCT_VIEW_TABLE", "PRODUCT_VIEW_DETAILS"],
 
   // USER
   USER_VIEW_DETAILS: ["USER_VIEW_ALL"],
@@ -128,6 +129,7 @@ export const formatPermissionLabel = (permission) => {
     SALE_SHARE_INVOICE: "Share Invoice",
     SALE_ITEM_ADD: "Add Items to Sale",
     SALE_ITEM_DELETE: "Remove Items from Sale",
+    PRODUCT_LOT_CLOSE: "Close Lot (Zero Stock)",
   };
 
   if (customLabels[permission]) return customLabels[permission];

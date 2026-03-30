@@ -9,6 +9,7 @@ import {
   FileWarning,
   Hash,
   Loader2,
+  Lock,
   Package,
   Ruler,
   ShoppingCart,
@@ -18,7 +19,7 @@ import {
   FileText,
   ShieldAlert,
 } from "lucide-react";
-import { useProduct, useDeleteProduct } from "@/api/hooks/products";
+import { useProduct, useDeleteProduct, useCloseLot } from "@/api/hooks/products";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatBox from "@/components/ui/StatBox";
@@ -75,6 +76,7 @@ const ProductDetails = () => {
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCloseLotModal, setShowCloseLotModal] = useState(false);
 
   useEffect(() => {
     if (!hasPermission("PRODUCT_VIEW_DETAILS")) {
@@ -94,6 +96,7 @@ const ProductDetails = () => {
   const product = productData?.data;
 
   const deleteProductMutation = useDeleteProduct(warehouseId, productId);
+  const closeLotMutation = useCloseLot(warehouseId, productId);
 
   const handleDelete = () => {
     deleteProductMutation.mutate(undefined, {
@@ -103,6 +106,20 @@ const ProductDetails = () => {
       },
     });
   };
+
+  const handleCloseLot = () => {
+    closeLotMutation.mutate(undefined, {
+      onSuccess: () => {
+        setShowCloseLotModal(false);
+      },
+    });
+  };
+
+  const canCloseLot =
+    hasPermission("PRODUCT_LOT_CLOSE") &&
+    product &&
+    !product.lotClosed &&
+    product.quantity > 0;
 
   const prefetchFormData = () => {
     const staleTime = 5 * 60 * 1000;
@@ -204,10 +221,27 @@ const ProductDetails = () => {
                       {product?.stockStatus}
                     </span>
                   )}
+                  {!isLoading && product?.lotClosed && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border bg-gray-100 text-gray-700 border-gray-300">
+                      <Lock size={12} />
+                      Lot Closed
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
+              {canCloseLot && (
+                <Button
+                  onClick={() => setShowCloseLotModal(true)}
+                  variant="warning"
+                  size="sm"
+                  className="flex-1 sm:flex-auto flex items-center justify-center gap-2"
+                >
+                  <Lock size={16} />
+                  <span>Close Lot</span>
+                </Button>
+              )}
               {hasPermission("PRODUCT_UPDATE") && (
                 <Button
                   onClick={() => setShowEditForm(true)}
@@ -445,6 +479,18 @@ const ProductDetails = () => {
         confirmText="Delete Product"
         confirmingText="Deleting..."
         isConfirming={deleteProductMutation.isLoading}
+      />
+      <ConfirmationModal
+        isOpen={showCloseLotModal}
+        onClose={() => setShowCloseLotModal(false)}
+        onConfirm={handleCloseLot}
+        title="Close Lot"
+        description={`Are you sure you want to close this lot? This will set the remaining stock (${formatNumber(product?.quantity)} ${product?.unit?.name || ""}) to zero and the product will no longer be available for sale.`}
+        confirmText="Yes, Close Lot"
+        confirmingText="Closing..."
+        isConfirming={closeLotMutation.isPending}
+        variant="primary"
+        icon={Lock}
       />
     </div>
   );
