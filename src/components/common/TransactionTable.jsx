@@ -120,7 +120,7 @@ const TransactionTable = memo(
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 min-w-0 mr-3">
                       <div className="text-sm font-semibold text-gray-900 line-clamp-2">
-                        <DescriptionRenderer description={transaction.description} />
+                        <DescriptionRenderer description={transaction.description} account={transaction.accountId} />
                       </div>
                       <div className="text-xs text-gray-500 mt-1 flex items-center gap-1.5">
                         <span className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-600 font-medium">
@@ -267,7 +267,7 @@ const TransactionTable = memo(
                         <td className="px-5 pr-0 py-4 sm:px-4 sm:pr-0 sm:py-3 border-b border-gray-100">
                           <div className="flex flex-col">
                             <div className="text-sm font-medium text-gray-900 line-clamp-2">
-                              <DescriptionRenderer description={transaction.description} />
+                              <DescriptionRenderer description={transaction.description} account={transaction.accountId} />
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
                               {transaction.source}

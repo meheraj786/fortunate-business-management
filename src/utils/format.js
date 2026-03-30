@@ -49,9 +49,9 @@ export const formatDate = (dateString, options) => {
 export const formatAccountLabel = (account) => {
   if (!account) return "";
   if (account.accountType === "Bank") {
-    return `${account.accountName} - ${account.bankName} (${account.branchName})`;
+    return `${account.accountNumber} - ${account.bankName} (${account.branchName})`;
   } else if (account.accountType === "Mobile Banking") {
-    return `${account.serviceName} - ${account.accountName} (${account.accountHolderName})`;
+    return `${account.mobileNumber} - ${account.serviceName} (${account.accountName})`;
   } else if (account.accountType === "Cash") {
     return `${account.accountName} - ${account.accountHolderName}`;
   }

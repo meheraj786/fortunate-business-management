@@ -140,7 +140,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transactionId }) => {
               </div>
               <div className="bg-gray-50 p-3 sm:p-4 rounded-lg min-h-[80px] text-sm sm:text-base">
                 {transaction.description ? (
-                  <DescriptionRenderer description={transaction.description} />
+                  <DescriptionRenderer description={transaction.description} account={transaction.accountId} />
                 ) : (
                   <div className="text-center text-gray-400">
                     <XCircle className="mx-auto mb-1" />

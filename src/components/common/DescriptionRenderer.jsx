@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { formatAccountLabel } from "@/utils/format";
 
 /**
  * Enhanced Description Renderer Component
@@ -13,8 +14,19 @@ import React, { useMemo } from "react";
  * - Bank: Blue/Primary (e.g., "Bank Asia")
  * - Mobile Banking: Purple (e.g., "Bkash", "Nagad")
  * - Cash: Green/Success (e.g., "Main Cash")
+ *
+ * @param {string} description - The raw description text
+ * @param {Object} [account] - The populated account object (accountId).
+ *   When provided, the chip label is dynamically replaced with the
+ *   current formatAccountLabel output, so old descriptions auto-update.
  */
-const DescriptionRenderer = ({ description }) => {
+const DescriptionRenderer = ({ description, account }) => {
+    // Pre-compute the live label once (if account is available)
+    const liveLabel = useMemo(
+        () => (account ? formatAccountLabel(account) : null),
+        [account],
+    );
+
     const parts = useMemo(() => {
         if (!description) return [];
 
@@ -55,10 +67,18 @@ const DescriptionRenderer = ({ description }) => {
                 label = fullMatch.substring(13).trim();
             }
 
+            // For "Account:" patterns, use the live label from the account object
+            // if available (this automatically fixes old-format descriptions).
+            // For "Transfer to/from", the referenced account is a *different*
+            // account than the transaction's own accountId, so we keep the
+            // stored label as-is.
+            const displayLabel =
+                liveLabel && fullMatch.startsWith("Account:") ? liveLabel : label;
+
             result.push({
                 type: 'account',
                 prefix,
-                label
+                label: displayLabel,
             });
 
             lastIndex = regex.lastIndex;
@@ -72,7 +92,7 @@ const DescriptionRenderer = ({ description }) => {
         }
 
         return result;
-    }, [description]);
+    }, [description, liveLabel]);
 
     if (!description) return <span className="text-gray-500 italic">No description</span>;
 
