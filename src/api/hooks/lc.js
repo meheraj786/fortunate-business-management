@@ -100,16 +100,39 @@ export const useDeleteLCDocument = () => {
 // Export LC as PDF
 export const useExportLC = (lcId, lcNumber) =>
   useApiMutation({
-    mutationFn: () => api.exportLCAsPDF(lcId),
+    mutationFn: async () => {
+      const response = await api.exportLCAsPDF(lcId);
+
+      // When the backend returns a non-PDF error (e.g. 400/500 JSON) but Axios
+      // received it as a blob due to responseType: "blob", we need to detect it
+      // and re-throw so the error toast shows the real message.
+      const blob = response.data;
+      if (blob instanceof Blob && blob.type && blob.type.includes("application/json")) {
+        const text = await blob.text();
+        let parsed;
+        try { parsed = JSON.parse(text); } catch { /* not JSON */ }
+        throw new Error(parsed?.message || parsed?.error || "PDF export failed.");
+      }
+
+      return response;
+    },
     successMessage: "LC exported as PDF successfully!",
-    onSuccess: (data) => {
-      const url = window.URL.createObjectURL(new Blob([data]));
+    onSuccess: (response) => {
+      // Axios with responseType: "blob" returns the Blob inside response.data
+      const blob = response.data instanceof Blob
+        ? response.data
+        : new Blob([response.data], { type: "application/pdf" });
+
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `LC-${lcNumber}.pdf`);
+      link.setAttribute("download", `LC-${lcNumber || "Export"}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(url);
+
+      // Clean up the object URL asynchronously to allow the download to start
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     },
   });
+
