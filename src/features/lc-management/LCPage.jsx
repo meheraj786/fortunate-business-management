@@ -8,6 +8,8 @@ import {
   MonitorDot,
   Plus,
   Trash,
+  DollarSign,
+  Package,
 } from "lucide-react";
 import { Link } from "react-router"; // Changed to react-router
 import { useDebounce } from "@/hooks/useDebounce";
@@ -141,19 +143,12 @@ const LC = () => {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           <StatBox
             title="Active LC"
             Icon={MonitorDot}
             number={lcCountsData?.data?.Active || 0}
             textColor="success"
-            loading={isLcCountsLoading}
-          />
-          <StatBox
-            title="Completed LC"
-            Icon={BookmarkCheck}
-            number={lcCountsData?.data?.Completed || 0}
-            textColor="primary"
             loading={isLcCountsLoading}
           />
           <StatBox
@@ -164,10 +159,47 @@ const LC = () => {
             loading={isLcCountsLoading}
           />
           <StatBox
+            title="Completed LC"
+            Icon={BookmarkCheck}
+            number={lcCountsData?.data?.Completed || 0}
+            textColor="primary"
+            loading={isLcCountsLoading}
+          />
+          <StatBox
             title="Cancelled LC"
             Icon={BookmarkX}
             number={lcCountsData?.data?.Cancelled || 0}
             textColor="danger"
+            loading={isLcCountsLoading}
+          />
+          <StatBox
+            title={`Total Cost (${lcCountsData?.data?.currency || "BDT"})`}
+            Icon={DollarSign}
+            number={
+              lcCountsData?.data?.activeDraftTotalCost
+                ? new Intl.NumberFormat("en-US", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }).format(lcCountsData.data.activeDraftTotalCost)
+                : "0"
+            }
+            textColor="default"
+            loading={isLcCountsLoading}
+          />
+          <StatBox
+            title="Total Product Qty"
+            Icon={Package}
+            number={
+              lcCountsData?.data?.activeDraftQuantityByUnit?.length > 0
+                ? lcCountsData.data.activeDraftQuantityByUnit
+                    .map(
+                      (u) =>
+                        `${new Intl.NumberFormat("en-US").format(u.totalQuantity)} ${u.unitName}`
+                    )
+                    .join(", ")
+                : "0"
+            }
+            textColor="default"
             loading={isLcCountsLoading}
           />
         </div>
