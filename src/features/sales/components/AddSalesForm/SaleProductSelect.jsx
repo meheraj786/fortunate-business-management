@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Package, Tag, Ruler, Hash, DollarSign, Plus, Trash2, ShoppingCart, Lock, AlertTriangle } from "lucide-react";
 import { Controller } from "react-hook-form";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import InputField from "@/components/ui/InputField";
 import Button from "@/components/ui/Button";
+import { searchProducts } from "@/api/product.api";
 
 const SaleProductSelect = ({
   register,
@@ -223,19 +225,28 @@ const SaleProductSelect = ({
         <h3 className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
           <ShoppingCart size={16} /> Add Items
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <div className="col-span-2 md:col-span-1">
-            <SelectField
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-3 sm:gap-4">
+          <div className="col-span-2 md:col-span-3">
+            <ComboboxField
               label="Product"
               name="newItemProductId"
               value={newItem.productId}
-              options={products.map((p) => ({
-                value: p._id,
-                label: `${p.name} (Qty: ${p.quantity})`,
-              }))}
+              fetchOptions={async (q) => {
+                if (!watchedWarehouseId) return [];
+                try {
+                  const res = await searchProducts(watchedWarehouseId, q, watch("categoryId"));
+                  return (res.data?.data || []).map((p) => ({
+                    value: p._id,
+                    label: `${p.name} (Qty: ${p.quantity})`,
+                  }));
+                } catch {
+                  return [];
+                }
+              }}
               icon={Package}
               disabled={!watchedWarehouseId || productsLoading || !canAddItem}
               loading={productsLoading}
+              placeholder="Search products..."
               onChange={(val) => handleProductChange(val)}
             />
           </div>
@@ -262,7 +273,7 @@ const SaleProductSelect = ({
               disabled={!canAddItem}
             />
           </div>
-          <div className="col-span-2 md:col-span-1 flex items-end gap-2">
+          <div className="col-span-2 flex items-end gap-2">
             <div className="flex-grow">
               <InputField
                 label="Price"

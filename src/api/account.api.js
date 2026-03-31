@@ -17,3 +17,6 @@ export const updateAccount = (id, data) =>
 
 export const deleteAccount = (id) =>
   api.delete(`/account/delete-account/${id}`);
+
+export const searchAccounts = (q, accountType, limit = 20) =>
+  api.get("/account/search", { params: { q, accountType, limit } });

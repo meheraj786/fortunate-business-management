@@ -22,6 +22,8 @@ import { useSectionManager } from "@/hooks/useSectionManager";
 import { useUnits } from "@/api/hooks/unit";
 import { useAccounts } from "@/api/hooks/account";
 import { useCountries } from "@/api/hooks/country";
+import { searchCountries } from "@/api/country.api";
+import { searchAccounts } from "@/api/account.api";
 import { useLC, useCreateLC, useUpdateLC } from "@/api/hooks/lc";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +34,7 @@ import { formatAccountLabel } from "@/utils/format";
 import FormSection from "@/components/ui/FormSection";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import TextAreaField from "@/components/ui/TextAreaField";
 import FileInput from "@/components/ui/FileInput";
 import FormPageLayout from "@/components/ui/FormPageLayout";
@@ -610,18 +613,23 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 validation={{ required: "Status is required" }}
               />
 
-              <SelectField
+              <ComboboxField
                 label="Choose an account"
                 name="basicInfo.accountId"
                 control={control}
                 error={errors.basicInfo?.accountId?.message}
-                options={accounts
-                  .filter((acc) => acc.accountType === "Bank")
-                  .map((acc) => ({
-                    value: acc._id,
-                    label: formatAccountLabel(acc),
-                  }))}
-                placeholder="Select Bank"
+                fetchOptions={async (q) => {
+                  try {
+                    const res = await searchAccounts(q, "Bank");
+                    return (res.data?.data || []).map((acc) => ({
+                      value: acc._id,
+                      label: formatAccountLabel(acc),
+                    }));
+                  } catch {
+                    return [];
+                  }
+                }}
+                placeholder="Search bank account..."
                 validation={{ required: isDraft ? false : "Bank account is required" }}
                 loading={accountsLoading}
               />
@@ -634,15 +642,24 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 validation={{ required: isDraft ? false : "Supplier Name is required" }}
                 placeholder="e.g., Global Steel Inc."
               />
-              <SelectField
+              <ComboboxField
                 label="Supplier Country"
                 name="basicInfo.supplierCountry"
                 control={control}
                 error={errors.basicInfo?.supplierCountry?.message}
-                options={countries.map((c) => ({ value: c.name, label: c.name }))}
+                fetchOptions={async (q) => {
+                  try {
+                    const res = await searchCountries(q);
+                    return (res.data?.data || []).map((c) => ({
+                      value: c.name,
+                      label: c.name,
+                    }));
+                  } catch {
+                    return [];
+                  }
+                }}
                 validation={{ required: isDraft ? false : "Supplier Country is required" }}
-                placeholder="Select Country"
-                loading={countriesLoading}
+                placeholder="Search country..."
               />
             </div>
           )}

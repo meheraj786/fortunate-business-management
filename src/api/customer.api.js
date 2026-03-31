@@ -7,6 +7,9 @@ export const createCustomer = (formData) =>
 
 export const getCustomers = () => api.get("/customer/get-active-customers");
 
+export const searchCustomers = (q, limit = 20) =>
+  api.get("/customer/search", { params: { q, limit } });
+
 export const getCustomerById = (id) => api.get(`/customer/get-customer/${id}`);
 
 export const updateCustomer = (id, formData) =>

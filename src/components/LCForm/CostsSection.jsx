@@ -4,10 +4,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
-import Button from "@/components/ui/Button"; // Import Button component
-import { useFieldArray } from "react-hook-form"; // Import useFieldArray
+import ComboboxField from "@/components/ui/ComboboxField";
+import Button from "@/components/ui/Button";
+import { useFieldArray } from "react-hook-form";
 import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
+import { searchAccounts } from "@/api/account.api";
 
 const CostsSection = ({
   control, // from react-hook-form
@@ -117,7 +119,7 @@ const CostsSection = ({
             {...sectionAnimation}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 p-4 bg-gray-50 rounded-lg"
           >
-            <div className={isDocumentSection ? "lg:col-span-3 md:col-span-1" : "lg:col-span-3 md:col-span-1"}>
+            <div className={isDocumentSection ? "lg:col-span-3 md:col-span-1" : "lg:col-span-4 md:col-span-1"}>
               <InputField
                 label={`Cost Name ${index + 1}`}
                 name={`${section}[${index}].name`}
@@ -181,7 +183,7 @@ const CostsSection = ({
                 </div>
               </>
             ) : (
-              <div className="lg:col-span-3 md:col-span-1">
+              <div className="lg:col-span-2 md:col-span-1">
                 <InputField
                   label={`Amount (${settings?.currency || "BDT"})`}
                   name={`${section}[${index}].amount`}
@@ -199,7 +201,7 @@ const CostsSection = ({
               </div>
             )}
 
-            <div className={isDocumentSection ? "lg:col-span-2 md:col-span-1" : "lg:col-span-3 md:col-span-1"}>
+            <div className={isDocumentSection ? "lg:col-span-2 md:col-span-1" : "lg:col-span-2 md:col-span-1"}>
               <SelectField
                 label="Payment Method"
                 name={`${section}[${index}].paymentMethod`}
@@ -215,26 +217,29 @@ const CostsSection = ({
                 disabled={isSubmitting}
               />
             </div>
-            <div className={isDocumentSection ? "lg:col-span-2 md:col-span-1" : "lg:col-span-2 md:col-span-1"}>
-              {watch(`${section}[${index}].paymentMethod`) && ( // Watch the paymentMethod for this specific cost
-                <SelectField
+            <div className={isDocumentSection ? "lg:col-span-2 md:col-span-1" : "lg:col-span-3 md:col-span-1"}>
+              {watch(`${section}[${index}].paymentMethod`) && (
+                <ComboboxField
                   label="Select Account"
                   name={`${section}[${index}].accountId`}
                   control={control}
                   error={getNestedErrorMessage(
                     `${section}[${index}].accountId`,
                   )}
-                  options={accounts
-                    .filter(
-                      (acc) =>
-                        acc.accountType ===
-                        watch(`${section}[${index}].paymentMethod`),
-                    )
-                    .map((acc) => ({
-                      value: acc._id,
-                      label: formatAccountLabel(acc),
-                    }))}
-                  placeholder="Choose account"
+                  fetchOptions={async (q) => {
+                    const method = watch(`${section}[${index}].paymentMethod`);
+                    if (!method) return [];
+                    try {
+                      const res = await searchAccounts(q, method);
+                      return (res.data?.data || []).map((acc) => ({
+                        value: acc._id,
+                        label: formatAccountLabel(acc),
+                      }));
+                    } catch {
+                      return [];
+                    }
+                  }}
+                  placeholder="Search account..."
                   validation={{ required: "Account is required" }}
                   disabled={isSubmitting}
                 />

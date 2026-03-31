@@ -26,5 +26,11 @@ export const getProductsForSale = (warehouseId, categoryId) => {
   return api.get(`/warehouses/${warehouseId}/products/for-sale`, { params });
 };
 
+export const searchProducts = (warehouseId, q, categoryId) => {
+  const params = { q };
+  if (categoryId) params.category = categoryId;
+  return api.get(`/warehouses/${warehouseId}/products/for-sale`, { params });
+};
+
 export const closeLot = (warehouseId, productId) =>
   api.post(`/warehouses/${warehouseId}/products/${productId}/close-lot`);

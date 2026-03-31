@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import TextAreaField from "@/components/ui/TextAreaField";
 import {
   showErrorToast,
@@ -265,7 +266,7 @@ const AddTransactionDialog = ({
         />
 
         {watchedCategory === "LC" && (
-          <SelectField
+          <ComboboxField
             label="Select LC"
             name="lcId"
             control={control}
@@ -277,7 +278,7 @@ const AddTransactionDialog = ({
             validation={{
               required: "Please select an LC for this transaction",
             }}
-            placeholder="Select an LC"
+            placeholder="Search LC..."
           />
         )}
 
@@ -298,7 +299,7 @@ const AddTransactionDialog = ({
         )}
 
         {watchedCategory === "Sales" && (
-          <SelectField
+          <ComboboxField
             label="Select Sale"
             name="salesId"
             control={control}
@@ -310,7 +311,7 @@ const AddTransactionDialog = ({
             validation={{
               required: "Please select a Sale for this transaction",
             }}
-            placeholder="Select a Sale"
+            placeholder="Search sale..."
           />
         )}
 
@@ -344,7 +345,7 @@ const AddTransactionDialog = ({
         {(watchedPaymentMethod === "Bank" ||
           watchedPaymentMethod === "Mobile Banking" ||
           watchedPaymentMethod === "Cash") && (
-            <SelectField
+            <ComboboxField
               label="Select Account"
               name="accountId"
               control={control}
@@ -353,7 +354,7 @@ const AddTransactionDialog = ({
                 value: acc._id,
                 label: formatAccountLabel(acc),
               }))}
-              placeholder="Select an account"
+              placeholder="Search account..."
               validation={{ required: "Account is required" }}
               loading={accountsLoading}
             />

@@ -3,6 +3,7 @@ import { Package, Tag, FileText, Truck } from "lucide-react";
 import { Controller } from "react-hook-form";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 const ProductBasicInfo = ({
   control,
@@ -59,7 +60,7 @@ const ProductBasicInfo = ({
           disabled={isSubmitting || categoriesLoading}
           loading={categoriesLoading}
         />
-        <SelectField
+        <ComboboxField
           name="LC"
           control={control}
           label="LC (Optional)"
@@ -68,6 +69,7 @@ const ProductBasicInfo = ({
           icon={FileText}
           disabled={isSubmitting || lcsLoading}
           loading={lcsLoading}
+          placeholder="Search LC..."
         />
         <Controller
           name="supplierName"

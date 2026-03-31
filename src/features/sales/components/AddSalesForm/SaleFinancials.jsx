@@ -5,9 +5,11 @@ import { useFieldArray, Controller } from "react-hook-form";
 import { PlusCircle, MinusCircle, FileText, CreditCard, Info } from "lucide-react";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import Button from "@/components/ui/Button";
 import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
+import { searchAccounts } from "@/api/account.api";
 import { getBusinessDateTimeISO } from "@/utils/date.util";
 
 const SaleFinancials = ({
@@ -142,8 +144,9 @@ const SaleFinancials = ({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 items-end bg-gray-50 p-3 rounded-md"
+              className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-3 items-end bg-gray-50 p-3 rounded-md"
             >
+              <div className="sm:col-span-2">
               <InputField
                 label="Charge Name"
                 name={`charges.${index}.name`}
@@ -152,6 +155,8 @@ const SaleFinancials = ({
                 validation={{ required: "Charge name is required" }}
                 disabled={isSubmitting}
               />
+              </div>
+              <div className="sm:col-span-2">
               <InputField
                 label="Amount"
                 name={`charges.${index}.amount`}
@@ -166,6 +171,7 @@ const SaleFinancials = ({
                 }}
                 disabled={isSubmitting}
               />
+              </div>
               <Button
                 type="button"
                 onClick={() => removeCharge(index)}
@@ -206,8 +212,9 @@ const SaleFinancials = ({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-3 items-end bg-gray-50 p-3 rounded-md"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-9 gap-3 mb-3 items-end bg-gray-50 p-3 rounded-md"
             >
+              <div className="lg:col-span-3">
               <InputField
                 label="Cost Name"
                 name={`costs.${index}.name`}
@@ -215,6 +222,8 @@ const SaleFinancials = ({
                 error={errors.costs?.[index]?.name?.message}
                 validation={{ required: "Required" }}
               />
+              </div>
+              <div className="lg:col-span-1">
               <InputField
                 label="Amount"
                 name={`costs.${index}.amount`}
@@ -224,6 +233,8 @@ const SaleFinancials = ({
                 error={errors.costs?.[index]?.amount?.message}
                 validation={{ required: "Required", valueAsNumber: true }}
               />
+              </div>
+              <div className="lg:col-span-1">
               <SelectField
                 name={`costs.${index}.method`}
                 control={control}
@@ -236,17 +247,32 @@ const SaleFinancials = ({
                   { value: "Mobile Banking", label: "Mobile Banking" },
                 ]}
               />
-              <SelectField
+              </div>
+              <div className="lg:col-span-3">
+              <ComboboxField
                 name={`costs.${index}.accountId`}
                 control={control}
                 validation={{ required: "Required" }}
                 label="Account"
                 error={errors.costs?.[index]?.accountId?.message}
-                options={getFilteredAccounts(
-                  watch(`costs.${index}.method`),
-                )}
+                fetchOptions={async (q) => {
+                  const method = watch(`costs.${index}.method`);
+                  if (!method) return [];
+                  try {
+                    const res = await searchAccounts(q, method);
+                    return (res.data?.data || []).map((acc) => ({
+                      value: acc._id,
+                      label: formatAccountLabel(acc),
+                    }));
+                  } catch {
+                    return [];
+                  }
+                }}
+                placeholder="Search account..."
                 disabled={!watch(`costs.${index}.method`)}
               />
+              </div>
+              <div className="lg:col-span-1">
               <Button
                 type="button"
                 onClick={() => removeCost(index)}
@@ -255,6 +281,7 @@ const SaleFinancials = ({
               >
                 <MinusCircle size={20} />
               </Button>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
@@ -362,8 +389,9 @@ const SaleFinancials = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end p-3 bg-blue-50/50 rounded-lg border border-blue-100"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-11 gap-3 items-end p-3 bg-blue-50/50 rounded-lg border border-blue-100"
           >
+            <div className="lg:col-span-2">
             <InputField
               label="Amount Paid"
               name={`payments.${index}.amount`}
@@ -390,6 +418,8 @@ const SaleFinancials = ({
                 },
               }}
             />
+            </div>
+            <div className="lg:col-span-3">
             <InputField
               label="Date & Time"
               name={`payments.${index}.date`}
@@ -398,7 +428,8 @@ const SaleFinancials = ({
               error={errors.payments?.[index]?.date?.message}
               validation={{ required: "Required" }}
             />
-            <div className="space-y-1">
+            </div>
+            <div className="lg:col-span-2 space-y-1">
               <SelectField
                 name={`payments.${index}.method`}
                 control={control}
@@ -427,7 +458,8 @@ const SaleFinancials = ({
               />
             </div>
 
-            <SelectField
+            <div className="lg:col-span-3">
+            <ComboboxField
               name={`payments.${index}.accountId`}
               control={control}
               validation={{
@@ -437,15 +469,27 @@ const SaleFinancials = ({
               }}
               label="To Account"
               error={errors.payments?.[index]?.accountId?.message}
-              options={getFilteredAccounts(
-                watch(`payments.${index}.method`),
-              )}
+              fetchOptions={async (q) => {
+                const method = watch(`payments.${index}.method`);
+                if (!method || method === "Customer Credit") return [];
+                try {
+                  const res = await searchAccounts(q, method);
+                  return (res.data?.data || []).map((acc) => ({
+                    value: acc._id,
+                    label: formatAccountLabel(acc),
+                  }));
+                } catch {
+                  return [];
+                }
+              }}
+              placeholder="Search account..."
               disabled={
                 !watch(`payments.${index}.method`) ||
                 watch(`payments.${index}.method`) === "Customer Credit"
               }
             />
-            <div className="flex gap-2">
+            </div>
+            <div className="lg:col-span-1 flex gap-2">
               {watchedPaymentStatus === "Partial payment" && (
                 <Button
                   type="button"

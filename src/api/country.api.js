@@ -14,3 +14,6 @@ export const updateCountry = (id, data) =>
 
 export const deleteCountry = (id) =>
   api.delete(`/country/delete-country/${id}`);
+
+export const searchCountries = (q, limit = 20) =>
+  api.get("/country/search", { params: { q, limit } });
