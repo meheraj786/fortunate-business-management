@@ -20,6 +20,8 @@ export const deleteCustomer = (id) =>
 export const getCustomersSummary = (params) =>
   api.get("/customer/summary", { params });
 
+export const getCustomerStats = () => api.get("/customer/stats");
+
 export const deleteCustomerDocument = (customerId, docId) =>
   api.delete(`/customer/${customerId}/documents/${docId}`);
 

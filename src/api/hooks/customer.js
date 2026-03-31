@@ -1,7 +1,14 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/api/customer.api";
 import { useApiMutation } from "@/hooks/useApiMutation";
-import { getCustomersSummary } from "../customer.api";
+import { getCustomersSummary, getCustomerStats } from "../customer.api";
+
+export const useCustomerStats = () =>
+  useQuery({
+    queryKey: ["customers", "stats"],
+    queryFn: async () => (await getCustomerStats()).data,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
 export const useCustomers = () =>
   useQuery({

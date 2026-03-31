@@ -1,89 +1,37 @@
 import React, { useState, useCallback, useEffect } from "react";
-import CustomerCard from "./components/CustomerCard";
 import {
   Plus,
-  Search,
-  ArrowUp,
-  ArrowDown,
-  X,
-  Users,
   Trash,
+  Users,
+  UserCheck,
+  UserX,
+  Store,
+  ShoppingCart,
+  DollarSign,
+  Wallet,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
-import { useCustomerSummary } from "@/api/hooks/customer";
+import { useCustomerSummary, useCustomerStats } from "@/api/hooks/customer";
 import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/context/SettingsContext";
 import Button from "@/components/ui/Button";
-import InputField from "@/components/ui/InputField";
-import SelectField from "@/components/ui/SelectField";
-import Pagination from "@/components/ui/Pagination";
-import { motion, AnimatePresence } from "framer-motion";
+import StatBox from "@/components/ui/StatBox";
+import { motion } from "framer-motion";
 import { showErrorToast } from "@/utils/notifications";
 import { useDebounce } from "@/hooks/useDebounce";
-
-const sortOptions = [
-  { value: "joinDate", label: "Join Date" },
-  { value: "totalSpent", label: "Total Spent" },
-  { value: "totalPurchases", label: "Total Purchases" },
-  { value: "lastPurchaseDate", label: "Last Purchase" },
-  { value: "creditLimit", label: "Credit Limit" },
-  { value: "totalDue", label: "Total Due" },
-  { value: "name", label: "Name" },
-];
-
-const statusOptions = [
-  { value: "", label: "All Statuses" },
-  { value: "Active", label: "Active" },
-  { value: "Suspended", label: "Suspended" },
-];
-
-const customerTypeOptions = [
-  { value: "", label: "All Types" },
-  { value: "Retail", label: "Retail" },
-  { value: "Wholesale", label: "Wholesale" },
-];
-
-const SkeletonCard = () => (
-  <div className="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
-    <div className="flex justify-between items-start mb-4">
-      <div className="flex-1">
-        <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-      </div>
-      <div className="flex flex-col gap-1">
-        <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
-        <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
-      </div>
-    </div>
-    <div className="space-y-2 mb-4">
-      <div className="h-4 bg-gray-200 rounded w-full"></div>
-      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-    </div>
-    <div className="border-t border-gray-200 pt-4">
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-          <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-        </div>
-        <div>
-          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-          <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-        </div>
-      </div>
-      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-    </div>
-  </div>
-);
+import CustomerTable from "./components/CustomerTable";
 
 const Customers = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  const [filters, setFilters] = useState({ status: "", customerType: "" });
+  const [filters, setFilters] = useState({ status: "", customerType: "", hasDue: false, hasCreditBalance: false });
   const [sorting, setSorting] = useState({
     sortBy: "name",
     sortOrder: "asc",
   });
   const { hasPermission } = useAuth();
+  const { formatCurrency } = useSettings();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -95,10 +43,12 @@ const Customers = () => {
 
   const queryParams = {
     page,
-    limit: 12,
+    limit: 15,
     search: debouncedSearchTerm,
     status: filters.status || undefined,
     customerType: filters.customerType || undefined,
+    hasDue: filters.hasDue ? "true" : undefined,
+    hasCreditBalance: filters.hasCreditBalance ? "true" : undefined,
     sortBy: sorting.sortBy,
     sortOrder: sorting.sortOrder,
   };
@@ -110,10 +60,16 @@ const Customers = () => {
     error,
   } = useCustomerSummary(queryParams);
 
+  const { data: statsResponse, isLoading: statsLoading } = useCustomerStats();
+
   const customers =
     apiResponse?.data?.customers || apiResponse?.customers || [];
   const totalPages =
     apiResponse?.data?.totalPages || apiResponse?.totalPages || 1;
+  const totalItems =
+    apiResponse?.data?.totalItems || apiResponse?.totalItems || 0;
+
+  const stats = statsResponse?.data || {};
 
   useEffect(() => {
     if (isError) {
@@ -121,26 +77,34 @@ const Customers = () => {
     }
   }, [isError, error]);
 
-  const handleFilterChange = useCallback((name, value) => {
-    setFilters((prev) => ({ ...prev, [name]: value }));
+  // --- Handlers ---
+  const handleSearchChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
     setPage(1);
   }, []);
 
-  const handleSortByChange = useCallback((val) => {
-    setSorting((prev) => ({ ...prev, sortBy: val }));
+  const handleStatusChange = useCallback((val) => {
+    setFilters((prev) => ({ ...prev, status: val }));
     setPage(1);
   }, []);
 
-  const toggleSortOrder = useCallback(() => {
-    setSorting((prev) => ({
-      ...prev,
-      sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
-    }));
+  const handleTypeChange = useCallback((val) => {
+    setFilters((prev) => ({ ...prev, customerType: val }));
     setPage(1);
   }, []);
 
-  const clearFilters = useCallback(() => {
-    setFilters({ status: "", customerType: "" });
+  const handleSortChange = useCallback((field, order) => {
+    setSorting({ sortBy: field, sortOrder: order });
+    setPage(1);
+  }, []);
+
+  const handleToggleFilter = useCallback((key) => {
+    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+    setPage(1);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({ status: "", customerType: "", hasDue: false, hasCreditBalance: false });
     setSearchTerm("");
     setSorting({ sortBy: "name", sortOrder: "asc" });
     setPage(1);
@@ -152,19 +116,26 @@ const Customers = () => {
         setPage(newPage);
       }
     },
-    [totalPages],
+    [totalPages]
+  );
+
+  const hasActiveFilters = !!(
+    filters.status ||
+    filters.customerType ||
+    filters.hasDue ||
+    filters.hasCreditBalance ||
+    searchTerm
   );
 
   return (
-    <motion.div
-      className="space-y-6" // Added padding for overall layout
-    >
+    <motion.div className="space-y-5">
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Customers
           </h1>
-          <p className="text-gray-600 mt-2 text-sm sm:text-base">
+          <p className="text-gray-500 mt-1 text-sm">
             Manage your customer relationships and track their purchases
           </p>
         </div>
@@ -177,7 +148,7 @@ const Customers = () => {
                 className="flex items-center gap-2"
                 aria-label="Trash Customer"
               >
-                <Trash className="w-5 h-5" /> Trash Customer
+                <Trash className="w-4 h-4" /> Trash
               </Button>
             </Link>
           )}
@@ -190,7 +161,7 @@ const Customers = () => {
                 className="flex items-center gap-2"
                 aria-label="Add Customer"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Add Customer</span>
                 <span className="sm:hidden">Add</span>
               </Button>
@@ -199,143 +170,76 @@ const Customers = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
-        <div className="flex flex-col md:flex-row gap-3">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <InputField
-              id="customer-search"
-              name="search"
-              placeholder="Search by name, phone, or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              icon={Search}
-              className="w-full"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <div className="w-full md:w-36">
-            <SelectField
-              name="status"
-              value={filters.status}
-              onChange={(val) => handleFilterChange("status", val)}
-              options={statusOptions}
-              className="mb-0"
-            />
-          </div>
-
-          {/* Type Filter */}
-          <div className="w-full md:w-36">
-            <SelectField
-              name="customerType"
-              value={filters.customerType}
-              onChange={(val) => handleFilterChange("customerType", val)}
-              options={customerTypeOptions}
-              className="mb-0"
-            />
-          </div>
-
-          {/* Sort */}
-          <div className="flex gap-2">
-            <div className="w-full md:w-40">
-              <SelectField
-                name="sortBy"
-                value={sorting.sortBy}
-                onChange={handleSortByChange}
-                options={sortOptions}
-                className="mb-0"
-              />
-            </div>
-            <Button
-              onClick={toggleSortOrder}
-              variant="secondary"
-              size="sm"
-              className="flex items-center justify-center gap-1 flex-shrink-0 px-3"
-              aria-label={`Sort ${sorting.sortOrder === "asc" ? "ascending" : "descending"}`}
-            >
-              {sorting.sortOrder === "asc" ? (
-                <ArrowUp className="w-4 h-4" />
-              ) : (
-                <ArrowDown className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
-
-          {/* Clear — only when filters active */}
-          {(filters.status || filters.customerType || searchTerm) && (
-            <Button
-              onClick={clearFilters}
-              variant="subtle"
-              size="sm"
-              className="flex items-center justify-center gap-1 text-[var(--color-danger)] hover:text-[var(--color-danger-dark)] flex-shrink-0"
-            >
-              <X className="w-4 h-4" /> Clear
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div>
-        {loading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        ) : customers.length > 0 ? (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          >
-            {customers.map((customer) => (
-              <motion.div key={customer._id}>
-                <CustomerCard customer={customer} />
-              </motion.div>
-            ))}
-          </motion.div>
-        ) : (
-          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-              No Customers Found
-            </h3>
-            <p className="text-gray-500 mb-6">
-              {searchTerm || filters.status || filters.customerType
-                ? "Try adjusting your search or filters."
-                : "Get started by adding your first customer."}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                onClick={clearFilters}
-                variant="secondary"
-                size="sm"
-                className="w-full sm:w-auto"
-              >
-                Clear Filters
-              </Button>
-              {hasPermission("CUSTOMER_CREATE") && (
-                <Link to="/customer-form">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                  >
-                    Add Customer
-                  </Button>
-                </Link>
-              )}
-            </div>
-          </div>
-        )}
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          isLoading={loading}
+      {/* Stat Boxes */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <StatBox
+          title="Total Customers"
+          Icon={Users}
+          number={stats.totalCustomers || 0}
+          loading={statsLoading}
+        />
+        <StatBox
+          title="Active"
+          Icon={UserCheck}
+          number={stats.active || 0}
+          textColor="green"
+          loading={statsLoading}
+        />
+        <StatBox
+          title="Suspended"
+          Icon={UserX}
+          number={stats.suspended || 0}
+          textColor="red"
+          loading={statsLoading}
+        />
+        <StatBox
+          title="Retail / Wholesale"
+          Icon={Store}
+          number={`${stats.retail || 0} / ${stats.wholesale || 0}`}
+          loading={statsLoading}
+        />
+        <StatBox
+          title="Outstanding Due"
+          Icon={DollarSign}
+          number={formatCurrency(stats.totalOutstandingDue || 0)}
+          textColor="red"
+          loading={statsLoading}
+        />
+        <StatBox
+          title="Credit Balance"
+          Icon={Wallet}
+          number={formatCurrency(stats.totalCreditBalance || 0)}
+          textColor="blue"
+          loading={statsLoading}
         />
       </div>
+
+      {/* Customer Table */}
+      <CustomerTable
+        customers={customers}
+        loading={loading}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          totalItems,
+          onPageChange: handlePageChange,
+          limit: 15,
+        }}
+        searchQuery={searchTerm}
+        onSearchChange={handleSearchChange}
+        filterStatus={filters.status}
+        onStatusChange={handleStatusChange}
+        filterType={filters.customerType}
+        onTypeChange={handleTypeChange}
+        hasDue={filters.hasDue}
+        hasCreditBalance={filters.hasCreditBalance}
+        onToggleFilter={handleToggleFilter}
+        onClearFilters={handleClearFilters}
+        hasActiveFilters={hasActiveFilters}
+        sortBy={sorting.sortBy}
+        sortOrder={sorting.sortOrder}
+        onSortChange={handleSortChange}
+      />
     </motion.div>
   );
 };
