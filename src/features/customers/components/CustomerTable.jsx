@@ -28,6 +28,8 @@ const COL = {
   credit: "py-3 pl-3 pr-5",
 };
 
+const GRID_COLS = "2fr 1fr 1fr 1fr 1fr";
+
 // --- Sortable Header ---
 const SortableHeader = ({
   label,
@@ -97,29 +99,29 @@ const StaticHeader = ({ label, align = "left" }) => (
 
 // --- Skeleton Row ---
 const TableSkeletonRow = () => (
-  <tr>
-    <td className={`${COL.customer} border-b border-gray-100`}>
+  <div className="grid border-b border-gray-100" style={{ gridTemplateColumns: GRID_COLS }}>
+    <div className={`${COL.customer}`}>
       <div className="space-y-1.5">
         <ValueSkeleton width="w-32" height="h-4" />
         <ValueSkeleton width="w-20" height="h-3" />
       </div>
-    </td>
-    <td className={`${COL.phone} border-b border-gray-100`}>
+    </div>
+    <div className={`${COL.phone}`}>
       <ValueSkeleton width="w-24" height="h-4" />
-    </td>
-    <td className={`${COL.typeStatus} text-center border-b border-gray-100`}>
+    </div>
+    <div className={`${COL.typeStatus} text-center`}>
       <div className="flex items-center justify-center gap-1.5">
         <ValueSkeleton width="w-16" height="h-5" className="rounded-full" />
         <ValueSkeleton width="w-14" height="h-5" className="rounded-full" />
       </div>
-    </td>
-    <td className={`${COL.due} text-right border-b border-gray-100`}>
+    </div>
+    <div className={`${COL.due} text-right`}>
       <ValueSkeleton width="w-20" height="h-4" className="ml-auto" />
-    </td>
-    <td className={`${COL.credit} text-right border-b border-gray-100`}>
+    </div>
+    <div className={`${COL.credit} text-right`}>
       <ValueSkeleton width="w-20" height="h-4" className="ml-auto" />
-    </td>
-  </tr>
+    </div>
+  </div>
 );
 
 
@@ -190,22 +192,20 @@ const CustomerTable = ({
 
     if (customers.length === 0) {
       return (
-        <tr>
-          <td colSpan="5" className="text-center py-16 px-4">
-            <Users
-              className="mx-auto w-12 h-12 text-gray-300"
-              aria-hidden="true"
-            />
-            <p className="mt-4 text-base font-medium text-gray-500">
-              No customers found
-            </p>
-            <p className="text-sm mt-1 text-gray-400 max-w-sm mx-auto">
-              {hasActiveFilters
-                ? "Try adjusting your search or filters."
-                : "Get started by adding your first customer."}
-            </p>
-          </td>
-        </tr>
+        <div className="text-center py-16 px-4">
+          <Users
+            className="mx-auto w-12 h-12 text-gray-300"
+            aria-hidden="true"
+          />
+          <p className="mt-4 text-base font-medium text-gray-500">
+            No customers found
+          </p>
+          <p className="text-sm mt-1 text-gray-400 max-w-sm mx-auto">
+            {hasActiveFilters
+              ? "Try adjusting your search or filters."
+              : "Get started by adding your first customer."}
+          </p>
+        </div>
       );
     }
 
@@ -214,19 +214,20 @@ const CustomerTable = ({
       const creditBalance = customer.creditBalance || 0;
 
       return (
-        <motion.tr
+        <motion.div
           key={customer._id}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className={`hover:bg-gray-50/80 transition-colors group ${
+          className={`grid border-b border-gray-100 hover:bg-gray-50/80 transition-colors group ${
             canViewDetails ? "cursor-pointer" : ""
           }`}
+          style={{ gridTemplateColumns: GRID_COLS }}
           transition={{ duration: 0.12 }}
           onMouseEnter={() => prefetchCustomerDetails(customer._id)}
         >
           {/* Col 1: Customer (Name + ID) */}
-          <td className={`${COL.customer} border-b border-gray-100`}>
+          <div className={`${COL.customer}`}>
             <div className="min-w-0">
               {canViewDetails ? (
                 <Link
@@ -251,11 +252,11 @@ const CustomerTable = ({
                 </>
               )}
             </div>
-          </td>
+          </div>
 
           {/* Col 2: Phone */}
-          <td
-            className={`${COL.phone} text-sm whitespace-nowrap border-b border-gray-100`}
+          <div
+            className={`${COL.phone} text-sm whitespace-nowrap flex items-center`}
           >
             {canViewSensitive ? (
               customer.phone ? (
@@ -272,10 +273,10 @@ const CustomerTable = ({
             ) : (
               <span className="text-gray-400">***-****</span>
             )}
-          </td>
+          </div>
 
           {/* Col 3: Type / Status */}
-          <td className={`${COL.typeStatus} text-center border-b border-gray-100`}>
+          <div className={`${COL.typeStatus} text-center flex items-center justify-center`}>
             <div className="flex items-center justify-center gap-1.5">
               {customer.customerType && (
                 <CustomerTypePill type={customer.customerType} />
@@ -288,11 +289,11 @@ const CustomerTable = ({
                 />
               )}
             </div>
-          </td>
+          </div>
 
           {/* Col 4: Total Due */}
-          <td
-            className={`${COL.due} text-sm whitespace-nowrap text-right border-b border-gray-100`}
+          <div
+            className={`${COL.due} text-sm whitespace-nowrap text-right flex items-center justify-end`}
           >
             <span
               className={`font-medium ${
@@ -301,11 +302,11 @@ const CustomerTable = ({
             >
               {formatCurrency(totalDue)}
             </span>
-          </td>
+          </div>
 
-          {/* Col 6: Credit Balance */}
-          <td
-            className={`${COL.credit} text-sm whitespace-nowrap text-right border-b border-gray-100`}
+          {/* Col 5: Credit Balance */}
+          <div
+            className={`${COL.credit} text-sm whitespace-nowrap text-right flex items-center justify-end`}
           >
             <span
               className={`font-medium ${
@@ -316,8 +317,8 @@ const CustomerTable = ({
             >
               {formatCurrency(creditBalance)}
             </span>
-          </td>
-        </motion.tr>
+          </div>
+        </motion.div>
       );
     });
   }, [
@@ -446,74 +447,56 @@ const CustomerTable = ({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-[600px] w-full">
-          <colgroup>
-            <col className="w-[30%]" />
-            <col className="w-[18%]" />
-            <col className="w-[22%]" />
-            <col className="w-[15%]" />
-            <col className="w-[15%]" />
-          </colgroup>
-          <thead className="bg-gray-50/80">
-            <tr>
-              <th
-                scope="col"
-                className={`${COL.customer} text-left border-b border-gray-200`}
-              >
-                <SortableHeader
-                  label="Customer"
-                  value="name"
-                  sortBy={sortBy}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                />
-              </th>
-              <th
-                scope="col"
-                className={`${COL.phone} text-left border-b border-gray-200`}
-              >
-                <StaticHeader label="Phone" />
-              </th>
-              <th
-                scope="col"
-                className={`${COL.typeStatus} text-center border-b border-gray-200`}
-              >
-                <StaticHeader label="Type / Status" align="center" />
-              </th>
-              <th
-                scope="col"
-                className={`${COL.due} text-right border-b border-gray-200`}
-              >
-                <SortableHeader
-                  label="Due"
-                  value="totalDue"
-                  align="right"
-                  sortBy={sortBy}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                />
-              </th>
-              <th
-                scope="col"
-                className={`${COL.credit} text-right border-b border-gray-200`}
-              >
-                <SortableHeader
-                  label="Credit"
-                  value="creditBalance"
-                  align="right"
-                  sortBy={sortBy}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                />
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white">
+        <div className="min-w-[600px]">
+          {/* Header Row */}
+          <div
+            className="grid bg-gray-50/80 border-b border-gray-200"
+            style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr" }}
+          >
+            <div className={`${COL.customer}`}>
+              <SortableHeader
+                label="Customer"
+                value="name"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+              />
+            </div>
+            <div className={`${COL.phone}`}>
+              <StaticHeader label="Phone" />
+            </div>
+            <div className={`${COL.typeStatus} text-center`}>
+              <StaticHeader label="Type / Status" align="center" />
+            </div>
+            <div className={`${COL.due} text-right`}>
+              <SortableHeader
+                label="Due"
+                value="totalDue"
+                align="right"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+              />
+            </div>
+            <div className={`${COL.credit} text-right`}>
+              <SortableHeader
+                label="Credit"
+                value="creditBalance"
+                align="right"
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+              />
+            </div>
+          </div>
+
+          {/* Body Rows */}
+          <div>
             <AnimatePresence initial={false}>
               {renderTableContent}
             </AnimatePresence>
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
 
       {/* Pagination */}
