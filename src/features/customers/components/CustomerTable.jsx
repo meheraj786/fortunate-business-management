@@ -24,7 +24,6 @@ const COL = {
   customer: "py-3 pl-5 pr-3",
   phone: "py-3 px-3",
   typeStatus: "py-3 px-3",
-  purchased: "py-3 px-3",
   due: "py-3 px-3",
   credit: "py-3 pl-3 pr-5",
 };
@@ -108,14 +107,11 @@ const TableSkeletonRow = () => (
     <td className={`${COL.phone} border-b border-gray-100`}>
       <ValueSkeleton width="w-24" height="h-4" />
     </td>
-    <td className={`${COL.typeStatus} border-b border-gray-100`}>
-      <div className="flex flex-col items-center gap-1.5">
+    <td className={`${COL.typeStatus} text-center border-b border-gray-100`}>
+      <div className="flex items-center justify-center gap-1.5">
         <ValueSkeleton width="w-16" height="h-5" className="rounded-full" />
         <ValueSkeleton width="w-14" height="h-5" className="rounded-full" />
       </div>
-    </td>
-    <td className={`${COL.purchased} text-right border-b border-gray-100`}>
-      <ValueSkeleton width="w-20" height="h-4" className="ml-auto" />
     </td>
     <td className={`${COL.due} text-right border-b border-gray-100`}>
       <ValueSkeleton width="w-20" height="h-4" className="ml-auto" />
@@ -195,7 +191,7 @@ const CustomerTable = ({
     if (customers.length === 0) {
       return (
         <tr>
-          <td colSpan="6" className="text-center py-16 px-4">
+          <td colSpan="5" className="text-center py-16 px-4">
             <Users
               className="mx-auto w-12 h-12 text-gray-300"
               aria-hidden="true"
@@ -214,7 +210,6 @@ const CustomerTable = ({
     }
 
     return customers.map((customer) => {
-      const totalPurchased = customer.totalSpent || 0;
       const totalDue = customer.totalDue || 0;
       const creditBalance = customer.creditBalance || 0;
 
@@ -280,8 +275,8 @@ const CustomerTable = ({
           </td>
 
           {/* Col 3: Type / Status */}
-          <td className={`${COL.typeStatus} border-b border-gray-100`}>
-            <div className="flex flex-col items-center gap-1.5">
+          <td className={`${COL.typeStatus} text-center border-b border-gray-100`}>
+            <div className="flex items-center justify-center gap-1.5">
               {customer.customerType && (
                 <CustomerTypePill type={customer.customerType} />
               )}
@@ -295,16 +290,7 @@ const CustomerTable = ({
             </div>
           </td>
 
-          {/* Col 4: Total Purchased */}
-          <td
-            className={`${COL.purchased} text-sm whitespace-nowrap text-right border-b border-gray-100`}
-          >
-            <span className="font-medium text-gray-900">
-              {formatCurrency(totalPurchased)}
-            </span>
-          </td>
-
-          {/* Col 5: Total Due */}
+          {/* Col 4: Total Due */}
           <td
             className={`${COL.due} text-sm whitespace-nowrap text-right border-b border-gray-100`}
           >
@@ -460,14 +446,13 @@ const CustomerTable = ({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-[700px] w-full">
+        <table className="min-w-[600px] w-full">
           <colgroup>
-            <col className="w-[28%]" />
+            <col className="w-[30%]" />
+            <col className="w-[18%]" />
+            <col className="w-[22%]" />
             <col className="w-[15%]" />
-            <col className="w-[13%]" />
             <col className="w-[15%]" />
-            <col className="w-[15%]" />
-            <col className="w-[14%]" />
           </colgroup>
           <thead className="bg-gray-50/80">
             <tr>
@@ -494,19 +479,6 @@ const CustomerTable = ({
                 className={`${COL.typeStatus} text-center border-b border-gray-200`}
               >
                 <StaticHeader label="Type / Status" align="center" />
-              </th>
-              <th
-                scope="col"
-                className={`${COL.purchased} text-right border-b border-gray-200`}
-              >
-                <SortableHeader
-                  label="Purchased"
-                  value="totalSpent"
-                  align="right"
-                  sortBy={sortBy}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                />
               </th>
               <th
                 scope="col"

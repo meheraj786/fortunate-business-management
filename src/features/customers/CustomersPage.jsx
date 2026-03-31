@@ -6,7 +6,6 @@ import {
   UserCheck,
   UserX,
   Store,
-  ShoppingCart,
   DollarSign,
   Wallet,
 } from "lucide-react";

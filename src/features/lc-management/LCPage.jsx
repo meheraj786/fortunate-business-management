@@ -192,10 +192,18 @@ const LC = () => {
             number={
               lcCountsData?.data?.activeDraftQuantityByUnit?.length > 0
                 ? lcCountsData.data.activeDraftQuantityByUnit
-                    .map(
-                      (u) =>
-                        `${new Intl.NumberFormat("en-US").format(u.totalQuantity)} ${u.unitName}`
-                    )
+                    .map((u) => {
+                      const qty = u.totalBaseQuantity || 0;
+                      if (u.unitType === "Weight") {
+                        // base unit is KG; show TON if ≥ 1000
+                        if (qty >= 1000) {
+                          return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(qty / 1000)} TON`;
+                        }
+                        return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(qty)} KG`;
+                      }
+                      // For Count, Volume, Length — just show the number with type
+                      return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(qty)} ${u.unitType}`;
+                    })
                     .join(", ")
                 : "0"
             }
