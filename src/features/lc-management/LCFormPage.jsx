@@ -166,7 +166,7 @@ const ProductFields = ({
   units,
   unitsLoading,
   baseName = "productInfo",
-  isDraft = false,
+
 }) => {
   const productQuantity = watch(`${baseName}.${index}.quantity`);
   const productUnitPriceUsd = watch(`${baseName}.${index}.unitPriceUsd`);
@@ -211,7 +211,7 @@ const ProductFields = ({
           name={`${baseName}.${index}.itemName`}
           register={register}
           error={productErrors?.itemName?.message}
-          validation={{ required: isDraft ? false : "Item name is required" }}
+
           placeholder="e.g., Hot Rolled Steel Coil"
         />
         <InputField
@@ -248,7 +248,7 @@ const ProductFields = ({
           control={control}
           error={productErrors?.quantityUnit?.message}
           options={units.map((u) => ({ value: u._id, label: u.name })) || []}
-          validation={{ required: isDraft ? false : "Unit is required" }}
+
           loading={unitsLoading}
         />
         <InputField
@@ -258,7 +258,6 @@ const ProductFields = ({
           register={register}
           error={productErrors?.quantity?.message}
           validation={{
-            required: isDraft ? false : "Quantity is required",
             min: { value: 0, message: "Quantity cannot be negative" },
             valueAsNumber: true,
           }}
@@ -272,7 +271,6 @@ const ProductFields = ({
           register={register}
           error={productErrors?.unitPriceUsd?.message}
           validation={{
-            required: isDraft ? false : "Price is required",
             min: { value: 0, message: "Price cannot be negative" },
             valueAsNumber: true,
           }}
@@ -745,7 +743,6 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                     watch={watch}
                     units={units}
                     unitsLoading={unitsLoading}
-                    isDraft={isDraft}
                   />
                 ))}
               </AnimatePresence>
@@ -797,7 +794,6 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                       units={units}
                       unitsLoading={unitsLoading}
                       baseName="documentProductInfo.products"
-                      isDraft={isDraft}
                     />
                   ))}
                 </AnimatePresence>
