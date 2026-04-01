@@ -48,6 +48,7 @@ const ComboboxCore = ({
   id,
   label,
   required,
+  initialOption,
 }) => {
   const componentId = useId();
   const inputId = id || `${componentId}-${name}`;
@@ -61,6 +62,16 @@ const ComboboxCore = ({
   const [isOpen, setIsOpen] = useState(false);
   const [forceHidden, setForceHidden] = useState(false);
   const debouncedQuery = useDebounceValue(query, debounceMs);
+
+  // Cache of selected options so their labels survive async re-fetches
+  const selectedCacheRef = useRef(new Map());
+
+  // Seed the cache with initialOption on mount (for edit mode)
+  useEffect(() => {
+    if (initialOption && initialOption.value != null) {
+      selectedCacheRef.current.set(String(initialOption.value), initialOption);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isAsync = typeof fetchOptions === "function";
   const isLoading = externalLoading || asyncLoading;
@@ -100,7 +111,14 @@ const ComboboxCore = ({
       try {
         const results = await fetchOptions(debouncedQuery);
         if (!cancelled) {
-          setAsyncOptions(normalizeOptions(results));
+          const normalized = normalizeOptions(results);
+          setAsyncOptions(normalized);
+          // Update the selected cache with any fetched options
+          normalized.forEach((opt) => {
+            if (opt.value != null) {
+              selectedCacheRef.current.set(String(opt.value), opt);
+            }
+          });
         }
       } catch {
         if (!cancelled) setAsyncOptions([]);
@@ -196,7 +214,14 @@ const ComboboxCore = ({
             setAsyncLoading(true);
             try {
               const results = await fetchOptions("");
-              setAsyncOptions(normalizeOptions(results));
+              const normalized = normalizeOptions(results);
+              setAsyncOptions(normalized);
+              // Update the selected cache with initial fetch results
+              normalized.forEach((opt) => {
+                if (opt.value != null) {
+                  selectedCacheRef.current.set(String(opt.value), opt);
+                }
+              });
             } catch {
               /* ignore */
             } finally {
@@ -221,9 +246,23 @@ const ComboboxCore = ({
 
   const handleChange = useCallback(
     (val) => {
+      // Cache the selected option's label before passing the value up
+      if (val != null) {
+        const allOpts = isAsync
+          ? [...asyncOptions, ...normalizedLocalOptions]
+          : normalizedLocalOptions;
+        const matched = allOpts.find(
+          (o) =>
+            o.value === val ||
+            (o.value != null && String(o.value) === String(val))
+        );
+        if (matched) {
+          selectedCacheRef.current.set(String(val), matched);
+        }
+      }
       if (onChange) onChange(val);
     },
-    [onChange]
+    [onChange, isAsync, asyncOptions, normalizedLocalOptions]
   );
 
   const getDisplayValue = useCallback(
@@ -240,7 +279,13 @@ const ComboboxCore = ({
           o.value === val ||
           (o.value != null && val != null && String(o.value) === String(val))
       );
-      return opt ? opt.label : String(val);
+      if (opt) return opt.label;
+
+      // Fallback: check the selection cache (survives async re-fetches)
+      const cached = selectedCacheRef.current.get(String(val));
+      if (cached) return cached.label;
+
+      return String(val);
     },
     [displayValue, isAsync, asyncOptions, normalizedLocalOptions]
   );
@@ -485,6 +530,10 @@ ComboboxField.propTypes = {
   displayValue: PropTypes.func,
   minChars: PropTypes.number,
   debounceMs: PropTypes.number,
+  initialOption: PropTypes.shape({
+    value: PropTypes.any.isRequired,
+    label: PropTypes.string.isRequired,
+  }),
 };
 
 export default memo(ComboboxField);

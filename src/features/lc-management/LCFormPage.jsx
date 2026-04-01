@@ -316,8 +316,12 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
     mode: "onChange",
     defaultValues: useMemo(() => {
       // Helper function to map populated accountId to its _id in costs
+      // Also preserves the formatted label for ComboboxField display
       const mapCostAccountIds = (cost) => ({
         ...cost,
+        _accountLabel: cost.accountId && typeof cost.accountId === 'object'
+          ? formatAccountLabel(cost.accountId)
+          : undefined,
         accountId: cost.accountId?._id || cost.accountId || "",
       });
 
@@ -632,6 +636,14 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 placeholder="Search bank account..."
                 validation={{ required: isDraft ? false : "Bank account is required" }}
                 loading={accountsLoading}
+                initialOption={
+                  isEditMode && initialData?.basicInfo?.accountId?._id
+                    ? {
+                        value: initialData.basicInfo.accountId._id,
+                        label: formatAccountLabel(initialData.basicInfo.accountId),
+                      }
+                    : undefined
+                }
               />
 
               <InputField

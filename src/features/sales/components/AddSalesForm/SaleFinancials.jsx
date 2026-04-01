@@ -270,6 +270,11 @@ const SaleFinancials = ({
                 }}
                 placeholder="Search account..."
                 disabled={!watch(`costs.${index}.method`)}
+                initialOption={
+                  field._accountLabel && field.accountId
+                    ? { value: field.accountId, label: field._accountLabel }
+                    : undefined
+                }
               />
               </div>
               <div className="lg:col-span-1">
@@ -486,6 +491,11 @@ const SaleFinancials = ({
               disabled={
                 !watch(`payments.${index}.method`) ||
                 watch(`payments.${index}.method`) === "Customer Credit"
+              }
+              initialOption={
+                field._accountLabel && field.accountId
+                  ? { value: field.accountId, label: field._accountLabel }
+                  : undefined
               }
             />
             </div>

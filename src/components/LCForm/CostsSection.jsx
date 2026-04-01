@@ -242,6 +242,11 @@ const CostsSection = ({
                   placeholder="Search account..."
                   validation={{ required: "Account is required" }}
                   disabled={isSubmitting}
+                  initialOption={
+                    cost._accountLabel && cost.accountId
+                      ? { value: cost.accountId, label: cost._accountLabel }
+                      : undefined
+                  }
                 />
               )}
             </div>

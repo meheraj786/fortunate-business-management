@@ -14,6 +14,7 @@ import { useCreateSale, useUpdateSale } from "@/api/hooks/sales";
 
 import { useSettings } from "@/context/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
+import { formatAccountLabel } from "@/utils/format";
 
 import FormHeader from "@/components/ui/FormHeader";
 import FormActions from "@/components/ui/FormActions";
@@ -120,6 +121,9 @@ const AddSales = ({
           editData.costs?.map((c) => ({
             ...c,
             method: c.paymentMethod || c.method || "",
+            _accountLabel: c.accountId && typeof c.accountId === 'object'
+              ? formatAccountLabel(c.accountId)
+              : undefined,
             accountId: c.accountId?.id || c.accountId?._id || c.accountId || "",
           })) || [];
 
@@ -156,6 +160,9 @@ const AddSales = ({
               date: p.date
                 ? new Date(p.date).toISOString().slice(0, 16)
                 : new Date().toISOString().slice(0, 16),
+              _accountLabel: p.accountId && typeof p.accountId === 'object'
+                ? formatAccountLabel(p.accountId)
+                : undefined,
               accountId: p.accountId?.id || p.accountId?._id || p.accountId,
             })) || [],
           notes: editData.notes || "",
@@ -265,6 +272,9 @@ const AddSales = ({
           editData.costs?.map((c) => ({
             ...c,
             method: c.paymentMethod || c.method || "",
+            _accountLabel: c.accountId && typeof c.accountId === 'object'
+              ? formatAccountLabel(c.accountId)
+              : undefined,
             accountId: c.accountId?.id || c.accountId?._id || c.accountId || "",
           })) || [];
 
@@ -299,6 +309,9 @@ const AddSales = ({
               date: p.date
                 ? new Date(p.date).toISOString().slice(0, 16)
                 : new Date().toISOString().slice(0, 16),
+              _accountLabel: p.accountId && typeof p.accountId === 'object'
+                ? formatAccountLabel(p.accountId)
+                : undefined,
               accountId: p.accountId?.id || p.accountId?._id || p.accountId,
             })) || [],
         });
