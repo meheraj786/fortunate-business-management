@@ -590,7 +590,12 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                 name="basicInfo.lcNumber"
                 register={register}
                 error={errors.basicInfo?.lcNumber?.message}
-                validation={{ required: "LC Number is required" }}
+                validation={{
+                  required: "LC Number is required",
+                  onChange: (e) => {
+                    e.target.value = e.target.value.toUpperCase();
+                  },
+                }}
                 placeholder="e.g., LC-2024-001"
               />
               <InputField

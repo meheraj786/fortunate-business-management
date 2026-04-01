@@ -229,7 +229,13 @@ const LCdetails = () => {
                   {isLoading ? (
                     <ValueSkeleton width="w-48" height="h-8" />
                   ) : (
-                    basicInfo.lcNumber || "Letter of Credit Details"
+                    <>
+                      {basicInfo.lcNumber || "LC Details"} /{" "}
+                      {basicInfo.supplierName || "No Supplier"} /{" "}
+                      {basicInfo.accountId?.accountName ||
+                        formatAccountLabel(basicInfo.accountId) ||
+                        "No Account"}
+                    </>
                   )}
                 </h1>
               </div>
@@ -293,6 +299,12 @@ const LCdetails = () => {
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <DataField
+                  label="Supplier Name"
+                  value={basicInfo?.supplierName}
+                  icon={User}
+                  loading={isLoading}
+                />
+                <DataField
                   label="LC Number"
                   value={basicInfo?.lcNumber}
                   icon={FileText}
@@ -303,12 +315,6 @@ const LCdetails = () => {
                   value={basicInfo?.lcOpeningDate}
                   format="date"
                   icon={Calendar}
-                  loading={isLoading}
-                />
-                <DataField
-                  label="Supplier Name"
-                  value={basicInfo?.supplierName}
-                  icon={User}
                   loading={isLoading}
                 />
                 <DataField
@@ -331,6 +337,12 @@ const LCdetails = () => {
                     Bank Account Details
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <DataField
+                      label="Account Name"
+                      value={basicInfo.accountId?.accountName || formatAccountLabel(basicInfo.accountId)}
+                      icon={Building}
+                      loading={isLoading}
+                    />
                     <DataField
                       label="Bank Name"
                       value={basicInfo.accountId?.bankName}
