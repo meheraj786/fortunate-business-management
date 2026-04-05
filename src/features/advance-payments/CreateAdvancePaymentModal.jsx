@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
-import ComboboxField from "@/components/ui/ComboboxField";
 import { showErrorToast } from "@/utils/notifications";
 import { useAccounts } from "@/api/hooks/account";
 import { useCreateAdvancePayment } from "@/api/hooks/advancePayment";
@@ -172,36 +171,34 @@ const CreateAdvancePaymentModal = ({ isOpen, onClose, onSuccess }) => {
                                 required
                             />
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <SelectField
-                                label="Payment Method"
-                                name="paymentMethod"
-                                value={formData.paymentMethod}
-                                onChange={(val) => {
-                                    handleChange({ target: { name: "paymentMethod", value: val } });
-                                    handleChange({ target: { name: "accountId", value: "" } });
-                                }}
-                                options={paymentMethods}
-                                required
-                                placeholder="Select method"
-                            />
-                            <ComboboxField
-                                label="Account"
-                                name="accountId"
-                                value={formData.accountId}
-                                onChange={(val) =>
-                                    handleChange({ target: { name: "accountId", value: val } })
-                                }
-                                options={filteredAccounts.map((acc) => ({
-                                    value: acc._id,
-                                    label: formatAccountLabel(acc),
-                                }))}
-                                required
-                                loading={areAccountsLoading}
-                                placeholder={formData.paymentMethod ? "Search account..." : "Select payment method first"}
-                                disabled={!formData.paymentMethod}
-                            />
-                        </div>
+                        <SelectField
+                            label="Payment Method"
+                            name="paymentMethod"
+                            value={formData.paymentMethod}
+                            onChange={(val) => {
+                                handleChange({ target: { name: "paymentMethod", value: val } });
+                                handleChange({ target: { name: "accountId", value: "" } });
+                            }}
+                            options={paymentMethods}
+                            required
+                            placeholder="Select method"
+                        />
+                        <SelectField
+                            label="Account"
+                            name="accountId"
+                            value={formData.accountId}
+                            onChange={(val) =>
+                                handleChange({ target: { name: "accountId", value: val } })
+                            }
+                            options={filteredAccounts.map((acc) => ({
+                                value: acc._id,
+                                label: formatAccountLabel(acc),
+                            }))}
+                            required
+                            loading={areAccountsLoading}
+                            placeholder={formData.paymentMethod ? "Select account..." : "Select payment method first"}
+                            disabled={!formData.paymentMethod}
+                        />
 
                         {/* Live Balance Feedback */}
                         {selectedAccount && parsedAmount > 0 && (

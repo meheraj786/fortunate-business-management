@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
-import ComboboxField from "@/components/ui/ComboboxField";
+import SelectField from "@/components/ui/SelectField";
 import { showErrorToast } from "@/utils/notifications";
 import { useAccounts } from "@/api/hooks/account";
 import { useTransferMoney } from "@/api/hooks/transaction";
@@ -88,7 +88,7 @@ const TransferMoneyModal = ({ isOpen, onClose, onSuccess }) => {
             isSubmitting={transferMutation.isLoading || areAccountsLoading}
         >
             <div className="space-y-4">
-                <ComboboxField
+                <SelectField
                     label="From Account"
                     name="fromAccountId"
                     value={transferData.fromAccountId}
@@ -99,10 +99,10 @@ const TransferMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                     }))}
                     required={true}
                     loading={areAccountsLoading}
-                    placeholder="Search source account..."
+                    placeholder="Select source account..."
                 />
 
-                <ComboboxField
+                <SelectField
                     label="To Account"
                     name="toAccountId"
                     value={transferData.toAccountId}
@@ -113,7 +113,7 @@ const TransferMoneyModal = ({ isOpen, onClose, onSuccess }) => {
                     }))}
                     required={true}
                     loading={areAccountsLoading}
-                    placeholder="Search destination account..."
+                    placeholder="Select destination account..."
                     disabled={!transferData.fromAccountId}
                 />
 

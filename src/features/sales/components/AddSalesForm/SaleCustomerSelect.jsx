@@ -1,10 +1,8 @@
 import React, { useCallback } from "react";
 import { User, MapPin, Phone } from "lucide-react";
-import ComboboxField from "@/components/ui/ComboboxField";
 import SelectField from "@/components/ui/SelectField";
 import InputField from "@/components/ui/InputField";
 import { useSettings } from "@/context/SettingsContext";
-import { searchCustomers } from "@/api/customer.api";
 
 const SaleCustomerSelect = ({
   register,
@@ -21,17 +19,7 @@ const SaleCustomerSelect = ({
   const watchedCustomerId = watch("customerId");
   const selectedCustomer = customers?.find((c) => c._id === watchedCustomerId);
 
-  const fetchCustomerOptions = useCallback(async (q) => {
-    try {
-      const res = await searchCustomers(q);
-      return (res.data?.data || []).map((c) => ({
-        value: c._id,
-        label: `${c.name} - ${c.phone}`,
-      }));
-    } catch {
-      return [];
-    }
-  }, []);
+
 
   const handleCustomerSelect = (customerId) => {
     const customer = customers.find((c) => c._id === customerId);
@@ -74,17 +62,20 @@ const SaleCustomerSelect = ({
 
       {watchedCustomerType === "existing" ? (
         <div>
-          <ComboboxField
+          <SelectField
             label="Select Customer"
             name="customerId"
             required={true}
             control={control}
             error={errors.customerId?.message}
-            fetchOptions={fetchCustomerOptions}
+            options={customers.map((c) => ({
+              value: c._id,
+              label: `${c.name} - ${c.phone}`,
+            }))}
             validation={{ required: "Customer is required" }}
             icon={User}
             disabled={isEditMode || isInitialLoading}
-            placeholder="Search by name or phone..."
+            placeholder="Select a customer..."
             onChange={(val) => {
               setValue("customerId", val, { shouldValidate: true });
               handleCustomerSelect(val);

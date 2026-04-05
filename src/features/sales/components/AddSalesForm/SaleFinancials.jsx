@@ -5,11 +5,9 @@ import { useFieldArray, Controller } from "react-hook-form";
 import { PlusCircle, MinusCircle, FileText, CreditCard, Info } from "lucide-react";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
-import ComboboxField from "@/components/ui/ComboboxField";
 import Button from "@/components/ui/Button";
 import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
-import { searchAccounts } from "@/api/account.api";
 import { getBusinessDateTimeISO } from "@/utils/date.util";
 
 const SaleFinancials = ({
@@ -249,32 +247,15 @@ const SaleFinancials = ({
               />
               </div>
               <div className="lg:col-span-3">
-              <ComboboxField
+              <SelectField
                 name={`costs.${index}.accountId`}
                 control={control}
                 validation={{ required: "Required" }}
                 label="Account"
                 error={errors.costs?.[index]?.accountId?.message}
-                fetchOptions={async (q) => {
-                  const method = watch(`costs.${index}.method`);
-                  if (!method) return [];
-                  try {
-                    const res = await searchAccounts(q, method);
-                    return (res.data?.data || []).map((acc) => ({
-                      value: acc._id,
-                      label: formatAccountLabel(acc),
-                    }));
-                  } catch {
-                    return [];
-                  }
-                }}
-                placeholder="Search account..."
+                options={getFilteredAccounts(watch(`costs.${index}.method`))}
+                placeholder="Select account..."
                 disabled={!watch(`costs.${index}.method`)}
-                initialOption={
-                  field._accountLabel && field.accountId
-                    ? { value: field.accountId, label: field._accountLabel }
-                    : undefined
-                }
               />
               </div>
               <div className="lg:col-span-1">
@@ -464,7 +445,7 @@ const SaleFinancials = ({
             </div>
 
             <div className="lg:col-span-3">
-            <ComboboxField
+            <SelectField
               name={`payments.${index}.accountId`}
               control={control}
               validation={{
@@ -474,28 +455,11 @@ const SaleFinancials = ({
               }}
               label="To Account"
               error={errors.payments?.[index]?.accountId?.message}
-              fetchOptions={async (q) => {
-                const method = watch(`payments.${index}.method`);
-                if (!method || method === "Customer Credit") return [];
-                try {
-                  const res = await searchAccounts(q, method);
-                  return (res.data?.data || []).map((acc) => ({
-                    value: acc._id,
-                    label: formatAccountLabel(acc),
-                  }));
-                } catch {
-                  return [];
-                }
-              }}
-              placeholder="Search account..."
+              options={getFilteredAccounts(watch(`payments.${index}.method`))}
+              placeholder="Select account..."
               disabled={
                 !watch(`payments.${index}.method`) ||
                 watch(`payments.${index}.method`) === "Customer Credit"
-              }
-              initialOption={
-                field._accountLabel && field.accountId
-                  ? { value: field.accountId, label: field._accountLabel }
-                  : undefined
               }
             />
             </div>

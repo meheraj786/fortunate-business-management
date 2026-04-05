@@ -2,10 +2,10 @@ import React, { useState, useCallback } from "react";
 import { Package, Tag, Ruler, Hash, DollarSign, Plus, Trash2, ShoppingCart, Lock, AlertTriangle } from "lucide-react";
 import { Controller } from "react-hook-form";
 import SelectField from "@/components/ui/SelectField";
-import ComboboxField from "@/components/ui/ComboboxField";
+
 import InputField from "@/components/ui/InputField";
 import Button from "@/components/ui/Button";
-import { searchProducts } from "@/api/product.api";
+
 
 const SaleProductSelect = ({
   register,
@@ -227,26 +227,18 @@ const SaleProductSelect = ({
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-7 gap-3 sm:gap-4">
           <div className="col-span-2 md:col-span-3">
-            <ComboboxField
+            <SelectField
               label="Product"
               name="newItemProductId"
               value={newItem.productId}
-              fetchOptions={async (q) => {
-                if (!watchedWarehouseId) return [];
-                try {
-                  const res = await searchProducts(watchedWarehouseId, q, watch("categoryId"));
-                  return (res.data?.data || []).map((p) => ({
-                    value: p._id,
-                    label: `${p.name} (Qty: ${p.quantity})`,
-                  }));
-                } catch {
-                  return [];
-                }
-              }}
+              options={products.map((p) => ({
+                value: p._id,
+                label: `${p.name} (Qty: ${p.quantity})`,
+              }))}
               icon={Package}
               disabled={!watchedWarehouseId || productsLoading || !canAddItem}
               loading={productsLoading}
-              placeholder="Search products..."
+              placeholder="Select product..."
               onChange={(val) => handleProductChange(val)}
             />
           </div>
