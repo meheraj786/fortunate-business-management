@@ -5,7 +5,7 @@ export const formatCurrency = (amount) => {
     // Return a default value or an indicator for non-numeric input
     return "BDT 0.00";
   }
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "BDT",
     minimumFractionDigits: 2,
@@ -15,7 +15,7 @@ export const formatCurrency = (amount) => {
 
 export const formatCompactNumber = (number) => {
   if (number === undefined || number === null) return "0";
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-IN", {
     notation: "compact",
     maximumFractionDigits: 1,
   }).format(number);
@@ -23,7 +23,7 @@ export const formatCompactNumber = (number) => {
 
 export const formatNumber = (number) => {
   if (number === null || number === undefined) return "0";
-  return number.toLocaleString("en-US", {
+  return number.toLocaleString("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

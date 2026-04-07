@@ -21,7 +21,7 @@ export const getProductSalesHistory = (warehouseId, productId, params) =>
 export const getProductsForSale = (warehouseId, categoryId) => {
   const params = {};
   if (categoryId) {
-    params.categoryId = categoryId;
+    params.category = categoryId;
   }
   return api.get(`/warehouses/${warehouseId}/products/for-sale`, { params });
 };

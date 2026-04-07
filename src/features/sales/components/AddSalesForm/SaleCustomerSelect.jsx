@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { User, MapPin, Phone } from "lucide-react";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import InputField from "@/components/ui/InputField";
 import { useSettings } from "@/context/SettingsContext";
 
@@ -18,8 +19,6 @@ const SaleCustomerSelect = ({
   const watchedCustomerType = watch("customerType");
   const watchedCustomerId = watch("customerId");
   const selectedCustomer = customers?.find((c) => c._id === watchedCustomerId);
-
-
 
   const handleCustomerSelect = (customerId) => {
     const customer = customers.find((c) => c._id === customerId);
@@ -62,7 +61,7 @@ const SaleCustomerSelect = ({
 
       {watchedCustomerType === "existing" ? (
         <div>
-          <SelectField
+          <ComboboxField
             label="Select Customer"
             name="customerId"
             required={true}
@@ -75,7 +74,7 @@ const SaleCustomerSelect = ({
             validation={{ required: "Customer is required" }}
             icon={User}
             disabled={isEditMode || isInitialLoading}
-            placeholder="Select a customer..."
+            placeholder="Search customer..."
             onChange={(val) => {
               setValue("customerId", val, { shouldValidate: true });
               handleCustomerSelect(val);

@@ -342,7 +342,7 @@ const AddSales = ({
   }, [isEditMode, isOpen, editData, reset]);
 
   // Calculations
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control,
     name: "items",
   });
@@ -549,6 +549,7 @@ const AddSales = ({
                   fields={fields}
                   append={append}
                   remove={remove}
+                  update={update}
                   isItemsLocked={isItemsLocked}
                   canAddItem={canAddItem}
                   canDeleteItem={canDeleteItem}

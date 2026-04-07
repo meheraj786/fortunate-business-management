@@ -1,10 +1,12 @@
-import React, { useState, useCallback } from "react";
-import { Package, Tag, Ruler, Hash, DollarSign, Plus, Trash2, ShoppingCart, Lock, AlertTriangle } from "lucide-react";
+import React, { useState, useCallback, useRef, useMemo } from "react";
+import { Package, Tag, Ruler, Hash, DollarSign, Plus, Trash2, ShoppingCart, Lock, AlertTriangle, Pencil, Check, X } from "lucide-react";
 import { Controller } from "react-hook-form";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 import InputField from "@/components/ui/InputField";
 import Button from "@/components/ui/Button";
+import { useSettings } from "@/context/SettingsContext";
 
 
 const SaleProductSelect = ({
@@ -24,14 +26,16 @@ const SaleProductSelect = ({
   fields,
   append,
   remove,
+  update,
   isItemsLocked = false,
   canAddItem = true,
   canDeleteItem = true,
   invoiceStatus,
 }) => {
+  const { formatCurrency } = useSettings();
   const watchedWarehouseId = watch("warehouseId");
 
-  // Local state for the "Add Item" section
+  // Local state for the "Add Item" / "Edit Item" section
   const [newItem, setNewItem] = useState({
     productId: "",
     quantity: "",
@@ -40,14 +44,17 @@ const SaleProductSelect = ({
   });
   const [addItemError, setAddItemError] = useState("");
 
+  // ── Edit Mode State ──
+  // When editingIndex is not null, the "Add Items" section becomes "Edit Item"
+  const [editingIndex, setEditingIndex] = useState(null);
+  const editSectionRef = useRef(null);
+
   const handleWarehouseChange = (warehouseId) => {
     setValue("warehouseId", warehouseId);
     setValue("categoryId", "");
-    // Clear items when warehouse changes? Maybe better to warn, but for now let's clear to ensure consistency
-    // Actually, simply clearing the "Add Item" form is enough. 
-    // If the user changes warehouse, the products list updates, so existing items might become invalid if they are not in the new warehouse.
-    // But we leave that to the user to manage for now or the validation will catch it.
     setNewItem({ productId: "", quantity: "", unit: "", pricePerUnit: "" });
+    // Cancel any active editing when warehouse changes
+    setEditingIndex(null);
   };
 
   const handleProductChange = (productId) => {
@@ -91,6 +98,7 @@ const SaleProductSelect = ({
     }
   };
 
+  // ── Dual-purpose handler: Add new item OR Save edited item ──
   const handleAddItem = () => {
     setAddItemError("");
     const { productId, quantity, unit, pricePerUnit } = newItem;
@@ -113,22 +121,42 @@ const SaleProductSelect = ({
       const productConversionFactor = (typeof productUnit === "object" ? productUnit?.conversionFactor : 1) || 1;
       const stockInBase = product.quantity * productConversionFactor;
 
-      if (requestQtyInBase > stockInBase) {
-        const maxQtyInSelectedUnit = stockInBase / conversionFactor;
+      // When editing, add back the original item's base quantity to available stock
+      // because that quantity hasn't left the warehouse yet (it's the same sale)
+      let availableStockInBase = stockInBase;
+      if (editingIndex !== null) {
+        const originalItem = fields[editingIndex];
+        if (originalItem && originalItem.productId === productId) {
+          const originalUnit = units.find(u => u._id === originalItem.unit);
+          const originalConversion = originalUnit?.conversionFactor || 1;
+          availableStockInBase += parseFloat(originalItem.quantity) * originalConversion;
+        }
+      }
+
+      if (requestQtyInBase > availableStockInBase) {
+        const maxQtyInSelectedUnit = availableStockInBase / conversionFactor;
         const productUnitName = (typeof productUnit === "object" ? productUnit?.name : "Base Unit") || "Base Unit";
         setAddItemError(`Exceeds stock. Max: ${maxQtyInSelectedUnit.toFixed(2)} ${selectedUnit?.name || "units"} (Stock: ${product.quantity} ${productUnitName})`);
         return;
       }
     }
 
-    append({
+    const itemData = {
       productId,
       quantity,
       unit,
       pricePerUnit,
-      // Store simplified details for display so we don't need complex lookups later
       total: parseFloat(quantity) * parseFloat(pricePerUnit)
-    });
+    };
+
+    if (editingIndex !== null) {
+      // Save edited item
+      update(editingIndex, itemData);
+      setEditingIndex(null);
+    } else {
+      // Add new item
+      append(itemData);
+    }
 
     // Reset new item form
     setNewItem({
@@ -139,15 +167,52 @@ const SaleProductSelect = ({
     });
   };
 
+  // ── Start editing an item ──
+  const handleStartEdit = (index) => {
+    const item = fields[index];
+    setAddItemError("");
+
+    // Clear category filter so the edited product is visible in the dropdown
+    // (it may be from a different category than the current filter)
+    setValue("categoryId", "");
+
+    setNewItem({
+      productId: item.productId || "",
+      quantity: String(item.quantity ?? ""),
+      unit: item.unit || "",
+      pricePerUnit: String(item.pricePerUnit ?? ""),
+    });
+    setEditingIndex(index);
+
+    // Scroll to the edit section
+    setTimeout(() => {
+      editSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 100);
+  };
+
+  // ── Cancel editing ──
+  const handleCancelEdit = () => {
+    setNewItem({ productId: "", quantity: "", unit: "", pricePerUnit: "" });
+    setEditingIndex(null);
+    setAddItemError("");
+  };
+
+  // ── Remove item (with editing-index safety) ──
+  const handleRemoveItem = (index) => {
+    // If deleting the item currently being edited, cancel the edit
+    if (editingIndex === index) {
+      handleCancelEdit();
+    } else if (editingIndex !== null && index < editingIndex) {
+      // Adjust editing index since an item before it was removed
+      setEditingIndex(prev => prev - 1);
+    }
+    remove(index);
+  };
+
   // Helper to get name for display in list
   const getProductName = (id) => {
-    // Try to find in current products list
     const p = products.find(prod => prod._id === id);
     if (p) return p.name;
-    // If not found (e.g. mixed category or edit mode initial load), we might need another way.
-    // For now, if not found, show ID or "Unknown Product"
-    // Note: In edit mode, we might want to pre-load specific product details if they aren't in the list?
-    // Since we rely on global category filter, edited items from same category will be found.
     return p ? p.name : "Product";
   };
 
@@ -156,9 +221,57 @@ const SaleProductSelect = ({
     return u ? u.name : "Unit";
   };
 
+  // Group and format total quantities cleanly by unit type
+  const formattedTotalQuantities = useMemo(() => {
+    if (!fields || fields.length === 0 || !units || units.length === 0) return "";
+
+    const totalsByType = {};
+
+    fields.forEach((item) => {
+      const selectedUnit = units.find((u) => u._id === item.unit);
+      if (selectedUnit) {
+        const type = selectedUnit.type;
+        const baseQty = parseFloat(item.quantity) * selectedUnit.conversionFactor;
+
+        if (!totalsByType[type]) {
+          totalsByType[type] = 0;
+        }
+        totalsByType[type] += baseQty;
+      }
+    });
+
+    const displayStrings = [];
+
+    for (const [type, totalBase] of Object.entries(totalsByType)) {
+      if (totalBase === 0) continue;
+
+      const typeUnits = units
+        .filter((u) => u.type === type)
+        .sort((a, b) => a.conversionFactor - b.conversionFactor);
+
+      if (typeUnits.length === 0) continue;
+
+      let bestUnit = typeUnits[0];
+
+      for (const unit of typeUnits) {
+        if (totalBase >= unit.conversionFactor) {
+          bestUnit = unit;
+        }
+      }
+
+      const convertedValue = totalBase / bestUnit.conversionFactor;
+      // Strip trailing zeros neatly up to 3 decimal places
+      const formattedValue = parseFloat(convertedValue.toFixed(3)).toString();
+
+      displayStrings.push(`${formattedValue} ${bestUnit.name}`);
+    }
+
+    return displayStrings.join(" + ");
+  }, [fields, units]);
+
   // Whether to show the action column (hide when locked, show otherwise)
   const showActionColumn = !isItemsLocked;
-  const totalColumns = showActionColumn ? 6 : 5;
+  const totalColumns = showActionColumn ? 5 : 4;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -219,15 +332,38 @@ const SaleProductSelect = ({
         </div>
       )}
 
-      {/* Add Item Section — hidden when locked */}
+      {/* Add / Edit Item Section — hidden when locked */}
       {!isItemsLocked && (
-      <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200 space-y-3 sm:space-y-4">
-        <h3 className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
-          <ShoppingCart size={16} /> Add Items
-        </h3>
+      <div ref={editSectionRef} className={`p-3 sm:p-4 rounded-lg border space-y-3 sm:space-y-4 ${
+        editingIndex !== null
+          ? 'bg-blue-50/50 border-blue-300'
+          : 'bg-gray-50 border-gray-200'
+      }`}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-2">
+            {editingIndex !== null ? (
+              <>
+                <Pencil size={16} /> Edit Item
+              </>
+            ) : (
+              <>
+                <ShoppingCart size={16} /> Add Items
+              </>
+            )}
+          </h3>
+          {editingIndex !== null && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+            >
+              <X size={14} /> Cancel
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-7 gap-3 sm:gap-4">
           <div className="col-span-2 md:col-span-3">
-            <SelectField
+            <ComboboxField
               label="Product"
               name="newItemProductId"
               value={newItem.productId}
@@ -238,7 +374,7 @@ const SaleProductSelect = ({
               icon={Package}
               disabled={!watchedWarehouseId || productsLoading || !canAddItem}
               loading={productsLoading}
-              placeholder="Select product..."
+              placeholder="Search product..."
               onChange={(val) => handleProductChange(val)}
             />
           </div>
@@ -283,9 +419,9 @@ const SaleProductSelect = ({
               onClick={handleAddItem}
               className="mb-[2px]"
               disabled={!canAddItem}
-              title={!canAddItem ? "You don't have permission to add items" : "Add item"}
+              title={editingIndex !== null ? "Save changes" : "Add item"}
             >
-              <Plus size={18} />
+              {editingIndex !== null ? <Check size={18} /> : <Plus size={18} />}
             </Button>
           </div>
         </div>
@@ -308,53 +444,87 @@ const SaleProductSelect = ({
           {/* Mobile Card Layout */}
           <div className="md:hidden space-y-3">
             {fields.map((item, index) => (
-              <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 space-y-2">
+              <div
+                key={item.id}
+                className={`bg-white border rounded-lg p-3 space-y-2 transition-colors ${
+                  editingIndex === index
+                    ? 'border-blue-400 ring-1 ring-blue-200'
+                    : 'border-gray-200'
+                }`}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-medium text-gray-900 truncate flex-1">
                     {getProductName(item.productId)}
                   </p>
                   {showActionColumn && (
-                    <button
-                      type="button"
-                      onClick={() => remove(index)}
-                      className={`flex-shrink-0 p-1 rounded transition-colors ${
-                        canDeleteItem
-                          ? 'text-red-500 hover:bg-red-50 active:bg-red-100'
-                          : 'text-gray-300 cursor-not-allowed'
-                      }`}
-                      disabled={!canDeleteItem}
-                      title={!canDeleteItem ? "You don't have permission to remove items" : "Remove item"}
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* Edit Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(index)}
+                        className={`p-1 rounded transition-colors ${
+                          canAddItem && editingIndex !== index
+                            ? 'text-blue-500 hover:bg-blue-50 active:bg-blue-100'
+                            : editingIndex === index
+                              ? 'text-blue-600 bg-blue-100'
+                              : 'text-gray-300 cursor-not-allowed'
+                        }`}
+                        disabled={!canAddItem || editingIndex === index}
+                        title={
+                          editingIndex === index
+                            ? "Currently editing this item"
+                            : !canAddItem
+                              ? "You don't have permission to edit items"
+                              : "Edit item"
+                        }
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(index)}
+                        className={`p-1 rounded transition-colors ${
+                          canDeleteItem
+                            ? 'text-red-500 hover:bg-red-50 active:bg-red-100'
+                            : 'text-gray-300 cursor-not-allowed'
+                        }`}
+                        disabled={!canDeleteItem}
+                        title={!canDeleteItem ? "You don't have permission to remove items" : "Remove item"}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   )}
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-gray-500 block">Qty</span>
-                    <span className="font-medium text-gray-900">{item.quantity}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block">Unit</span>
-                    <span className="font-medium text-gray-900">{getUnitName(item.unit)}</span>
+                    <span className="font-medium text-gray-900">{item.quantity} {getUnitName(item.unit)}</span>
                   </div>
                   <div>
                     <span className="text-gray-500 block">Price</span>
-                    <span className="font-medium text-gray-900">{item.pricePerUnit}</span>
+                    <span className="font-medium text-gray-900">{formatCurrency(item.pricePerUnit)}</span>
                   </div>
                 </div>
                 <div className="flex justify-between items-center pt-1 border-t border-gray-100">
                   <span className="text-xs text-gray-500">Total</span>
                   <span className="text-sm font-semibold text-gray-900">
-                    {(parseFloat(item.quantity) * parseFloat(item.pricePerUnit)).toFixed(2)}
+                    {formatCurrency(parseFloat(item.quantity) * parseFloat(item.pricePerUnit))}
                   </span>
                 </div>
               </div>
             ))}
             {/* Mobile Subtotal */}
-            <div className="flex justify-between items-center bg-gray-50 border border-gray-200 rounded-lg p-3">
-              <span className="text-sm font-medium text-gray-700">Subtotal</span>
-              <span className="text-sm font-bold text-[var(--color-primary)]">{formattedTotalAmount}</span>
+            <div className="flex flex-col gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="flex justify-between items-center pb-2 border-b border-gray-200 border-dashed">
+                <span className="text-sm font-medium text-gray-500">Total Qty</span>
+                <span className="text-sm font-bold text-gray-800">{formattedTotalQuantities || "0"}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-700">Subtotal</span>
+                <span className="text-sm font-bold text-[var(--color-primary)]">{formattedTotalAmount}</span>
+              </div>
             </div>
           </div>
 
@@ -365,7 +535,6 @@ const SaleProductSelect = ({
                 <tr>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                   {showActionColumn && (
@@ -375,27 +544,56 @@ const SaleProductSelect = ({
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {fields.map((item, index) => (
-                  <tr key={item.id}>
+                  <tr
+                    key={item.id}
+                    className={`transition-colors ${
+                      editingIndex === index ? 'bg-blue-50/60' : ''
+                    }`}
+                  >
                     <td className="px-4 py-2 text-sm text-gray-900">{getProductName(item.productId)}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{item.quantity}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{getUnitName(item.unit)}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{item.pricePerUnit}</td>
-                    <td className="px-4 py-2 text-sm text-gray-900">{(parseFloat(item.quantity) * parseFloat(item.pricePerUnit)).toFixed(2)}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{item.quantity} {getUnitName(item.unit)}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(item.pricePerUnit)}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(parseFloat(item.quantity) * parseFloat(item.pricePerUnit))}</td>
                     {showActionColumn && (
                       <td className="px-4 py-2 text-right text-sm font-medium">
-                        <button
-                          type="button"
-                          onClick={() => remove(index)}
-                          className={`transition-colors ${
-                            canDeleteItem
-                              ? 'text-red-600 hover:text-red-900'
-                              : 'text-gray-300 cursor-not-allowed'
-                          }`}
-                          disabled={!canDeleteItem}
-                          title={!canDeleteItem ? "You don't have permission to remove items" : "Remove item"}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Edit Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(index)}
+                            className={`transition-colors ${
+                              canAddItem && editingIndex !== index
+                                ? 'text-blue-600 hover:text-blue-900'
+                                : editingIndex === index
+                                  ? 'text-blue-400 cursor-default'
+                                  : 'text-gray-300 cursor-not-allowed'
+                            }`}
+                            disabled={!canAddItem || editingIndex === index}
+                            title={
+                              editingIndex === index
+                                ? "Currently editing this item"
+                                : !canAddItem
+                                  ? "You don't have permission to edit items"
+                                  : "Edit item"
+                            }
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          {/* Delete Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(index)}
+                            className={`transition-colors ${
+                              canDeleteItem
+                                ? 'text-red-600 hover:text-red-900'
+                                : 'text-gray-300 cursor-not-allowed'
+                            }`}
+                            disabled={!canDeleteItem}
+                            title={!canDeleteItem ? "You don't have permission to remove items" : "Remove item"}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -403,8 +601,12 @@ const SaleProductSelect = ({
               </tbody>
               <tfoot className="bg-gray-50">
                 <tr>
-                  <td colSpan={totalColumns - 1} className="px-4 py-3 text-right text-sm font-medium text-gray-700">Subtotal</td>
+                  <td colSpan={2} className="px-4 py-3 text-right text-sm text-gray-600">
+                    <span className="font-medium mr-2">Total Qty:</span> {formattedTotalQuantities || "0"}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-medium text-gray-700">Subtotal</td>
                   <td className="px-4 py-3 text-sm font-bold text-[var(--color-primary)]">{formattedTotalAmount}</td>
+                  {showActionColumn && <td></td>}
                 </tr>
               </tfoot>
             </table>

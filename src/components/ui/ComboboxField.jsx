@@ -475,7 +475,7 @@ const ComboboxField = ({
   ...rest
 }) => {
   if (!control) {
-    return <ComboboxCore name={name} required={required} {...rest} />;
+    return <ComboboxCore name={name} required={required} onChange={externalOnChange} {...rest} />;
   }
 
   const rules = {

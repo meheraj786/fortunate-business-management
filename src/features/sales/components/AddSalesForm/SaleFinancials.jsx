@@ -286,7 +286,18 @@ const SaleFinancials = ({
             valueAsNumber: true,
           }}
         />
-        <div className="p-4 bg-[var(--color-secondary)]/10 rounded-lg">
+        {/*
+         * Financial Summary Box (display next to discount)
+         *
+         * "Total Payable" is a DISPLAY-ONLY calculation:
+         *   Total Payable = Net Payable (current sale) + Outstanding Due (past invoiced dues)
+         *
+         * It is NOT used for any payment logic, backend submission, or invoice calculation.
+         * It simply gives the user a quick glance at the customer's overall financial picture.
+         * The "Net Payable" (totalAmountToBePaid) is the only value that matters for this sale.
+         */}
+        <div className="p-4 bg-[var(--color-secondary)]/10 rounded-lg space-y-2">
+          {/* 1. Net Payable — the actual amount due for THIS sale */}
           <div className="flex justify-between items-center">
             <span className="font-bold text-[var(--color-secondary)]">
               Net Payable:
@@ -295,15 +306,43 @@ const SaleFinancials = ({
               {formatCurrency(totalAmountToBePaid)}
             </span>
           </div>
+
           {selectedCustomer && (
-            <div className="flex justify-between items-center mt-1 pt-1 border-t border-[var(--color-secondary)]/20">
-              <span className="text-xs font-medium text-[var(--color-primary)]">
-                Customer Credit Balance:
-              </span>
-              <span className="text-sm font-bold text-[var(--color-primary)]">
-                {formatCurrency(selectedCustomer.creditBalance || 0)}
-              </span>
-            </div>
+            <>
+              {/* 2. Outstanding Due — total unpaid from past invoiced sales */}
+              {(selectedCustomer.outstandingDue > 0) && (
+                <div className="flex justify-between items-center pt-1 border-t border-[var(--color-secondary)]/20">
+                  <span className="text-xs font-medium text-amber-700">
+                    Outstanding Due:
+                  </span>
+                  <span className="text-sm font-bold text-amber-700">
+                    {formatCurrency(selectedCustomer.outstandingDue)}
+                  </span>
+                </div>
+              )}
+
+              {/* 3. Total Payable — display-only: Net Payable + Outstanding Due (NOT used for payments or backend) */}
+              {(selectedCustomer.outstandingDue > 0) && (
+                <div className="flex justify-between items-center pt-1 border-t border-[var(--color-secondary)]/20">
+                  <span className="text-xs font-medium text-red-700">
+                    Total Payable:
+                  </span>
+                  <span className="text-sm font-bold text-red-700">
+                    {formatCurrency(totalAmountToBePaid + (selectedCustomer.outstandingDue || 0))}
+                  </span>
+                </div>
+              )}
+
+              {/* 4. Customer Credit Balance */}
+              <div className="flex justify-between items-center pt-1 border-t border-[var(--color-secondary)]/20">
+                <span className="text-xs font-medium text-[var(--color-primary)]">
+                  Credit Balance:
+                </span>
+                <span className="text-sm font-bold text-[var(--color-primary)]">
+                  {formatCurrency(selectedCustomer.creditBalance || 0)}
+                </span>
+              </div>
+            </>
           )}
         </div>
       </div>
