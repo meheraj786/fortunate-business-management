@@ -130,17 +130,19 @@ const AddSales = ({
         return {
           warehouseId,
           categoryId,
-          items: editData.items?.map(i => ({
+          items: (editData.items && editData.items.length > 0) ? editData.items.map(i => ({
             productId: i.product?._id || i.product,
             quantity: i.quantity,
             unit: i.unit?._id || i.unit,
             pricePerUnit: i.pricePerUnit,
-            total: i.total || (i.quantity * i.pricePerUnit)
-          })) || [{ // Fallback for old single-product sales being edited
+            total: i.total || (i.quantity * i.pricePerUnit),
+            remark: i.remark || "",
+          })) : [{ // Fallback for old single-product sales being edited
             productId: productId,
             quantity: editData.quantity,
             unit: unitId,
-            pricePerUnit: editData.pricePerUnit
+            pricePerUnit: editData.pricePerUnit,
+            remark: "",
           }],
           customerType: customerId ? "existing" : "manual",
           customerId: customerId,
@@ -282,17 +284,19 @@ const AddSales = ({
           ...editData,
           warehouseId,
           categoryId,
-          items: editData.items?.map(i => ({
+          items: (editData.items && editData.items.length > 0) ? editData.items.map(i => ({
             productId: i.product?._id || i.product,
             quantity: i.quantity,
             unit: i.unit?._id || i.unit,
             pricePerUnit: i.pricePerUnit,
-            total: i.total || (i.quantity * i.pricePerUnit)
-          })) || [{ // Fallback
+            total: i.total || (i.quantity * i.pricePerUnit),
+            remark: i.remark || "",
+          })) : [{ // Fallback
             productId,
             quantity: editData.quantity,
             unit: unitId,
-            pricePerUnit: editData.pricePerUnit
+            pricePerUnit: editData.pricePerUnit,
+            remark: "",
           }],
           customerType: customerId ? "existing" : "manual",
           customerId: customerId,
@@ -395,7 +399,8 @@ const AddSales = ({
         product: item.productId,
         quantity: parseFloat(item.quantity),
         unit: item.unit,
-        pricePerUnit: parseFloat(item.pricePerUnit)
+        pricePerUnit: parseFloat(item.pricePerUnit),
+        remark: item.remark || "",
       })),
       saleDate: new Date(data.saleDate).toISOString(),
       invoiceStatus: data.invoiceStatus,

@@ -333,6 +333,9 @@ const DisplayInvoice = () => {
                             {item.name || item.product?.name || "N/A"}
                           </p>
                           <p className="text-gray-400 text-[11px]">{item.category || item.product?.category?.name || ""}</p>
+                          {item.remark && (
+                            <p className="text-gray-500 text-[11px] italic">{item.remark}</p>
+                          )}
                         </td>
                         <td className="p-2 text-center align-top text-[12px]">
                           {item.quantity} {item.unitName || item.unit?.name || ""}

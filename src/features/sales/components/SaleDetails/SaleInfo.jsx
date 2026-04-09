@@ -47,7 +47,12 @@ const SaleInfo = ({
                     <td className="px-4 py-3 text-sm text-gray-900">
                       <div className="flex items-center">
                         <Package className="h-4 w-4 mr-2 text-gray-400" />
-                        {item.product?.name || "N/A"}
+                        <div>
+                          {item.product?.name || "N/A"}
+                          {item.remark && (
+                            <span className="block text-xs text-gray-500 italic mt-0.5">{item.remark}</span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">

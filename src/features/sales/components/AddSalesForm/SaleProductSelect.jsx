@@ -41,6 +41,7 @@ const SaleProductSelect = ({
     quantity: "",
     unit: "",
     pricePerUnit: "",
+    remark: "",
   });
   const [addItemError, setAddItemError] = useState("");
 
@@ -52,7 +53,7 @@ const SaleProductSelect = ({
   const handleWarehouseChange = (warehouseId) => {
     setValue("warehouseId", warehouseId);
     setValue("categoryId", "");
-    setNewItem({ productId: "", quantity: "", unit: "", pricePerUnit: "" });
+    setNewItem({ productId: "", quantity: "", unit: "", pricePerUnit: "", remark: "" });
     // Cancel any active editing when warehouse changes
     setEditingIndex(null);
   };
@@ -146,7 +147,8 @@ const SaleProductSelect = ({
       quantity,
       unit,
       pricePerUnit,
-      total: parseFloat(quantity) * parseFloat(pricePerUnit)
+      total: parseFloat(quantity) * parseFloat(pricePerUnit),
+      remark: newItem.remark || "",
     };
 
     if (editingIndex !== null) {
@@ -163,7 +165,8 @@ const SaleProductSelect = ({
       productId: "",
       quantity: "",
       unit: "",
-      pricePerUnit: ""
+      pricePerUnit: "",
+      remark: "",
     });
   };
 
@@ -181,6 +184,7 @@ const SaleProductSelect = ({
       quantity: String(item.quantity ?? ""),
       unit: item.unit || "",
       pricePerUnit: String(item.pricePerUnit ?? ""),
+      remark: item.remark || "",
     });
     setEditingIndex(index);
 
@@ -192,7 +196,7 @@ const SaleProductSelect = ({
 
   // ── Cancel editing ──
   const handleCancelEdit = () => {
-    setNewItem({ productId: "", quantity: "", unit: "", pricePerUnit: "" });
+    setNewItem({ productId: "", quantity: "", unit: "", pricePerUnit: "", remark: "" });
     setEditingIndex(null);
     setAddItemError("");
   };
@@ -425,6 +429,18 @@ const SaleProductSelect = ({
             </Button>
           </div>
         </div>
+        {/* Remark field — spans full width below the item fields */}
+        <div>
+          <InputField
+            label="Remark (Optional)"
+            name="newItemRemark"
+            type="text"
+            value={newItem.remark}
+            onChange={(e) => setNewItem({ ...newItem, remark: e.target.value })}
+            placeholder="e.g., Grade A, Off-cut, Mixed etc."
+            disabled={!canAddItem}
+          />
+        </div>
         {!canAddItem && isEditMode && (
           <p className="text-[10px] sm:text-xs text-amber-600 flex items-center gap-1">
             <AlertTriangle size={12} /> You don't have permission to add items to this sale.
@@ -497,6 +513,9 @@ const SaleProductSelect = ({
                     </div>
                   )}
                 </div>
+                {item.remark && (
+                  <p className="text-[11px] text-gray-500 italic mt-0.5">{item.remark}</p>
+                )}
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-gray-500 block">Qty</span>
@@ -550,7 +569,12 @@ const SaleProductSelect = ({
                       editingIndex === index ? 'bg-blue-50/60' : ''
                     }`}
                   >
-                    <td className="px-4 py-2 text-sm text-gray-900">{getProductName(item.productId)}</td>
+                    <td className="px-4 py-2 text-sm text-gray-900">
+                      {getProductName(item.productId)}
+                      {item.remark && (
+                        <span className="block text-xs text-gray-500 italic mt-0.5">{item.remark}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-2 text-sm text-gray-900">{item.quantity} {getUnitName(item.unit)}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(item.pricePerUnit)}</td>
                     <td className="px-4 py-2 text-sm text-gray-900">{formatCurrency(parseFloat(item.quantity) * parseFloat(item.pricePerUnit))}</td>
