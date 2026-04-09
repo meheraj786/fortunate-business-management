@@ -437,7 +437,9 @@ const AddSales = ({
       payments: data.payments
         .map((p) => {
           const payment = {
+            ...(p._id ? { _id: p._id } : {}),
             amount: parseFloat(p.amount) || 0,
+            discount: parseFloat(p.discount) || 0,
             date: new Date(p.date).toISOString(),
             method: p.method,
           };
