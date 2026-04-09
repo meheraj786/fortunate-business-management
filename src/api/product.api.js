@@ -34,3 +34,6 @@ export const searchProducts = (warehouseId, q, categoryId) => {
 
 export const closeLot = (warehouseId, productId) =>
   api.post(`/warehouses/${warehouseId}/products/${productId}/close-lot`);
+
+export const transferStock = (warehouseId, productId, data) =>
+  api.post(`/warehouses/${warehouseId}/products/${productId}/transfer`, data);

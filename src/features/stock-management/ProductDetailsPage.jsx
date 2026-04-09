@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowRightLeft,
   Calendar,
   DollarSign,
   Edit,
@@ -25,6 +26,7 @@ import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import StatBox from "@/components/ui/StatBox";
 import AddProductForm from "./AddProductForm";
 import SalesHistory from "./SalesHistory";
+import TransferStockModal from "./TransferStockModal";
 import { useAuth } from "@/hooks/useAuth";
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
@@ -77,6 +79,7 @@ const ProductDetails = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCloseLotModal, setShowCloseLotModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
 
   useEffect(() => {
     if (!hasPermission("PRODUCT_VIEW_DETAILS")) {
@@ -230,7 +233,18 @@ const ProductDetails = () => {
                 </div>
               </div>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+              {hasPermission("PRODUCT_TRANSFER") && product && !product.lotClosed && product.quantity > 0 && (
+                <Button
+                  onClick={() => setShowTransferModal(true)}
+                  variant="secondary"
+                  size="sm"
+                  className="flex-1 sm:flex-auto flex items-center justify-center gap-2"
+                >
+                  <ArrowRightLeft size={16} />
+                  <span>Transfer</span>
+                </Button>
+              )}
               {canCloseLot && (
                 <Button
                   onClick={() => setShowCloseLotModal(true)}
@@ -492,6 +506,18 @@ const ProductDetails = () => {
         variant="primary"
         icon={Lock}
       />
+      {showTransferModal && product && (
+        <TransferStockModal
+          isOpen={showTransferModal}
+          onClose={() => setShowTransferModal(false)}
+          onSuccess={() => {
+            setShowTransferModal(false);
+            navigate(`/stock/${warehouseId}`);
+          }}
+          product={product}
+          warehouseId={warehouseId}
+        />
+      )}
     </div>
   );
 };

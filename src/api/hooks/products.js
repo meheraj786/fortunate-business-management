@@ -102,3 +102,29 @@ export const useCloseLot = (warehouseId, productId) => {
     },
   });
 };
+
+// Transfer stock to another warehouse
+export const useTransferStock = (warehouseId, productId) => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: (data) => api.transferStock(warehouseId, productId, data),
+    successMessage: "Stock transferred successfully!",
+    onSuccess: (response) => {
+      const destWarehouseId = response?.data?.data?.destinationWarehouse?._id;
+      // Invalidate source warehouse queries
+      qc.invalidateQueries({ queryKey: ["products", warehouseId] });
+      qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
+      qc.invalidateQueries({ queryKey: ["products", "for-sale", warehouseId] });
+      qc.invalidateQueries({ queryKey: ["warehouses", warehouseId] });
+      // Invalidate destination warehouse queries
+      if (destWarehouseId) {
+        qc.invalidateQueries({ queryKey: ["products", destWarehouseId] });
+        qc.invalidateQueries({ queryKey: ["products", "for-sale", destWarehouseId] });
+        qc.invalidateQueries({ queryKey: ["warehouses", destWarehouseId] });
+      }
+      // Invalidate global warehouse list (stats update)
+      qc.invalidateQueries({ queryKey: ["warehouses"] });
+    },
+  });
+};
+
