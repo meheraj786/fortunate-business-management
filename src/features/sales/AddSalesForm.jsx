@@ -490,11 +490,24 @@ const AddSales = ({
       } = salesData;
 
       // Extract payments by default to prevent overwriting existing ones during normal edits
+      // (e.g., if another user added a payment via addPartialPayment concurrently).
       let { payments: _p, ...updatableData } = restData;
 
-      // EXCEPTION: If this is a manual customer (no customerId) and we are now Invoicing them,
-      // we MUST send the payments array to satisfy the 'fully paid when invoiced' backend rule.
-      if (!salesData.customer?.customerId && salesData.invoiceStatus === "Invoiced") {
+      // Detect if the user has actually modified the payment array in this edit session.
+      // New payments won't have a persisted _id (or their _id won't match original payments).
+      const originalPaymentIds = new Set(
+        (editData?.payments || []).map(p => p._id).filter(Boolean)
+      );
+      const hasNewPayments = salesData.payments.some(p => !p._id || !originalPaymentIds.has(p._id));
+      const hasRemovedPayments = (editData?.payments || []).some(
+        p => p._id && !salesData.payments.find(cp => cp._id === p._id)
+      );
+      const paymentsChanged = hasNewPayments || hasRemovedPayments;
+
+      // Include payments in the update when:
+      // 1. The payment array has actually been modified (new payments added or existing removed)
+      // 2. OR this is a manual customer being invoiced (must be fully paid — existing behavior)
+      if (paymentsChanged || (!salesData.customer?.customerId && salesData.invoiceStatus === "Invoiced")) {
         updatableData.payments = salesData.payments;
       }
       updateSaleMutation.mutate(
