@@ -30,5 +30,8 @@ export const getInvoiceStatusCount = () =>
 export const addPartialPayment = (id, data) =>
   api.post(`/sales/${id}/payments`, data);
 
+export const reversePayment = (saleId, paymentId) =>
+  api.delete(`/sales/${saleId}/payments/${paymentId}`);
+
 export const getSalesSummaryTable = (params) =>
   api.get("/sales/sales-summary-table", { params });

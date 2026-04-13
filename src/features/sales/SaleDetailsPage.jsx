@@ -13,6 +13,7 @@ import {
   MapPin,
   ExternalLink,
   Tag,
+  Undo2,
 } from "lucide-react";
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
@@ -21,6 +22,7 @@ import {
   useDeleteSale,
   useCancelSale,
   useAddPartialPayment,
+  useReversePayment,
 } from "@/api/hooks/sales";
 import { useInvoicesBySale, useGenerateInvoice } from "@/api/hooks/invoice";
 import { useAccounts } from "@/api/hooks/account";
@@ -60,6 +62,7 @@ const SaleDetails = () => {
   const [paymentError, setPaymentError] = useState("");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState({ type: null });
+  const [reversePaymentConfirm, setReversePaymentConfirm] = useState(null);
 
   useEffect(() => {
     if (!hasPermission("SALE_VIEW_DETAILS")) {
@@ -80,6 +83,7 @@ const SaleDetails = () => {
   const cancelSaleMutation = useCancelSale();
   const generateInvoiceMutation = useGenerateInvoice();
   const addPaymentMutation = useAddPartialPayment(id);
+  const reversePaymentMutation = useReversePayment(id);
 
   const handleConfirmAction = () => {
     const { type } = confirmAction;
@@ -106,7 +110,20 @@ const SaleDetails = () => {
     );
   };
 
+  const handleReversePayment = () => {
+    if (!reversePaymentConfirm || reversePaymentMutation.isPending) return;
+    reversePaymentMutation.mutate(reversePaymentConfirm._id, {
+      onSuccess: () => {
+        refetch();
+        setReversePaymentConfirm(null);
+      },
+    });
+  };
+
   const handleAddPayment = () => {
+    // Re-entry guard — prevents double-click from firing two mutations
+    if (addPaymentMutation.isPending) return;
+
     const amount = Number(paymentData.amount) || 0;
     const discount = Number(paymentData.discount) || 0;
 
@@ -419,12 +436,12 @@ const SaleDetails = () => {
                         <AnimatePresence initial={false}>
                           {validPayments.map((p, i) => (
                             <motion.div
-                              key={i}
+                              key={p._id || i}
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, scale: 0.95 }}
                               transition={{ duration: 0.12 }}
-                              className="flex justify-between items-center p-2 bg-gray-50 rounded"
+                              className="flex justify-between items-center p-2 bg-gray-50 rounded group"
                             >
                               <div>
                                 <p className="text-sm font-medium text-gray-900">
@@ -441,16 +458,29 @@ const SaleDetails = () => {
                                     : ""}
                                 </p>
                               </div>
-                              <div className="text-right">
-                                {p.amount > 0 && (
-                                  <span className="text-sm font-medium text-[var(--color-success)]">
-                                    {formatCurrency(p.amount)}
-                                  </span>
-                                )}
-                                {p.discount > 0 && (
-                                  <span className="block text-xs font-medium text-[var(--color-primary)] bg-blue-50 px-1.5 py-0.5 rounded mt-0.5">
-                                    Discount: {formatCurrency(p.discount)}
-                                  </span>
+                              <div className="flex items-center gap-2">
+                                <div className="text-right">
+                                  {p.amount > 0 && (
+                                    <span className="text-sm font-medium text-[var(--color-success)]">
+                                      {formatCurrency(p.amount)}
+                                    </span>
+                                  )}
+                                  {p.discount > 0 && (
+                                    <span className="block text-xs font-medium text-[var(--color-primary)] bg-blue-50 px-1.5 py-0.5 rounded mt-0.5">
+                                      Discount: {formatCurrency(p.discount)}
+                                    </span>
+                                  )}
+                                </div>
+                                {hasPermission("SALE_REVERSE_PAYMENT") && !isCancelled && p._id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setReversePaymentConfirm(p)}
+                                    disabled={reversePaymentMutation.isPending}
+                                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 rounded hover:bg-red-100 text-gray-400 hover:text-red-500"
+                                    title="Reverse this payment"
+                                  >
+                                    <Undo2 className="h-3.5 w-3.5" />
+                                  </button>
                                 )}
                               </div>
                             </motion.div>
@@ -697,6 +727,20 @@ const SaleDetails = () => {
             refetch();
             setIsUpdateModalOpen(false);
           }}
+        />
+      )}
+
+      {/* Payment Reversal Confirmation */}
+      {reversePaymentConfirm && (
+        <ConfirmationModal
+          isOpen={!!reversePaymentConfirm}
+          onClose={() => setReversePaymentConfirm(null)}
+          onConfirm={handleReversePayment}
+          title="Reverse Payment"
+          description={`Are you sure you want to reverse this ${reversePaymentConfirm.method} payment of ${formatCurrency(reversePaymentConfirm.amount)}?${reversePaymentConfirm.discount > 0 ? ` This will also reverse the discount of ${formatCurrency(reversePaymentConfirm.discount)}.` : ""} The account balance will be adjusted and a reversal transaction will be recorded. This action cannot be undone.`}
+          confirmText={reversePaymentMutation.isPending ? "Reversing..." : "Yes, Reverse Payment"}
+          isConfirming={reversePaymentMutation.isPending}
+          icon={Undo2}
         />
       )}
 

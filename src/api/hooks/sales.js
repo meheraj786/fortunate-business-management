@@ -113,3 +113,19 @@ export const useAddPartialPayment = (saleId) => {
     },
   });
 };
+
+export const useReversePayment = (saleId) => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: (paymentId) => api.reversePayment(saleId, paymentId),
+    successMessage: "Payment reversed successfully.",
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sales", saleId] });
+      qc.invalidateQueries({ queryKey: ["sales", "summary"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashStatus"] });
+      qc.invalidateQueries({ queryKey: ["dailyCashSummary"] });
+      qc.invalidateQueries({ queryKey: ["accounts"] });
+    },
+  });
+};
