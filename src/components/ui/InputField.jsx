@@ -56,7 +56,7 @@ const InputField = ({
             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
             aria-hidden="true"
           >
-            <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Icon className="w-4 h-4" />
           </div>
         )}
         <input
@@ -72,15 +72,15 @@ const InputField = ({
           aria-invalid={!!error}
           aria-describedby={error ? errorTextId : undefined}
           className={`
-            w-full px-4 py-3 sm:px-3 sm:py-2
+            w-full px-3.5 py-2.5
             border rounded-lg
             focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
             transition-all duration-200
             disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60
-            ${Icon ? "pl-10 sm:pl-12" : ""}
-            ${error ? "border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]" : "border-gray-300"}
+            ${Icon ? "pl-10" : ""}
+            ${error ? "border-[var(--color-danger)] focus:ring-[var(--color-danger)] focus:border-[var(--color-danger)]" : "border-gray-300"}
             placeholder:text-gray-400
-            text-base sm:text-sm
+            text-sm
             ${inputClassName}
           `}
           {...inputProps}

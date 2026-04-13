@@ -325,7 +325,7 @@ const ComboboxCore = ({
                 {Icon && (
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400 z-10">
                     <Icon
-                      className="w-5 h-5 sm:w-4 sm:h-4"
+                      className="w-4 h-4"
                       aria-hidden="true"
                     />
                   </span>
@@ -335,9 +335,8 @@ const ComboboxCore = ({
                   className={`
                     relative w-full text-left bg-white
                     border rounded-lg
-                    px-4 pr-10 py-3
-                    sm:px-3 sm:pr-10 sm:py-2
-                    min-h-[44px] sm:min-h-[38px]
+                    px-3.5 pr-10 py-2.5
+                    min-h-[40px]
                     focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
                     transition-all duration-200
                     ${
@@ -345,13 +344,13 @@ const ComboboxCore = ({
                         ? "bg-gray-100 cursor-not-allowed opacity-60"
                         : ""
                     }
-                    ${Icon ? "pl-10 sm:pl-10" : ""}
+                    ${Icon ? "pl-10" : ""}
                     ${
                       error
-                        ? "border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]"
+                        ? "border-[var(--color-danger)] focus:ring-[var(--color-danger)] focus:border-[var(--color-danger)]"
                         : "border-gray-300"
                     }
-                    text-base sm:text-sm
+                    text-sm
                   `}
                   displayValue={(val) => getDisplayValue(val)}
                   onChange={(e) => setQuery(e.target.value)}
@@ -373,7 +372,7 @@ const ComboboxCore = ({
                     />
                   ) : null}
                   <ChevronDown
-                    className={`w-5 h-5 sm:w-4 sm:h-4 text-gray-400 transition-transform duration-200 ${
+                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
                       open ? "transform rotate-180" : ""
                     }`}
                     aria-hidden="true"
@@ -388,7 +387,7 @@ const ComboboxCore = ({
                     ref={optionsRef}
                     static
                     style={portalStyle}
-                    className="py-1 overflow-auto text-base sm:text-sm bg-white rounded-lg shadow-xl max-h-60 focus:outline-none border border-gray-200 overscroll-contain animate-in fade-in duration-100"
+                    className="py-1 overflow-auto text-sm bg-white rounded-lg shadow-xl max-h-60 focus:outline-none border border-gray-200 overscroll-contain animate-in fade-in duration-100"
                   >
                     {isLoading && filteredOptions.length === 0 ? (
                       <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-500">
@@ -408,8 +407,8 @@ const ComboboxCore = ({
                           value={option.value}
                           className={({ focus, selected }) =>
                             `relative cursor-pointer select-none
-                            py-3 sm:py-2 pl-3 pr-9
-                            min-h-[44px] sm:min-h-[36px] flex items-center
+                            py-2.5 pl-3.5 pr-9
+                            min-h-[40px] flex items-center
                             transition-colors duration-100
                             ${
                               focus

@@ -88,13 +88,13 @@ const TextAreaField = ({
           aria-invalid={!!error}
           aria-describedby={error ? errorId : undefined}
           className={`
-            w-full px-4 py-3 sm:px-3 sm:py-2
+            w-full px-3.5 py-2.5
             border rounded-lg
             focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
             transition-all duration-200
-            ${error ? "border-[var(--color-danger-light)] focus:ring-[var(--color-danger)]" : "border-gray-300"}
+            ${error ? "border-[var(--color-danger)] focus:ring-[var(--color-danger)] focus:border-[var(--color-danger)]" : "border-gray-300"}
             placeholder:text-gray-400
-            text-base sm:text-sm
+            text-sm
             resize-none
             min-h-[${rows * 24}px]
           `}

@@ -77,7 +77,7 @@ const getPaymentIcon = (paymentMethod) => {
 };
 
 const TransactionTable = memo(
-  ({ transactions, onRowClick, sortBy, sortOrder, onSort }) => {
+  ({ transactions, onRowClick, sortBy, sortOrder, onSort, hideAccountColumn = false }) => {
     const { hasPermission } = useAuth();
     const { formatCurrency, formatDate, formatTime } = useSettings();
     const queryClient = useQueryClient();
@@ -141,39 +141,50 @@ const TransactionTable = memo(
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 mt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-2 sm:max-w-[60%]">
-                      <div
-                        className={`p-1.5 rounded-md flex-shrink-0 ${transaction.paymentMethod === "Bank"
-                          ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
-                          : transaction.paymentMethod === "Mobile Banking"
-                            ? "bg-purple-50 text-purple-600"
-                            : transaction.paymentMethod === "Cash"
-                              ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                              : "bg-gray-50 text-gray-600"
-                          }`}
-                      >
-                        {getPaymentIcon(transaction.paymentMethod)}
+                  {!hideAccountColumn ? (
+                    <div className="flex items-center justify-between pt-3 mt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-2 sm:max-w-[60%]">
+                        <div
+                          className={`p-1.5 rounded-md flex-shrink-0 ${transaction.paymentMethod === "Bank"
+                            ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
+                            : transaction.paymentMethod === "Mobile Banking"
+                              ? "bg-purple-50 text-purple-600"
+                              : transaction.paymentMethod === "Cash"
+                                ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                                : "bg-gray-50 text-gray-600"
+                            }`}
+                        >
+                          {getPaymentIcon(transaction.paymentMethod)}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-semibold text-gray-700 truncate">
+                            {formatAccountLabel(transaction.accountId)}
+                          </span>
+                          <span className="text-[10px] text-gray-500">
+                            {transaction.paymentMethod}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-semibold text-gray-700 truncate">
-                          {formatAccountLabel(transaction.accountId)}
-                        </span>
-                        <span className="text-[10px] text-gray-500">
-                          {transaction.paymentMethod}
-                        </span>
+
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-xs text-gray-600 font-medium">
+                          {formatDate(transaction.date)}
+                        </div>
+                        <div className="text-[10px] text-gray-400">
+                          {formatTime(transaction.date)}
+                        </div>
                       </div>
                     </div>
-
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-xs text-gray-600 font-medium">
+                  ) : (
+                    <div className="flex items-center justify-between pt-2 mt-2 border-t border-gray-50">
+                      <div className="text-xs text-gray-500 font-medium">
                         {formatDate(transaction.date)}
                       </div>
-                      <div className="text-[10px] text-gray-400">
+                      <div className="text-xs text-gray-400">
                         {formatTime(transaction.date)}
                       </div>
                     </div>
-                  </div>
+                  )}
                 </motion.div>
               ))
             ) : (
@@ -227,12 +238,14 @@ const TransactionTable = memo(
                       onSort={onSort}
                     />
                   </th>
-                  <th
-                    scope="col"
-                    className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-b border-gray-200 w-48"
-                  >
-                    Payment
-                  </th>
+                  {!hideAccountColumn && (
+                    <th
+                      scope="col"
+                      className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-b border-gray-200 w-48"
+                    >
+                      Payment
+                    </th>
+                  )}
                   <th
                     scope="col"
                     className="px-5 py-4 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap border-b border-gray-200 w-32"
@@ -293,31 +306,33 @@ const TransactionTable = memo(
                           {formatCurrency(transaction.amount)}
                         </td>
 
-                        <td className="px-5 py-4 sm:px-4 sm:py-3 border-b border-gray-100">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`p-1.5 rounded-md flex-shrink-0 ${transaction.paymentMethod === "Bank"
-                                ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
-                                : transaction.paymentMethod ===
-                                  "Mobile Banking"
-                                  ? "bg-purple-50 text-purple-600"
-                                  : transaction.paymentMethod === "Cash"
-                                    ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                                    : "bg-gray-50 text-gray-600"
-                                }`}
-                            >
-                              {getPaymentIcon(transaction.paymentMethod)}
+                        {!hideAccountColumn && (
+                          <td className="px-5 py-4 sm:px-4 sm:py-3 border-b border-gray-100">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`p-1.5 rounded-md flex-shrink-0 ${transaction.paymentMethod === "Bank"
+                                  ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
+                                  : transaction.paymentMethod ===
+                                    "Mobile Banking"
+                                    ? "bg-purple-50 text-purple-600"
+                                    : transaction.paymentMethod === "Cash"
+                                      ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
+                                      : "bg-gray-50 text-gray-600"
+                                  }`}
+                              >
+                                {getPaymentIcon(transaction.paymentMethod)}
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-sm font-medium text-gray-900 leading-tight">
+                                  {transaction.paymentMethod}
+                                </span>
+                                <span className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">
+                                  {formatAccountLabel(transaction.accountId)}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-sm font-medium text-gray-900 leading-tight">
-                                {transaction.paymentMethod}
-                              </span>
-                              <span className="text-[10px] text-gray-500 mt-0.5 line-clamp-1">
-                                {formatAccountLabel(transaction.accountId)}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
+                          </td>
+                        )}
 
                         <td className="px-5 py-4 sm:px-4 sm:py-3 border-b border-gray-100">
                           <div className="flex flex-col text-sm text-gray-500 whitespace-nowrap">
