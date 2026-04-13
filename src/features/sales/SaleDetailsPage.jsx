@@ -441,17 +441,27 @@ const SaleDetails = () => {
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, scale: 0.95 }}
                               transition={{ duration: 0.12 }}
-                              className="flex justify-between items-center p-2 bg-gray-50 rounded group"
+                              className={`flex justify-between items-center p-2 rounded group ${p.isReversed ? "bg-red-50/50" : "bg-gray-50"}`}
                             >
                               <div>
-                                <p className="text-sm font-medium text-gray-900">
-                                  {formatDate(p.date, {
+                                <div className="flex items-center gap-2">
+                                  <p className={`text-sm font-medium ${p.isReversed ? "text-gray-500 line-through" : "text-gray-900"}`}>
+                                    {formatDate(p.date, {
                                     day: "2-digit",
                                     month: "2-digit",
                                     year: "numeric",
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    hour12: true,
                                   })}
-                                </p>
-                                <p className="text-xs text-gray-500">
+                                  </p>
+                                  {p.isReversed && (
+                                    <span className="text-[10px] font-semibold tracking-wider uppercase bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                                      Reversed
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
                                   {p.method === "Discount" ? "Discount Adjustment" : p.method}{" "}
                                   {p.accountId && p.method !== "Discount"
                                     ? `(${formatAccountLabel(p.accountId)})`
@@ -471,7 +481,7 @@ const SaleDetails = () => {
                                     </span>
                                   )}
                                 </div>
-                                {hasPermission("SALE_REVERSE_PAYMENT") && !isCancelled && p._id && (
+                                {hasPermission("SALE_REVERSE_PAYMENT") && !isCancelled && !p.isReversed && p._id && (
                                   <button
                                     type="button"
                                     onClick={() => setReversePaymentConfirm(p)}
