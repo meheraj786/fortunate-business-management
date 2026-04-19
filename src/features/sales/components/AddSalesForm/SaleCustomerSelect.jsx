@@ -1,9 +1,12 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { User, MapPin, Phone } from "lucide-react";
 import SelectField from "@/components/ui/SelectField";
 import ComboboxField from "@/components/ui/ComboboxField";
 import InputField from "@/components/ui/InputField";
+import Button from "@/components/ui/Button";
+import QuickAddCustomerModal from "@/features/customers/components/QuickAddCustomerModal";
 import { useSettings } from "@/context/SettingsContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SaleCustomerSelect = ({
   register,
@@ -15,7 +18,9 @@ const SaleCustomerSelect = ({
   isEditMode,
   isInitialLoading,
 }) => {
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const { formatCurrency } = useSettings();
+  const queryClient = useQueryClient();
   const watchedCustomerType = watch("customerType");
   const watchedCustomerId = watch("customerId");
   const selectedCustomer = customers?.find((c) => c._id === watchedCustomerId);
@@ -61,30 +66,71 @@ const SaleCustomerSelect = ({
 
       {watchedCustomerType === "existing" ? (
         <div>
-          <ComboboxField
-            label="Select Customer"
-            name="customerId"
-            required={true}
-            control={control}
-            error={errors.customerId?.message}
-            options={customers.map((c) => ({
-              value: c._id,
-              label: `${c.name} - ${c.phone}`,
-            }))}
-            validation={{ required: "Customer is required" }}
-            icon={User}
-            disabled={isEditMode || isInitialLoading}
-            placeholder="Search customer..."
-            onChange={(val) => {
-              setValue("customerId", val, { shouldValidate: true });
-              handleCustomerSelect(val);
-            }}
-          />
+          <div className="flex items-start gap-2">
+            <div className="flex-1">
+              <ComboboxField
+                label="Select Customer"
+                name="customerId"
+                required={true}
+                control={control}
+                error={errors.customerId?.message}
+                options={customers.map((c) => ({
+                  value: c._id,
+                  label: c.phone ? `${c.name} - ${c.phone}` : c.name,
+                }))}
+                validation={{ required: "Customer is required" }}
+                icon={User}
+                disabled={isEditMode || isInitialLoading}
+                placeholder="Search customer..."
+                onChange={(val) => {
+                  setValue("customerId", val, { shouldValidate: true });
+                  handleCustomerSelect(val);
+                }}
+              />
+            </div>
+            {!isEditMode && !isInitialLoading && (
+              <div className="mt-[28px] shrink-0">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsCustomerModalOpen(true)}
+                  className="h-[42px]"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline-block ml-2">New</span>
+                </Button>
+              </div>
+            )}
+          </div>
           {selectedCustomer && (
             <div className="mt-2 text-sm text-[var(--color-primary)] font-medium bg-blue-50 p-2 rounded-md inline-block">
               Available Credit: <span className="font-bold">{formatCurrency(selectedCustomer.creditBalance || 0)}</span>
             </div>
           )}
+
+          <QuickAddCustomerModal
+            isOpen={isCustomerModalOpen}
+            onClose={() => setIsCustomerModalOpen(false)}
+            onSave={(newCustomer) => {
+              if (newCustomer?.data?._id) {
+                // Immediately push to cache so Combobox finds it right away
+                queryClient.setQueryData(["customers"], (oldData) => {
+                  const existingList = oldData?.data || [];
+                  return {
+                    ...oldData,
+                    data: [...existingList, newCustomer.data],
+                  };
+                });
+                
+                setTimeout(() => {
+                  setValue("customerId", newCustomer.data._id, { shouldValidate: true });
+                  setValue("customerName", newCustomer.data.name || "");
+                  setValue("customerPhone", newCustomer.data.phone || "");
+                  setValue("customerAddress", newCustomer.data.address || "");
+                }, 100);
+              }
+            }}
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -37,8 +37,9 @@ import {
 import { useSettings } from "@/context/SettingsContext";
 import { getBusinessDateTimeISO } from "@/utils/date.util";
 
-const CustomerForm = ({ onSave }) => {
-  const { id } = useParams();
+const CustomerForm = ({ onSave, isModal = false, onClose, customerId = null }) => {
+  const params = useParams();
+  const id = isModal ? customerId : params.id;
   const navigate = useNavigate();
   const isEditMode = !!id;
   const { settings } = useSettings();
@@ -174,6 +175,11 @@ const CustomerForm = ({ onSave }) => {
         : Number(data.creditLimit),
     };
 
+    if (!processedData.phone?.trim()) delete processedData.phone;
+    if (!processedData.billingAddress?.trim()) delete processedData.billingAddress;
+    if (!processedData.email?.trim()) delete processedData.email;
+    if (!processedData.companyName?.trim()) delete processedData.companyName;
+
     const formData = new FormData();
     formData.append("customerData", JSON.stringify(processedData));
     newUploadedFiles.forEach((file) => formData.append("documents", file));
@@ -181,7 +187,11 @@ const CustomerForm = ({ onSave }) => {
     const mutationOptions = {
       onSuccess: (responseData) => {
         if (onSave) onSave(responseData);
-        navigate("/customers");
+        if (!isModal) {
+          navigate("/customers");
+        } else {
+          if (onClose) onClose();
+        }
       },
     };
 
@@ -195,22 +205,7 @@ const CustomerForm = ({ onSave }) => {
     }
   };
 
-  return (
-    <FormPageLayout
-      title={isEditMode ? "Edit Customer" : "Add New Customer"}
-      subtitle={
-        isEditMode
-          ? "Update customer information and details"
-          : "Complete the form below to add a new customer"
-      }
-      cancelLink="/customers"
-      onSubmit={handleSubmit(onSubmit)}
-      isEditMode={isEditMode}
-      submitButtonText="Customer"
-      isLoading={isSubmitting || isCustomerDataLoading}
-      isValid={isValid}
-    >
-      {SECTIONS.map((section) => (
+  const formContent = SECTIONS.map((section) => (
         <FormSection
           key={section.id}
           title={section.title}
@@ -410,13 +405,51 @@ const CustomerForm = ({ onSave }) => {
             </div>
           )}
         </FormSection>
-      ))}
+      ));
+
+  if (isModal) {
+    return (
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+        <div className="overflow-y-auto space-y-4 pb-4">
+          {formContent}
+        </div>
+        <div className="mt-4 flex justify-end gap-3 pt-4 border-t border-gray-100 bg-white shrink-0">
+          <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting || isCustomerDataLoading}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="primary" disabled={isSubmitting || isCustomerDataLoading || !isValid} isLoading={isSubmitting || isCustomerDataLoading}>
+            {isEditMode ? "Update Customer" : "Save Customer"}
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+  return (
+    <FormPageLayout
+      title={isEditMode ? "Edit Customer" : "Add New Customer"}
+      subtitle={
+        isEditMode
+          ? "Update customer information and details"
+          : "Complete the form below to add a new customer"
+      }
+      cancelLink="/customers"
+      onSubmit={handleSubmit(onSubmit)}
+      isEditMode={isEditMode}
+      submitButtonText="Customer"
+      isLoading={isSubmitting || isCustomerDataLoading}
+      isValid={isValid}
+    >
+      {formContent}
     </FormPageLayout>
   );
 };
 
 CustomerForm.propTypes = {
   onSave: PropTypes.func,
+  isModal: PropTypes.bool,
+  onClose: PropTypes.func,
+  customerId: PropTypes.string,
 };
 
 export default React.memo(CustomerForm);
