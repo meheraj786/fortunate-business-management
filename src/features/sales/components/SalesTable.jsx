@@ -82,133 +82,8 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
 
   return (
     <div className="-mx-4 sm:mx-0">
-      {/* Mobile View - Cards */}
-      <div className="block sm:hidden space-y-4 px-4 sm:px-0">
-        {/* Mobile Sorting Controls */}
-        <div
-          className="flex items-center justify-between gap-3 mb-4 sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm p-3 rounded-xl border border-gray-200 shadow-sm"
-        >
-          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-            <Filter size={16} className="text-gray-400" />
-            <SelectField
-              value={sortBy}
-              onChange={onSort}
-              options={[
-                { value: "saleDate", label: "Date" },
-                { value: "totalAmountToBePaid", label: "Total Amount" },
-              ]}
-              className="mb-0 w-full"
-            />
-          </div>
-          <button
-            onClick={() => onSort(sortBy)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-gray-200 text-xs font-bold text-gray-700 shadow-sm active:scale-95 transition-all outline-none"
-          >
-            <div
-              key={sortOrder}
-              className="flex items-center gap-1.5"
-            >
-              {sortOrder === "desc" ? (
-                <>
-                  <ArrowDown
-                    size={14}
-                    className="text-[var(--color-primary)]"
-                  />
-                  DESC
-                </>
-              ) : (
-                <>
-                  <ArrowUp
-                    size={14}
-                    className="text-[var(--color-primary)]"
-                  />
-                  ASC
-                </>
-              )}
-            </div>
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          {sales.map((sale) => (
-            <div
-              key={sale._id}
-              className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm active:bg-gray-50 transition-colors"
-              onMouseEnter={() => prefetchSaleDetails(sale._id)}
-            >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1 min-w-0 mr-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-                        {sale.saleId || `#${sale._id.slice(-6)}`}
-                      </span>
-                      <span className="text-[10px] text-gray-400">
-                        {formatDate(sale.saleDate)}
-                      </span>
-                    </div>
-                    {/* Replaced Product Name with "Items" count or generic text since we have multi-product */}
-                    <Link
-                      to={`/sales/${sale._id}`}
-                      className="text-base font-bold text-gray-900 truncate flex flex-col hover:text-[var(--color-primary)] transition-colors"
-                    >
-                      {sale.saleId?.startsWith("OPEN-BAL-") ? (
-                        <div className="flex items-center gap-2">
-                          <span>Opening Balance</span>
-                          <span className="px-1.5 py-0.5 text-[10px] uppercase font-bold text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded">
-                            Automated
-                          </span>
-                        </div>
-                      ) : (
-                        sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "Unknown Product")
-                      )}
-                    </Link>
-                    <div className="text-sm text-gray-500 truncate mt-0.5 flex items-center gap-1">
-                      <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                      {sale.customer?.name || "Unknown Customer"}
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-lg font-bold text-[var(--color-primary)]">
-                      {formatCurrency(sale.totalAmountToBePaid)}
-                    </div>
-                    <div className={`text-xs font-medium mt-1 inline-block ${sale.balanceDue > 0 ? "text-red-500" : "text-green-500"}`}>
-                      Due: {formatCurrency(sale.balanceDue || 0)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 mt-1 border-t border-gray-100">
-                  <div className="flex gap-2">
-                    {sale.invoiceStatus === "Invoiced" ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[var(--color-success-light)] text-[var(--color-success)]">
-                        Invoiced
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[var(--color-warning-light)] text-[var(--color-warning)]">
-                        {sale.invoiceStatus?.replace("-", " ") || "Pending"}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${["Paid", "Paid payment", "Overpaid"].includes(sale.paymentStatus)
-                        ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                        : ["Due", "Due payment", "Partial"].includes(sale.paymentStatus)
-                          ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-                          : "bg-gray-100 text-gray-800"
-                        }`}
-                    >
-                      {sale.paymentStatus?.replace(" payment", "")}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
-
       {/* Desktop/Tablet View - Table */}
-      <div className="hidden sm:block overflow-x-auto border border-gray-100 bg-white">
+      <div className="overflow-x-auto border border-gray-100 bg-white">
         <div className="inline-block min-w-full align-middle">
           <table className="min-w-[1000px] w-full border-separate border-spacing-0">
             <thead className="bg-gray-50">
@@ -218,6 +93,30 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                   className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 border-b border-gray-200"
                 >
                   Sale ID
+                </th>
+                <th
+                  scope="col"
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-200"
+                >
+                  <SortableHeader
+                    label="Warehouse"
+                    value="warehouseName"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSort}
+                  />
+                </th>
+                <th
+                  scope="col"
+                  className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 border-b border-gray-200"
+                >
+                  <SortableHeader
+                    label="Product"
+                    value="productName"
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSort={onSort}
+                  />
                 </th>
                 <th
                   scope="col"
@@ -295,6 +194,16 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                           Opening Balance
                         </span>
                       )}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 border-b border-gray-100">
+                      <div className="max-w-[120px] truncate" title={sale?.warehouse?.name}>
+                        {sale?.warehouse?.name || "N/A"}
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 border-b border-gray-100">
+                      <div className="max-w-[150px] truncate" title={sale.items?.length > 1 ? "Multiple Items" : (sale.items?.[0]?.product?.name || sale.product?.name)}>
+                        {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "Unknown Product")}
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 border-b border-gray-100">
                       <div

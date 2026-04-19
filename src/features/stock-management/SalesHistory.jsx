@@ -80,57 +80,7 @@ const SalesTableRow = ({ sale, productId }) => {
   );
 };
 
-const MobileSalesCard = ({ sale, productId }) => {
-  const navigate = useNavigate();
-  const { formatCurrency, formatDate } = useSettings();
 
-  const item = sale.items?.find(i => (i.product?._id || i.product) === productId) || {};
-  const quantity = item.quantity || sale.quantity || 0;
-  const price = item.pricePerUnit || sale.pricePerUnit || 0;
-  const unitName = item.unit?.name || sale.unit?.name || "";
-  const lineTotal = item.total || (quantity * price);
-
-  return (
-    <div
-      className="border-t border-gray-100 last:border-b bg-white cursor-pointer hover:bg-gray-50 transition-colors"
-      onClick={() => navigate(`/sales/${sale._id}`)}
-    >
-      <div className="px-3 py-2.5 sm:px-4 sm:py-3">
-        <div className="flex justify-between items-center mb-1">
-          <div className="font-semibold text-gray-900 text-sm leading-tight">{sale.customer?.name || "N/A"}</div>
-          <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
-            {formatDate(sale.saleDate)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center text-xs">
-          <span className="text-gray-500">
-            Qty: <span className="text-gray-700 font-medium">{formatNumber(quantity)} {unitName}</span>
-          </span>
-          <span className="text-gray-500">
-            @ {formatCurrency(price)}
-          </span>
-        </div>
-        
-        <div className="flex justify-between items-center mt-2.5 gap-2">
-          <div className="flex flex-col gap-1.5 flex-1 w-full overflow-hidden">
-            <span className={getStatusBadge(sale.invoiceStatus, "invoice")}>
-              {sale.invoiceStatus}
-            </span>
-            <span className={getStatusBadge(sale.paymentStatus, "payment")}>
-              {sale.paymentStatus}
-            </span>
-          </div>
-          <div className="flex flex-col items-end flex-shrink-0">
-            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">Total</span>
-            <span className="font-bold text-gray-900 leading-none">
-              {formatCurrency(lineTotal)}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const SalesHistory = ({ warehouseId, productId }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -173,14 +123,7 @@ const SalesHistory = ({ warehouseId, productId }) => {
           </p>
         )}
       </div>
-      <div className="sm:hidden">
-        {sales.length > 0 ? (
-          sales.map((sale) => <MobileSalesCard key={sale._id} sale={sale} productId={productId} />)
-        ) : (
-          <NoDataMessage />
-        )}
-      </div>
-      <div className="hidden sm:block overflow-x-auto">
+      <div className="overflow-x-auto">
         {sales.length > 0 ? (
           <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
