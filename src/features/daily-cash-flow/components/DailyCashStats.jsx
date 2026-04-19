@@ -36,6 +36,11 @@ const DailyCashStats = ({ summary, isLoading }) => {
   const bankIncome = totalIncome - totalBusinessCashIncome;
   const bankExpenses = totalExpenses - totalBusinessCashExpenses;
 
+  // Calculate Net Transfers since they are excluded from Business Cash Metrics
+  const cashTransfersIn = (summary.totalCashIncome || 0) - (totalBusinessCashIncome || 0);
+  const cashTransfersOut = (summary.totalCashExpenses || 0) - (totalBusinessCashExpenses || 0);
+  const netTransfers = cashTransfersIn - cashTransfersOut;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard
@@ -75,7 +80,13 @@ const DailyCashStats = ({ summary, isLoading }) => {
         amount={runningBalance}
         icon={DollarSign}
         color={runningBalanceColor}
-        subtitle="Physical Cash in Hand"
+        subtitle={
+          isLoading
+            ? "Loading..."
+            : netTransfers !== 0
+            ? `Net Transfers: ${netTransfers > 0 ? "+" : ""}${formatCurrency(netTransfers)}`
+            : "Physical Cash in Hand"
+        }
         loading={isLoading}
       />
     </div>
