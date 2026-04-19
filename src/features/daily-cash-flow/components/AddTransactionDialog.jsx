@@ -345,11 +345,15 @@ const AddTransactionDialog = ({
           control={control}
           error={errors.paymentMethod?.message}
           options={[
-            { value: "Cash", label: "💵 Cash Only (Daily Cash)" },
+            { value: "Cash", label: "💵 Cash" },
+            { value: "Bank", label: "🏦 Bank Transfer" },
+            { value: "Mobile Banking", label: "📱 Mobile Banking" },
           ]}
           validation={{ required: "Payment Method is required" }}
         />
-        {(watchedPaymentMethod === "Cash") && (
+        {(watchedPaymentMethod === "Bank" ||
+          watchedPaymentMethod === "Mobile Banking" ||
+          watchedPaymentMethod === "Cash") && (
             <ComboboxField
               label="Select Account"
               name="accountId"

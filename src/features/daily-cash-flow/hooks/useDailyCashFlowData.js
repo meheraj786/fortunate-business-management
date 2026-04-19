@@ -168,8 +168,12 @@ export const useDailyCashFlowData = () => {
 
   const transactions = useMemo(() => {
     const allTransactions = dailyCashSummaryData?.transactions || [];
-    // Only show cash transactions for the Daily Cash page
-    return allTransactions.filter(t => t.paymentMethod === "Cash");
+    // Strictly require Cash account type to handle legacy data where paymentMethod was incorrectly saved
+    return allTransactions.filter(
+      (t) =>
+        t.paymentMethod === "Cash" &&
+        t.accountId?.accountType === "Cash"
+    );
   }, [dailyCashSummaryData]);
 
   const filteredTransactions = useMemo(() => {
