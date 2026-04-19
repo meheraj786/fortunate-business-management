@@ -5,6 +5,7 @@ import { useFieldArray, Controller } from "react-hook-form";
 import { PlusCircle, MinusCircle, FileText, CreditCard, Info } from "lucide-react";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import Button from "@/components/ui/Button";
 import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
@@ -247,7 +248,7 @@ const SaleFinancials = ({
               />
               </div>
               <div className="lg:col-span-3">
-              <SelectField
+              <ComboboxField
                 name={`costs.${index}.accountId`}
                 control={control}
                 validation={{ required: "Required" }}
@@ -484,7 +485,7 @@ const SaleFinancials = ({
             </div>
 
             <div className="lg:col-span-3">
-            <SelectField
+            <ComboboxField
               name={`payments.${index}.accountId`}
               control={control}
               validation={{
@@ -503,7 +504,7 @@ const SaleFinancials = ({
             />
             </div>
             <div className="lg:col-span-1 flex gap-2">
-              {watchedPaymentStatus === "Partial payment" && (
+              {(watchedPaymentStatus === "Partial payment" || watchedPaymentStatus === "Paid payment") && (
                 <Button
                   type="button"
                   onClick={() => removePayment(index)}
@@ -514,7 +515,7 @@ const SaleFinancials = ({
                 </Button>
               )}
               {index === paymentsFields.length - 1 &&
-                watchedPaymentStatus === "Partial payment" && (
+                (watchedPaymentStatus === "Partial payment" || watchedPaymentStatus === "Paid payment") && (
                   <Button
                     type="button"
                     onClick={() => {
