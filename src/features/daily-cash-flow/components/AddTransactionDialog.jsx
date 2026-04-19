@@ -275,7 +275,7 @@ const AddTransactionDialog = ({
         />
 
         {watchedCategory === "LC" && (
-          <SelectField
+          <ComboboxField
             label="Select LC"
             name="lcId"
             control={control}
@@ -287,7 +287,7 @@ const AddTransactionDialog = ({
             validation={{
               required: "Please select an LC for this transaction",
             }}
-            placeholder="Select LC..."
+            placeholder="Search and select LC..."
           />
         )}
 
@@ -308,7 +308,7 @@ const AddTransactionDialog = ({
         )}
 
         {watchedCategory === "Sales" && (
-          <SelectField
+          <ComboboxField
             label="Select Sale"
             name="salesId"
             control={control}
@@ -320,7 +320,7 @@ const AddTransactionDialog = ({
             validation={{
               required: "Please select a Sale for this transaction",
             }}
-            placeholder="Select sale..."
+            placeholder="Search and select sale..."
           />
         )}
 
