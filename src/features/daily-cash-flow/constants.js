@@ -15,6 +15,8 @@ export const EXPENSE_CATEGORIES = [
   "Office Expense",
   "Transport",
   "Utility",
+  "Jakat",
+  "Self",
   "Others",
 ];
 
@@ -46,6 +48,8 @@ import {
     Wallet,
     Package,
     DollarSign,
+    Heart,
+    User,
 } from "lucide-react";
 
 export const ICON_COMPONENTS = {
@@ -65,4 +69,6 @@ export const ICON_COMPONENTS = {
   Sale: DollarSign,
   "Office Expense": Building,
   Transportation: Truck,
+  Jakat: Heart,
+  Self: User,
 };

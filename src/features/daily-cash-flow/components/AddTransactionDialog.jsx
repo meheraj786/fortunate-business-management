@@ -174,6 +174,10 @@ const AddTransactionDialog = ({
           return "e.g., Delivery truck fuel";
         case "Utility":
           return "e.g., Electricity bill";
+        case "Jakat":
+          return "e.g., Annual Jakat Payment";
+        case "Self":
+          return "e.g., Personal Expense";
         default:
           return "e.g., Miscellaneous expense";
       }
@@ -207,6 +211,10 @@ const AddTransactionDialog = ({
           return "e.g., Fuel for delivery vehicle";
         case "Utility":
           return "e.g., Electricity bill for May";
+        case "Jakat":
+          return "e.g., Payment for annual Jakat";
+        case "Self":
+          return "e.g., Money withdrawn for personal expenses";
         default:
           return "Enter description";
       }
