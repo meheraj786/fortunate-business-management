@@ -34,6 +34,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import AddSalesForm from "./AddSalesForm";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import EntityAuditLog from "@/components/ui/EntityAuditLog";
@@ -660,64 +661,64 @@ const SaleDetails = () => {
               </div>
             </div>
           )}
-          {/* Payment Method & Account — only needed when there's an actual payment */}
-          {(Number(paymentData.amount) || 0) > 0 && (
-            <>
-              <SelectField
-                label="Payment Method"
-                name="method"
-                value={paymentData.method}
-                onChange={(val) => {
-                  const newMethod = val;
-                  const availableAccounts = accounts.filter(
-                    (acc) => acc.accountType === newMethod,
-                  );
-                  setPaymentData((p) => ({
-                    ...p,
-                    method: newMethod,
-                    account:
-                      availableAccounts.length > 0 ? availableAccounts[0]._id : "",
-                  }));
-                }}
-                options={[
-                  { value: "Cash", label: "Cash" },
-                  { value: "Bank", label: "Bank Transfer" },
-                  { value: "Mobile Banking", label: "Mobile Banking" },
-                  {
-                    value: "Customer Credit",
-                    label: `Customer Credit (${formatCurrency(sale?.customer?.customerId?.creditBalance || 0)})`,
-                    disabled: (sale?.customer?.customerId?.creditBalance || 0) <= 0
-                  }
-                ]}
+          {/* Payment Method & Account */}
+          <>
+            <SelectField
+              label="Payment Method"
+              name="method"
+              value={paymentData.method}
+              onChange={(val) => {
+                const newMethod = val;
+                const availableAccounts = accounts.filter(
+                  (acc) => acc.accountType === newMethod,
+                );
+                setPaymentData((p) => ({
+                  ...p,
+                  method: newMethod,
+                  account:
+                    availableAccounts.length > 0 ? availableAccounts[0]._id : "",
+                }));
+              }}
+              options={[
+                { value: "Cash", label: "Cash" },
+                { value: "Bank", label: "Bank Transfer" },
+                { value: "Mobile Banking", label: "Mobile Banking" },
+                {
+                  value: "Customer Credit",
+                  label: `Customer Credit (${formatCurrency(sale?.customer?.customerId?.creditBalance || 0)})`,
+                  disabled: (sale?.customer?.customerId?.creditBalance || 0) <= 0
+                }
+              ]}
+              required
+            />
+            {paymentData.method === "Customer Credit" && (
+              <div className="text-sm text-[var(--color-primary)] bg-blue-50 p-2 rounded">
+                Available Credit:{" "}
+                <span className="font-bold">
+                  {formatCurrency(sale?.customer?.customerId?.creditBalance || 0)}
+                </span>
+              </div>
+            )}
+            {["Bank", "Mobile Banking", "Cash"].includes(paymentData.method) && (
+              <ComboboxField
+                label="Account"
+                name="account"
+                value={paymentData.account}
+                onChange={(val) =>
+                  setPaymentData((p) => ({ ...p, account: val }))
+                }
+                options={accounts
+                  .filter((acc) => acc.accountType === paymentData.method)
+                  .map((acc) => ({
+                    value: acc._id,
+                    label: formatAccountLabel(acc),
+                  }))
+                  .sort((a, b) => a.label.localeCompare(b.label))}
                 required
+                placeholder="Search account..."
               />
-              {paymentData.method === "Customer Credit" && (
-                <div className="text-sm text-[var(--color-primary)] bg-blue-50 p-2 rounded">
-                  Available Credit:{" "}
-                  <span className="font-bold">
-                    {formatCurrency(sale?.customer?.customerId?.creditBalance || 0)}
-                  </span>
-                </div>
-              )}
-              {["Bank", "Mobile Banking", "Cash"].includes(paymentData.method) && (
-                <SelectField
-                  label="Account"
-                  name="account"
-                  value={paymentData.account}
-                  onChange={(val) =>
-                    setPaymentData((p) => ({ ...p, account: val }))
-                  }
-                  options={accounts
-                    .filter((acc) => acc.accountType === paymentData.method)
-                    .map((acc) => ({
-                      value: acc._id,
-                      label: formatAccountLabel(acc),
-                    }))}
-                  required
-                />
-              )}
-            </>
-          )}
+            )}
+          </>
           {/* Discount-only info */}
           {(Number(paymentData.amount) || 0) === 0 && (Number(paymentData.discount) || 0) > 0 && (
             <div className="text-sm text-gray-600 bg-amber-50 border border-amber-200 p-3 rounded-lg flex items-center gap-2">

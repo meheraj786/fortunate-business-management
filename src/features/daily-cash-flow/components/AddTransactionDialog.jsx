@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 import TextAreaField from "@/components/ui/TextAreaField";
 import {
@@ -345,16 +346,18 @@ const AddTransactionDialog = ({
         {(watchedPaymentMethod === "Bank" ||
           watchedPaymentMethod === "Mobile Banking" ||
           watchedPaymentMethod === "Cash") && (
-            <SelectField
+            <ComboboxField
               label="Select Account"
               name="accountId"
               control={control}
               error={errors.accountId?.message}
-              options={getFilteredAccounts().map((acc) => ({
-                value: acc._id,
-                label: formatAccountLabel(acc),
-              }))}
-              placeholder="Select account..."
+              options={getFilteredAccounts()
+                .map((acc) => ({
+                  value: acc._id,
+                  label: formatAccountLabel(acc),
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label))}
+              placeholder="Search account..."
               validation={{ required: "Account is required" }}
               loading={accountsLoading}
             />

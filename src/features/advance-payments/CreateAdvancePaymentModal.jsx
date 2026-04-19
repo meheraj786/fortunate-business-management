@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import { showErrorToast } from "@/utils/notifications";
 import { useAccounts } from "@/api/hooks/account";
 import { useCreateAdvancePayment } from "@/api/hooks/advancePayment";
@@ -183,20 +184,22 @@ const CreateAdvancePaymentModal = ({ isOpen, onClose, onSuccess }) => {
                             required
                             placeholder="Select method"
                         />
-                        <SelectField
+                        <ComboboxField
                             label="Account"
                             name="accountId"
                             value={formData.accountId}
                             onChange={(val) =>
                                 handleChange({ target: { name: "accountId", value: val } })
                             }
-                            options={filteredAccounts.map((acc) => ({
-                                value: acc._id,
-                                label: formatAccountLabel(acc),
-                            }))}
+                            options={filteredAccounts
+                                .map((acc) => ({
+                                    value: acc._id,
+                                    label: formatAccountLabel(acc),
+                                }))
+                                .sort((a, b) => a.label.localeCompare(b.label))}
                             required
                             loading={areAccountsLoading}
-                            placeholder={formData.paymentMethod ? "Select account..." : "Select payment method first"}
+                            placeholder={formData.paymentMethod ? "Search account..." : "Select payment method first"}
                             disabled={!formData.paymentMethod}
                         />
 

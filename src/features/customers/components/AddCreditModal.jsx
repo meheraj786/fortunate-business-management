@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import { useAddStoreCredit } from "@/api/hooks/customer";
 import { useAccounts } from "@/api/hooks/account";
 import { formatAccountLabel } from "@/utils/format";
@@ -123,18 +124,20 @@ const AddCreditModal = ({ isOpen, onClose, customerId }) => {
                     ]}
                 />
 
-                <SelectField
+                <ComboboxField
                     name="accountId"
                     control={control}
                     validation={{ required: "Account is required" }}
                     label="Deposit To Account"
                     error={errors.accountId?.message}
+                    placeholder={watchedPaymentMethod ? "Search account..." : "Select payment method first"}
                     options={accounts
                         .filter((acc) => acc.accountType === watchedPaymentMethod)
                         .map((acc) => ({
                             value: acc._id,
                             label: formatAccountLabel(acc),
-                        }))}
+                        }))
+                        .sort((a, b) => a.label.localeCompare(b.label))}
                     disabled={!watchedPaymentMethod}
                 />
 

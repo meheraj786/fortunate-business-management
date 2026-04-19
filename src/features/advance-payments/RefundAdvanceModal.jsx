@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import FormDialog from "@/components/ui/FormDialog";
 import InputField from "@/components/ui/InputField";
 import SelectField from "@/components/ui/SelectField";
+import ComboboxField from "@/components/ui/ComboboxField";
 import { showErrorToast } from "@/utils/notifications";
 import { useAccounts } from "@/api/hooks/account";
 import { useRefundAdvancePayment } from "@/api/hooks/advancePayment";
@@ -181,20 +182,22 @@ const RefundAdvanceModal = ({ isOpen, onClose, advancePayment, onSuccess }) => {
                     placeholder="Select payment method"
                 />
 
-                <SelectField
+                <ComboboxField
                     label="Receive Into Account"
                     name="accountId"
                     value={formData.accountId}
                     onChange={(val) =>
                         handleChange({ target: { name: "accountId", value: val } })
                     }
-                    options={filteredAccounts.map((acc) => ({
-                        value: acc._id,
-                        label: formatAccountLabel(acc),
-                    }))}
+                    options={filteredAccounts
+                        .map((acc) => ({
+                            value: acc._id,
+                            label: formatAccountLabel(acc),
+                        }))
+                        .sort((a, b) => a.label.localeCompare(b.label))}
                     required
                     loading={areAccountsLoading}
-                    placeholder={formData.paymentMethod ? "Select account for refund" : "Select payment method first"}
+                    placeholder={formData.paymentMethod ? "Search account for refund..." : "Select payment method first"}
                     disabled={!formData.paymentMethod}
                 />
 
