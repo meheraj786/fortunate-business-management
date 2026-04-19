@@ -143,7 +143,7 @@ const DailyCashFlow = () => {
             No transactions found
           </h3>
           <p className="text-gray-500 max-w-md mx-auto">
-            There are no transactions recorded for this day yet.
+            Start the day by recording your first sale or expense.
           </p>
         </motion.div>
       );
@@ -214,6 +214,7 @@ const DailyCashFlow = () => {
         isClosingDay={isClosingDay}
         getLocalDateString={getLocalDateString}
         isToday={isToday}
+        expectedBalance={summary.runningBalance}
       />
 
       <DailyCashStats summary={summary} isLoading={isInitialLoading} />

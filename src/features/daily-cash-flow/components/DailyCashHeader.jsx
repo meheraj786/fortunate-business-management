@@ -16,20 +16,16 @@ const DailyCashHeader = ({
   isOpeningDay,
   isClosingDay,
   isToday,
+  expectedBalance,
 }) => {
   const { hasPermission } = useAuth();
-  const { formatDate, settings } = useSettings();
+  const { formatDate, settings, formatCurrency } = useSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [showVerificationModal, setShowVerificationModal] = React.useState(false);
 
   const handleOpenDay = () => openDay(selectedDate);
   const handleCloseDay = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to close the cash for the day? This cannot be undone.",
-      )
-    ) {
-      closeDay(selectedDate);
-    }
+    setShowVerificationModal(true);
   };
 
   const statusBanner = () => {
@@ -43,7 +39,7 @@ const DailyCashHeader = ({
           {...commonProps}
           className="p-2.5 rounded-lg text-center bg-gray-100 text-gray-800 border border-gray-300 text-xs font-semibold"
         >
-          📋 This day's account is closed
+          🔒 Cash Register is Closed
         </motion.div>
       );
     }
@@ -53,7 +49,7 @@ const DailyCashHeader = ({
           {...commonProps}
           className="p-2.5 rounded-lg text-center bg-[var(--color-primary-light)] text-[var(--color-primary)] border border-[var(--color-primary-light)] text-xs font-semibold"
         >
-          ✅ This day's account is active
+          🟢 Cash Register is Open
         </motion.div>
       );
     }
@@ -289,6 +285,59 @@ const DailyCashHeader = ({
       </div>
 
       <MobileActionsMenu />
+
+      {/* Cash Verification Modal */}
+      <AnimatePresence>
+        {showVerificationModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+            onClick={() => setShowVerificationModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-[var(--color-warning-light)] text-[var(--color-warning)] rounded-lg">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Close Cash Register</h3>
+                </div>
+                <p className="text-gray-600 mb-6 text-sm">
+                  Please physically count your cash in hand and verify it matches the expected balance before closing. This action seals the record for the day.
+                </p>
+                <div className="bg-gray-50 rounded-lg p-5 border border-gray-200 text-center mb-6">
+                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Expected Physical Cash</p>
+                  <p className="text-3xl font-bold text-gray-900">{formatCurrency(expectedBalance || 0)}</p>
+                </div>
+                <div className="flex gap-3 justify-end mt-6">
+                  <Button variant="subtle" onClick={() => setShowVerificationModal(false)} disabled={isClosingDay}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="primary" 
+                    onClick={() => {
+                        closeDay(selectedDate);
+                        setShowVerificationModal(false);
+                    }}
+                    isLoading={isClosingDay}
+                  >
+                    Confirm & Close Register
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

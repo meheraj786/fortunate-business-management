@@ -167,7 +167,9 @@ export const useDailyCashFlowData = () => {
   });
 
   const transactions = useMemo(() => {
-    return dailyCashSummaryData?.transactions || [];
+    const allTransactions = dailyCashSummaryData?.transactions || [];
+    // Only show cash transactions for the Daily Cash page
+    return allTransactions.filter(t => t.paymentMethod === "Cash");
   }, [dailyCashSummaryData]);
 
   const filteredTransactions = useMemo(() => {
@@ -219,22 +221,16 @@ export const useDailyCashFlowData = () => {
   );
 
   const allCategories = useMemo(() => {
-    const incomeCats = INCOME_CATEGORIES.map((cat) => ({
-      value: cat,
-      label: cat,
-    }));
-    const expenseCats = EXPENSE_CATEGORIES.map((cat) => ({
-      value: cat,
-      label: cat,
-    }));
+    const transactionCats = transactions.map((t) => t.category).filter(Boolean);
     const uniqueCategories = [
       ...new Set([
-        ...incomeCats.map((c) => c.value),
-        ...expenseCats.map((c) => c.value),
+        ...INCOME_CATEGORIES,
+        ...EXPENSE_CATEGORIES,
+        ...transactionCats,
       ]),
     ];
     return uniqueCategories.sort().map((cat) => ({ value: cat, label: cat }));
-  }, []);
+  }, [transactions]);
 
   const handlePageChange = useCallback(
     (newPage) => {
