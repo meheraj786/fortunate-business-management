@@ -37,14 +37,36 @@ const SalesTableRow = ({ sale, productId }) => {
   const navigate = useNavigate();
   const { formatCurrency, formatDate } = useSettings();
 
-  // Find the specific item for this product
-  const item = sale.items?.find(i => (i.product?._id || i.product) === productId) || {};
+  // Find ALL matching items for this product in the sale
+  // (a product could appear multiple times with different prices/remarks)
+  const matchingItems = sale.items?.filter(i => {
+    const itemProductId = i.product?._id || i.product;
+    return itemProductId === productId;
+  }) || [];
 
-  // Fallback to legacy root fields if item not found (or if it's a legacy sale record)
-  const quantity = item.quantity || sale.quantity || 0;
-  const price = item.pricePerUnit || sale.pricePerUnit || 0;
-  const unitName = item.unit?.name || sale.unit?.name || "";
-  const lineTotal = item.total || (quantity * price);
+  let quantity, price, unitName, lineTotal;
+
+  if (matchingItems.length > 1) {
+    // Multiple entries of same product — aggregate
+    quantity = matchingItems.reduce((sum, i) => sum + (i.quantity || 0), 0);
+    lineTotal = matchingItems.reduce((sum, i) => sum + (i.total || (i.quantity * i.pricePerUnit) || 0), 0);
+    // Weighted average price
+    price = quantity > 0 ? lineTotal / quantity : 0;
+    unitName = matchingItems[0]?.unit?.name || "";
+  } else if (matchingItems.length === 1) {
+    // Single matching item
+    const item = matchingItems[0];
+    quantity = item.quantity || 0;
+    price = item.pricePerUnit || 0;
+    unitName = item.unit?.name || "";
+    lineTotal = item.total || (quantity * price);
+  } else {
+    // Legacy fallback — root-level fields
+    quantity = sale.quantity || 0;
+    price = sale.pricePerUnit || 0;
+    unitName = sale.unit?.name || "";
+    lineTotal = quantity * price;
+  }
 
   return (
     <tr
@@ -62,6 +84,9 @@ const SalesTableRow = ({ sale, productId }) => {
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
         {formatCurrency(price)}
+        {matchingItems.length > 1 && (
+          <span className="block text-xs text-gray-400 italic">avg</span>
+        )}
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
         {formatCurrency(lineTotal)}

@@ -200,9 +200,47 @@ const SalesTable = memo(({ sales, sortBy, sortOrder, onSort }) => {
                         {sale?.warehouse?.name || "N/A"}
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 border-b border-gray-100">
-                      <div className="max-w-[150px] truncate" title={sale.items?.length > 1 ? "Multiple Items" : (sale.items?.[0]?.product?.name || sale.product?.name)}>
-                        {sale.items?.length > 1 ? `${sale.items.length} Items` : (sale.items?.[0]?.product?.name || sale.product?.name || "Unknown Product")}
+                    <td className="px-3 py-4 text-sm text-gray-500 border-b border-gray-100">
+                      <div className="max-w-[200px]">
+                        {(() => {
+                          const items = sale.items || [];
+                          if (items.length === 0) {
+                            // Legacy single-product fallback
+                            return (
+                              <span className="truncate block" title={sale.product?.name}>
+                                {sale.product?.name || "Unknown Product"}
+                              </span>
+                            );
+                          }
+                          if (items.length === 1) {
+                            return (
+                              <span className="truncate block" title={items[0]?.product?.name}>
+                                {items[0]?.product?.name || "Unknown Product"}
+                              </span>
+                            );
+                          }
+                          // Multiple items: show first 2 names + "N more"
+                          const visibleItems = items.slice(0, 2);
+                          const remaining = items.length - 2;
+                          return (
+                            <div>
+                              {visibleItems.map((item, idx) => (
+                                <span
+                                  key={idx}
+                                  className="block truncate text-gray-700 leading-snug"
+                                  title={item?.product?.name}
+                                >
+                                  {item?.product?.name || "Unknown"}
+                                </span>
+                              ))}
+                              {remaining > 0 && (
+                                <span className="text-xs text-[var(--color-primary)] font-medium mt-0.5 block">
+                                  +{remaining} more
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 border-b border-gray-100">
