@@ -40,6 +40,7 @@ const AddSales = ({
   // Determine if items should be locked (invoiced/cancelled sales)
   const isItemsLocked = isEditMode && (editData?.invoiceStatus === 'Invoiced' || editData?.invoiceStatus === 'Cancelled');
   const canAddItem = !isItemsLocked && (!isEditMode || hasPermission('SALE_ITEM_ADD'));
+  const canEditItem = !isItemsLocked && (!isEditMode || hasPermission('SALE_ITEM_UPDATE'));
   const canDeleteItem = !isItemsLocked && (!isEditMode || hasPermission('SALE_ITEM_DELETE'));
 
   // Block background interaction and auto-fill when modal is open
@@ -572,6 +573,7 @@ const AddSales = ({
                   update={update}
                   isItemsLocked={isItemsLocked}
                   canAddItem={canAddItem}
+                  canEditItem={canEditItem}
                   canDeleteItem={canDeleteItem}
                   invoiceStatus={editData?.invoiceStatus}
                 />

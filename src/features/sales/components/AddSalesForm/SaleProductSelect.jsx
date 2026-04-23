@@ -29,6 +29,7 @@ const SaleProductSelect = ({
   update,
   isItemsLocked = false,
   canAddItem = true,
+  canEditItem = true,
   canDeleteItem = true,
   invoiceStatus,
 }) => {
@@ -337,7 +338,7 @@ const SaleProductSelect = ({
       )}
 
       {/* Add / Edit Item Section — hidden when locked */}
-      {!isItemsLocked && (
+      {!isItemsLocked && (canAddItem || (canEditItem && editingIndex !== null)) && (
       <div ref={editSectionRef} className={`p-3 sm:p-4 rounded-lg border space-y-3 sm:space-y-4 ${
         editingIndex !== null
           ? 'bg-blue-50/50 border-blue-300'
@@ -441,7 +442,12 @@ const SaleProductSelect = ({
             disabled={!canAddItem}
           />
         </div>
-        {!canAddItem && isEditMode && (
+        {!canAddItem && !canEditItem && isEditMode && (
+          <p className="text-[10px] sm:text-xs text-amber-600 flex items-center gap-1">
+            <AlertTriangle size={12} /> You don't have permission to add or edit items in this sale.
+          </p>
+        )}
+        {!canAddItem && canEditItem && isEditMode && (
           <p className="text-[10px] sm:text-xs text-amber-600 flex items-center gap-1">
             <AlertTriangle size={12} /> You don't have permission to add items to this sale.
           </p>
@@ -479,17 +485,17 @@ const SaleProductSelect = ({
                         type="button"
                         onClick={() => handleStartEdit(index)}
                         className={`p-1 rounded transition-colors ${
-                          canAddItem && editingIndex !== index
+                          canEditItem && editingIndex !== index
                             ? 'text-blue-500 hover:bg-blue-50 active:bg-blue-100'
                             : editingIndex === index
                               ? 'text-blue-600 bg-blue-100'
                               : 'text-gray-300 cursor-not-allowed'
                         }`}
-                        disabled={!canAddItem || editingIndex === index}
+                        disabled={!canEditItem || editingIndex === index}
                         title={
                           editingIndex === index
                             ? "Currently editing this item"
-                            : !canAddItem
+                            : !canEditItem
                               ? "You don't have permission to edit items"
                               : "Edit item"
                         }
@@ -586,17 +592,17 @@ const SaleProductSelect = ({
                             type="button"
                             onClick={() => handleStartEdit(index)}
                             className={`transition-colors ${
-                              canAddItem && editingIndex !== index
+                              canEditItem && editingIndex !== index
                                 ? 'text-blue-600 hover:text-blue-900'
                                 : editingIndex === index
                                   ? 'text-blue-400 cursor-default'
                                   : 'text-gray-300 cursor-not-allowed'
                             }`}
-                            disabled={!canAddItem || editingIndex === index}
+                            disabled={!canEditItem || editingIndex === index}
                             title={
                               editingIndex === index
                                 ? "Currently editing this item"
-                                : !canAddItem
+                                : !canEditItem
                                   ? "You don't have permission to edit items"
                                   : "Edit item"
                             }
