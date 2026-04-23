@@ -168,7 +168,7 @@ const DisplayInvoice = () => {
     payments = [],
   } = paymentAndAmountInfo;
 
-  const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
+  const totalPayments = payments.filter(p => !p.isReversed).reduce((sum, p) => sum + p.amount, 0);
   const rawBalanceDue = totalAmountToBePaid - totalPayments;
   const balanceDue = Math.max(0, rawBalanceDue);
   const creditedToWallet = rawBalanceDue < 0 ? Math.abs(rawBalanceDue) : 0;
