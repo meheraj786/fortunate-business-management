@@ -1,5 +1,4 @@
-import React from "react";
-import { Link } from "react-router";
+import React, { useMemo } from "react";
 import {
   Info,
   Package,
@@ -8,12 +7,109 @@ import { useSettings } from "@/context/SettingsContext";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import StatusBadge from "@/components/ui/StatusBadge";
 
+/**
+ * Computes total quantity summaries grouped by unit type.
+ *
+ * Scenarios handled:
+ * 1. All items share the same unit → simple sum, single display line
+ * 2. Items have different units of the same type (e.g., KG + TON) →
+ *    converts all to base unit, then picks the best display unit
+ * 3. Items span multiple unit types (e.g., Weight + Countable) →
+ *    returns separate summary lines per type
+ * 4. Countable units → summed directly (conversionFactor is always 1)
+ */
+function computeQuantitySummaries(items) {
+  if (!items || items.length === 0) return [];
+
+  // Group items by unit type
+  const groups = {};
+  for (const item of items) {
+    const unitType = item.unit?.type || "Unknown";
+    if (!groups[unitType]) {
+      groups[unitType] = { type: unitType, entries: [] };
+    }
+    groups[unitType].entries.push({
+      quantity: item.quantity || 0,
+      unitName: item.unit?.name || "units",
+      conversionFactor: item.unit?.conversionFactor || 1,
+      unitId: item.unit?._id || item.unit,
+    });
+  }
+
+  const summaries = [];
+
+  for (const [type, group] of Object.entries(groups)) {
+    // Collect distinct units in this group
+    const unitMap = {};
+    for (const entry of group.entries) {
+      const key = String(entry.unitId);
+      if (!unitMap[key]) {
+        unitMap[key] = {
+          name: entry.unitName,
+          conversionFactor: entry.conversionFactor,
+          totalQty: 0,
+        };
+      }
+      unitMap[key].totalQty += entry.quantity;
+    }
+
+    const distinctUnits = Object.values(unitMap);
+
+    if (distinctUnits.length === 1) {
+      // All items in this type share the same unit — simple sum
+      summaries.push({
+        type,
+        quantity: distinctUnits[0].totalQty,
+        unitName: distinctUnits[0].name,
+      });
+    } else {
+      // Multiple units of the same type — convert everything to base
+      // then display in the unit with the largest conversionFactor
+      // (e.g., prefer TON over KG when both are present)
+      let totalInBase = 0;
+      for (const u of distinctUnits) {
+        totalInBase += u.totalQty * u.conversionFactor;
+      }
+
+      // Pick the display unit: the one with the largest conversion factor
+      // so values stay human-readable (e.g., 2.5 TON instead of 2500 KG)
+      const displayUnit = distinctUnits.reduce((best, u) =>
+        u.conversionFactor > best.conversionFactor ? u : best
+      );
+
+      const displayQty = totalInBase / displayUnit.conversionFactor;
+
+      summaries.push({
+        type,
+        quantity: displayQty,
+        unitName: displayUnit.name,
+      });
+    }
+  }
+
+  return summaries;
+}
+
 const SaleInfo = ({
   sale,
   loading = false,
   isOpeningBalance = false,
 }) => {
   const { formatCurrency, formatNumber } = useSettings();
+
+  // Compute totals for multi-item sales
+  const quantitySummaries = useMemo(() => {
+    if (isOpeningBalance || !sale?.items || sale.items.length === 0) return [];
+    return computeQuantitySummaries(sale.items);
+  }, [sale?.items, isOpeningBalance]);
+
+  const totalAmount = useMemo(() => {
+    if (isOpeningBalance) return 0;
+    if (sale?.items && sale.items.length > 0) {
+      return sale.items.reduce((sum, item) => sum + (item.total || (item.quantity * item.pricePerUnit) || 0), 0);
+    }
+    return sale?.totalAmount || 0;
+  }, [sale?.items, sale?.totalAmount, isOpeningBalance]);
   return (
     <div className="space-y-6">
       {/* Sale Information */}
@@ -92,6 +188,35 @@ const SaleInfo = ({
                 </tr>
               )}
             </tbody>
+            {!loading && (
+              <tfoot className="bg-gray-50 border-t-2 border-gray-300">
+                <tr>
+                  <td className="px-4 py-3 text-sm font-semibold text-gray-700">
+                    Total
+                  </td>
+                  <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                    {quantitySummaries.length > 0 ? (
+                      <div className="space-y-0.5">
+                        {quantitySummaries.map((s, i) => (
+                          <div key={i}>
+                            {formatNumber(s.quantity)} {s.unitName}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      // Legacy single-product fallback total
+                      sale?.quantity != null
+                        ? `${formatNumber(sale.quantity)} ${sale?.unit?.name || "units"}`
+                        : "—"
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900"></td>
+                  <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
+                    {formatCurrency(totalAmount)}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
         ) : (
