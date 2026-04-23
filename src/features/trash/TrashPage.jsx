@@ -17,12 +17,14 @@ import {
   Archive,
   FileText,
   Trash2,
+  Eye,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import { showErrorToast } from "@/utils/notifications";
 import { useSettings } from "@/context/SettingsContext";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
+import TrashItemDetailModal from "./components/TrashItemDetailModal";
 
 const TrashPage = memo(() => {
   const { moduleName } = useParams();
@@ -39,11 +41,22 @@ const TrashPage = memo(() => {
   const formatModule = (str) => {
     if (!str) return "";
     const lower = str.toLowerCase();
-    if (lower === "lc") return "LC";
-    if (lower === "dailycash") return "DailyCash";
-    if (lower === "account") return "Account";
-    if (lower === "advancepayment" || lower === "advance-payment") return "AdvancePayment";
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    const moduleMap = {
+      "products": "Product",
+      "categories": "Category",
+      "customers": "Customer",
+      "users": "User",
+      "units": "Unit",
+      "sales": "Sale",
+      "transactions": "Transaction",
+      "lc": "LC",
+      "advancepayment": "AdvancePayment",
+      "advance-payment": "AdvancePayment",
+      "account": "Account",
+      "dailycash": "DailyCash",
+      "warehouses": "Warehouse"
+    };
+    return moduleMap[lower] || str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
   const currentModule = formatModule(moduleName);
@@ -52,6 +65,7 @@ const TrashPage = memo(() => {
 
   const restorePermission = `TRASH_RESTORE_${permissionModule}`;
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [selectedDetailItem, setSelectedDetailItem] = useState(null); // Detail modal state
   const deleteMutation = useDeleteTrashPermanently();
   const deletePermission = `TRASH_DELETE_${permissionModule}`;
 
@@ -89,33 +103,77 @@ const TrashPage = memo(() => {
     if (typeof doc === "string") return doc;
 
     if (typeof doc === "object" && doc !== null) {
+      let title = "Unknown Item";
+      let subtitle = "";
+
+      switch (item.model) {
+        case "Sale":
+          title = doc.saleId ? `Sale: ${doc.saleId}` : "Unknown Sale";
+          subtitle = doc.customer?.name ? `Customer: ${doc.customer.name}` : "";
+          break;
+        case "AdvancePayment":
+          title = doc.advanceId ? `Advance: ${doc.advanceId}` : "Unknown Advance Payment";
+          subtitle = doc.supplierName ? `Supplier: ${doc.supplierName} - Amt: ${doc.amount}` : "";
+          break;
+        case "Transaction":
+          title = doc.name || doc.description || "Unknown Transaction";
+          subtitle = `Amount: ${doc.amount} | Type: ${doc.transactionType}`;
+          break;
+        case "LC":
+          title = doc.basicInfo?.lcNumber ? `LC: ${doc.basicInfo.lcNumber}` : "Unknown LC";
+          subtitle = doc.basicInfo?.supplierName ? `Supplier: ${doc.basicInfo.supplierName}` : "";
+          break;
+        case "Customer":
+          title = doc.name || "Unknown Customer";
+          subtitle = doc.mobileNumber || doc.phone || "";
+          break;
+        case "User":
+          title = doc.name || "Unknown User";
+          subtitle = doc.email || "";
+          break;
+        case "DailyCash":
+          title = doc.date ? `Daily Cash: ${formatDate(doc.date)}` : "Unknown Daily Cash";
+          subtitle = `Status: ${doc.status}`;
+          break;
+        case "Account":
+          title = doc.accountName || "Unknown Account";
+          subtitle = doc.accountNumber ? `A/C: ${doc.accountNumber}` : "";
+          break;
+        case "Product":
+        case "Category":
+        case "Unit":
+        case "Warehouse":
+        case "Country":
+          title = doc.name || `Unknown ${item.model}`;
+          break;
+        default:
+          title =
+            doc.accountName ||
+            doc.basicInfo?.lcNumber ||
+            doc.name ||
+            doc.invoiceNo ||
+            doc.transactionId ||
+            doc.saleId ||
+            "Unknown Item";
+      }
+
       return (
         <div className="flex flex-col">
           <span className="font-semibold text-blue-600">
-            {doc.accountName ||
-              doc.basicInfo?.lcNumber ||
-              doc.name ||
-              doc.invoiceNo ||
-              doc.transactionId ||
-              "Unknown Item"}
+            {title}
           </span>
-          <span className="text-[10px] text-muted-foreground font-mono">
+          {subtitle && (
+            <span className="text-[11px] text-gray-500 font-medium">
+              {subtitle}
+            </span>
+          )}
+          <span className="text-[10px] text-muted-foreground font-mono mt-0.5">
             ID: {doc._id}
           </span>
-          {doc.accountNumber && (
-            <span className="text-[10px] text-gray-400">
-              A/C: {doc.accountNumber}
-            </span>
-          )}
-          {doc.mobileNumber && (
-            <span className="text-[10px] text-gray-400">
-              Mob: {doc.mobileNumber}
-            </span>
-          )}
         </div>
       );
     }
-    return <span className="text-gray-400 italic text-xs">Data not found</span>;
+    return <span className="text-gray-400 italic text-xs">Data not found (Missing Target Model)</span>;
   };
 
   return (
@@ -223,7 +281,25 @@ const TrashPage = memo(() => {
                         {formatDateTime(item.deletedAt)}
                       </td>
 
-                      <td className="text-right">
+                      <td className="text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          className="rounded-lg bg-gray-100 px-4 py-2 text-gray-700 flex items-center justify-center gap-1 inline-flex hover:bg-gray-200 border border-gray-200 shadow-sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert("Click registered! Model: " + item.model);
+                            console.log("Item clicked:", item);
+                            setSelectedDetailItem({
+                              model: item.model,
+                              trashId: item._id,
+                              docId: typeof item.docId === 'object' ? item.docId?._id : item.docId
+                            });
+                          }}
+                        >
+                          <Eye className="w-3.5 h-3.5 mr-1" />
+                          View
+                        </button>
                         {hasPermission(restorePermission) && (
                           <button
                             variant="outline"
@@ -415,6 +491,26 @@ const TrashPage = memo(() => {
                         </div>
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* Footer Info Action - View */}
+                  <div className="pt-2">
+                    <button
+                        type="button"
+                        className="w-full rounded-lg bg-gray-100 px-4 py-2 mt-1 text-gray-700 flex items-center justify-center gap-1 hover:bg-gray-200 border border-gray-200 shadow-sm"
+                        onClick={(e) => {
+                           e.preventDefault();
+                           e.stopPropagation();
+                           setSelectedDetailItem({
+                            model: item.model,
+                            trashId: item._id,
+                            docId: typeof item.docId === 'object' ? item.docId?._id : item.docId
+                          });
+                        }}
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>View Full Details</span>
+                    </button>
                   </div>
                 </div>
               </div>

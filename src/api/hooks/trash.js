@@ -10,19 +10,6 @@ export const useTrash = (params) =>
     keepPreviousData: true,
   });
 
-export const useMoveToTrash = () => {
-  const qc = useQueryClient();
-
-  return useApiMutation({
-    mutationFn: api.moveToTrash,
-    successMessage: "Item moved to trash.",
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["trash"] });
-      qc.invalidateQueries(); 
-    },
-  });
-};
-
 
 export const useRestoreFromTrash = () => {
   const qc = useQueryClient();

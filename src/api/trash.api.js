@@ -1,9 +1,5 @@
 import api from "./axios";
 
-
-export const moveToTrash = (data) =>
-  api.post("/trash/move-to-trash", data);
-
 export const getAllTrash = ({ module, ...params }) =>
   api.get(`/trash/${module}`, { params });
 
