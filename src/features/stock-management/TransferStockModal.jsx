@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   ArrowRightLeft,
   Warehouse,
@@ -32,6 +32,7 @@ const TransferStockModal = ({
   };
 
   const [formData, setFormData] = useState(initialData);
+  const [showFullConfirm, setShowFullConfirm] = useState(false);
 
   // Fetch all warehouses for the dropdown
   const { data: warehousesData, isLoading: warehousesLoading } =
@@ -70,11 +71,15 @@ const TransferStockModal = ({
     }));
   };
 
+  const handleClose = useCallback(() => {
+    setFormData(initialData);
+    setShowFullConfirm(false);
+    onClose();
+  }, [onClose]);
+
   const formatQuantityDisplay = () => {
     if (!product) return "";
-    const unitName = product?.unit?.name || product?.unit?.id ? "" : "";
-    const displayUnit =
-      product?.unit?.name || product?.unit?.id || "units";
+    const displayUnit = product?.unit?.name || "units";
     return `${product.quantity} ${displayUnit}`;
   };
 
@@ -99,6 +104,12 @@ const TransferStockModal = ({
       }
     }
 
+    // Two-step confirmation for full transfers
+    if (transferType === "full" && !showFullConfirm) {
+      setShowFullConfirm(true);
+      return;
+    }
+
     const payload = {
       destinationWarehouseId,
       transferType,
@@ -110,9 +121,10 @@ const TransferStockModal = ({
     }
 
     transferMutation.mutate(payload, {
-      onSuccess: () => {
+      onSuccess: (response) => {
         setFormData(initialData);
-        onSuccess?.();
+        setShowFullConfirm(false);
+        onSuccess?.(response);
         onClose();
       },
     });
@@ -133,16 +145,66 @@ const TransferStockModal = ({
   return (
     <FormDialog
       open={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Transfer Stock"
       primaryButtonText={
-        transferMutation.isPending ? "Transferring..." : "Confirm Transfer"
+        transferMutation.isPending
+          ? "Transferring..."
+          : showFullConfirm
+            ? "Yes, Transfer Everything"
+            : "Confirm Transfer"
       }
-      secondaryButtonText="Cancel"
+      secondaryButtonText={showFullConfirm ? "Go Back" : "Cancel"}
       onSubmit={handleSubmit}
+      onSecondaryClick={showFullConfirm ? () => setShowFullConfirm(false) : undefined}
       isSubmitting={transferMutation.isPending || warehousesLoading}
     >
       <div className="space-y-5 text-left">
+        {showFullConfirm ? (
+          /* Full Transfer Confirmation Step */
+          <div className="space-y-4">
+            <div className="flex items-center justify-center">
+              <div className="p-3 bg-amber-100 rounded-full">
+                <AlertTriangle size={28} className="text-amber-600" />
+              </div>
+            </div>
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                Confirm Full Transfer
+              </h3>
+              <p className="text-sm text-gray-600">
+                This action will move the entire product to another warehouse.
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Product</span>
+                <span className="font-medium text-gray-900">{product?.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Quantity</span>
+                <span className="font-medium text-gray-900">{formatQuantityDisplay()}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500">From</span>
+                <span className="font-medium text-gray-900">{sourceWarehouse?.name || "—"}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500">To</span>
+                <span className="font-medium text-gray-900">{selectedDestination?.name || "—"}</span>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 p-3 bg-red-50 rounded-lg border border-red-200">
+              <AlertTriangle size={14} className="text-red-500 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-red-700">
+                The product will no longer appear in {sourceWarehouse?.name || "the current warehouse"}&apos;s inventory.
+                This cannot be undone automatically — you would need to transfer it back manually.
+              </p>
+            </div>
+          </div>
+        ) : (
+          /* Normal Form Content */
+          <>
         {/* Product Info Banner */}
         <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
           <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
@@ -233,7 +295,7 @@ const TransferStockModal = ({
               <p className="text-xs text-gray-500 mt-1">
                 After transfer: source will have{" "}
                 <span className="font-semibold">
-                  {Math.max(0, (product?.quantity || 0) - Number(formData.quantity)).toFixed(3)}{" "}
+                  {parseFloat(Math.max(0, (product?.quantity || 0) - Number(formData.quantity)).toFixed(3))}{" "}
                   {unitName}
                 </span>{" "}
                 remaining
@@ -308,6 +370,8 @@ const TransferStockModal = ({
               Existing sales records will not be affected.
             </p>
           </div>
+        )}
+          </>
         )}
       </div>
     </FormDialog>

@@ -4,6 +4,7 @@ import ValueSkeleton from "./ValueSkeleton";
 const StatBox = ({
   title,
   number,
+  subtitle,
   Icon,
   textColor = "default",
   loading = false,
@@ -41,6 +42,11 @@ const StatBox = ({
               number
             )}
           </h3>
+          {subtitle && !loading && (
+            <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5 truncate" title={subtitle}>
+              {subtitle}
+            </p>
+          )}
         </div>
         {Icon && (
           <span

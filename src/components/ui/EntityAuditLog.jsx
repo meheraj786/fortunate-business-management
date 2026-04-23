@@ -5,12 +5,12 @@ import { ChevronDown, ChevronUp, FileCode2, History, ArrowRight, User as UserIco
 import CollapsibleCard from "@/components/ui/CollapsibleCard";
 import { useSettings } from "@/context/SettingsContext";
 
-const EntityAuditLog = ({ moduleId, moduleName }) => {
+const EntityAuditLog = ({ moduleId, moduleName, title = "Activity History" }) => {
     const { formatDateTime } = useSettings();
     const [expandedRows, setExpandedRows] = useState(new Set());
 
     const { data: responseData, isLoading, isError } = useQuery({
-        queryKey: ["entityAuditLogs", moduleId],
+        queryKey: ["entityAuditLogs", moduleName, moduleId],
         queryFn: async () => {
             // Searching by documentId or displayId generally covers it.
             // We pass the exact exact string matching the backend's indexed documentId.
@@ -57,10 +57,10 @@ const EntityAuditLog = ({ moduleId, moduleName }) => {
 
     return (
         <CollapsibleCard
-            title="Activity History"
+            title={title}
             icon={<History className="text-[var(--color-primary)]" />}
             defaultOpen={false}
-            ariaLabel="Activity History Section"
+            ariaLabel={`${title} Section`}
         >
             {/* Mobile View */}
             <div className="md:hidden space-y-4">

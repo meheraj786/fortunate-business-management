@@ -33,7 +33,7 @@ const NoDataMessage = () => (
   </div>
 );
 
-const SalesTableRow = ({ sale, productId }) => {
+const SalesTableRow = ({ sale, productId, currentWarehouseId }) => {
   const navigate = useNavigate();
   const { formatCurrency, formatDate } = useSettings();
 
@@ -68,6 +68,9 @@ const SalesTableRow = ({ sale, productId }) => {
     lineTotal = quantity * price;
   }
 
+  const saleWarehouseName = sale.warehouse?.name || "—";
+  const isFromDifferentWarehouse = sale.warehouse?._id && sale.warehouse._id !== currentWarehouseId;
+
   return (
     <tr
       className="hover:bg-gray-50 transition-colors cursor-pointer"
@@ -90,6 +93,11 @@ const SalesTableRow = ({ sale, productId }) => {
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
         {formatCurrency(lineTotal)}
+      </td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+        <span className={isFromDifferentWarehouse ? "text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200" : ""}>
+          {saleWarehouseName}
+        </span>
       </td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
         <span className={getStatusBadge(sale.invoiceStatus, "invoice")}>
@@ -159,6 +167,7 @@ const SalesHistory = ({ warehouseId, productId }) => {
                   "Qty",
                   "Price/Unit",
                   "Total (Product)",
+                  "Warehouse",
                   "Invoice Status",
                   "Payment Status",
                 ].map((header) => (
@@ -173,7 +182,7 @@ const SalesHistory = ({ warehouseId, productId }) => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
               {sales.map((sale) => (
-                <SalesTableRow key={sale._id} sale={sale} productId={productId} />
+                <SalesTableRow key={sale._id} sale={sale} productId={productId} currentWarehouseId={warehouseId} />
               ))}
             </tbody>
           </table>

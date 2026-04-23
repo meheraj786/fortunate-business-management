@@ -11,6 +11,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  ArrowRightLeft,
   X,
   Trash,
   Loader2,
@@ -220,6 +221,18 @@ const WarehouseStock = React.memo(() => {
                   >
                     <Trash className="text-[var(--color-danger)]" size={20} />{" "}
                     Product Trash
+                  </Button>
+                </Link>
+              )}
+              {hasPermission("AUDIT_VIEW") && (
+                <Link to={`/stock/${warehouseId}/transfer-history`}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex items-center gap-2 w-full sm:w-auto justify-center"
+                  >
+                    <ArrowRightLeft size={18} />
+                    Transfer History
                   </Button>
                 </Link>
               )}

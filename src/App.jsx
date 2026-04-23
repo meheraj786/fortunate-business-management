@@ -67,6 +67,9 @@ const CustomerSalesPage = lazyWithRetry(
 const ProductDetailsPage = lazyWithRetry(
   () => import("@/features/stock-management/ProductDetailsPage"),
 );
+const TransferHistoryPage = lazyWithRetry(
+  () => import("@/features/stock-management/TransferHistoryPage"),
+);
 const SaleDetailsPage = lazyWithRetry(() => import("@/features/sales/SaleDetailsPage"));
 const EditTeamMemForm = lazyWithRetry(() => import("@/features/team/EditTeamMemForm"));
 const TeamDetailsPage = lazyWithRetry(() => import("@/features/team/TeamDetailsPage"));
@@ -157,6 +160,10 @@ const router = createBrowserRouter([
       {
         path: "stock/:warehouseId/product/:productId",
         element: <ProductDetailsPage />,
+      },
+      {
+        path: "stock/:warehouseId/transfer-history",
+        element: <TransferHistoryPage />,
       },
       { index: true, element: <IndexRedirect /> },
       { path: "sales", element: <SalesDashboardPage /> },

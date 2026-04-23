@@ -19,6 +19,7 @@ import {
   User,
   FileText,
   ShieldAlert,
+  GitBranch,
 } from "lucide-react";
 import { useProduct, useDeleteProduct, useCloseLot } from "@/api/hooks/products";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -160,7 +161,7 @@ const ProductDetails = () => {
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 mb-4">
-            {error.message || "Error loading product details"}
+            {error?.message || "Error loading product details"}
           </div>
           <button
             onClick={() => refetch()}
@@ -234,12 +235,20 @@ const ProductDetails = () => {
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto flex-wrap">
-              {hasPermission("PRODUCT_TRANSFER") && product && !product.lotClosed && product.quantity > 0 && (
+              {hasPermission("PRODUCT_TRANSFER") && (
                 <Button
                   onClick={() => setShowTransferModal(true)}
                   variant="secondary"
                   size="sm"
                   className="flex-1 sm:flex-auto flex items-center justify-center gap-2"
+                  disabled={!product || product.lotClosed || product.quantity <= 0}
+                  title={
+                    product?.lotClosed
+                      ? "Cannot transfer — lot is closed"
+                      : product?.quantity <= 0
+                        ? "Cannot transfer — no stock available"
+                        : "Transfer stock to another warehouse"
+                  }
                 >
                   <ArrowRightLeft size={16} />
                   <span>Transfer</span>
@@ -282,6 +291,42 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
+
+        {/* Transfer Lineage Banner */}
+        {!isLoading && product?.transferredFrom && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                <GitBranch size={16} className="text-blue-600" />
+              </div>
+              <div className="text-sm">
+                <p className="font-medium text-blue-800 mb-0.5">
+                  Transferred Product
+                </p>
+                <p className="text-blue-700">
+                  This product was split from{" "}
+                  <button
+                    onClick={() => {
+                      const fromProduct = product.transferredFrom;
+                      if (fromProduct?.warehouse) {
+                        navigate(`/stock/${typeof fromProduct.warehouse === 'object' ? fromProduct.warehouse._id || fromProduct.warehouse.id : fromProduct.warehouse}/product/${fromProduct._id || fromProduct}`);
+                      }
+                    }}
+                    className="font-semibold text-blue-800 underline hover:text-blue-900"
+                  >
+                    {product.transferredFrom?.name || "another product"}
+                  </button>
+                  {product.transferredAt && (
+                    <> on {formatDate(product.transferredAt)}</>
+                  )}
+                  {product.transferNotes && (
+                    <span className="text-blue-600 italic"> — {product.transferNotes}</span>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-4 sm:p-6 space-y-6">
@@ -426,14 +471,34 @@ const ProductDetails = () => {
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
               <StatBox
-                title="Total Units Sold"
-                number={formatCompactQuantity(product?.totalUnitsSold)}
+                title="Units Sold"
+                number={formatCompactQuantity(
+                  product?.currentWarehouseUnitsSold !== undefined && product?.currentWarehouseUnitsSold !== product?.totalUnitsSold
+                    ? product?.currentWarehouseUnitsSold
+                    : product?.totalUnitsSold
+                )}
+                subtitle={
+                  product?.currentWarehouseUnitsSold !== undefined &&
+                  product?.currentWarehouseUnitsSold !== product?.totalUnitsSold
+                    ? `Total: ${formatCompactQuantity(product?.totalUnitsSold)} (all warehouses)`
+                    : undefined
+                }
                 Icon={ShoppingCart}
                 loading={isLoading}
               />
               <StatBox
-                title="Total Revenue"
-                number={formatCompactNumber(product?.totalRevenue)}
+                title="Revenue"
+                number={formatCompactNumber(
+                  product?.currentWarehouseRevenue !== undefined && product?.currentWarehouseRevenue !== product?.totalRevenue
+                    ? product?.currentWarehouseRevenue
+                    : product?.totalRevenue
+                )}
+                subtitle={
+                  product?.currentWarehouseRevenue !== undefined &&
+                  product?.currentWarehouseRevenue !== product?.totalRevenue
+                    ? `Total: ${formatCompactNumber(product?.totalRevenue)} (all warehouses)`
+                    : undefined
+                }
                 Icon={DollarSign}
                 textColor="green"
                 loading={isLoading}
@@ -464,6 +529,11 @@ const ProductDetails = () => {
             </div>
             <h3 className="text-lg font-semibold text-gray-700 mb-1">Sales History Restricted</h3>
             <p className="text-sm text-gray-500">You don't have permission to view sales history for this product. Contact your administrator for access.</p>
+          </div>
+        )}
+        {hasPermission("AUDIT_VIEW") && (
+          <div className="mt-6">
+            <EntityAuditLog moduleId={productId} moduleName="StockTransfer" title="Transfer History" />
           </div>
         )}
         {hasPermission("AUDIT_VIEW") && (
@@ -510,9 +580,16 @@ const ProductDetails = () => {
         <TransferStockModal
           isOpen={showTransferModal}
           onClose={() => setShowTransferModal(false)}
-          onSuccess={() => {
+          onSuccess={(response) => {
             setShowTransferModal(false);
-            navigate(`/stock/${warehouseId}`);
+            const data = response?.data?.data;
+            if (data?.transferType === "full" && data?.destinationWarehouse?._id) {
+              // Full transfer: product moved entirely — navigate to it in the new warehouse
+              navigate(`/stock/${data.destinationWarehouse._id}/product/${productId}`);
+            } else {
+              // Partial transfer: source product still exists here — refetch to update quantity
+              refetch();
+            }
           }}
           product={product}
           warehouseId={warehouseId}

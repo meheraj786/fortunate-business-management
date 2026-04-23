@@ -14,6 +14,7 @@ export default function FormDialog({
   primaryButtonText,
   secondaryButtonText,
   onSubmit,
+  onSecondaryClick,
   isPrimaryButtonDisabled = false,
   isSubmitting = false, // New prop for loading state
 }) {
@@ -57,7 +58,7 @@ export default function FormDialog({
               {secondaryButtonText && (
                 <Button
                   type="button"
-                  onClick={onClose}
+                  onClick={onSecondaryClick || onClose}
                   disabled={isSubmitting}
                   variant="secondary"
                   className="w-full sm:w-auto mt-3 sm:mt-0"

@@ -374,7 +374,7 @@ const SaleProductSelect = ({
               value={newItem.productId}
               options={products.map((p) => ({
                 value: p._id,
-                label: `${p.name} (Qty: ${p.quantity})`,
+                label: `${p.name}${p.transferredFrom ? ' ⤴ Transferred' : ''} (Qty: ${p.quantity})`,
               }))}
               icon={Package}
               disabled={!watchedWarehouseId || productsLoading || !canAddItem}
