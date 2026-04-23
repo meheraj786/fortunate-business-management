@@ -195,7 +195,7 @@ const SaleDetails = () => {
   if (isError && !isLoading) return <div>Error: {error.message}</div>;
   if (!sale && !isLoading) return <div>Sale not found</div>;
 
-  const totalPayments = sale?.paymentsMade ?? (sale?.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0);
+  const totalPayments = sale?.paymentsMade ?? (sale?.payments?.filter(p => !p.isReversed).reduce((sum, p) => sum + (p.amount || 0), 0) || 0);
   const balanceDue = sale?.balanceDue ?? ((sale?.totalAmountToBePaid || 0) - totalPayments);
   const isCancelled = sale?.invoiceStatus === "Cancelled";
   const canAddPayment =

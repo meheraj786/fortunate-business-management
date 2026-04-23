@@ -223,7 +223,7 @@ const CustomerDetails = () => {
   // Helper to get due amount (uses persisted field, falls back to calculation)
   const getDueAmount = (sale) => {
     if (sale.balanceDue != null) return sale.balanceDue;
-    const totalPaid = sale.payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+    const totalPaid = sale.payments?.filter(p => !p.isReversed).reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
     return Math.round(((sale.totalAmountToBePaid || 0) - totalPaid) * 100) / 100;
   };
 

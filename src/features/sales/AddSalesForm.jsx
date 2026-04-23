@@ -455,7 +455,7 @@ const AddSales = ({
 
     // Strict Check: Prevent updating if New Total < Already Paid
     if (isEditMode && editData?.invoiceStatus === "Invoiced") {
-      const originalTotalPaid = editData.paymentsMade ?? (editData.payments?.reduce((acc, p) => acc + (p.amount || 0), 0) || 0);
+      const originalTotalPaid = editData.paymentsMade ?? (editData.payments?.filter(p => !p.isReversed).reduce((acc, p) => acc + (p.amount || 0), 0) || 0);
       // Calculate new total from the processed salesData (which includes items, charges, costs, discount)
       // We can iterate salesData.items to get total, or easier: rely on the `totalAmountToBePaid` from useMemo which should be sync'd with form state
       // BUT, handleSubmit receives `data` which might be slightly different if useMemo hasn't updated (unlikely for final submit).
@@ -621,7 +621,7 @@ const AddSales = ({
                 {/* Financial Feedback / Overpayment Warning */}
                 {isEditMode && editData?.invoiceStatus === "Invoiced" && (
                   (() => {
-                    const originalTotalPaid = editData.paymentsMade ?? (editData.payments?.reduce((acc, p) => acc + (p.amount || 0), 0) || 0);
+                    const originalTotalPaid = editData.paymentsMade ?? (editData.payments?.filter(p => !p.isReversed).reduce((acc, p) => acc + (p.amount || 0), 0) || 0);
                     // We check against the NEW total to be paid
                     const difference = originalTotalPaid - totalAmountToBePaid;
 
