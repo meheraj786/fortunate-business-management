@@ -3,17 +3,21 @@ import { formatAccountLabel } from "@/utils/format";
 
 /**
  * Enhanced Description Renderer Component
- * Parses transaction descriptions and renders account labels as color-coded chips.
+ * Parses transaction descriptions and renders account labels and customer names
+ * as color-coded chips.
  *
  * Supported Patterns:
  * 1. "Account: <Label>"
  * 2. "Transfer to <Label>"
  * 3. "Transfer from <Label>"
+ * 4. "from <CustomerName> via" (customer highlight)
+ * 5. "(Customer: <CustomerName>)" (customer highlight)
  *
  * Color Coding Strategy:
  * - Bank: Blue/Primary (e.g., "Bank Asia")
  * - Mobile Banking: Purple (e.g., "Bkash", "Nagad")
  * - Cash: Green/Success (e.g., "Main Cash")
+ * - Customer: Amber/Orange (e.g., "Mr. Rahman")
  *
  * @param {string} description - The raw description text
  * @param {Object} [account] - The populated account object (accountId).
@@ -30,10 +34,12 @@ const DescriptionRenderer = ({ description, account }) => {
     const parts = useMemo(() => {
         if (!description) return [];
 
-        // Improved Regex to handle:
-        // 1. Account: Match until the end of the string, optionally stripping a trailing dot.
-        // 2. Transfer to/from: Match until " - " or end of string.
-        const regex = /(Account:\s+.*$)|(Transfer (?:to|from)\s+.*?(?=\s+-\s+|$))/g;
+        // Combined regex for all highlight patterns:
+        // Group 1: Account: ... (to end of string)
+        // Group 2: Transfer to/from ... (until " - " or end)
+        // Group 3: from <name> via (customer in payment descriptions)
+        // Group 4: (Customer: <name>) (customer in reversal descriptions)
+        const regex = /(Account:\s+.*$)|(Transfer (?:to|from)\s+.*?(?=\s+-\s+|$))|(from\s+(.+?)\s+via\s)|(\(Customer:\s+(.+?)\))/g;
 
         const result = [];
         let lastIndex = 0;
@@ -48,38 +54,43 @@ const DescriptionRenderer = ({ description, account }) => {
             }
 
             const fullMatch = match[0];
-            let prefix = "";
-            let label = "";
 
-            if (fullMatch.startsWith("Account:")) {
-                prefix = "Account: ";
-                // Remove trailing dot if present (since we matched to end of line)
+            if (match[1]) {
+                // Account: pattern
+                let prefix = "Account: ";
                 let rawLabel = fullMatch.substring(9);
                 if (rawLabel.endsWith(".")) {
                     rawLabel = rawLabel.slice(0, -1);
                 }
-                label = rawLabel.trim();
-            } else if (fullMatch.startsWith("Transfer to")) {
-                prefix = "Transfer to ";
-                label = fullMatch.substring(11).trim();
-            } else if (fullMatch.startsWith("Transfer from")) {
-                prefix = "Transfer from ";
-                label = fullMatch.substring(13).trim();
+                const label = rawLabel.trim();
+                const displayLabel =
+                    liveLabel && fullMatch.startsWith("Account:") ? liveLabel : label;
+
+                result.push({ type: 'account', prefix, label: displayLabel });
+            } else if (match[2]) {
+                // Transfer to/from pattern
+                let prefix, label;
+                if (fullMatch.startsWith("Transfer to")) {
+                    prefix = "Transfer to ";
+                    label = fullMatch.substring(11).trim();
+                } else {
+                    prefix = "Transfer from ";
+                    label = fullMatch.substring(13).trim();
+                }
+                result.push({ type: 'account', prefix, label });
+            } else if (match[3]) {
+                // "from <name> via " pattern — customer
+                const customerName = match[4];
+                result.push({ type: 'text', content: 'from ' });
+                result.push({ type: 'customer', label: customerName });
+                result.push({ type: 'text', content: ' via ' });
+            } else if (match[5]) {
+                // "(Customer: <name>)" pattern — customer
+                const customerName = match[6];
+                result.push({ type: 'text', content: '(' });
+                result.push({ type: 'customer', label: customerName, prefix: 'Customer: ' });
+                result.push({ type: 'text', content: ')' });
             }
-
-            // For "Account:" patterns, use the live label from the account object
-            // if available (this automatically fixes old-format descriptions).
-            // For "Transfer to/from", the referenced account is a *different*
-            // account than the transaction's own accountId, so we keep the
-            // stored label as-is.
-            const displayLabel =
-                liveLabel && fullMatch.startsWith("Account:") ? liveLabel : label;
-
-            result.push({
-                type: 'account',
-                prefix,
-                label: displayLabel,
-            });
 
             lastIndex = regex.lastIndex;
         }
@@ -117,6 +128,15 @@ const DescriptionRenderer = ({ description, account }) => {
                         <span key={index} className="inline-flex items-center align-middle ml-1">
                             <span className="mr-1">{part.prefix}</span>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getChipStyle(part.label)}`}>
+                                {part.label}
+                            </span>
+                        </span>
+                    );
+                } else if (part.type === 'customer') {
+                    return (
+                        <span key={index} className="inline-flex items-center align-middle">
+                            {part.prefix && <span className="mr-1">{part.prefix}</span>}
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium border bg-amber-50 text-amber-700 border-amber-200">
                                 {part.label}
                             </span>
                         </span>
