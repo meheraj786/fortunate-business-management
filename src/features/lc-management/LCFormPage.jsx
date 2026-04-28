@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -464,19 +464,23 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
   const updateLCMutation = useUpdateLC(id);
 
   // Watch fields for calculations
-  const lcAmountUsd = watch("financialInfo.lcAmountUsd");
-  const exchangeRate = watch("financialInfo.exchangeRate");
   const watchedStatus = watch("basicInfo.status");
   const isDraft = watchedStatus === "Draft" || watchedStatus === "Cancelled";
 
-  useEffect(() => {
-    if (lcAmountUsd && exchangeRate) {
-      const bdtAmount = parseFloat(lcAmountUsd) * parseFloat(exchangeRate);
-      setValue("financialInfo.lcAmountBdt", bdtAmount.toFixed(2));
-    } else {
-      setValue("financialInfo.lcAmountBdt", 0);
-    }
-  }, [lcAmountUsd, exchangeRate, setValue]);
+  // Helper: recalculate LC Amount BDT when user changes USD or Exchange Rate.
+  // Uses onChange handlers instead of useEffect to prevent overwriting stored
+  // BDT values on form load (same pattern as CostsSection).
+  const recalcLcBdt = useCallback(
+    ({ usd, rate }) => {
+      if (usd > 0 && rate > 0) {
+        const bdtAmount = parseFloat((usd * rate).toFixed(2));
+        setValue("financialInfo.lcAmountBdt", bdtAmount);
+      } else {
+        setValue("financialInfo.lcAmountBdt", 0);
+      }
+    },
+    [setValue],
+  );
 
   // Re-validate conditionally-required fields when status changes
   useEffect(() => {
@@ -691,6 +695,11 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                     required: isDraft ? false : "LC Amount (USD) is required",
                     min: { value: 0, message: "Amount cannot be negative" },
                     valueAsNumber: true,
+                    onChange: (e) => {
+                      const usd = parseFloat(e.target.value) || 0;
+                      const rate = parseFloat(watch("financialInfo.exchangeRate")) || 0;
+                      recalcLcBdt({ usd, rate });
+                    },
                   }}
                   step="any"
                   placeholder="e.g., 50000"
@@ -705,6 +714,11 @@ const LCForm = ({ onSave, isEditMode, id, initialData, hasPermission }) => {
                     required: isDraft ? false : "Exchange Rate is required",
                     min: { value: 0, message: "Rate cannot be negative" },
                     valueAsNumber: true,
+                    onChange: (e) => {
+                      const usd = parseFloat(watch("financialInfo.lcAmountUsd")) || 0;
+                      const rate = parseFloat(e.target.value) || 0;
+                      recalcLcBdt({ usd, rate });
+                    },
                   }}
                   step="any"
                   placeholder="e.g., 115.50"
