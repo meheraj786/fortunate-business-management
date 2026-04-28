@@ -60,6 +60,19 @@ export const useUpdateLC = (id) => {
   });
 };
 
+// Quick-update LC status only
+export const useUpdateLCStatus = (id) => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: (status) => api.updateLCStatus(id, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["lcs", "summary"] });
+      qc.invalidateQueries({ queryKey: ["lcs", "counts"] });
+      qc.invalidateQueries({ queryKey: ["lcs", id] });
+    },
+  });
+};
+
 // Delete an LC
 export const useDeleteLC = () => {
   const qc = useQueryClient();

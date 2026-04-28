@@ -6,6 +6,9 @@ export const getLCById = (id) => api.get(`/lc/get-lc/${id}`);
 
 export const updateLC = (id, data) => api.patch(`/lc/update-lc/${id}`, data);
 
+export const updateLCStatus = (id, status) =>
+  api.patch(`/lc/update-status/${id}`, { status });
+
 export const deleteLC = (id) => api.delete(`/lc/delete-lc/${id}`);
 
 export const addExpenseToLC = (data) => api.post("/lc/add-expense", data);

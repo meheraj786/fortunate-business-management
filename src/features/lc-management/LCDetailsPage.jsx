@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from "react";
+import React, { useState, useMemo, memo, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 
@@ -21,6 +21,8 @@ import {
   MapPin,
   Building,
   File,
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
 import { showSuccessToast, showErrorToast } from "@/utils/notifications";
 
@@ -39,11 +41,19 @@ import {
   useDeleteLC,
   useExportLC,
   useDeleteLCDocument,
+  useUpdateLCStatus,
 } from "@/api/hooks/lc";
 import { useUrl } from "@/hooks/useUrl";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import { formatAccountLabel } from "@/utils/format";
+
+const LC_STATUS_OPTIONS = [
+  { value: "Draft", label: "Draft" },
+  { value: "Active", label: "Active" },
+  { value: "Completed", label: "Completed" },
+  { value: "Cancelled", label: "Cancelled" },
+];
 
 const LCdetails = () => {
   const { id } = useParams();
@@ -64,6 +74,8 @@ const LCdetails = () => {
     docId: null,
   });
   const [costModal, setCostModal] = useState({ isOpen: false, category: null });
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef(null);
 
   const { data: lcQueryData, isLoading, isError, error, refetch } = useLC(id);
   const lcData = lcQueryData?.data;
@@ -71,6 +83,31 @@ const LCdetails = () => {
   const deleteLCMutation = useDeleteLC();
   const exportLCMutation = useExportLC(id, lcData?.basicInfo?.lcNumber);
   const deleteDocMutation = useDeleteLCDocument();
+  const updateStatusMutation = useUpdateLCStatus(id);
+
+  // Close dropdown on outside click or Escape
+  useEffect(() => {
+    if (!statusDropdownOpen) return;
+    const handleClickOutside = (e) => {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target)) {
+        setStatusDropdownOpen(false);
+      }
+    };
+    const handleEscape = (e) => {
+      if (e.key === "Escape") setStatusDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [statusDropdownOpen]);
+
+  const handleStatusChange = useCallback((newStatus) => {
+    setStatusDropdownOpen(false);
+    updateStatusMutation.mutate(newStatus);
+  }, [updateStatusMutation]);
 
   const totalProductsValueUsd = useMemo(() => {
     if (!lcData?.productInfo) return 0;
@@ -324,11 +361,64 @@ const LCdetails = () => {
                   loading={isLoading}
                 />
                 <div className="sm:col-span-2">
-                  <DataField
-                    label="Status"
-                    value={<StatusBadge status={basicInfo?.status} />}
-                    loading={isLoading}
-                  />
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <span className="block text-xs font-medium text-gray-500 mb-1.5">Status</span>
+                    {isLoading ? (
+                      <ValueSkeleton width="w-28" height="h-7" />
+                    ) : hasPermission("LC_UPDATE") ? (
+                      <div className="relative inline-block" ref={statusDropdownRef}>
+                        <button
+                          type="button"
+                          onClick={() => setStatusDropdownOpen((prev) => !prev)}
+                          disabled={updateStatusMutation.isPending}
+                          className="inline-flex items-center gap-1.5 cursor-pointer group transition-all"
+                          aria-haspopup="listbox"
+                          aria-expanded={statusDropdownOpen}
+                          aria-label="Change LC status"
+                          id="lc-status-trigger"
+                        >
+                          <StatusBadge status={basicInfo?.status} />
+                          {updateStatusMutation.isPending ? (
+                            <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin" />
+                          ) : (
+                            <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform group-hover:text-gray-600 ${statusDropdownOpen ? "rotate-180" : ""}`} />
+                          )}
+                        </button>
+                        {statusDropdownOpen && (
+                          <div
+                            className="absolute z-20 mt-1.5 left-0 min-w-[160px] bg-white rounded-lg shadow-lg border border-gray-200 py-1 animate-in fade-in slide-in-from-top-1 duration-150"
+                            role="listbox"
+                            aria-label="Select LC status"
+                          >
+                            {LC_STATUS_OPTIONS.map((option) => {
+                              const isActive = option.value === basicInfo?.status;
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={isActive}
+                                  onClick={() => !isActive && handleStatusChange(option.value)}
+                                  className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2 ${
+                                    isActive
+                                      ? "bg-gray-50 text-gray-400 cursor-default font-medium"
+                                      : "text-gray-700 hover:bg-gray-50 cursor-pointer"
+                                  }`}
+                                  disabled={isActive}
+                                  id={`lc-status-option-${option.value.toLowerCase()}`}
+                                >
+                                  <StatusBadge status={option.value} size="sm" />
+                                  {isActive && <span className="ml-auto text-xs text-gray-400">Current</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <StatusBadge status={basicInfo?.status} />
+                    )}
+                  </div>
                 </div>
               </div>
               {basicInfo?.accountId && (
