@@ -34,6 +34,11 @@ const DescriptionRenderer = ({ description, account }) => {
     const parts = useMemo(() => {
         if (!description) return [];
 
+        // Pre-process: Replace ugly OPEN-BAL sale IDs with a clean label
+        let cleanedDescription = description.replace(
+            /Sale ID:\s*OPEN-BAL-[A-Z0-9-]+/gi,
+            'Opening Balance'
+        );
         // Combined regex for all highlight patterns:
         // Group 1: Account: ... (to end of string)
         // Group 2: Transfer to/from ... (until " - " or end)
@@ -45,11 +50,11 @@ const DescriptionRenderer = ({ description, account }) => {
         let lastIndex = 0;
         let match;
 
-        while ((match = regex.exec(description)) !== null) {
+        while ((match = regex.exec(cleanedDescription)) !== null) {
             if (match.index > lastIndex) {
                 result.push({
                     type: 'text',
-                    content: description.slice(lastIndex, match.index)
+                    content: cleanedDescription.slice(lastIndex, match.index)
                 });
             }
 
@@ -95,10 +100,10 @@ const DescriptionRenderer = ({ description, account }) => {
             lastIndex = regex.lastIndex;
         }
 
-        if (lastIndex < description.length) {
+        if (lastIndex < cleanedDescription.length) {
             result.push({
                 type: 'text',
-                content: description.slice(lastIndex)
+                content: cleanedDescription.slice(lastIndex)
             });
         }
 
