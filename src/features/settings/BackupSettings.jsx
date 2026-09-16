@@ -174,15 +174,16 @@ const NotesEditor = ({ filename, initialNotes, onSaved, canEdit }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BackupSettings = () => {
-    const { hasPermission } = useAuth();
+    const { hasPermission, isSuperAdmin } = useAuth();
     const backupPermissions = {
         create: hasPermission("BACKUP_CREATE"),
         download: hasPermission("BACKUP_DOWNLOAD"),
         delete: hasPermission("BACKUP_DELETE"),
         verify: hasPermission("BACKUP_VERIFY"),
         notes: hasPermission("BACKUP_UPDATE_NOTES"),
-        restore: hasPermission("RESTORE_INSPECT") && hasPermission("RESTORE_EXECUTE"),
-        upload: hasPermission("RESTORE_UPLOAD"),
+        // Restore/upload can replace business data, so they remain Super Admin-only.
+        restore: isSuperAdmin,
+        upload: isSuperAdmin,
     };
 
     // ── State ────────────────────────────────────────────────────────────
