@@ -97,7 +97,7 @@ const RetentionBadge = ({ tag }) => {
 };
 
 /** Inline editable notes */
-const NotesEditor = ({ filename, initialNotes, onSaved }) => {
+const NotesEditor = ({ filename, initialNotes, onSaved, canEdit }) => {
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState(initialNotes || "");
     const [saving, setSaving] = useState(false);
@@ -115,6 +115,10 @@ const NotesEditor = ({ filename, initialNotes, onSaved }) => {
             setSaving(false);
         }
     };
+
+    if (!canEdit) {
+        return initialNotes ? <span className="text-xs text-gray-600 max-w-[200px] truncate">{initialNotes}</span> : null;
+    }
 
     if (!editing) {
         return (
@@ -170,7 +174,16 @@ const NotesEditor = ({ filename, initialNotes, onSaved }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BackupSettings = () => {
-    const { isSuperAdmin } = useAuth();
+    const { hasPermission } = useAuth();
+    const backupPermissions = {
+        create: hasPermission("BACKUP_CREATE"),
+        download: hasPermission("BACKUP_DOWNLOAD"),
+        delete: hasPermission("BACKUP_DELETE"),
+        verify: hasPermission("BACKUP_VERIFY"),
+        notes: hasPermission("BACKUP_UPDATE_NOTES"),
+        restore: hasPermission("RESTORE_INSPECT") && hasPermission("RESTORE_EXECUTE"),
+        upload: hasPermission("RESTORE_UPLOAD"),
+    };
 
     // ── State ────────────────────────────────────────────────────────────
     const [backups, setBackups] = useState([]);
@@ -700,7 +713,7 @@ const BackupSettings = () => {
                                 >
                                     <FaSync className={loading ? "animate-spin" : ""} /> Refresh
                                 </button>
-                                {isSuperAdmin && (
+                                {backupPermissions.upload && (
                                     <>
                                         <input
                                             ref={uploadRef}
@@ -723,7 +736,7 @@ const BackupSettings = () => {
                                         </button>
                                     </>
                                 )}
-                                <button
+                                {backupPermissions.create && <button
                                     onClick={handleCreateBackup}
                                     disabled={creating}
                                     className={`px-4 py-2 text-white bg-[var(--color-primary)] rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto ${creating ? "opacity-75 cursor-not-allowed" : ""
@@ -739,7 +752,7 @@ const BackupSettings = () => {
                                             <FaFileArchive /> Create Backup Now
                                         </>
                                     )}
-                                </button>
+                                </button>}
                             </div>
                         )}
                     </div>
@@ -753,7 +766,7 @@ const BackupSettings = () => {
                             loading={loading}
                             verifyingFile={verifyingFile}
                             inspecting={inspecting}
-                            isSuperAdmin={isSuperAdmin}
+                            permissions={backupPermissions}
                             onVerify={handleVerify}
                             onDownload={handleDownload}
                             onDelete={handleDelete}
@@ -810,7 +823,7 @@ const BackupSettings = () => {
 // BACKUPS TAB
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BackupsTab = ({ backups, loading, verifyingFile, inspecting, isSuperAdmin, onVerify, onDownload, onDelete, onRestore, onRefresh }) => {
+const BackupsTab = ({ backups, loading, verifyingFile, inspecting, permissions, onVerify, onDownload, onDelete, onRestore, onRefresh }) => {
     if (loading && backups.length === 0) {
         return <div className="text-center py-8 text-gray-500">Loading backups...</div>;
     }
@@ -835,7 +848,7 @@ const BackupsTab = ({ backups, loading, verifyingFile, inspecting, isSuperAdmin,
                         backup={backup}
                         verifyingFile={verifyingFile}
                         inspecting={inspecting}
-                        isSuperAdmin={isSuperAdmin}
+                        permissions={permissions}
                         onVerify={onVerify}
                         onDownload={onDownload}
                         onDelete={onDelete}
@@ -880,6 +893,7 @@ const BackupsTab = ({ backups, loading, verifyingFile, inspecting, isSuperAdmin,
                                                 filename={backup.filename}
                                                 initialNotes={backup.notes}
                                                 onSaved={onRefresh}
+                                                canEdit={permissions.notes}
                                             />
                                         </div>
                                     </div>
@@ -917,7 +931,7 @@ const BackupsTab = ({ backups, loading, verifyingFile, inspecting, isSuperAdmin,
                                 </td>
                                 <td className="px-4 py-3">
                                     <div className="flex justify-end gap-2">
-                                        {isSuperAdmin && (
+                                        {permissions.restore && (
                                             <button
                                                 onClick={() => onRestore(backup.filename)}
                                                 disabled={inspecting === backup.filename}
@@ -931,7 +945,7 @@ const BackupsTab = ({ backups, loading, verifyingFile, inspecting, isSuperAdmin,
                                                 )}
                                             </button>
                                         )}
-                                        <button
+                                        {permissions.verify && <button
                                             onClick={() => onVerify(backup.filename)}
                                             disabled={verifyingFile === backup.filename}
                                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors disabled:opacity-50"
@@ -942,21 +956,21 @@ const BackupsTab = ({ backups, loading, verifyingFile, inspecting, isSuperAdmin,
                                             ) : (
                                                 <FaShieldAlt size={15} />
                                             )}
-                                        </button>
-                                        <button
+                                        </button>}
+                                        {permissions.download && <button
                                             onClick={() => onDownload(backup.filename)}
                                             className="p-1.5 text-[var(--color-primary)] hover:bg-gray-100 rounded transition-colors"
                                             title="Download"
                                         >
                                             <FaDownload size={15} />
-                                        </button>
-                                        <button
+                                        </button>}
+                                        {permissions.delete && <button
                                             onClick={() => onDelete(backup.filename)}
                                             className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                                             title="Delete"
                                         >
                                             <FaTrash size={15} />
-                                        </button>
+                                        </button>}
                                     </div>
                                 </td>
                             </tr>
@@ -970,7 +984,7 @@ const BackupsTab = ({ backups, loading, verifyingFile, inspecting, isSuperAdmin,
 
 // ── Mobile Backup Card ────────────────────────────────────────────────
 
-const BackupCard = ({ backup, verifyingFile, inspecting, isSuperAdmin, onVerify, onDownload, onDelete, onRestore, onRefresh }) => (
+const BackupCard = ({ backup, verifyingFile, inspecting, permissions, onVerify, onDownload, onDelete, onRestore, onRefresh }) => (
     <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2 min-w-0 flex-1">
@@ -1005,10 +1019,10 @@ const BackupCard = ({ backup, verifyingFile, inspecting, isSuperAdmin, onVerify,
             <span>{format(new Date(backup.createdAt), "PPP p")}</span>
         </div>
 
-        <NotesEditor filename={backup.filename} initialNotes={backup.notes} onSaved={onRefresh} />
+        <NotesEditor filename={backup.filename} initialNotes={backup.notes} onSaved={onRefresh} canEdit={permissions.notes} />
 
         <div className="flex items-center gap-3 pt-1 border-t border-gray-200">
-            {isSuperAdmin && (
+            {permissions.restore && (
                 <button
                     onClick={() => onRestore(backup.filename)}
                     disabled={inspecting === backup.filename}
@@ -1022,7 +1036,7 @@ const BackupCard = ({ backup, verifyingFile, inspecting, isSuperAdmin, onVerify,
                     Restore
                 </button>
             )}
-            <button
+            {permissions.verify && <button
                 onClick={() => onVerify(backup.filename)}
                 disabled={verifyingFile === backup.filename}
                 className="flex items-center gap-1.5 text-sm text-blue-600 hover:opacity-75 transition-colors disabled:opacity-50"
@@ -1033,19 +1047,19 @@ const BackupCard = ({ backup, verifyingFile, inspecting, isSuperAdmin, onVerify,
                     <FaShieldAlt size={13} />
                 )}
                 Verify
-            </button>
-            <button
+            </button>}
+            {permissions.download && <button
                 onClick={() => onDownload(backup.filename)}
                 className="flex items-center gap-1.5 text-sm text-[var(--color-primary)] hover:opacity-75 transition-colors"
             >
                 <FaDownload size={13} /> Download
-            </button>
-            <button
+            </button>}
+            {permissions.delete && <button
                 onClick={() => onDelete(backup.filename)}
                 className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-800 transition-colors"
             >
                 <FaTrash size={13} /> Delete
-            </button>
+            </button>}
         </div>
     </div>
 );

@@ -15,7 +15,10 @@ import axios from "../../api/axios";
 import { toast } from "react-hot-toast";
 
 const WipeoutSettingsPage = () => {
-  const { isSuperAdmin, logout } = useAuth();
+  const { hasPermission, logout } = useAuth();
+  const canClearModule = hasPermission("CLEANUP_MODULE");
+  const canClearBusinessData = hasPermission("CLEANUP_BUSINESS_DATA");
+  const canFactoryReset = hasPermission("CLEANUP_FACTORY_RESET");
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(null); // 'module', 'business', 'factory'
   const [selectedModule, setSelectedModule] = useState(null);
@@ -112,7 +115,7 @@ const WipeoutSettingsPage = () => {
     }
   };
 
-  if (!isSuperAdmin) {
+  if (!canClearModule && !canClearBusinessData && !canFactoryReset) {
     return (
       <div className="flex items-center justify-center h-full text-red-500">
         You do not have permission to access this page.
@@ -151,7 +154,7 @@ const WipeoutSettingsPage = () => {
               </h3>
               <p className="text-sm text-gray-500 mt-2">{mod.desc}</p>
             </div>
-            <button
+            {canClearModule && <button
               onClick={() => {
                 setSelectedModule(mod);
                 setShowConfirm("module");
@@ -159,7 +162,7 @@ const WipeoutSettingsPage = () => {
               className="mt-6 w-full py-2 px-4 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 font-medium transition-colors flex items-center justify-center gap-2"
             >
               <Trash className="w-4 h-4" /> Clear Data
-            </button>
+            </button>}
           </div>
         ))}
       </div>
@@ -182,12 +185,12 @@ const WipeoutSettingsPage = () => {
               Clears all Sales, LC, Inventory, Customers, and Accounts. Keeping
               Users & Settings intact.
             </p>
-            <button
+            {canClearBusinessData && <button
               onClick={() => setShowConfirm("business")}
               className="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors shadow-sm"
             >
               Wipe Business Data
-            </button>
+            </button>}
           </div>
 
           <div className="bg-white p-5 rounded-lg border-2 border-red-500 shadow-sm">
@@ -196,12 +199,12 @@ const WipeoutSettingsPage = () => {
               Nuclear option. Deletes EVERYTHING including your user account.
               You will need to re-register.
             </p>
-            <button
+            {canFactoryReset && <button
               onClick={() => setShowConfirm("factory")}
               className="w-full py-2 bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 rounded-lg font-bold transition-colors shadow-sm animate-pulse"
             >
               INITIATE FACTORY RESET
-            </button>
+            </button>}
           </div>
         </div>
       </div>

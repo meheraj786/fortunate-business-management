@@ -18,12 +18,12 @@ const getNavLinkClass = (isActive, isDanger = false) => {
 };
 
 const Settings = () => {
-  const { hasPermission, isSuperAdmin } = useAuth();
+  const { hasPermission } = useAuth();
 
   const navItems = [
-    { to: "/settings/backup", label: "Backup", show: hasPermission("SETTINGS_UPDATE") },
+    { to: "/settings/backup", label: "Backup", show: hasPermission("BACKUP_VIEW") },
     { to: "/settings/general", label: "General", show: hasPermission("SETTINGS_UPDATE") },
-    { to: "/settings/wipeout", label: "Data Wipeout", show: isSuperAdmin, isDanger: true },
+    { to: "/settings/wipeout", label: "Data Wipeout", show: hasPermission("CLEANUP_MODULE") || hasPermission("CLEANUP_BUSINESS_DATA") || hasPermission("CLEANUP_FACTORY_RESET"), isDanger: true },
     { to: "/settings/audit-logs", label: "Audit Logs", show: hasPermission("AUDIT_VIEW") },
     { to: "/settings", label: "Category", show: hasPermission("CATEGORY_VIEW"), end: true },
     { to: "/settings/countries", label: "Countries", show: hasPermission("COUNTRY_VIEW") },
