@@ -145,9 +145,11 @@ const AddProductForm = ({
   const onSubmit = async (data) => {
     const dataToSave = {
       ...data,
-      quantity: Number(data.quantity),
       unitPrice: Number(data.unitPrice),
     };
+
+    if (isEditMode) delete dataToSave.quantity;
+    else dataToSave.quantity = Number(data.quantity);
 
     if (!dataToSave.LC) {
       delete dataToSave.LC;
@@ -277,6 +279,7 @@ const AddProductForm = ({
                       units={units}
                       isSubmitting={isSubmitting}
                       unitsLoading={unitsLoading}
+                      isEditMode={isEditMode}
                     />
                   </div>
 

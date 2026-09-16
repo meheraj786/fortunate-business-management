@@ -32,6 +32,14 @@ export const useProductSalesHistory = (warehouseId, productId, params) =>
     keepPreviousData: true,
   });
 
+export const useProductRestockHistory = (warehouseId, productId, params) =>
+  useQuery({
+    queryKey: ["products", "restocks", warehouseId, productId, params],
+    queryFn: async () =>
+      (await api.getProductRestockHistory(warehouseId, productId, params)).data,
+    enabled: !!warehouseId && !!productId,
+  });
+
 // Fetch products for sale dropdown
 export const useProductsForSale = (warehouseId, categoryId, options) =>
   useQuery({
@@ -67,6 +75,22 @@ export const useUpdateProduct = (warehouseId, productId) => {
       qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
       qc.invalidateQueries({ queryKey: ["warehouses", warehouseId] });
       qc.invalidateQueries({ queryKey: ["warehouses"] }); // Invalidate warehouses to update stats
+    },
+  });
+};
+
+export const useRestockProduct = (warehouseId, productId) => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: (data) => api.restockProduct(warehouseId, productId, data),
+    successMessage: "Stock added and recorded successfully!",
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["products", warehouseId] });
+      qc.invalidateQueries({ queryKey: ["products", warehouseId, productId] });
+      qc.invalidateQueries({ queryKey: ["products", "restocks", warehouseId, productId] });
+      qc.invalidateQueries({ queryKey: ["products", "for-sale", warehouseId] });
+      qc.invalidateQueries({ queryKey: ["warehouses", warehouseId] });
+      qc.invalidateQueries({ queryKey: ["warehouses"] });
     },
   });
 };

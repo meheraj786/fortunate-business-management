@@ -11,6 +11,7 @@ const ProductPricing = ({
   units,
   isSubmitting,
   unitsLoading,
+  isEditMode = false,
 }) => {
   const unitOptions = useMemo(
     () => units.map((u) => ({ value: u._id, label: u.name })),
@@ -31,13 +32,14 @@ const ProductPricing = ({
           render={({ field }) => (
             <InputField
               {...field}
-              label="Quantity"
+              label={isEditMode ? "Current Quantity" : "Quantity"}
               required={true}
               type="number"
               error={errors.quantity?.message}
               placeholder="150"
               icon={Hash}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isEditMode}
+              helperText={isEditMode ? "To preserve stock history, use Add Stock from the product page." : undefined}
               onChange={(e) => field.onChange(Number(e.target.value))}
             />
           )}

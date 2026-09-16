@@ -20,6 +20,7 @@ import {
   FileText,
   ShieldAlert,
   GitBranch,
+  PackagePlus,
 } from "lucide-react";
 import { useProduct, useDeleteProduct, useCloseLot } from "@/api/hooks/products";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -28,6 +29,8 @@ import StatBox from "@/components/ui/StatBox";
 import AddProductForm from "./AddProductForm";
 import SalesHistory from "./SalesHistory";
 import TransferStockModal from "./TransferStockModal";
+import RestockProductModal from "./RestockProductModal";
+import RestockHistory from "./RestockHistory";
 import { useAuth } from "@/hooks/useAuth";
 import { showErrorToast } from "@/utils/notifications";
 import Button from "@/components/ui/Button";
@@ -81,6 +84,7 @@ const ProductDetails = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCloseLotModal, setShowCloseLotModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showRestockModal, setShowRestockModal] = useState(false);
 
   useEffect(() => {
     if (!hasPermission("PRODUCT_VIEW_DETAILS")) {
@@ -235,6 +239,19 @@ const ProductDetails = () => {
               </div>
             </div>
             <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+              {hasPermission("PRODUCT_UPDATE") && (
+                <Button
+                  onClick={() => setShowRestockModal(true)}
+                  variant="primary"
+                  size="sm"
+                  className="flex-1 sm:flex-auto flex items-center justify-center gap-2"
+                  disabled={!product || product.lotClosed}
+                  title={product?.lotClosed ? "Cannot add stock to a closed lot" : "Record received stock"}
+                >
+                  <PackagePlus size={16} />
+                  <span>Add Stock</span>
+                </Button>
+              )}
               {hasPermission("PRODUCT_TRANSFER") && (
                 <Button
                   onClick={() => setShowTransferModal(true)}
@@ -531,6 +548,7 @@ const ProductDetails = () => {
             <p className="text-sm text-gray-500">You don't have permission to view sales history for this product. Contact your administrator for access.</p>
           </div>
         )}
+        <RestockHistory warehouseId={warehouseId} productId={productId} unit={product?.unit?.name || "units"} initialQuantity={product?.initialQuantity} />
         {hasPermission("AUDIT_VIEW") && (
           <div className="mt-6">
             <EntityAuditLog moduleId={productId} moduleName="StockTransfer" title="Transfer History" />
@@ -552,6 +570,15 @@ const ProductDetails = () => {
           }}
           editingProduct={product}
           warehouse={product.warehouse}
+        />
+      )}
+      {showRestockModal && product && (
+        <RestockProductModal
+          isOpen={showRestockModal}
+          onClose={() => setShowRestockModal(false)}
+          onSuccess={() => refetch()}
+          product={product}
+          warehouseId={warehouseId}
         />
       )}
       <ConfirmationModal

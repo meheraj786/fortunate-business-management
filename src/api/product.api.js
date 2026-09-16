@@ -12,6 +12,12 @@ export const getProductById = (warehouseId, productId) =>
 export const updateProduct = (warehouseId, productId, data) =>
   api.patch(`/warehouses/${warehouseId}/products/${productId}`, data);
 
+export const restockProduct = (warehouseId, productId, data) =>
+  api.post(`/warehouses/${warehouseId}/products/${productId}/restocks`, data);
+
+export const getProductRestockHistory = (warehouseId, productId, params) =>
+  api.get(`/warehouses/${warehouseId}/products/${productId}/restocks`, { params });
+
 export const deleteProduct = (warehouseId, productId) =>
   api.delete(`/warehouses/${warehouseId}/products/${productId}`);
 
