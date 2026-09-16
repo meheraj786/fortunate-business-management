@@ -62,10 +62,13 @@ const EditTeamMemForm = () => {
     register,
     handleSubmit,
     control,
+    watch,
     setValue,
     getValues,
     formState: { errors, isSubmitting },
   } = useForm();
+
+  const hasAllWarehouseAccess = watch("hasAllWarehouseAccess", false);
 
   const [autoBundled, setAutoBundled] = useState(new Set());
 
@@ -136,14 +139,15 @@ const EditTeamMemForm = () => {
       setValue("description", user.description);
       setValue("phone", user.phone === "Not Provided" ? "" : user.phone || "");
       setValue("address", user.address || "");
+      setValue("hasAllWarehouseAccess", Boolean(user.hasAllWarehouseAccess));
       setValue(
         "warehouse",
-        user.warehouse.map((wh) => wh._id),
+        (user.warehouse || []).map((wh) => wh._id),
       ); // Map to _id for MultiSelectField
 
       const userPermissions = {};
-      user.access.forEach((module) => {
-        module.permissions.forEach((permission) => {
+      (user.access || []).forEach((module) => {
+        (module.permissions || []).forEach((permission) => {
           userPermissions[permission] = true;
         });
       });
@@ -160,7 +164,7 @@ const EditTeamMemForm = () => {
     const access = Object.entries(ALL_PERMISSIONS_DYNAMIC)
       .map(([module, permissions]) => ({
         module,
-        permissions: permissions.filter((p) => data.permissions[p]),
+        permissions: permissions.filter((p) => data.permissions?.[p]),
       }))
       .filter((m) => m.permissions.length > 0);
 
@@ -171,7 +175,8 @@ const EditTeamMemForm = () => {
       description: data.description,
       phone: data.phone || undefined,
       address: data.address || undefined,
-      warehouse: data.warehouse,
+      warehouse: data.warehouse || [],
+      hasAllWarehouseAccess: Boolean(data.hasAllWarehouseAccess),
       access,
     };
 
@@ -267,6 +272,17 @@ const EditTeamMemForm = () => {
             sectionRef={(el) => setSectionRef("warehouseAccess", el)}
             defaultOpen
           >
+            <label className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 mb-4 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register("hasAllWarehouseAccess")}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-gray-900">All current and future warehouses</span>
+                <span className="block text-xs text-gray-600 mt-0.5">The member can use every warehouse automatically, including warehouses created later.</span>
+              </span>
+            </label>
             <Controller
               name="warehouse"
               control={control}
@@ -284,6 +300,7 @@ const EditTeamMemForm = () => {
                   }
                   value={field.value}
                   onChange={field.onChange}
+                  disabled={hasAllWarehouseAccess}
                 />
               )}
             />

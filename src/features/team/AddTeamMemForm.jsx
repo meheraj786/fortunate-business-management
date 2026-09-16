@@ -60,6 +60,7 @@ const AddTeamMemForm = () => {
   } = useForm();
 
   const passwordValue = watch("password", "");
+  const hasAllWarehouseAccess = watch("hasAllWarehouseAccess", false);
   const [autoBundled, setAutoBundled] = useState(new Set());
 
   const handlePermissionChange = useCallback((permission, checked) => {
@@ -147,7 +148,12 @@ const AddTeamMemForm = () => {
         }))
         .filter((m) => m.permissions.length > 0);
 
-      payload = { ...payload, warehouse: data.warehouse, access };
+      payload = {
+        ...payload,
+        warehouse: data.warehouse || [],
+        hasAllWarehouseAccess: Boolean(data.hasAllWarehouseAccess),
+        access,
+      };
     }
 
     try {
@@ -276,6 +282,17 @@ const AddTeamMemForm = () => {
             sectionRef={(el) => setSectionRef("warehouseAccess", el)}
             defaultOpen
           >
+            <label className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 mb-4 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register("hasAllWarehouseAccess")}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-gray-900">All current and future warehouses</span>
+                <span className="block text-xs text-gray-600 mt-0.5">The member can use every warehouse automatically, including warehouses created later.</span>
+              </span>
+            </label>
             <Controller
               name="warehouse"
               control={control}
@@ -294,6 +311,7 @@ const AddTeamMemForm = () => {
                   }
                   value={field.value}
                   onChange={field.onChange}
+                  disabled={hasAllWarehouseAccess}
                   isLoading={isWarehousesLoading}
                 />
               )}

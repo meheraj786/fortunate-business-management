@@ -43,13 +43,19 @@ const TransferStockModal = ({
   const availableWarehouses = useMemo(() => {
     const isAdmin =
       user?.roleName === "ADMIN" || user?.roleName === "SUPER_ADMIN";
-    const userWarehouseIds = (user?.warehouse || []).map((id) => id.toString());
+    // Profile warehouses are populated objects, while other API responses may
+    // contain plain ids. Normalize both shapes before enforcing the UI scope.
+    const userWarehouseIds = new Set(
+      (user?.warehouse || []).map((warehouse) =>
+        String(warehouse?._id ?? warehouse),
+      ),
+    );
 
     return allWarehouses.filter((wh) => {
       // Exclude current warehouse
       if (wh._id === warehouseId) return false;
       // For non-admins, only show warehouses they have access to
-      if (!isAdmin && !userWarehouseIds.includes(wh._id.toString()))
+      if (!isAdmin && !user?.hasAllWarehouseAccess && !userWarehouseIds.has(String(wh._id)))
         return false;
       return true;
     });
