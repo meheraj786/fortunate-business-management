@@ -11,6 +11,7 @@ import {
     inspectBackup,
     restoreFromBackup,
     uploadBackupFile,
+    getBackupReadiness,
 } from "../../api/backup.api";
 import { getSystemSettings, updateSystemSettings } from "../../api/settings.api";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +52,10 @@ import SelectField from "@/components/ui/SelectField";
 
 const STATUS_CONFIG = {
     completed: { label: "Completed", color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", icon: FaCheckCircle },
+    restored: { label: "Restored & verified", color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", icon: FaCheckCircle },
+    rolled_back: { label: "Failed — recovered", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", icon: FaUndo },
+    rollback_failed: { label: "Critical recovery failure", color: "text-red-800", bg: "bg-red-100", border: "border-red-300", icon: FaTimesCircle },
+    deleted: { label: "Deleted", color: "text-gray-600", bg: "bg-gray-100", border: "border-gray-200", icon: FaTrash },
     verified: { label: "Verified", color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200", icon: FaShieldAlt },
     corrupted: { label: "Corrupted", color: "text-red-700", bg: "bg-red-50", border: "border-red-200", icon: FaTimesCircle },
     running: { label: "Running", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", icon: FaSpinner },
@@ -184,6 +189,7 @@ const BackupSettings = () => {
         // Restore/upload can replace business data, so they remain Super Admin-only.
         restore: isSuperAdmin,
         upload: isSuperAdmin,
+        settings: hasPermission("SETTINGS_UPDATE"),
     };
 
     // ── State ────────────────────────────────────────────────────────────
@@ -203,6 +209,7 @@ const BackupSettings = () => {
     const [restoreLoading, setRestoreLoading] = useState(false);
     const [inspecting, setInspecting] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [readiness, setReadiness] = useState(null);
     const uploadRef = useRef(null);
 
     const [config, setConfig] = useState({
@@ -275,10 +282,20 @@ const BackupSettings = () => {
         }
     }, []);
 
+    const fetchReadiness = useCallback(async () => {
+        try {
+            const response = await getBackupReadiness();
+            if (response.data?.success) setReadiness(response.data.data);
+        } catch {
+            setReadiness({ ready: false });
+        }
+    }, []);
+
     useEffect(() => {
         fetchBackups();
         fetchSettings();
-    }, [fetchBackups, fetchSettings]);
+        fetchReadiness();
+    }, [fetchBackups, fetchSettings, fetchReadiness]);
 
     useEffect(() => {
         if (activeTab === "history") {
@@ -484,6 +501,28 @@ const BackupSettings = () => {
 
     return (
         <div className="space-y-6">
+            {readiness && (
+                <div className={`rounded-lg border p-4 ${readiness.ready ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}>
+                    <div className="flex items-start gap-3">
+                        {readiness.ready
+                            ? <FaShieldAlt className="text-emerald-600 mt-0.5" />
+                            : <FaExclamationTriangle className="text-red-600 mt-0.5" />}
+                        <div className="min-w-0">
+                            <p className={`font-semibold ${readiness.ready ? "text-emerald-800" : "text-red-800"}`}>
+                                {readiness.ready ? "Backup system ready" : "Backup system needs attention"}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                                MongoDB tools: {readiness.tools?.mongodump?.available && readiness.tools?.mongorestore?.available ? "available" : "missing"}
+                                {readiness.storage?.freeBytes != null && ` • ${(readiness.storage.freeBytes / 1024 / 1024 / 1024).toFixed(1)} GB free`}
+                                {readiness.latestSuccessfulBackup?.createdAt && ` • Last successful backup ${formatDistanceToNow(new Date(readiness.latestSuccessfulBackup.createdAt), { addSuffix: true })}`}
+                            </p>
+                            {readiness.encryption?.enabled && !readiness.encryption?.configured && (
+                                <p className="text-xs text-red-700 mt-1">Encryption is enabled but its server password is unavailable.</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* ═══════ CONFIGURATION CARD ═══════ */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 <div className="p-4 sm:p-6 border-b border-gray-200">
@@ -496,6 +535,7 @@ const BackupSettings = () => {
                 </div>
                 <div className="p-4 sm:p-6">
                     <form onSubmit={handleUpdateSettings}>
+                        <fieldset disabled={!backupPermissions.settings} className={!backupPermissions.settings ? "opacity-70" : ""}>
                         {/* Schedule Section */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div>
@@ -644,8 +684,7 @@ const BackupSettings = () => {
                                                 This password is never stored in the database for security.
                                             </p>
                                             <p className="mt-1 text-amber-700">
-                                                Use <code className="bg-amber-100 px-1 py-0.5 rounded text-xs font-mono">scripts/decrypt_backup.js</code> to
-                                                restore encrypted backups.
+                                                Store this password securely outside the server. A new installation must use the same password to inspect or restore these backups.
                                             </p>
                                         </div>
                                     </div>
@@ -654,9 +693,12 @@ const BackupSettings = () => {
                         </div>
 
                         <div className="mt-6 flex justify-end">
+                            {!backupPermissions.settings && (
+                                <p className="text-xs text-gray-500 mr-auto self-center">You can view this configuration but cannot change system settings.</p>
+                            )}
                             <button
                                 type="submit"
-                                disabled={savingSettings || settingsLoading}
+                                disabled={!backupPermissions.settings || savingSettings || settingsLoading}
                                 className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto"
                             >
                                 {savingSettings ? (
@@ -671,6 +713,7 @@ const BackupSettings = () => {
                                 )}
                             </button>
                         </div>
+                        </fieldset>
                     </form>
                 </div>
             </div>
@@ -799,11 +842,16 @@ const BackupSettings = () => {
                             if (response.data?.success) {
                                 const d = response.data.data;
                                 toast.success(
-                                    `Restore complete in ${(d.durationMs / 1000).toFixed(1)}s! Safety backup: ${d.safetyBackup || "created"}`,
+                                    `Restore verified: ${d.validation?.actualTotal?.toLocaleString() || "all"} documents restored in ${(d.durationMs / 1000).toFixed(1)}s. Safety backup: ${d.safetyBackup || "created"}`,
                                     { id: toastId, duration: 8000 }
                                 );
+                                if (d.warnings?.length) toast(d.warnings.join(" "), { duration: 8000, icon: "⚠️" });
                                 setRestoreModal(null);
-                                fetchBackups();
+                                toast("All sessions were revoked. Redirecting to sign in with the restored credentials.", {
+                                    duration: 8000,
+                                    icon: "🔐",
+                                });
+                                window.setTimeout(() => window.location.assign("/login"), 2500);
                             }
                         } catch (error) {
                             toast.error(
@@ -1090,9 +1138,9 @@ const HistoryTab = ({ history, loading, pagination, onPageChange }) => {
                 {history.map((item) => (
                     <div
                         key={item._id}
-                        className={`border rounded-lg p-3 ${item.status === "failed" || item.status === "corrupted"
+                        className={`border rounded-lg p-3 ${["failed", "corrupted", "rollback_failed"].includes(item.status)
                             ? "border-red-200 bg-red-50/50"
-                            : item.status === "verified"
+                            : ["verified", "restored"].includes(item.status)
                                 ? "border-blue-200 bg-blue-50/30"
                                 : "border-gray-200 bg-white"
                             }`}
@@ -1134,6 +1182,19 @@ const HistoryTab = ({ history, loading, pagination, onPageChange }) => {
                             <p className="text-xs text-gray-400 mt-1">
                                 {item.manifest.totalDocuments.toLocaleString()} documents across {item.manifest.collections?.length || 0} collections
                             </p>
+                        )}
+                        {item.validation?.verified && (
+                            <p className="text-xs text-emerald-700 mt-1 flex items-center gap-1">
+                                <FaCheckCircle size={10} /> Reconciled {item.validation.actualTotal?.toLocaleString()} documents after restore
+                            </p>
+                        )}
+                        {item.rollback?.attempted && (
+                            <p className={`text-xs mt-1 ${item.rollback.succeeded ? "text-amber-700" : "text-red-700"}`}>
+                                Automatic safety rollback {item.rollback.succeeded ? "completed successfully" : `failed: ${item.rollback.errorMessage || "unknown error"}`}
+                            </p>
+                        )}
+                        {item.phase && item.status === "running" && (
+                            <p className="text-xs text-amber-700 mt-1">Current phase: {item.phase.replaceAll("_", " ")}</p>
                         )}
                         {item.notes && (
                             <p className="text-xs text-indigo-600 mt-1 flex items-center gap-1">
@@ -1216,6 +1277,9 @@ const RestoreModal = ({ data, loading, onClose, onConfirm }) => {
                                     All existing data will be dropped and replaced with the backup data.
                                     A safety backup of your current data will be created automatically before restoring.
                                 </p>
+                                <p className="mt-1 text-red-700">
+                                    User accounts are restored too, and all sessions are revoked for safety. Sign in afterward with a Super Admin account from the restored system.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -1223,6 +1287,11 @@ const RestoreModal = ({ data, loading, onClose, onConfirm }) => {
                     {/* Backup Info */}
                     <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-3">
                         <h4 className="text-sm font-medium text-gray-700">Backup Contents</h4>
+                        {data.validation?.archiveReadable && (
+                            <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded p-2">
+                                <FaShieldAlt /> Archive structure and integrity checks passed
+                            </div>
+                        )}
                         <div className="grid grid-cols-2 gap-3 text-sm">
                             <div>
                                 <p className="text-gray-500">Size</p>
@@ -1297,11 +1366,16 @@ const RestoreModal = ({ data, loading, onClose, onConfirm }) => {
                             id="restore-uploads"
                             checked={restoreUploads}
                             onChange={(e) => setRestoreUploads(e.target.checked)}
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                            disabled={!data.validation?.includesUploads}
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 disabled:opacity-50"
                         />
                         <label htmlFor="restore-uploads" className="text-sm text-blue-800 cursor-pointer">
                             <span className="font-medium">Also restore uploaded files</span>
-                            <p className="text-xs text-blue-600 mt-0.5">Replaces the uploads directory (LC documents, customer files, etc.)</p>
+                            <p className="text-xs text-blue-600 mt-0.5">
+                                {data.validation?.includesUploads
+                                    ? "Replaces and verifies the uploads directory (LC documents, customer files, etc.)"
+                                    : "This backup does not contain uploaded files"}
+                            </p>
                         </label>
                     </div>
 
