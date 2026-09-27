@@ -3,7 +3,7 @@ import { getInvoiceAsPNG, getInvoiceAsPDF } from "@/api/invoice.api.js";
 import DisplayInvoiceSkeleton from "./components/DisplayInvoiceSkeleton";
 import { useSettings } from "@/context/SettingsContext";
 import { useInvoice } from "@/api/hooks/invoice";
-import { AlertTriangle, ArrowLeft, FileX, Printer, Share2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Download, FileX, Printer, Share2 } from "lucide-react";
 import React from "react";
 import Button from "@/components/ui/Button";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -26,6 +26,10 @@ const DisplayInvoice = () => {
 
   // Credit balance is now included in the getInvoiceById aggregation response
   const creditBalance = invoice?.customerDetails?.creditBalance;
+
+  const handleNativePrint = () => {
+    window.print();
+  };
 
   const handleDownloadPDF = async () => {
     setIsDownloadingPDF(true);
@@ -157,7 +161,14 @@ const DisplayInvoice = () => {
     invoiceGeneratedDate,
     notes,
     invoiceId: invoiceNumber,
+    warehouse,
+    warehouseName,
+    createdBy,
   } = invoice;
+
+  const displayWarehouseName = warehouseName || warehouse?.name || "N/A";
+  const displayWarehouseLocation = warehouse?.location || "";
+  const displayCreatedByName = createdBy?.name || "N/A";
 
   const {
     totalAmount,
@@ -192,17 +203,27 @@ const DisplayInvoice = () => {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              variant="secondary"
+              onClick={handleNativePrint}
+              className="flex items-center gap-1.5"
+            >
+              <Printer size={14} />
+              <span>Print</span>
+            </Button>
+            <Button
               variant="primary"
               onClick={handleDownloadPDF}
               isLoading={isDownloadingPDF}
+              className="flex items-center gap-1.5"
             >
-              <Printer size={14} />
-              <span>Print / Save as PDF</span>
+              <Download size={14} />
+              <span>Download PDF</span>
             </Button>
             <Button
               variant="secondary"
               onClick={shareInvoice}
               isLoading={isSharing}
+              className="flex items-center gap-1.5"
             >
               <Share2 size={14} />
               <span>Share</span>
@@ -219,7 +240,6 @@ const DisplayInvoice = () => {
             { label: "Sales", path: "/sales" },
             {
               label: `Invoice ${invoiceNumber}`,
-              path: `/sales/invoice/${invoiceId}`,
             },
           ]}
         />
@@ -251,12 +271,19 @@ const DisplayInvoice = () => {
                 <p className="text-[13px] text-gray-500 mt-0.5"># {invoiceNumber}</p>
                 {paymentAndAmountInfo.paymentStatus && (
                   <span
-                    className={`inline-block mt-2 px-3.5 py-0.5 text-[11px] font-bold tracking-wider uppercase border-2 border-black ${paymentAndAmountInfo.paymentStatus === "Paid payment"
+                    className={`inline-block mt-2 px-3.5 py-0.5 text-[11px] font-bold tracking-wider uppercase border-2 border-black ${
+                      paymentAndAmountInfo.paymentStatus === "Paid payment" || paymentAndAmountInfo.paymentStatus === "Paid"
                         ? "bg-black text-white"
+                        : paymentAndAmountInfo.paymentStatus === "Partial"
+                        ? "bg-gray-100 text-black border-dashed"
                         : "bg-white text-black"
-                      }`}
+                    }`}
                   >
-                    {paymentAndAmountInfo.paymentStatus === "Paid payment" ? "PAID" : "DUE"}
+                    {paymentAndAmountInfo.paymentStatus === "Paid payment" || paymentAndAmountInfo.paymentStatus === "Paid"
+                      ? "PAID"
+                      : paymentAndAmountInfo.paymentStatus === "Partial"
+                      ? "PARTIAL"
+                      : "DUE"}
                   </span>
                 )}
               </div>
@@ -276,7 +303,7 @@ const DisplayInvoice = () => {
                 )}
               </div>
               <div className="text-left sm:text-right">
-                <div>
+                <div className="space-y-1">
                   <p>
                     <span className="font-semibold text-gray-800">
                       Invoice Date:
@@ -293,7 +320,24 @@ const DisplayInvoice = () => {
                     <span className="font-semibold text-gray-800">
                       Sale ID:
                     </span>{" "}
-                    #{salesId.slice(-6)}
+                    #{salesId ? salesId.slice(-6) : ""}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-gray-800">
+                      Warehouse:
+                    </span>{" "}
+                    <span className="font-medium text-black">
+                      {displayWarehouseName}
+                      {displayWarehouseLocation ? ` (${displayWarehouseLocation})` : ""}
+                    </span>
+                  </p>
+                  <p>
+                    <span className="font-semibold text-gray-800">
+                      Invoiced By:
+                    </span>{" "}
+                    <span className="font-medium text-black">
+                      {displayCreatedByName}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -466,9 +510,22 @@ const DisplayInvoice = () => {
               </div>
             )}
 
+            {/* Formal Invoice Signatures (Visible on Print) */}
+            <div className="hidden print:flex justify-between items-end mt-16 pt-4 mb-8">
+              <div className="text-center w-44 border-t border-dashed border-gray-600 pt-2 text-xs text-gray-700">
+                Customer Signature
+              </div>
+              <div className="text-center w-44 border-t border-dashed border-gray-600 pt-2 text-xs text-gray-700">
+                Authorized Signature
+              </div>
+            </div>
+
             {/* Footer */}
-            <footer className="text-center pt-8 border-t">
+            <footer className="text-center pt-8 border-t space-y-1">
               <p className="text-gray-600">Thank you for your business.</p>
+              <p className="text-[11px] text-gray-400">
+                Generated by {displayCreatedByName} on {formatDate(invoiceGeneratedDate)}
+              </p>
             </footer>
           </article>
         </div>

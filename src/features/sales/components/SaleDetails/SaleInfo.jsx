@@ -240,7 +240,19 @@ const SaleInfo = ({
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-200 pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-gray-200 pt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">
+              Warehouse
+            </label>
+            {loading ? (
+              <ValueSkeleton width="w-28" height="h-5" />
+            ) : (
+              <span className="text-sm font-semibold text-gray-900">
+                {sale?.warehouse?.name || "N/A"}
+              </span>
+            )}
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1.5">
               Invoice Status
@@ -261,7 +273,6 @@ const SaleInfo = ({
               <StatusBadge status={sale?.paymentStatus || "N/A"} size="sm" />
             )}
           </div>
-
         </div>
       </div>
     </div>

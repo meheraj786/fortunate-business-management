@@ -173,6 +173,7 @@ const router = createBrowserRouter([
       { path: "sales/cancelled", element: <CancelledSalesPage /> },
       { path: "sales/:id", element: <SaleDetailsPage /> },
       { path: "sales/:id/invoice/:invoiceId", element: <DisplayInvoicePage /> },
+      { path: "sales/invoice/:invoiceId", element: <DisplayInvoicePage /> },
       { path: "daily-cash-flow", element: <DailyCashFlowPage /> },
       { path: "accounts", element: <AccountsPage /> },
       { path: "accounts/:accountId", element: <AccountDetailsPage /> },
