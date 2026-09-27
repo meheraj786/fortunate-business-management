@@ -8,6 +8,8 @@ const StatBox = ({
   Icon,
   textColor = "default",
   loading = false,
+  valueClassName,
+  subtitleClassName,
 }) => {
   const textColorClass = (() => {
     switch (textColor) {
@@ -33,7 +35,7 @@ const StatBox = ({
             {title}
           </h4>
           <h3 
-            className={`text-[clamp(1.25rem,5vw,1.875rem)] font-bold tracking-tight truncate ${textColorClass}`}
+            className={valueClassName ? `${valueClassName} ${textColorClass}` : `text-[clamp(1.25rem,5vw,1.875rem)] font-bold tracking-tight truncate ${textColorClass}`}
             title={typeof number === "string" || typeof number === "number" ? number.toString() : ""}
           >
             {loading ? (
@@ -43,7 +45,7 @@ const StatBox = ({
             )}
           </h3>
           {subtitle && !loading && (
-            <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5 truncate" title={subtitle}>
+            <p className={subtitleClassName || "text-[10px] sm:text-xs text-gray-400 mt-0.5 truncate"} title={subtitle}>
               {subtitle}
             </p>
           )}

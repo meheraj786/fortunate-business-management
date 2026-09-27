@@ -21,10 +21,26 @@ export const SettingsProvider = ({ children }) => {
   }, [settings]);
 
   // Helper: Format Currency
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount, decimals) => {
     if (amount === undefined || amount === null) return "";
     const symbol = getCurrencySymbol(formattedSettings?.currency || "USD");
+    if (typeof decimals === "number") {
+      return `${symbol} ${Number(amount).toLocaleString("en-US", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })}`;
+    }
     return `${symbol}${Number(amount).toLocaleString()}`;
+  };
+
+  // Helper: Format Exact Currency with Decimals (Default: 2)
+  const formatExactCurrency = (amount, decimals = 2) => {
+    if (amount === undefined || amount === null || isNaN(Number(amount))) return "";
+    const symbol = getCurrencySymbol(formattedSettings?.currency || "USD");
+    return `${symbol} ${Number(amount).toLocaleString("en-US", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })}`;
   };
 
   // Helper: Format Compact Currency (e.g. $1.2M, $500K)
@@ -128,6 +144,8 @@ export const SettingsProvider = ({ children }) => {
     settings: formattedSettings,
     isLoading,
     formatCurrency,
+    formatExactCurrency,
+    getCurrencySymbol,
     formatDate,
     formatTime,
     formatDateTime,

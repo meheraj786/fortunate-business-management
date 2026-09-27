@@ -21,6 +21,12 @@ import {
   ShieldAlert,
   GitBranch,
   PackagePlus,
+  Layers,
+  Coins,
+  TrendingUp,
+  BarChart3,
+  FileCheck,
+  BadgeCheck,
 } from "lucide-react";
 import { useProduct, useDeleteProduct, useCloseLot } from "@/api/hooks/products";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -45,6 +51,66 @@ const formatNumber = (num) => {
   if (typeof num !== "number") return num;
   return parseFloat(num.toFixed(3));
 };
+
+const formatExactNumber = (num, decimals = 2) => {
+  if (num === null || num === undefined || isNaN(Number(num))) return "0.00";
+  return Number(num).toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+};
+
+const formatQuantityWithUnit = (num, unitName = "", decimals = 2) => {
+  if (num === null || num === undefined || isNaN(Number(num))) {
+    return unitName ? `0.00 ${unitName}` : "0.00";
+  }
+  const formatted = formatExactNumber(num, decimals);
+  return unitName ? `${formatted} ${unitName}` : formatted;
+};
+
+const InventoryMetricCard = ({
+  label,
+  value,
+  subValue,
+  icon: Icon,
+  badge,
+  iconColor = "text-gray-600",
+  iconBg = "bg-gray-100",
+  valueColor = "text-gray-900",
+  isLoading = false,
+}) => (
+  <div className="p-3 bg-gray-50/80 border border-gray-200/90 rounded-xl hover:border-gray-300 transition-all hover:shadow-xs flex flex-col justify-between">
+    <div className="flex items-center justify-between gap-2 mb-1.5">
+      <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 truncate" title={label}>
+        {label}
+      </span>
+      {Icon && (
+        <div className={`p-1.5 ${iconBg} rounded-lg flex-shrink-0`}>
+          <Icon size={14} className={iconColor} />
+        </div>
+      )}
+    </div>
+    <div className="flex items-baseline gap-2 flex-wrap">
+      {isLoading ? (
+        <ValueSkeleton width="w-24" height="h-6" />
+      ) : (
+        <span className={`text-base font-bold tracking-tight ${valueColor} break-words`} title={typeof value === "string" ? value : ""}>
+          {value}
+        </span>
+      )}
+      {badge && !isLoading && (
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+          {badge}
+        </span>
+      )}
+    </div>
+    {subValue && !isLoading && (
+      <p className="text-[11px] text-gray-500 mt-1 leading-snug line-clamp-2" title={subValue}>
+        {subValue}
+      </p>
+    )}
+  </div>
+);
 
 const getStockStatusBadgeStyle = (status) => {
   switch (status) {
@@ -77,7 +143,7 @@ const ProductDetails = () => {
   const { warehouseId, productId } = useParams();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
-  const { formatCurrency, formatCompactNumber, formatCompactQuantity, formatDate } = useSettings();
+  const { formatCurrency, formatExactCurrency, formatDate } = useSettings();
   const queryClient = useQueryClient();
 
   const [showEditForm, setShowEditForm] = useState(false);
@@ -449,89 +515,410 @@ const ProductDetails = () => {
                 )}
               </div>{" "}
             </div>
+            {/* Inventory & Pricing Section */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
-                Inventory & Pricing
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <DetailItem
-                  label="Quantity in Stock"
-                  value={
-                    isLoading ? (
-                      <ValueSkeleton width="w-16" />
-                    ) : (
-                      `${formatNumber(product?.quantity)} ${product?.unit?.name || ""
-                      }`
-                    )
-                  }
-                  icon={Package}
-                />
-                <DetailItem
-                  label="Unit Price"
-                  value={
-                    isLoading ? (
-                      <ValueSkeleton width="w-20" />
-                    ) : product?.unitPrice ? (
-                      formatCurrency(product.unitPrice)
-                    ) : (
-                      "N/A"
-                    )
-                  }
-                  icon={DollarSign}
-                />
+              <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <Package size={20} className="text-blue-600" />
+                  Inventory & Pricing Summary
+                </h3>
+                {!isLoading && (
+                  <span className="text-xs font-medium text-gray-500">
+                    Base Unit: <strong className="text-gray-700">{product?.unit?.name || "units"}</strong>
+                  </span>
+                )}
               </div>
+
+              {/* Sub-block 1: Core Stock & Valuation Cards */}
+              <div className="mb-4">
+                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
+                  Stock Balance & Valuation
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <InventoryMetricCard
+                    label="Quantity in Stock"
+                    value={
+                      isLoading
+                        ? null
+                        : formatQuantityWithUnit(product?.quantity, product?.unit?.name, 2)
+                    }
+                    subValue={
+                      product?.lotClosed
+                        ? "Lot closed (remaining stock zeroed)"
+                        : "Current available balance in warehouse"
+                    }
+                    icon={Package}
+                    iconColor="text-blue-600"
+                    iconBg="bg-blue-50"
+                    valueColor="text-blue-900"
+                    isLoading={isLoading}
+                  />
+                  <InventoryMetricCard
+                    label="Total Quantity"
+                    value={
+                      isLoading
+                        ? null
+                        : formatQuantityWithUnit(product?.totalQuantity, product?.unit?.name, 2)
+                    }
+                    subValue={
+                      product?.totalRestockedQuantity > 0
+                        ? `Initial: ${formatExactNumber(product?.initialQuantity ?? (product?.totalQuantity - product?.totalRestockedQuantity))} + Restocks: ${formatExactNumber(product?.totalRestockedQuantity)}`
+                        : "Total lifetime inbound quantity"
+                    }
+                    icon={Layers}
+                    iconColor="text-indigo-600"
+                    iconBg="bg-indigo-50"
+                    valueColor="text-indigo-900"
+                    isLoading={isLoading}
+                  />
+                  <InventoryMetricCard
+                    label="Unit Price"
+                    value={
+                      isLoading
+                        ? null
+                        : product?.unitPrice
+                          ? `${formatExactCurrency(product.unitPrice, 2)} / ${product?.unit?.name || "unit"}`
+                          : "N/A"
+                    }
+                    subValue="Catalog unit selling price"
+                    icon={Tag}
+                    iconColor="text-emerald-600"
+                    iconBg="bg-emerald-50"
+                    isLoading={isLoading}
+                  />
+                  <InventoryMetricCard
+                    label="Current Stock Value"
+                    value={
+                      isLoading
+                        ? null
+                        : formatExactCurrency(product?.currentStockValue, 2)
+                    }
+                    subValue="Available stock × Unit price"
+                    icon={Coins}
+                    iconColor="text-amber-600"
+                    iconBg="bg-amber-50"
+                    valueColor="text-amber-900"
+                    isLoading={isLoading}
+                  />
+                  <InventoryMetricCard
+                    label="Total Lot Value"
+                    value={
+                      isLoading
+                        ? null
+                        : formatExactCurrency(product?.totalStockValue, 2)
+                    }
+                    subValue="Total batch quantity × Unit price"
+                    icon={DollarSign}
+                    iconColor="text-emerald-600"
+                    iconBg="bg-emerald-50"
+                    valueColor="text-emerald-900"
+                    isLoading={isLoading}
+                  />
+                  <InventoryMetricCard
+                    label="Avg. Realized Price"
+                    value={
+                      isLoading
+                        ? null
+                        : `${formatExactCurrency(product?.averageSellingPrice, 2)} / ${product?.unit?.name || "unit"}`
+                    }
+                    subValue="Actual average price realized in sales"
+                    icon={BarChart3}
+                    iconColor="text-purple-600"
+                    iconBg="bg-purple-50"
+                    isLoading={isLoading}
+                  />
+                </div>
+              </div>
+
+              {/* Sell-Through Depletion Visual Bar */}
+              {!isLoading && product && (
+                <div className="bg-gray-50/90 border border-gray-200 rounded-xl p-3.5 mb-4">
+                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 mb-1.5">
+                    <span className="flex items-center gap-1.5">
+                      <TrendingUp size={14} className="text-emerald-600" />
+                      Stock Depletion / Sell-Through
+                    </span>
+                    <span className="text-emerald-700 font-bold">
+                      {formatExactNumber(product?.sellThroughRate || 0, 1)}% Sold
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden flex">
+                    <div
+                      className="bg-emerald-500 h-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min(100, Math.max(0, product?.sellThroughRate || 0))}%`,
+                      }}
+                      title={`Sold: ${formatQuantityWithUnit(product?.totalUnitsSold, product?.unit?.name, 2)} (${formatExactNumber(product?.sellThroughRate || 0, 1)}%)`}
+                    />
+                    <div
+                      className="bg-blue-400 h-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min(100, Math.max(0, 100 - (product?.sellThroughRate || 0)))}%`,
+                      }}
+                      title={`In Stock: ${formatQuantityWithUnit(product?.quantity, product?.unit?.name, 2)} (${formatExactNumber(100 - (product?.sellThroughRate || 0), 1)}%)`}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-gray-500 mt-1.5">
+                    <span>
+                      Sold: <strong className="text-gray-800">{formatQuantityWithUnit(product?.totalUnitsSold, product?.unit?.name, 2)}</strong>
+                    </span>
+                    <span>
+                      In Stock: <strong className="text-gray-800">{formatQuantityWithUnit(product?.quantity, product?.unit?.name, 2)}</strong>
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-block 2: Invoicing & Collection Breakdown (Full Form & Solid Figures) */}
+              <div>
+                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
+                  Invoicing & Collection Status (Full Form)
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <InventoryMetricCard
+                    label="Invoiced Sales"
+                    value={
+                      isLoading
+                        ? null
+                        : formatExactCurrency(product?.totalInvoicedRevenue, 2)
+                    }
+                    subValue={
+                      isLoading
+                        ? null
+                        : `${product?.totalInvoicedCount || 0} ${product?.totalInvoicedCount === 1 ? "Sale" : "Sales"} (${formatQuantityWithUnit(product?.totalInvoicedQuantity, product?.unit?.name, 2)})`
+                    }
+                    badge="Invoiced"
+                    icon={FileCheck}
+                    iconColor="text-emerald-600"
+                    iconBg="bg-emerald-50"
+                    valueColor="text-emerald-900"
+                    isLoading={isLoading}
+                  />
+                  <InventoryMetricCard
+                    label="Not Invoiced"
+                    value={
+                      isLoading
+                        ? null
+                        : formatExactCurrency(product?.totalNotInvoicedRevenue, 2)
+                    }
+                    subValue={
+                      isLoading
+                        ? null
+                        : `${product?.totalNotInvoiced || 0} ${product?.totalNotInvoiced === 1 ? "Sale" : "Sales"} (${formatQuantityWithUnit(product?.totalNotInvoicedQuantity, product?.unit?.name, 2)})`
+                    }
+                    badge="Pending"
+                    icon={FileWarning}
+                    iconColor="text-red-600"
+                    iconBg="bg-red-50"
+                    valueColor="text-red-900"
+                    isLoading={isLoading}
+                  />
+                  <InventoryMetricCard
+                    label="Due Invoices (Unpaid)"
+                    value={
+                      isLoading
+                        ? null
+                        : formatExactCurrency(product?.totalDueRevenue, 2)
+                    }
+                    subValue={
+                      isLoading
+                        ? null
+                        : `${product?.totalDueInvoices || 0} ${product?.totalDueInvoices === 1 ? "Invoice" : "Invoices"} (${formatQuantityWithUnit(product?.totalDueQuantity, product?.unit?.name, 2)})`
+                    }
+                    badge="Payment Due"
+                    icon={FileClock}
+                    iconColor="text-amber-600"
+                    iconBg="bg-amber-50"
+                    valueColor="text-amber-900"
+                    isLoading={isLoading}
+                  />
+                  <InventoryMetricCard
+                    label="Paid Invoices (Settled)"
+                    value={
+                      isLoading
+                        ? null
+                        : formatExactCurrency(product?.totalPaidRevenue, 2)
+                    }
+                    subValue={
+                      isLoading
+                        ? null
+                        : `${product?.totalPaidInvoices || 0} ${product?.totalPaidInvoices === 1 ? "Invoice" : "Invoices"} (${formatQuantityWithUnit(product?.totalPaidQuantity, product?.unit?.name, 2)})`
+                    }
+                    badge="Settled"
+                    icon={BadgeCheck}
+                    iconColor="text-blue-600"
+                    iconBg="bg-blue-50"
+                    valueColor="text-blue-900"
+                    isLoading={isLoading}
+                  />
+                </div>
+              </div>
+
+              {/* Sub-block 3: Stock Movement Details (Opening, Restocks, Transfers) */}
+              {!isLoading &&
+                (product?.totalRestockedQuantity > 0 ||
+                  product?.transferredOutQuantity > 0 ||
+                  product?.initialQuantity != null) && (
+                  <div className="mt-3.5 pt-3 border-t border-gray-100 flex flex-wrap gap-2 text-xs text-gray-500">
+                    {product?.initialQuantity != null && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700">
+                        Opening:{" "}
+                        <strong className="text-gray-900">
+                          {formatQuantityWithUnit(
+                            product?.initialQuantity,
+                            product?.unit?.name,
+                            2
+                          )}
+                        </strong>
+                      </span>
+                    )}
+                    {product?.totalRestockedQuantity > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-100">
+                        Restocked:{" "}
+                        <strong className="text-emerald-900">
+                          +{formatQuantityWithUnit(
+                            product?.totalRestockedQuantity,
+                            product?.unit?.name,
+                            2
+                          )}
+                        </strong>{" "}
+                        ({product?.restockCount} additions)
+                      </span>
+                    )}
+                    {product?.transferredOutQuantity > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 border border-purple-100">
+                        Transferred Out:{" "}
+                        <strong className="text-purple-900">
+                          -{formatQuantityWithUnit(
+                            product?.transferredOutQuantity,
+                            product?.unit?.name,
+                            2
+                          )}
+                        </strong>
+                      </span>
+                    )}
+                    {product?.lotClosed && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 border border-gray-200">
+                        Closed Residual:{" "}
+                        <strong className="text-gray-900">
+                          {formatQuantityWithUnit(
+                            product?.lotClosedQuantity,
+                            product?.unit?.name,
+                            2
+                          )}
+                        </strong>
+                      </span>
+                    )}
+                  </div>
+                )}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 min-w-0 lg:min-w-[320px]">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-              Sales Overview
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 flex items-center justify-between">
+              <span>Sales Overview</span>
+              {!isLoading && (
+                <span className="text-xs font-normal text-gray-500">
+                  {product?.warehouse?.name || "Warehouse"}
+                </span>
+              )}
             </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
               <StatBox
                 title="Units Sold"
-                number={formatCompactQuantity(
-                  product?.currentWarehouseUnitsSold !== undefined && product?.currentWarehouseUnitsSold !== product?.totalUnitsSold
-                    ? product?.currentWarehouseUnitsSold
-                    : product?.totalUnitsSold
-                )}
+                number={
+                  isLoading
+                    ? ""
+                    : formatQuantityWithUnit(
+                        product?.currentWarehouseUnitsSold !== undefined &&
+                          product?.currentWarehouseUnitsSold !== product?.totalUnitsSold
+                          ? product?.currentWarehouseUnitsSold
+                          : product?.totalUnitsSold,
+                        product?.unit?.name,
+                        2
+                      )
+                }
                 subtitle={
                   product?.currentWarehouseUnitsSold !== undefined &&
                   product?.currentWarehouseUnitsSold !== product?.totalUnitsSold
-                    ? `Total: ${formatCompactQuantity(product?.totalUnitsSold)} (all warehouses)`
-                    : undefined
+                    ? `Total: ${formatQuantityWithUnit(product?.totalUnitsSold, product?.unit?.name, 2)} (all warehouses)`
+                    : "Total across all sales"
                 }
                 Icon={ShoppingCart}
+                valueClassName="text-base sm:text-lg font-bold tracking-tight break-words text-blue-900"
+                subtitleClassName="text-[11px] text-gray-500 mt-1 line-clamp-2"
                 loading={isLoading}
               />
               <StatBox
                 title="Revenue"
-                number={formatCompactNumber(
-                  product?.currentWarehouseRevenue !== undefined && product?.currentWarehouseRevenue !== product?.totalRevenue
-                    ? product?.currentWarehouseRevenue
-                    : product?.totalRevenue
-                )}
+                number={
+                  isLoading
+                    ? ""
+                    : formatExactCurrency(
+                        product?.currentWarehouseRevenue !== undefined &&
+                          product?.currentWarehouseRevenue !== product?.totalRevenue
+                          ? product?.currentWarehouseRevenue
+                          : product?.totalRevenue,
+                        2
+                      )
+                }
                 subtitle={
                   product?.currentWarehouseRevenue !== undefined &&
                   product?.currentWarehouseRevenue !== product?.totalRevenue
-                    ? `Total: ${formatCompactNumber(product?.totalRevenue)} (all warehouses)`
-                    : undefined
+                    ? `Total: ${formatExactCurrency(product?.totalRevenue, 2)} (all warehouses)`
+                    : `Avg: ${formatExactCurrency(product?.averageSellingPrice, 2)} / ${product?.unit?.name || "unit"}`
                 }
                 Icon={DollarSign}
                 textColor="green"
+                valueClassName="text-base sm:text-lg font-bold tracking-tight break-words text-emerald-900"
+                subtitleClassName="text-[11px] text-gray-500 mt-1 line-clamp-2"
                 loading={isLoading}
               />
               <StatBox
                 title="Due Invoices"
-                number={product?.totalDueInvoices}
+                number={
+                  isLoading
+                    ? ""
+                    : `${product?.totalDueInvoices || 0} ${product?.totalDueInvoices === 1 ? "Invoice" : "Invoices"}`
+                }
+                subtitle={
+                  isLoading
+                    ? undefined
+                    : `Due: ${formatExactCurrency(
+                        product?.currentWarehouseDueRevenue !== undefined &&
+                          product?.currentWarehouseDueRevenue !== product?.totalDueRevenue
+                          ? product?.currentWarehouseDueRevenue
+                          : product?.totalDueRevenue,
+                        2
+                      )}`
+                }
                 Icon={FileClock}
-                textColor="orange"
+                textColor="yellow"
+                valueClassName="text-base sm:text-lg font-bold tracking-tight break-words text-amber-900"
+                subtitleClassName="text-[11px] text-amber-800 font-medium mt-1 line-clamp-2"
                 loading={isLoading}
               />
               <StatBox
                 title="Not Invoiced"
-                number={product?.totalNotInvoiced}
+                number={
+                  isLoading
+                    ? ""
+                    : `${product?.totalNotInvoiced || 0} ${product?.totalNotInvoiced === 1 ? "Sale" : "Sales"}`
+                }
+                subtitle={
+                  isLoading
+                    ? undefined
+                    : `Pending: ${formatExactCurrency(
+                        product?.currentWarehouseNotInvoicedRevenue !== undefined &&
+                          product?.currentWarehouseNotInvoicedRevenue !== product?.totalNotInvoicedRevenue
+                          ? product?.currentWarehouseNotInvoicedRevenue
+                          : product?.totalNotInvoicedRevenue,
+                        2
+                      )}`
+                }
                 Icon={FileWarning}
                 textColor="red"
+                valueClassName="text-base sm:text-lg font-bold tracking-tight break-words text-rose-900"
+                subtitleClassName="text-[11px] text-rose-800 font-medium mt-1 line-clamp-2"
                 loading={isLoading}
               />
             </div>
