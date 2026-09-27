@@ -13,11 +13,11 @@ export const getInvoicesBySaleId = (saleId) =>
   api.get(`/invoice/sale/${saleId}`);
 
 export const getInvoiceAsPNG = (invoiceId) =>
-  api.get(`/sales/invoice/${invoiceId}/png`, {
+  api.get(`/sales/invoice/${invoiceId}/png?t=${Date.now()}`, {
     responseType: 'blob', // Important: tells axios to handle the response as a file blob
   });
 
 export const getInvoiceAsPDF = (invoiceId) =>
-  api.get(`/sales/invoice/${invoiceId}/pdf`, {
+  api.get(`/sales/invoice/${invoiceId}/pdf?t=${Date.now()}`, {
     responseType: 'blob',
   });

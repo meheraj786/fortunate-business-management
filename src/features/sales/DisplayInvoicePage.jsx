@@ -186,7 +186,7 @@ const DisplayInvoice = () => {
 
   // --- JSX ---
   return (
-    <div className="bg-gray-100 min-h-screen font-sans">
+    <div className="bg-gray-100 min-h-screen font-sans print:bg-white print:min-h-0 print:p-0">
       {/* --- Actions Bar (No Print) --- */}
       <div className="py-4 px-4 sm:px-6 lg:px-8 bg-white border-b print:hidden">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4">
@@ -246,14 +246,14 @@ const DisplayInvoice = () => {
       </div>
 
       {/* --- Invoice Paper --- */}
-      <main className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
+      <main className="py-6 sm:py-10 px-4 sm:px-6 lg:px-8 print:p-0 print:m-0">
         <div
-          className="max-w-5xl mx-auto bg-white shadow-lg"
+          className="max-w-5xl mx-auto bg-white shadow-lg print:shadow-none print:max-w-none print:w-full print:m-0 print:p-0"
           id="invoice-paper"
         >
-          <article className="p-6 sm:p-12 text-sm">
+          <article className="p-6 sm:p-12 text-sm print:p-0">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start pb-4 border-b-2 border-black mb-7">
+            <div className="flex flex-col sm:flex-row justify-between items-start pb-4 border-b-2 border-black mb-7 print:flex-row print:pb-3 print:mb-5">
               <div className="flex flex-col mb-4 sm:mb-0">
                 <h1 className="text-[22px] font-bold text-black tracking-wide">
                   {settings?.businessName || "Fortunate Business Management"}
@@ -264,7 +264,7 @@ const DisplayInvoice = () => {
                   {settings?.businessPhone && <span> &bull; {settings.businessPhone}</span>}
                 </div>
               </div>
-              <div className="text-left sm:text-right">
+              <div className="text-left sm:text-right print:text-right">
                 <div className="text-[28px] font-bold text-black tracking-[2px]">
                   INVOICE
                 </div>
@@ -290,7 +290,7 @@ const DisplayInvoice = () => {
             </div>
 
             {/* Bill To & Invoice Details */}
-            <div className="grid sm:grid-cols-2 gap-8 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-10 print:grid-cols-2 print:gap-6 print:mb-6">
               <div>
                 <h3 className="font-semibold text-gray-800 mb-2">Bill To</h3>
                 <p className="font-bold text-black">{customerDetails.name}</p>
@@ -302,7 +302,7 @@ const DisplayInvoice = () => {
                   </p>
                 )}
               </div>
-              <div className="text-left sm:text-right">
+              <div className="text-left sm:text-right print:text-right">
                 <div className="space-y-1">
                   <p>
                     <span className="font-semibold text-gray-800">
@@ -344,10 +344,10 @@ const DisplayInvoice = () => {
             </div>
 
             {/* Items Table */}
-            <div className="overflow-x-auto mb-12">
-              <table className="w-full">
+            <div className="overflow-x-auto mb-10 print:overflow-visible print:mb-6">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-gray-900 text-white">
+                  <tr className="bg-gray-900 text-white print:bg-gray-900 print:text-white">
                     <th className="p-2 text-center text-[11px] font-semibold uppercase tracking-wider" style={{ width: '40px' }}>
                       Sl.
                     </th>
@@ -421,7 +421,7 @@ const DisplayInvoice = () => {
             </div>
 
             {/* Financial Summary */}
-            <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4 sm:gap-x-12 sm:gap-y-8 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 sm:gap-x-12 sm:gap-y-8 mb-10 print:grid-cols-2 print:gap-x-8 print:mb-6 avoid-break">
               {/* Payments Section */}
               <div>
                 {payments.length > 0 && (
@@ -450,7 +450,7 @@ const DisplayInvoice = () => {
               </div>
 
               {/* Totals Section */}
-              <div className="space-y-2">
+              <div className="space-y-2 avoid-break">
                 <div className="flex justify-between">
                   <p className="text-gray-600">Subtotal:</p>
                   <p className="font-semibold text-black">
@@ -485,14 +485,14 @@ const DisplayInvoice = () => {
                     {formatCurrency(totalPayments)}
                   </p>
                 </div>
-                <div className="flex justify-between bg-gray-100 p-2 rounded-md">
+                <div className="flex justify-between bg-gray-100 p-2 rounded-md print:bg-gray-100">
                   <p className="font-bold text-black text-base">Balance Due:</p>
                   <p className="font-bold text-black text-base">
                     {formatCurrency(balanceDue)}
                   </p>
                 </div>
                 {creditedToWallet > 0 && (
-                  <div className="flex justify-between bg-blue-50 p-2 rounded-md text-blue-800">
+                  <div className="flex justify-between bg-blue-50 p-2 rounded-md text-blue-800 print:bg-blue-50">
                     <p className="font-bold text-base">Credited to Wallet:</p>
                     <p className="font-bold text-base">
                       {formatCurrency(creditedToWallet)}
@@ -504,24 +504,24 @@ const DisplayInvoice = () => {
 
             {/* Notes */}
             {notes && (
-              <div className="mb-12">
+              <div className="mb-10 print:mb-6 avoid-break">
                 <h3 className="font-semibold text-gray-800 mb-2">Notes</h3>
                 <p className="text-gray-600 whitespace-pre-line">{notes}</p>
               </div>
             )}
 
             {/* Formal Invoice Signatures (Visible on Print) */}
-            <div className="hidden print:flex justify-between items-end mt-16 pt-4 mb-8">
-              <div className="text-center w-44 border-t border-dashed border-gray-600 pt-2 text-xs text-gray-700">
+            <div className="hidden print:flex justify-between items-end mt-14 pt-4 mb-6 avoid-break">
+              <div className="text-center w-48 border-t border-dashed border-gray-600 pt-2 text-xs text-gray-700">
                 Customer Signature
               </div>
-              <div className="text-center w-44 border-t border-dashed border-gray-600 pt-2 text-xs text-gray-700">
+              <div className="text-center w-48 border-t border-dashed border-gray-600 pt-2 text-xs text-gray-700">
                 Authorized Signature
               </div>
             </div>
 
             {/* Footer */}
-            <footer className="text-center pt-8 border-t space-y-1">
+            <footer className="text-center pt-6 border-t space-y-1 avoid-break">
               <p className="text-gray-600">Thank you for your business.</p>
               <p className="text-[11px] text-gray-400">
                 Generated by {displayCreatedByName} on {formatDate(invoiceGeneratedDate)}
@@ -534,17 +534,71 @@ const DisplayInvoice = () => {
       {/* --- Print Styles --- */}
       <style>{`
         @media print {
-          body {
-            background-color: #fff;
+          @page {
+            size: A4 portrait;
+            margin: 12mm 15mm;
           }
+
+          /* Force high-fidelity color printing across all modern browsers */
+          *, *::before, *::after {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Reset root and page backgrounds */
+          html, body, #root {
+            background-color: #fff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+          }
+
+          /* Reset scroll & height containers that truncate print */
+          div, main, section {
+            overflow: visible !important;
+          }
+
+          /* Print hidden utilities */
+          .print\\:hidden {
+            display: none !important;
+          }
+
+          /* Paper layout */
           #invoice-paper {
-            max-width: 100%;
-            margin: 0;
-            box-shadow: none;
-            border: none;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: #fff !important;
           }
+
           article {
-             padding: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Avoid breaking critical invoice blocks */
+          .avoid-break {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+
+          tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+
+          thead {
+            display: table-header-group;
+          }
+
+          /* Ensure print signatures render reliably */
+          .hidden.print\\:flex {
+            display: flex !important;
           }
         }
       `}</style>

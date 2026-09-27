@@ -281,6 +281,7 @@ const Sidebar = memo(() => {
   if (isMobile) {
     return (
       <>
+        <div className="print:hidden">
         <button
           className="fixed top-4 right-4 z-30 p-3 rounded-lg bg-[var(--color-primary)] text-white shadow-md touch-manipulation"
           onClick={toggleSidebar}
@@ -335,6 +336,7 @@ const Sidebar = memo(() => {
                 </div>
               </div>
             </div>
+          </div>
         <ConfirmationModal
           isOpen={isLogoutModalOpen}
           onClose={() => setIsLogoutModalOpen(false)}
@@ -353,8 +355,8 @@ const Sidebar = memo(() => {
   // Desktop sidebar
   return (
     <>
-      <div
-        className={`bg-[#f8f9fa] h-screen sticky top-0 z-20 transition-all duration-300 ease-in-out ${collapsed ? "w-20" : "w-64"}`}
+      <aside
+        className={`bg-[#f8f9fa] h-screen sticky top-0 z-20 transition-all duration-300 ease-in-out print:hidden ${collapsed ? "w-20" : "w-64"}`}
       >
         <div className="border-r border-gray-300 h-full p-4 flex flex-col">
           <div>
@@ -402,7 +404,7 @@ const Sidebar = memo(() => {
             />
           </div>
         </div>
-      </div>
+      </aside>
       <ConfirmationModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
