@@ -84,6 +84,10 @@ const ComboboxCore = ({
         return {
           value: opt._id ?? opt.value ?? opt,
           label: opt.name ?? opt.label ?? String(opt),
+          disabled: !!opt.disabled,
+          badge: opt.badge,
+          badgeColor: opt.badgeColor,
+          hint: opt.hint,
           _raw: opt,
         };
       }
@@ -256,6 +260,9 @@ const ComboboxCore = ({
             o.value === val ||
             (o.value != null && String(o.value) === String(val))
         );
+        if (matched?.disabled) {
+          return;
+        }
         if (matched) {
           selectedCacheRef.current.set(String(val), matched);
         }
@@ -405,26 +412,41 @@ const ComboboxCore = ({
                         <ComboboxOption
                           key={`${option.value}-${index}`}
                           value={option.value}
-                          className={({ focus, selected }) =>
-                            `relative cursor-pointer select-none
+                          disabled={option.disabled}
+                          className={({ focus, selected, disabled }) =>
+                            `relative select-none
                             py-2.5 pl-3.5 pr-9
-                            min-h-[40px] flex items-center
+                            min-h-[40px] flex items-center justify-between
                             transition-colors duration-100
                             ${
-                              focus
-                                ? "bg-blue-50 text-[var(--color-primary)]"
-                                : "text-gray-900"
+                              disabled
+                                ? "bg-red-50/50 text-gray-500 cursor-not-allowed border-l-2 border-red-500"
+                                : focus
+                                ? "bg-blue-50 text-[var(--color-primary)] cursor-pointer"
+                                : "text-gray-900 cursor-pointer"
                             }
                             ${selected ? "font-semibold" : "font-normal"}
-                            active:bg-blue-100`
+                            ${!disabled ? "active:bg-blue-100" : ""}`
                           }
                         >
-                          {({ selected }) => (
+                          {({ selected, disabled }) => (
                             <>
-                              <span className="block truncate w-full pr-6">
-                                {option.label}
-                              </span>
-                              {selected && (
+                              <div className="flex items-center justify-between gap-2 min-w-0 pr-6 w-full">
+                                <span className={`block truncate ${disabled ? "text-gray-600" : ""}`}>
+                                  {option.label}
+                                </span>
+                                {option.badge && (
+                                  <span
+                                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider shrink-0 ${
+                                      option.badgeColor ||
+                                      "bg-red-100 text-red-700 border border-red-200"
+                                    }`}
+                                  >
+                                    {option.badge}
+                                  </span>
+                                )}
+                              </div>
+                              {selected && !disabled && (
                                 <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--color-primary)]">
                                   <Check
                                     className="w-4 h-4"

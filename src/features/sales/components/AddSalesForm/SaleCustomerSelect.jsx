@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from "react";
-import { User, MapPin, Phone } from "lucide-react";
+import React, { useCallback, useState, useMemo } from "react";
+import { User, MapPin, Phone, AlertCircle } from "lucide-react";
 import SelectField from "@/components/ui/SelectField";
 import ComboboxField from "@/components/ui/ComboboxField";
 import InputField from "@/components/ui/InputField";
@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import QuickAddCustomerModal from "@/features/customers/components/QuickAddCustomerModal";
 import { useSettings } from "@/context/SettingsContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 
 const SaleCustomerSelect = ({
   register,
@@ -26,52 +27,59 @@ const SaleCustomerSelect = ({
   const selectedCustomer = customers?.find((c) => c._id === watchedCustomerId);
 
   // Compute safe options for Combobox:
-  // 1. Exclude any suspended customers for new sales selection
-  // 2. Format label as: Name (CustomerID) - Phone for comprehensive autocomplete
-  // 3. In edit mode, if the assigned customer became suspended after sale creation,
-  //    preserve them with a [Suspended] indicator so the UI displays their name cleanly.
-  const customerOptions = React.useMemo(() => {
+  // 1. Show all customers (including suspended) so users can search & recognize data.
+  // 2. Format label as: Name (CustomerID) - Phone for comprehensive autocomplete.
+  // 3. Mark suspended customers with disabled: true and a clear red badge.
+  // 4. In edit mode, allow the existing customer of this sale to remain displayed.
+  const customerOptions = useMemo(() => {
     if (!Array.isArray(customers)) return [];
 
-    const activeCustomers = customers.filter(
-      (c) => c.customerStatus !== "Suspended"
-    );
+    const mapped = customers.map((c) => {
+      const isSuspended = c.customerStatus === "Suspended";
+      const isCurrentEditCustomer =
+        isEditMode && String(c._id) === String(watchedCustomerId);
 
-    if (isEditMode && watchedCustomerId) {
-      const isAlreadyIncluded = activeCustomers.some(
-        (c) => String(c._id) === String(watchedCustomerId)
-      );
+      return {
+        value: c._id,
+        label: `${c.name}${c.customerId ? ` (${c.customerId})` : ""}${c.phone ? ` - ${c.phone}` : ""}`,
+        disabled: isSuspended && !isCurrentEditCustomer,
+        badge: isSuspended ? "Suspended" : null,
+        badgeColor: "bg-red-100 text-red-700 border border-red-200",
+        customerStatus: c.customerStatus,
+      };
+    });
 
-      if (!isAlreadyIncluded) {
-        const fullCustomer = customers.find(
-          (c) => String(c._id) === String(watchedCustomerId)
-        );
-        const name = fullCustomer?.name || watch("customerName") || "Customer";
-        const phone = fullCustomer?.phone || watch("customerPhone") || "";
-        const cId = fullCustomer?.customerId || "";
-
-        return [
-          {
-            value: watchedCustomerId,
-            label: `${name}${cId ? ` (${cId})` : ""}${phone ? ` - ${phone}` : ""} [Suspended]`,
-          },
-          ...activeCustomers.map((c) => ({
-            value: c._id,
-            label: `${c.name}${c.customerId ? ` (${c.customerId})` : ""}${c.phone ? ` - ${c.phone}` : ""}`,
-          })),
-        ];
-      }
+    // In edit mode fallback if existing customer wasn't in array
+    if (
+      isEditMode &&
+      watchedCustomerId &&
+      !mapped.some((o) => String(o.value) === String(watchedCustomerId))
+    ) {
+      const fallbackName = watch("customerName") || "Customer";
+      const fallbackPhone = watch("customerPhone") || "";
+      mapped.unshift({
+        value: watchedCustomerId,
+        label: `${fallbackName}${fallbackPhone ? ` - ${fallbackPhone}` : ""}`,
+        disabled: false,
+        badge: "Suspended",
+        badgeColor: "bg-red-100 text-red-700 border border-red-200",
+        customerStatus: "Suspended",
+      });
     }
 
-    return activeCustomers.map((c) => ({
-      value: c._id,
-      label: `${c.name}${c.customerId ? ` (${c.customerId})` : ""}${c.phone ? ` - ${c.phone}` : ""}`,
-    }));
+    return mapped;
   }, [customers, isEditMode, watchedCustomerId, watch]);
 
   const handleCustomerSelect = (customerId) => {
     const customer = customers.find((c) => c._id === customerId);
     if (customer) {
+      if (customer.customerStatus === "Suspended" && !isEditMode) {
+        toast.error(
+          `Customer "${customer.name}" is suspended and cannot be selected for new sales.`
+        );
+        setValue("customerId", "");
+        return;
+      }
       setValue("customerId", customer._id);
       setValue("customerName", customer.name || "");
       setValue("customerPhone", customer.phone || "");
@@ -147,11 +155,21 @@ const SaleCustomerSelect = ({
             )}
           </div>
           {selectedCustomer && (
-            <div className="mt-2 text-sm text-[var(--color-primary)] font-medium bg-blue-50 p-2 rounded-md inline-block">
-              Available Credit:{" "}
-              <span className="font-bold">
-                {formatCurrency(selectedCustomer.creditBalance || 0)}
-              </span>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <div className="text-sm text-[var(--color-primary)] font-medium bg-blue-50 p-2 rounded-md inline-block">
+                Available Credit:{" "}
+                <span className="font-bold">
+                  {formatCurrency(selectedCustomer.creditBalance || 0)}
+                </span>
+              </div>
+              {selectedCustomer.customerStatus === "Suspended" && (
+                <div className="text-sm text-red-700 font-medium bg-red-50 border border-red-200 p-2 rounded-md inline-flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>
+                    Status: <strong className="font-bold">Suspended</strong> (Cannot create sales)
+                  </span>
+                </div>
+              )}
             </div>
           )}
 

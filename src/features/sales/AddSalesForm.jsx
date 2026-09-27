@@ -417,6 +417,17 @@ const AddSales = ({
         ? customers.find((c) => c._id === data.customerId)
         : null;
 
+    if (
+      data.customerType === "existing" &&
+      selectedCustomer?.customerStatus === "Suspended" &&
+      !isEditMode
+    ) {
+      toast.error(
+        `Cannot create sale: Customer "${selectedCustomer.name}" is suspended. Please activate the customer first.`
+      );
+      return;
+    }
+
     const salesData = {
       items: data.items.map(item => ({
         product: item.productId,
