@@ -17,6 +17,9 @@ export const updateCustomer = (id, formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+export const updateCustomerStatus = (id, status) =>
+  api.patch(`/customer/update-status/${id}`, { status });
+
 export const deleteCustomer = (id) =>
   api.delete(`/customer/delete-customer/${id}`);
 

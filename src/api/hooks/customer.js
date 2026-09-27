@@ -59,6 +59,40 @@ export const useUpdateCustomer = () => {
   });
 };
 
+// Quick-update customer status only (for CustomerDetailsPage)
+export const useUpdateCustomerStatus = (id) => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: (status) => api.updateCustomerStatus(id, status),
+    successMessage: "Customer status updated successfully!",
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["customers", "summary"] });
+      qc.invalidateQueries({ queryKey: ["customers", "stats"] });
+      qc.invalidateQueries({ queryKey: ["customers", "active"] });
+      qc.invalidateQueries({ queryKey: ["customers", id] });
+      qc.invalidateQueries({ queryKey: ["customer", id] });
+    },
+  });
+};
+
+// Quick-update customer status dynamically (for CustomerTable & CustomerCard)
+export const useUpdateCustomerStatusDirect = () => {
+  const qc = useQueryClient();
+  return useApiMutation({
+    mutationFn: ({ id, status }) => api.updateCustomerStatus(id, status),
+    successMessage: "Customer status updated successfully!",
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["customers", "summary"] });
+      qc.invalidateQueries({ queryKey: ["customers", "stats"] });
+      qc.invalidateQueries({ queryKey: ["customers", "active"] });
+      qc.invalidateQueries({ queryKey: ["customers", vars.id] });
+      qc.invalidateQueries({ queryKey: ["customer", vars.id] });
+    },
+  });
+};
+
 export const useDeleteCustomer = () => {
   const qc = useQueryClient();
   return useApiMutation({

@@ -30,6 +30,7 @@ const AddSales = ({
   onClose,
   onSaleAdded,
   editData = null,
+  defaultCustomerId = null,
   isOpen = false,
 }) => {
   const isEditMode = !!editData;
@@ -176,7 +177,7 @@ const AddSales = ({
         categoryId: "",
         items: [],
         customerType: "existing",
-        customerId: "",
+        customerId: defaultCustomerId || "",
         customerName: "",
         customerPhone: "",
         customerAddress: "",
@@ -188,7 +189,7 @@ const AddSales = ({
         payments: [],
         notes: "",
       };
-    }, [isEditMode, editData]),
+    }, [isEditMode, editData, defaultCustomerId]),
   });
 
   // Data Fetching
@@ -351,7 +352,7 @@ const AddSales = ({
           categoryId: "",
           items: [],
           customerType: "existing",
-          customerId: "",
+          customerId: defaultCustomerId || "",
           customerName: "",
           customerPhone: "",
           customerAddress: "",
@@ -365,7 +366,7 @@ const AddSales = ({
         });
       }
     }
-  }, [isEditMode, isOpen, editData, reset]);
+  }, [isEditMode, isOpen, editData, defaultCustomerId, reset]);
 
   // Calculations
   const { fields, append, remove, update } = useFieldArray({

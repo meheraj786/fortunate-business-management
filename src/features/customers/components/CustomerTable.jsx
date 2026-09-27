@@ -17,6 +17,7 @@ import { getCustomerById } from "@/api/customer.api";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CustomerTypePill from "@/components/ui/CustomerTypePill";
+import CustomerStatusDropdown from "./CustomerStatusDropdown";
 
 
 // --- Shared cell padding classes for perfect alignment ---
@@ -282,8 +283,10 @@ const CustomerTable = ({
                 <CustomerTypePill type={customer.customerType} />
               )}
               {customer.customerStatus && (
-                <StatusBadge
-                  status={customer.customerStatus}
+                <CustomerStatusDropdown
+                  customerId={customer._id}
+                  customerName={customer.name}
+                  currentStatus={customer.customerStatus}
                   size="sm"
                   showIcon={false}
                 />

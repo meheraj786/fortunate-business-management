@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getCustomerById } from "@/api/customer.api";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CustomerTypePill from "@/components/ui/CustomerTypePill";
+import CustomerStatusDropdown from "./CustomerStatusDropdown";
 
 const CustomerCard = ({ customer }) => {
   const { hasPermission } = useAuth();
@@ -60,7 +61,13 @@ const CustomerCard = ({ customer }) => {
 
         <div className="flex flex-col gap-1.5 ml-2 items-end">
           {customer.customerStatus && (
-            <StatusBadge status={customer.customerStatus} size="sm" showIcon={false} />
+            <CustomerStatusDropdown
+              customerId={customer._id}
+              customerName={customer.name}
+              currentStatus={customer.customerStatus}
+              size="sm"
+              showIcon={false}
+            />
           )}
           {customer.customerType && (
             <CustomerTypePill type={customer.customerType} />

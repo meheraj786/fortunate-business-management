@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import PropTypes from "prop-types";
 import { useParams, useNavigate, Link } from "react-router";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -21,6 +21,10 @@ import {
   ShoppingBag,
   AlertCircle,
   Receipt,
+  ChevronDown,
+  Loader2,
+  Plus,
+  UserX,
 } from "lucide-react";
 import ValueSkeleton from "@/components/ui/ValueSkeleton";
 import AuditInfoSection from "@/components/ui/AuditInfoSection";
@@ -39,6 +43,7 @@ import AddCreditModal from "./components/AddCreditModal";
 import WithdrawCreditModal from "./components/WithdrawCreditModal";
 import CreditHistoryTable from "./components/CreditHistoryTable";
 import EntityAuditLog from "@/components/ui/EntityAuditLog";
+import AddSalesForm from "../sales/AddSalesForm";
 
 // Custom Hooks
 import { useUrl } from "@/hooks/useUrl";
@@ -47,11 +52,17 @@ import { useCustomerData, useSalesData } from "@/hooks/useCustomerOperations";
 import {
   useDeleteCustomer,
   useDeleteCustomerDocument,
+  useUpdateCustomerStatus,
 } from "../../api/hooks/customer";
 import { useAuth } from "@/hooks/useAuth";
 import { downloadCustomerDocument } from "../../api/customer.api";
 import { getSaleById, getSalesSummaryTable } from "@/api/sales.api";
 import { useSettings } from "@/context/SettingsContext";
+
+const CUSTOMER_STATUS_OPTIONS = [
+  { value: "Active", label: "Active" },
+  { value: "Suspended", label: "Suspended" },
+];
 
 
 const CustomerDetails = () => {
@@ -77,6 +88,34 @@ const CustomerDetails = () => {
   });
   const [isAddCreditModalOpen, setIsAddCreditModalOpen] = useState(false);
   const [isWithdrawCreditModalOpen, setIsWithdrawCreditModalOpen] = useState(false);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef(null);
+  const [suspendModal, setSuspendModal] = useState({ isOpen: false });
+  const [isAddSaleOpen, setIsAddSaleOpen] = useState(false);
+
+  const updateStatusMutation = useUpdateCustomerStatus(id);
+
+  // Close status dropdown on outside click or Escape
+  useEffect(() => {
+    if (!statusDropdownOpen) return;
+    const handleClickOutside = (e) => {
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(e.target)
+      ) {
+        setStatusDropdownOpen(false);
+      }
+    };
+    const handleEscape = (e) => {
+      if (e.key === "Escape") setStatusDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [statusDropdownOpen]);
 
   useEffect(() => {
     if (!hasPermission("CUSTOMER_VIEW_DETAILS")) {
@@ -92,6 +131,31 @@ const CustomerDetails = () => {
     error: customerError,
     refetch: refetchCustomer,
   } = useCustomerData(id);
+
+  const handleExecuteStatusChange = useCallback(
+    (newStatus) => {
+      setStatusDropdownOpen(false);
+      setSuspendModal({ isOpen: false });
+      updateStatusMutation.mutate(newStatus, {
+        onSuccess: () => {
+          refetchCustomer();
+        },
+      });
+    },
+    [updateStatusMutation, refetchCustomer],
+  );
+
+  const handleStatusOptionClick = useCallback(
+    (newStatus) => {
+      setStatusDropdownOpen(false);
+      if (newStatus === "Suspended") {
+        setSuspendModal({ isOpen: true });
+      } else {
+        handleExecuteStatusChange(newStatus);
+      }
+    },
+    [handleExecuteStatusChange],
+  );
 
   const {
     salesData,
@@ -152,13 +216,6 @@ const CustomerDetails = () => {
       description: `Are you sure you want to delete customer "${customerData?.name}"? This action cannot be undone.`,
     });
   }, [customerData?.name]);
-
-  const handleSalesPageChange = useCallback(
-    (page) => {
-      fetchSales(page);
-    },
-    [fetchSales],
-  );
 
   const handleDeleteDoc = (docId) => {
     setDeleteDocModal({ isOpen: true, docId });
@@ -316,7 +373,71 @@ const CustomerDetails = () => {
                         </span>
                       )}
                       <CustomerTypePill type={customerData?.customerType} />
-                      <StatusBadge status={customerData?.customerStatus} size="sm" />
+                      {hasPermission("CUSTOMER_UPDATE") ? (
+                        <div className="relative inline-block" ref={statusDropdownRef}>
+                          <button
+                            type="button"
+                            onClick={() => setStatusDropdownOpen((prev) => !prev)}
+                            disabled={updateStatusMutation.isPending}
+                            className="inline-flex items-center gap-1 cursor-pointer group transition-all rounded-full hover:ring-2 hover:ring-offset-1 hover:ring-gray-300 focus:outline-none"
+                            aria-haspopup="listbox"
+                            aria-expanded={statusDropdownOpen}
+                            aria-label="Change customer status"
+                            id="customer-status-trigger"
+                          >
+                            <StatusBadge status={customerData?.customerStatus} size="sm" />
+                            {updateStatusMutation.isPending ? (
+                              <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin" />
+                            ) : (
+                              <ChevronDown
+                                className={`w-3.5 h-3.5 text-gray-400 transition-transform group-hover:text-gray-600 ${
+                                  statusDropdownOpen ? "rotate-180" : ""
+                                }`}
+                              />
+                            )}
+                          </button>
+                          {statusDropdownOpen && (
+                            <div
+                              className="absolute z-30 mt-1.5 left-0 min-w-[160px] bg-white rounded-lg shadow-lg border border-gray-200 py-1 animate-in fade-in slide-in-from-top-1 duration-150"
+                              role="listbox"
+                              aria-label="Select customer status"
+                            >
+                              {CUSTOMER_STATUS_OPTIONS.map((option) => {
+                                const isActive =
+                                  option.value === customerData?.customerStatus;
+                                return (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    role="option"
+                                    aria-selected={isActive}
+                                    onClick={() =>
+                                      !isActive &&
+                                      handleStatusOptionClick(option.value)
+                                    }
+                                    className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2 ${
+                                      isActive
+                                        ? "bg-gray-50 text-gray-400 cursor-default font-medium"
+                                        : "text-gray-700 hover:bg-gray-50 cursor-pointer"
+                                    }`}
+                                    disabled={isActive}
+                                    id={`customer-status-option-${option.value.toLowerCase()}`}
+                                  >
+                                    <StatusBadge status={option.value} size="sm" />
+                                    {isActive && (
+                                      <span className="ml-auto text-xs text-gray-400">
+                                        Current
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <StatusBadge status={customerData?.customerStatus} size="sm" />
+                      )}
                     </>
                   )}
                 </div>
@@ -324,6 +445,25 @@ const CustomerDetails = () => {
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
+              {hasPermission("SALE_CREATE") && (
+                <Button
+                  onClick={() => setIsAddSaleOpen(true)}
+                  disabled={customerData?.customerStatus === "Suspended"}
+                  variant="secondary"
+                  size="sm"
+                  className="flex items-center justify-center flex-1 sm:flex-initial"
+                  title={
+                    customerData?.customerStatus === "Suspended"
+                      ? "Cannot create sales for suspended customer"
+                      : "Create a new sale for this customer"
+                  }
+                  aria-label="New Sale for Customer"
+                  id="customer-new-sale-btn"
+                >
+                  <Plus className="mr-1.5 w-4 h-4" aria-hidden="true" />
+                  New Sale
+                </Button>
+              )}
               {hasPermission("CUSTOMER_UPDATE") && (
                 <Button
                   onClick={() => navigate(`/customer-form/${id}`)}
@@ -352,6 +492,49 @@ const CustomerDetails = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* ===== SUSPENDED CUSTOMER ALERT BANNER ===== */}
+        <AnimatePresence>
+          {customerData?.customerStatus === "Suspended" && (
+            <motion.div
+              layout
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="overflow-hidden mb-4 sm:mb-6"
+            >
+              <div className="p-4 lg:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50/70 shadow-sm">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-4 flex-shrink-0">
+                    <UserX className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-red-600 font-bold uppercase tracking-wider mb-0.5">
+                      Account Status
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      Customer is currently <span className="text-red-600 font-bold">Suspended</span>. New sales and invoices cannot be issued for this customer.
+                    </p>
+                  </div>
+                </div>
+                {hasPermission("CUSTOMER_UPDATE") && (
+                  <Button
+                    onClick={() => handleExecuteStatusChange("Active")}
+                    disabled={updateStatusMutation.isPending}
+                    isLoading={updateStatusMutation.isPending}
+                    variant="primary"
+                    size="sm"
+                    className="!bg-emerald-600 hover:!bg-emerald-700 text-white font-semibold whitespace-nowrap shadow-sm"
+                    id="reactivate-customer-banner-btn"
+                  >
+                    Reactivate Customer
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ===== OUTSTANDING OPENING BALANCE ALERT ===== */}
         <AnimatePresence>
@@ -597,6 +780,12 @@ const CustomerDetails = () => {
                   <div className="flex gap-2">
                     <Button
                       onClick={() => setIsAddCreditModalOpen(true)}
+                      disabled={customerData?.customerStatus === "Suspended"}
+                      title={
+                        customerData?.customerStatus === "Suspended"
+                          ? "Cannot add credit to a suspended customer. Please activate the customer first."
+                          : "Add store credit"
+                      }
                       variant="primary"
                       size="sm"
                     >
@@ -793,6 +982,29 @@ const CustomerDetails = () => {
         customerId={id}
         creditBalance={customerData?.creditBalance || 0}
       />
+      <ConfirmationModal
+        isOpen={suspendModal.isOpen}
+        onClose={() => setSuspendModal({ isOpen: false })}
+        onConfirm={() => handleExecuteStatusChange("Suspended")}
+        title="Suspend Customer"
+        description={`Are you sure you want to suspend customer "${customerData?.name}"? Suspended customers cannot make new purchases or be selected for new sales.`}
+        confirmText="Suspend Customer"
+        cancelText="Cancel"
+        isConfirming={updateStatusMutation.isPending}
+        icon={UserX}
+        variant="danger"
+      />
+      {hasPermission("SALE_CREATE") && (
+        <AddSalesForm
+          isOpen={isAddSaleOpen}
+          onClose={() => setIsAddSaleOpen(false)}
+          defaultCustomerId={id}
+          onSaleAdded={() => {
+            refetchCustomer();
+            fetchSales(1);
+          }}
+        />
+      )}
     </motion.div>
   );
 };
