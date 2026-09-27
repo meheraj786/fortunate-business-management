@@ -227,8 +227,29 @@ const AddSales = ({
   const watchedCustomerType = watch("customerType");
   const watchedCustomerId = watch("customerId");
   const selectedCustomer = useMemo(() => {
-    return customers.find((c) => c._id === watchedCustomerId);
-  }, [customers, watchedCustomerId]);
+    const found = customers.find((c) => c._id === watchedCustomerId);
+    if (found) return found;
+    // Fallback for edit mode if the sale's customer was subsequently suspended
+    if (isEditMode && editData?.customer) {
+      const editCId =
+        editData.customer?.id ||
+        editData.customer?.customerId?.id ||
+        editData.customer?.customerId?._id ||
+        editData.customer?.customerId ||
+        editData.customer?._id;
+      if (String(editCId) === String(watchedCustomerId)) {
+        return {
+          _id: watchedCustomerId,
+          name: editData.customer.name,
+          phone: editData.customer.phone,
+          billingAddress: editData.customer.address,
+          address: editData.customer.address,
+          creditBalance: editData.customer.customerId?.creditBalance || 0,
+        };
+      }
+    }
+    return null;
+  }, [customers, watchedCustomerId, isEditMode, editData]);
 
   const createSaleMutation = useCreateSale();
   const updateSaleMutation = useUpdateSale(editData?._id);
@@ -424,9 +445,14 @@ const AddSales = ({
       customer:
         data.customerType === "existing"
           ? {
-            customerId: selectedCustomer?._id,
-            name: selectedCustomer?.name || "",
-            phone: selectedCustomer?.phone || "",
+            customerId: selectedCustomer?._id || data.customerId,
+            name: selectedCustomer?.name || data.customerName || "",
+            phone: selectedCustomer?.phone || data.customerPhone || "",
+            address:
+              selectedCustomer?.billingAddress ||
+              selectedCustomer?.address ||
+              data.customerAddress ||
+              "",
           }
           : {
             customerId: null,

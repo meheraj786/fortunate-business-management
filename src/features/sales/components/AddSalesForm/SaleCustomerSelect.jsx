@@ -25,13 +25,60 @@ const SaleCustomerSelect = ({
   const watchedCustomerId = watch("customerId");
   const selectedCustomer = customers?.find((c) => c._id === watchedCustomerId);
 
+  // Compute safe options for Combobox:
+  // 1. Exclude any suspended customers for new sales selection
+  // 2. Format label as: Name (CustomerID) - Phone for comprehensive autocomplete
+  // 3. In edit mode, if the assigned customer became suspended after sale creation,
+  //    preserve them with a [Suspended] indicator so the UI displays their name cleanly.
+  const customerOptions = React.useMemo(() => {
+    if (!Array.isArray(customers)) return [];
+
+    const activeCustomers = customers.filter(
+      (c) => c.customerStatus !== "Suspended"
+    );
+
+    if (isEditMode && watchedCustomerId) {
+      const isAlreadyIncluded = activeCustomers.some(
+        (c) => String(c._id) === String(watchedCustomerId)
+      );
+
+      if (!isAlreadyIncluded) {
+        const fullCustomer = customers.find(
+          (c) => String(c._id) === String(watchedCustomerId)
+        );
+        const name = fullCustomer?.name || watch("customerName") || "Customer";
+        const phone = fullCustomer?.phone || watch("customerPhone") || "";
+        const cId = fullCustomer?.customerId || "";
+
+        return [
+          {
+            value: watchedCustomerId,
+            label: `${name}${cId ? ` (${cId})` : ""}${phone ? ` - ${phone}` : ""} [Suspended]`,
+          },
+          ...activeCustomers.map((c) => ({
+            value: c._id,
+            label: `${c.name}${c.customerId ? ` (${c.customerId})` : ""}${c.phone ? ` - ${c.phone}` : ""}`,
+          })),
+        ];
+      }
+    }
+
+    return activeCustomers.map((c) => ({
+      value: c._id,
+      label: `${c.name}${c.customerId ? ` (${c.customerId})` : ""}${c.phone ? ` - ${c.phone}` : ""}`,
+    }));
+  }, [customers, isEditMode, watchedCustomerId, watch]);
+
   const handleCustomerSelect = (customerId) => {
     const customer = customers.find((c) => c._id === customerId);
     if (customer) {
       setValue("customerId", customer._id);
       setValue("customerName", customer.name || "");
       setValue("customerPhone", customer.phone || "");
-      setValue("customerAddress", customer.address || "");
+      setValue(
+        "customerAddress",
+        customer.billingAddress || customer.address || ""
+      );
     }
   };
 
@@ -74,14 +121,11 @@ const SaleCustomerSelect = ({
                 required={true}
                 control={control}
                 error={errors.customerId?.message}
-                options={customers.map((c) => ({
-                  value: c._id,
-                  label: c.phone ? `${c.name} - ${c.phone}` : c.name,
-                }))}
+                options={customerOptions}
                 validation={{ required: "Customer is required" }}
                 icon={User}
                 disabled={isEditMode || isInitialLoading}
-                placeholder="Search customer..."
+                placeholder="Search customer by name, phone or ID..."
                 onChange={(val) => {
                   setValue("customerId", val, { shouldValidate: true });
                   handleCustomerSelect(val);
@@ -104,7 +148,10 @@ const SaleCustomerSelect = ({
           </div>
           {selectedCustomer && (
             <div className="mt-2 text-sm text-[var(--color-primary)] font-medium bg-blue-50 p-2 rounded-md inline-block">
-              Available Credit: <span className="font-bold">{formatCurrency(selectedCustomer.creditBalance || 0)}</span>
+              Available Credit:{" "}
+              <span className="font-bold">
+                {formatCurrency(selectedCustomer.creditBalance || 0)}
+              </span>
             </div>
           )}
 
@@ -121,12 +168,19 @@ const SaleCustomerSelect = ({
                     data: [...existingList, newCustomer.data],
                   };
                 });
-                
+
                 setTimeout(() => {
-                  setValue("customerId", newCustomer.data._id, { shouldValidate: true });
+                  setValue("customerId", newCustomer.data._id, {
+                    shouldValidate: true,
+                  });
                   setValue("customerName", newCustomer.data.name || "");
                   setValue("customerPhone", newCustomer.data.phone || "");
-                  setValue("customerAddress", newCustomer.data.address || "");
+                  setValue(
+                    "customerAddress",
+                    newCustomer.data.billingAddress ||
+                      newCustomer.data.address ||
+                      ""
+                  );
                 }, 100);
               }
             }}
